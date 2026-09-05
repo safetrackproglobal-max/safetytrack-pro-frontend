@@ -1,6 +1,4 @@
-
-@"
-{
+﻿{
   "buildCommand": "npm run build",
   "outputDirectory": "build",
   "devCommand": "npm start",
@@ -24,4 +22,3 @@
     }
   ]
 }
-"@ | Out-File -FilePath "vercel.json" -Encoding utf8
