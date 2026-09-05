@@ -1,0 +1,197 @@
+{
+  "version": "1.0",
+  "engine": "google-ai-search",
+  "last_updated": "2026-09-05",
+  "sitemap": [
+    {
+      "url": "https://safetrackproglobal.com/",
+      "title": "SafeTrack Pro Global - AI-Powered Safety Management Platform",
+      "description": "Complete HSE software platform for risk assessment, incident reporting, PTW, compliance management, and AI-powered safety solutions.",
+      "last_modified": "2026-09-05",
+      "priority": 1.0,
+      "change_frequency": "daily",
+      "category": "home",
+      "keywords": ["HSE software", "safety management", "AI safety", "compliance", "risk assessment"]
+    },
+    {
+      "url": "https://safetrackproglobal.com/features",
+      "title": "Complete Safety Management Features",
+      "description": "Enterprise-grade safety management features including compliance, AI risk assessment, incident management, training, audit, equipment safety, environmental monitoring, and contractor management.",
+      "last_modified": "2026-09-05",
+      "priority": 0.9,
+      "change_frequency": "weekly",
+      "category": "features",
+      "keywords": ["safety features", "compliance management", "AI risk assessment", "incident reporting", "training management"]
+    },
+    {
+      "url": "https://safetrackproglobal.com/risk-assessment",
+      "title": "AI Risk Assessment - Predictive Safety Analytics",
+      "description": "AI-powered risk assessment with predictive analytics and machine learning for proactive risk management and incident prevention across all industries.",
+      "last_modified": "2026-09-05",
+      "priority": 0.9,
+      "change_frequency": "weekly",
+      "category": "features",
+      "keywords": ["risk assessment", "AI risk", "predictive analytics", "hazard identification", "safety analysis"]
+    },
+    {
+      "url": "https://safetrackproglobal.com/dashboard",
+      "title": "Real-Time Safety Dashboard",
+      "description": "Monitor safety metrics, incidents, and compliance status with customizable dashboards for any industry. Real-time data visualization and reporting.",
+      "last_modified": "2026-09-05",
+      "priority": 0.9,
+      "change_frequency": "weekly",
+      "category": "features",
+      "keywords": ["safety dashboard", "real-time monitoring", "data visualization", "KPI tracking", "performance metrics"]
+    },
+    {
+      "url": "https://safetrackproglobal.com/incidents",
+      "title": "Incident Management & Reporting",
+      "description": "Real-time incident reporting, investigation, and corrective action tracking. Multi-industry incident management with industry-specific forms.",
+      "last_modified": "2026-09-05",
+      "priority": 0.9,
+      "change_frequency": "weekly",
+      "category": "features",
+      "keywords": ["incident reporting", "incident management", "accident investigation", "near miss reporting", "corrective action"]
+    },
+    {
+      "url": "https://safetrackproglobal.com/documents",
+      "title": "Smart Document Management System",
+      "description": "Create, manage, and share safety documents, SOPs, templates, and compliance records with intelligent version control and AI classification.",
+      "last_modified": "2026-09-05",
+      "priority": 0.8,
+      "change_frequency": "weekly",
+      "category": "features",
+      "keywords": ["document management", "HSE documents", "SOPs", "safety policies", "compliance records"]
+    },
+    {
+      "url": "https://safetrackproglobal.com/camera-ai",
+      "title": "AI Camera Monitoring System",
+      "description": "Real-time video analysis with PPE compliance detection, hazard identification, behavior analysis, and safety violation alerts across all industries.",
+      "last_modified": "2026-09-05",
+      "priority": 0.9,
+      "change_frequency": "weekly",
+      "category": "features",
+      "keywords": ["AI camera monitoring", "PPE detection", "safety compliance", "video analysis", "hazard detection"]
+    },
+    {
+      "url": "https://safetrackproglobal.com/environmental",
+      "title": "Environmental Management System",
+      "description": "Real-time environmental monitoring, compliance tracking, sustainability goals, ESG reporting, and carbon footprint tracking.",
+      "last_modified": "2026-09-05",
+      "priority": 0.9,
+      "change_frequency": "weekly",
+      "category": "features",
+      "keywords": ["environmental monitoring", "sustainability", "ESG reporting", "carbon footprint", "compliance tracking"]
+    },
+    {
+      "url": "https://safetrackproglobal.com/ptw",
+      "title": "Permit to Work System",
+      "description": "Create, approve, and manage work permits and authorizations with complete audit trails, risk assessments, and real-time monitoring.",
+      "last_modified": "2026-09-05",
+      "priority": 0.9,
+      "change_frequency": "weekly",
+      "category": "features",
+      "keywords": ["permit to work", "PTW", "work authorization", "job safety analysis", "safety permits"]
+    },
+    {
+      "url": "https://safetrackproglobal.com/hse-exams",
+      "title": "HSE Exams & Certification",
+      "description": "Take HSE certification exams and track competency with AI-powered training and professional credentialing. ISO/IEC 17024:2012 compliant.",
+      "last_modified": "2026-09-05",
+      "priority": 0.8,
+      "change_frequency": "weekly",
+      "category": "features",
+      "keywords": ["HSE exams", "safety certification", "competency tracking", "professional credentialing", "safety training"]
+    },
+    {
+      "url": "https://safetrackproglobal.com/industries/healthcare",
+      "title": "Healthcare Safety Management",
+      "description": "Patient safety, infection control, medical equipment compliance, and staff safety management with AI-powered healthcare solutions.",
+      "last_modified": "2026-09-05",
+      "priority": 0.8,
+      "change_frequency": "monthly",
+      "category": "industries",
+      "keywords": ["healthcare safety", "patient safety", "infection control", "medical compliance", "staff safety"]
+    },
+    {
+      "url": "https://safetrackproglobal.com/industries/oil-gas",
+      "title": "Oil & Gas Safety Management",
+      "description": "Process safety management, HAZOP studies, permit-to-work systems, and emergency response for the energy industry.",
+      "last_modified": "2026-09-05",
+      "priority": 0.8,
+      "change_frequency": "monthly",
+      "category": "industries",
+      "keywords": ["oil and gas safety", "process safety", "HAZOP studies", "permit to work", "emergency response"]
+    },
+    {
+      "url": "https://safetrackproglobal.com/industries/construction",
+      "title": "Construction Site Safety Management",
+      "description": "Site safety, fall protection, equipment inspections, and contractor management with AI-powered construction safety solutions.",
+      "last_modified": "2026-09-05",
+      "priority": 0.8,
+      "change_frequency": "monthly",
+      "category": "industries",
+      "keywords": ["construction safety", "site safety", "fall protection", "equipment inspections", "contractor management"]
+    },
+    {
+      "url": "https://safetrackproglobal.com/industries/manufacturing",
+      "title": "Manufacturing Safety Management",
+      "description": "Machine safety, ergonomics, chemical handling, and industrial hygiene with AI-powered manufacturing safety solutions.",
+      "last_modified": "2026-09-05",
+      "priority": 0.8,
+      "change_frequency": "monthly",
+      "category": "industries",
+      "keywords": ["manufacturing safety", "machine safety", "ergonomics", "chemical handling", "industrial hygiene"]
+    },
+    {
+      "url": "https://safetrackproglobal.com/pricing",
+      "title": "SafeTrack Pro Pricing Plans",
+      "description": "Flexible pricing plans for every organization: Starter (Free), Professional ($99/month), and Enterprise (Custom). Start your free trial today.",
+      "last_modified": "2026-09-05",
+      "priority": 0.8,
+      "change_frequency": "weekly",
+      "category": "pricing",
+      "keywords": ["safety software pricing", "HSE pricing", "free trial", "subscription plans", "enterprise pricing"]
+    },
+    {
+      "url": "https://safetrackproglobal.com/about",
+      "title": "About SafeTrack Pro Global",
+      "description": "AI-powered safety management platform by Abigalistic Studios. Serving 8+ industries with 99.5% compliance rate and 100K+ incidents prevented.",
+      "last_modified": "2026-09-05",
+      "priority": 0.7,
+      "change_frequency": "monthly",
+      "category": "company",
+      "keywords": ["about us", "company", "Abigalistic Studios", "safety platform", "mission"]
+    },
+    {
+      "url": "https://safetrackproglobal.com/contact",
+      "title": "Contact SafeTrack Pro Global",
+      "description": "Contact our team for sales inquiries, support, and partnership opportunities. Email: info@safetrackproglobal.com, Phone: +974 33251705.",
+      "last_modified": "2026-09-05",
+      "priority": 0.7,
+      "change_frequency": "monthly",
+      "category": "company",
+      "keywords": ["contact us", "support", "sales", "partnerships", "help"]
+    },
+    {
+      "url": "https://safetrackproglobal.com/blog",
+      "title": "Safety Management Blog",
+      "description": "Industry insights, safety tips, compliance updates, and best practices for safety management across all industries.",
+      "last_modified": "2026-09-05",
+      "priority": 0.7,
+      "change_frequency": "weekly",
+      "category": "resources",
+      "keywords": ["safety blog", "industry insights", "compliance updates", "safety tips", "best practices"]
+    },
+    {
+      "url": "https://safetrackproglobal.com/docs",
+      "title": "API Documentation",
+      "description": "Complete API documentation for integrating SafeTrack Pro with your existing ERP, CMMS, and IoT systems.",
+      "last_modified": "2026-09-05",
+      "priority": 0.6,
+      "change_frequency": "monthly",
+      "category": "resources",
+      "keywords": ["API documentation", "integration", "ERP", "CMMS", "IoT"]
+    }
+  ]
+}

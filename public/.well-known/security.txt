@@ -1,0 +1,33 @@
+# ============================================
+# SafeTrack Pro Global - Security Policy
+# ============================================
+# This file provides security researchers with
+# information on how to report vulnerabilities.
+# ============================================
+
+# Contact Information
+Contact: mailto:security@safetrackproglobal.com
+Contact: mailto:abigalisticstudious@gmail.com
+Contact: https://safetrackproglobal.com/contact
+
+# Encryption (PGP Key)
+Encryption: https://safetrackproglobal.com/pgp-key.txt
+
+# Disclosure Policy
+Policy: https://safetrackproglobal.com/security
+Policy: https://safetrackproglobal.com/security/disclosure-policy
+
+# Preferred Languages
+Preferred-Languages: en, es, ar, fr, zh, hi, pt, ru, ja, de
+
+# Acknowledgment
+Acknowledgments: https://safetrackproglobal.com/security/acknowledgments
+
+# Hiring
+Hiring: https://safetrackproglobal.com/careers
+
+# Bug Bounty
+Canonical: https://safetrackproglobal.com/security/bounty
+
+# Expiry Date
+Expires: 2027-12-31T23:59:59.000Z

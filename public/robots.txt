@@ -1,0 +1,153 @@
+# ============================================
+# SafeTrack Pro Global - robots.txt
+# AI-Powered Safety Management Platform
+# ============================================
+# This file controls how search engines and AI crawlers
+# interact with SafeTrack Pro Global.
+# ============================================
+
+# ============================================
+# ALLOW ALL MAJOR SEARCH ENGINES
+# ============================================
+User-agent: *
+Allow: /
+
+# ============================================
+# ALLOW AI RETRIEVAL CRAWLERS
+# AI crawlers need access to index your content
+# for AI-powered search and answer engines.
+# ============================================
+
+# OpenAI / ChatGPT
+User-agent: GPTBot
+Allow: /
+Allow: /sitemap.xml
+
+# ChatGPT-User (for browsing)
+User-agent: ChatGPT-User
+Allow: /
+
+# OpenAI OAI-SearchBot
+User-agent: OAI-SearchBot
+Allow: /
+Allow: /sitemap.xml
+
+# Anthropic / Claude
+User-agent: ClaudeBot
+Allow: /
+Allow: /sitemap.xml
+
+# Claude-Web
+User-agent: Claude-Web
+Allow: /
+
+# Perplexity AI
+User-agent: PerplexityBot
+Allow: /
+Allow: /sitemap.xml
+
+# Google AI / Gemini
+User-agent: Google-Extended
+Allow: /
+Allow: /sitemap.xml
+
+# Apple AI / Applebot-Extended
+User-agent: Applebot-Extended
+Allow: /
+
+# Amazon AI / Amazonbot
+User-agent: Amazonbot
+Allow: /
+
+# ============================================
+# BLOCK BAD BOTS & SCRAPERS
+# ============================================
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: Dotbot
+Disallow: /
+
+User-agent: AspiegelBot
+Disallow: /
+
+# ============================================
+# ALLOW ALL CORE PAGES FOR SEO
+# ============================================
+
+# Core Features
+Allow: /features
+Allow: /dashboard
+Allow: /risk-assessment
+Allow: /incidents
+Allow: /documents
+Allow: /camera-ai
+Allow: /environmental
+
+# Industry Solutions
+Allow: /industries/healthcare
+Allow: /industries/oil-gas
+Allow: /industries/construction
+Allow: /industries/manufacturing
+Allow: /industries/maritime
+Allow: /industries/aviation
+Allow: /industries/mining
+Allow: /industries/chemical
+
+# Company & Resources
+Allow: /about
+Allow: /contact
+Allow: /blog
+Allow: /pricing
+Allow: /subscription
+Allow: /demo
+Allow: /support
+
+# PWA & Assets
+Allow: /manifest.json
+Allow: /favicon.ico
+Allow: /android-chrome-*.png
+Allow: /apple-touch-icon.png
+Allow: /safetrack-logo.png
+
+# API Documentation
+Allow: /docs
+Allow: /api
+
+# ============================================
+# BLOCK SENSITIVE & ADMIN AREAS
+# ============================================
+Disallow: /admin
+Disallow: /super-admin
+Disallow: /api/private
+Disallow: /auth
+Disallow: /login
+Disallow: /signup
+Disallow: /password-reset
+Disallow: /profile
+Disallow: /settings
+Disallow: /_next
+Disallow: /static
+
+# ============================================
+# SITEMAP LOCATIONS
+# ============================================
+Sitemap: https://safetrackproglobal.com/sitemap.xml
+Sitemap: https://safetrackproglobal.com/sitemap-pages.xml
+Sitemap: https://safetrackproglobal.com/sitemap-blog.xml
+
+# ============================================
+# CRAWL DELAY (Respect server resources)
+# ============================================
+Crawl-delay: 2
+
+# ============================================
+# HOST
+# ============================================
+Host: https://safetrackproglobal.com

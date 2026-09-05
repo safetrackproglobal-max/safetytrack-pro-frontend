@@ -1,0 +1,494 @@
+{
+  "name": "SafeTrack Pro Global - AI-Powered HSE & Safety Management Platform",
+  "short_name": "SafeTrack Pro",
+  "description": "Complete HSE software platform for risk assessment, incident reporting, PTW, compliance management, and AI-powered safety solutions across all industries.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#2563eb",
+  "background_color": "#1a202c",
+  "categories": [
+    "business",
+    "productivity",
+    "safety",
+    "healthcare",
+    "industrial",
+    "construction",
+    "oil-gas",
+    "manufacturing",
+    "environmental",
+    "compliance"
+  ],
+  "lang": "en",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "i18n": {
+    "languages": [
+      "en",
+      "es",
+      "fr",
+      "ar",
+      "zh",
+      "hi",
+      "pt",
+      "ru",
+      "ja",
+      "de"
+    ]
+  },
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "apple touch any"
+    },
+    {
+      "src": "/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/safetrack-logo.png",
+      "sizes": "500x500",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": {
+        "en": "SafeTrack Pro - Complete HSE Dashboard with Risk Assessment & Compliance Monitoring",
+        "es": "SafeTrack Pro - Panel HSE Completo con Evaluación de Riesgos y Monitoreo de Cumplimiento",
+        "fr": "SafeTrack Pro - Tableau de Bord HSE Complet avec Évaluation des Risques et Surveillance de la Conformité",
+        "ar": "SafeTrack Pro - لوحة تحكم السلامة والصحة والبيئة الكاملة مع تقييم المخاطر ومراقبة الامتثال",
+        "zh": "SafeTrack Pro - 完整的HSE仪表板，包含风险评估和合规监控",
+        "hi": "SafeTrack Pro - जोखिम मूल्यांकन और अनुपालन निगरानी के साथ पूर्ण HSE डैशबोर्ड",
+        "pt": "SafeTrack Pro - Painel HSE Completo com Avaliação de Riscos e Monitoramento de Conformidade",
+        "ru": "SafeTrack Pro - Полная панель управления HSE с оценкой рисков и мониторингом соответствия",
+        "ja": "SafeTrack Pro - リスク評価とコンプライアンス監視を備えた完全なHSEダッシュボード",
+        "de": "SafeTrack Pro - Vollständiges HSE-Dashboard mit Risikobewertung und Compliance-Überwachung"
+      }
+    },
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "360x720",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": {
+        "en": "SafeTrack Pro Mobile - Incident Reporting, PTW & Safety Management",
+        "es": "SafeTrack Pro Móvil - Reporte de Incidentes, PTW y Gestión de Seguridad",
+        "fr": "SafeTrack Pro Mobile - Signalement d'Incidents, PTW et Gestion de la Sécurité",
+        "ar": "SafeTrack Pro المحمول - الإبلاغ عن الحوادث، تصريح العمل وإدارة السلامة",
+        "zh": "SafeTrack Pro 移动端 - 事件报告，作业许可和安全管理",
+        "hi": "SafeTrack Pro मोबाइल - घटना रिपोर्टिंग, PTW और सुरक्षा प्रबंधन",
+        "pt": "SafeTrack Pro Móvel - Relatório de Incidentes, PTW e Gestão de Segurança",
+        "ru": "SafeTrack Pro Мобильный - Отчетность по инцидентам, PTW и управление безопасностью",
+        "ja": "SafeTrack Pro モバイル - インシデント報告、PTWおよび安全管理",
+        "de": "SafeTrack Pro Mobil - Vorfallberichterstattung, PTW und Sicherheitsmanagement"
+      }
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": {
+        "en": "Risk Assessment",
+        "es": "Evaluación de Riesgos",
+        "fr": "Évaluation des Risques",
+        "ar": "تقييم المخاطر",
+        "zh": "风险评估",
+        "hi": "जोखिम मूल्यांकन",
+        "pt": "Avaliação de Riscos",
+        "ru": "Оценка рисков",
+        "ja": "リスク評価",
+        "de": "Risikobewertung"
+      },
+      "short_name": {
+        "en": "Risk Assessment",
+        "es": "Evaluación",
+        "fr": "Évaluation",
+        "ar": "تقييم",
+        "zh": "风险评估",
+        "hi": "जोखिम",
+        "pt": "Avaliação",
+        "ru": "Оценка",
+        "ja": "リスク評価",
+        "de": "Risiko"
+      },
+      "description": {
+        "en": "AI-powered risk assessment and hazard identification for all industries",
+        "es": "Evaluación de riesgos y identificación de peligros con IA para todas las industrias",
+        "fr": "Évaluation des risques et identification des dangers par IA pour toutes les industries",
+        "ar": "تقييم المخاطر وتحديد المخاطر بالذكاء الاصطناعي لجميع الصناعات",
+        "zh": "适用于所有行业的人工智能风险评估和危害识别",
+        "hi": "सभी उद्योगों के लिए AI-संचालित जोखिम मूल्यांकन और खतरा पहचान",
+        "pt": "Avaliação de riscos e identificação de perigos com IA para todas as indústrias",
+        "ru": "Оценка рисков и идентификация опасностей на основе ИИ для всех отраслей",
+        "ja": "すべての業界向けのAI駆動型リスク評価とハザード特定",
+        "de": "KI-gestützte Risikobewertung und Gefahrenidentifizierung für alle Branchen"
+      },
+      "url": "/risk-assessment",
+      "icons": [
+        {
+          "src": "/android-chrome-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": {
+        "en": "HSE Documents",
+        "es": "Documentos HSE",
+        "fr": "Documents HSE",
+        "ar": "وثائق الصحة والسلامة والبيئة",
+        "zh": "HSE文档",
+        "hi": "HSE दस्तावेज़",
+        "pt": "Documentos HSE",
+        "ru": "Документы HSE",
+        "ja": "HSEドキュメント",
+        "de": "HSE-Dokumente"
+      },
+      "short_name": {
+        "en": "HSE Docs",
+        "es": "Docs HSE",
+        "fr": "Docs HSE",
+        "ar": "وثائق",
+        "zh": "HSE文档",
+        "hi": "HSE डॉक्स",
+        "pt": "Docs HSE",
+        "ru": "HSE Док",
+        "ja": "HSE資料",
+        "de": "HSE-Docs"
+      },
+      "description": {
+        "en": "Access all HSE documents, SOPs, safety policies, and compliance records",
+        "es": "Acceda a todos los documentos HSE, SOP, políticas de seguridad y registros de cumplimiento",
+        "fr": "Accédez à tous les documents HSE, SOP, politiques de sécurité et registres de conformité",
+        "ar": "الوصول إلى جميع وثائق الصحة والسلامة والبيئة، إجراءات التشغيل القياسية، سياسات السلامة وسجلات الامتثال",
+        "zh": "访问所有HSE文档，SOP，安全政策和合规记录",
+        "hi": "सभी HSE दस्तावेज़, SOP, सुरक्षा नीतियां और अनुपालन रिकॉर्ड तक पहुंचें",
+        "pt": "Acesse todos os documentos HSE, SOPs, políticas de segurança e registros de conformidade",
+        "ru": "Доступ ко всем документам HSE, SOP, политике безопасности и записям о соответствии",
+        "ja": "すべてのHSEドキュメント、SOP、安全ポリシー、コンプライアンス記録にアクセス",
+        "de": "Zugriff auf alle HSE-Dokumente, SOPs, Sicherheitsrichtlinien und Compliance-Aufzeichnungen"
+      },
+      "url": "/documents",
+      "icons": [
+        {
+          "src": "/android-chrome-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": {
+        "en": "Permit to Work (PTW)",
+        "es": "Permiso de Trabajo (PTW)",
+        "fr": "Permis de Travail (PTW)",
+        "ar": "تصريح العمل (PTW)",
+        "zh": "作业许可 (PTW)",
+        "hi": "कार्य अनुमति (PTW)",
+        "pt": "Permissão de Trabalho (PTW)",
+        "ru": "Разрешение на работу (PTW)",
+        "ja": "作業許可証 (PTW)",
+        "de": "Arbeitsgenehmigung (PTW)"
+      },
+      "short_name": {
+        "en": "PTW",
+        "es": "PTW",
+        "fr": "PTW",
+        "ar": "تصريح",
+        "zh": "作业许可",
+        "hi": "PTW",
+        "pt": "PTW",
+        "ru": "PTW",
+        "ja": "PTW",
+        "de": "PTW"
+      },
+      "description": {
+        "en": "Create, approve, and manage work permits and authorizations",
+        "es": "Cree, apruebe y administre permisos de trabajo y autorizaciones",
+        "fr": "Créez, approuvez et gérez les permis de travail et les autorisations",
+        "ar": "إنشاء، الموافقة على وإدارة تصاريح العمل والتفويضات",
+        "zh": "创建、批准和管理工作许可和授权",
+        "hi": "कार्य अनुमतियाँ और प्राधिकरण बनाएं, अनुमोदित करें और प्रबंधित करें",
+        "pt": "Crie, aprove e gerencie permissões de trabalho e autorizações",
+        "ru": "Создавайте, утверждайте и управляйте разрешениями на работу и авторизациями",
+        "ja": "作業許可証と認証を作成、承認、管理",
+        "de": "Arbeitsgenehmigungen und Autorisierungen erstellen, genehmigen und verwalten"
+      },
+      "url": "/ptw",
+      "icons": [
+        {
+          "src": "/android-chrome-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": {
+        "en": "HSE Exams",
+        "es": "Exámenes HSE",
+        "fr": "Examens HSE",
+        "ar": "امتحانات الصحة والسلامة والبيئة",
+        "zh": "HSE考试",
+        "hi": "HSE परीक्षा",
+        "pt": "Exames HSE",
+        "ru": "Экзамены HSE",
+        "ja": "HSE試験",
+        "de": "HSE-Prüfungen"
+      },
+      "short_name": {
+        "en": "Exams",
+        "es": "Exámenes",
+        "fr": "Examens",
+        "ar": "امتحانات",
+        "zh": "考试",
+        "hi": "परीक्षा",
+        "pt": "Exames",
+        "ru": "Экзамены",
+        "ja": "試験",
+        "de": "Prüfungen"
+      },
+      "description": {
+        "en": "Take HSE certification exams and track competency",
+        "es": "Realice exámenes de certificación HSE y realice un seguimiento de la competencia",
+        "fr": "Passez les examens de certification HSE et suivez les compétences",
+        "ar": "إجراء امتحانات شهادة الصحة والسلامة والبيئة وتتبع الكفاءة",
+        "zh": "参加HSE认证考试并跟踪能力",
+        "hi": "HSE प्रमाणन परीक्षा लें और दक्षता ट्रैक करें",
+        "pt": "Faça exames de certificação HSE e acompanhe a competência",
+        "ru": "Сдайте экзамены на сертификацию HSE и отслеживайте компетенцию",
+        "ja": "HSE認定試験を受け、能力を追跡",
+        "de": "HSE-Zertifizierungsprüfungen ablegen und Kompetenz verfolgen"
+      },
+      "url": "/hse-exams",
+      "icons": [
+        {
+          "src": "/android-chrome-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": {
+        "en": "Incident Reporting",
+        "es": "Reporte de Incidentes",
+        "fr": "Signalement d'Incidents",
+        "ar": "الإبلاغ عن الحوادث",
+        "zh": "事件报告",
+        "hi": "घटना रिपोर्टिंग",
+        "pt": "Relatório de Incidentes",
+        "ru": "Отчетность по инцидентам",
+        "ja": "インシデント報告",
+        "de": "Vorfallberichterstattung"
+      },
+      "short_name": {
+        "en": "Report",
+        "es": "Reporte",
+        "fr": "Signaler",
+        "ar": "إبلاغ",
+        "zh": "报告",
+        "hi": "रिपोर्ट",
+        "pt": "Relatório",
+        "ru": "Отчет",
+        "ja": "報告",
+        "de": "Bericht"
+      },
+      "description": {
+        "en": "Report safety incidents, near misses, and hazards in real-time",
+        "es": "Reporte incidentes de seguridad, cuasi accidentes y peligros en tiempo real",
+        "fr": "Signalez les incidents de sécurité, les quasi-accidents et les dangers en temps réel",
+        "ar": "الإبلاغ عن حوادث السلامة، الحوادث الوشيكة والمخاطر في الوقت الفعلي",
+        "zh": "实时报告安全事件、未遂事件和危险",
+        "hi": "वास्तविक समय में सुरक्षा घटनाओं, निकट-चूक और खतरों की रिपोर्ट करें",
+        "pt": "Relate incidentes de segurança, quase acidentes e perigos em tempo real",
+        "ru": "Сообщайте о происшествиях, близких промахах и опасностях в режиме реального времени",
+        "ja": "インシデント、ヒヤリハット、危険をリアルタイムで報告",
+        "de": "Melden Sie Sicherheitsvorfälle, Beinaheunfälle und Gefahren in Echtzeit"
+      },
+      "url": "/incidents/report",
+      "icons": [
+        {
+          "src": "/android-chrome-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": {
+        "en": "HSE Dashboard",
+        "es": "Panel HSE",
+        "fr": "Tableau de Bord HSE",
+        "ar": "لوحة تحكم الصحة والسلامة والبيئة",
+        "zh": "HSE仪表板",
+        "hi": "HSE डैशबोर्ड",
+        "pt": "Painel HSE",
+        "ru": "Панель управления HSE",
+        "ja": "HSEダッシュボード",
+        "de": "HSE-Dashboard"
+      },
+      "short_name": {
+        "en": "Dashboard",
+        "es": "Panel",
+        "fr": "Tableau",
+        "ar": "لوحة",
+        "zh": "仪表板",
+        "hi": "डैशबोर्ड",
+        "pt": "Painel",
+        "ru": "Панель",
+        "ja": "ダッシュボード",
+        "de": "Dashboard"
+      },
+      "description": {
+        "en": "Real-time safety performance metrics and compliance overview",
+        "es": "Métricas de desempeño de seguridad en tiempo real y descripción general de cumplimiento",
+        "fr": "Mesures de performance de sécurité en temps réel et aperçu de la conformité",
+        "ar": "مقاييس أداء السلامة في الوقت الفعلي ونظرة عامة على الامتثال",
+        "zh": "实时安全绩效指标和合规概览",
+        "hi": "वास्तविक समय सुरक्षा प्रदर्शन मेट्रिक्स और अनुपालन अवलोकन",
+        "pt": "Métricas de desempenho de segurança em tempo real e visão geral de conformidade",
+        "ru": "Показатели эффективности безопасности в реальном времени и обзор соответствия",
+        "ja": "リアルタイムの安全パフォーマンス指標とコンプライアンス概要",
+        "de": "Echtzeit-Sicherheitsleistungskennzahlen und Compliance-Übersicht"
+      },
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/android-chrome-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": {
+        "en": "AI Assistant",
+        "es": "Asistente IA",
+        "fr": "Assistant IA",
+        "ar": "مساعد الذكاء الاصطناعي",
+        "zh": "人工智能助手",
+        "hi": "AI सहायक",
+        "pt": "Assistente IA",
+        "ru": "ИИ-ассистент",
+        "ja": "AIアシスタント",
+        "de": "KI-Assistent"
+      },
+      "short_name": {
+        "en": "AI Help",
+        "es": "IA Ayuda",
+        "fr": "IA Aide",
+        "ar": "مساعدة الذكاء الاصطناعي",
+        "zh": "AI帮助",
+        "hi": "AI सहायता",
+        "pt": "IA Ajuda",
+        "ru": "ИИ Помощь",
+        "ja": "AIヘルプ",
+        "de": "KI-Hilfe"
+      },
+      "description": {
+        "en": "24/7 AI-powered safety guidance and compliance support",
+        "es": "Orientación de seguridad y soporte de cumplimiento con IA 24/7",
+        "fr": "Conseils de sécurité et support de conformité alimentés par IA 24h/24 et 7j/7",
+        "ar": "توجيه السلامة ودعم الامتثال بالذكاء الاصطناعي على مدار الساعة طوال أيام الأسبوع",
+        "zh": "全天候人工智能安全指导和合规支持",
+        "hi": "24/7 AI-संचालित सुरक्षा मार्गदर्शन और अनुपालन सहायता",
+        "pt": "Orientação de segurança e suporte de conformidade com IA 24/7",
+        "ru": "Круглосуточное руководство по безопасности и поддержка соответствия на основе ИИ",
+        "ja": "24時間365日のAI駆動型安全ガイダンスとコンプライアンスサポート",
+        "de": "24/7 KI-gestützte Sicherheitsberatung und Compliance-Unterstützung"
+      },
+      "url": "/ai-assistant",
+      "icons": [
+        {
+          "src": "/android-chrome-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": {
+        "en": "Environmental Monitoring",
+        "es": "Monitoreo Ambiental",
+        "fr": "Surveillance Environnementale",
+        "ar": "المراقبة البيئية",
+        "zh": "环境监测",
+        "hi": "पर्यावरण निगरानी",
+        "pt": "Monitoramento Ambiental",
+        "ru": "Мониторинг окружающей среды",
+        "ja": "環境モニタリング",
+        "de": "Umweltüberwachung"
+      },
+      "short_name": {
+        "en": "Environment",
+        "es": "Ambiente",
+        "fr": "Environnement",
+        "ar": "البيئة",
+        "zh": "环境",
+        "hi": "पर्यावरण",
+        "pt": "Ambiente",
+        "ru": "Экология",
+        "ja": "環境",
+        "de": "Umwelt"
+      },
+      "description": {
+        "en": "Real-time environmental compliance, sustainability tracking, and ESG reporting",
+        "es": "Cumplimiento ambiental en tiempo real, seguimiento de sostenibilidad e informes ESG",
+        "fr": "Conformité environnementale en temps réel, suivi de la durabilité et rapports ESG",
+        "ar": "الامتثال البيئي في الوقت الفعلي، تتبع الاستدامة وتقارير ESG",
+        "zh": "实时环境合规、可持续发展跟踪和ESG报告",
+        "hi": "वास्तविक समय पर्यावरण अनुपालन, स्थिरता ट्रैकिंग और ESG रिपोर्टिंग",
+        "pt": "Conformidade ambiental em tempo real, rastreamento de sustentabilidade e relatórios ESG",
+        "ru": "Мониторинг соответствия экологическим требованиям в реальном времени, отслеживание устойчивости и отчетность ESG",
+        "ja": "リアルタイムの環境コンプライアンス、サステナビリティ追跡、ESGレポート",
+        "de": "Echtzeit-Umweltkonformität, Nachhaltigkeitsverfolgung und ESG-Berichterstattung"
+      },
+      "url": "/environmental",
+      "icons": [
+        {
+          "src": "/android-chrome-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "share_target": {
+    "action": "/share",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
+}
