@@ -1,0 +1,504 @@
+/* src/components/documents/DocumentDashboard.css */
+
+.document-dashboard {
+  padding: 24px;
+  background: #f0f2f5;
+  min-height: 100%;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.dashboard-header {
+  margin-bottom: 20px;
+}
+
+.dashboard-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #262626;
+}
+
+/* ============================================================
+   QUICK ACTIONS CARD
+   ============================================================ */
+.quick-actions-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  margin-bottom: 16px;
+}
+
+.quick-actions-card .ant-card-body {
+  padding: 16px 20px;
+}
+
+.quick-actions-card .ant-btn {
+  border-radius: 20px;
+  font-size: 13px;
+  height: 36px;
+  padding: 0 20px;
+}
+
+.quick-actions-card .ant-btn-primary {
+  background: #1890ff;
+  border-color: #1890ff;
+}
+
+.quick-actions-card .ant-btn-primary:hover {
+  background: #40a9ff;
+  border-color: #40a9ff;
+}
+
+/* ============================================================
+   STATISTICS CARDS
+   ============================================================ */
+.dashboard-stats {
+  margin-bottom: 16px;
+}
+
+.dashboard-stats .stat-card {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: default;
+  height: 100%;
+  background: white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.dashboard-stats .stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-stats .stat-total {
+  border-left: 4px solid #1890ff;
+}
+
+.dashboard-stats .stat-draft {
+  border-left: 4px solid #d9d9d9;
+}
+
+.dashboard-stats .stat-review {
+  border-left: 4px solid #1890ff;
+}
+
+.dashboard-stats .stat-approved {
+  border-left: 4px solid #52c41a;
+}
+
+.dashboard-stats .stat-published {
+  border-left: 4px solid #1890ff;
+}
+
+.dashboard-stats .stat-archived {
+  border-left: 4px solid #faad14;
+}
+
+.dashboard-stats .stat-card .ant-statistic-title {
+  font-size: 12px;
+  color: #8c8c8c;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dashboard-stats .stat-card .ant-statistic-content {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+/* ============================================================
+   CHART CARDS
+   ============================================================ */
+.chart-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  height: 100%;
+}
+
+.chart-card .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 12px 16px;
+}
+
+.chart-card .ant-card-head-title {
+  font-weight: 500;
+  font-size: 14px;
+  color: #262626;
+}
+
+.chart-card .ant-card-body {
+  padding: 16px;
+}
+
+/* ============================================================
+   RECENT DOCUMENTS CARD
+   ============================================================ */
+.document-dashboard .ant-list-item {
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.document-dashboard .ant-list-item:last-child {
+  border-bottom: none;
+}
+
+.document-dashboard .ant-list-item-meta-title {
+  font-weight: 500;
+  color: #262626;
+}
+
+.document-dashboard .ant-list-item-meta-title a {
+  color: #262626;
+}
+
+.document-dashboard .ant-list-item-meta-title a:hover {
+  color: #1890ff;
+}
+
+.document-dashboard .ant-list-item-meta-description {
+  font-size: 12px;
+}
+
+/* ============================================================
+   PENDING APPROVALS CARD
+   ============================================================ */
+.pending-card .ant-timeline-item {
+  padding-bottom: 16px;
+}
+
+.pending-card .ant-timeline-item-content {
+  padding: 8px 12px;
+  background: #fafafa;
+  border-radius: 6px;
+  min-width: 200px;
+}
+
+.pending-card .ant-timeline-item-last .ant-timeline-item-content {
+  background: #f6f8fa;
+}
+
+.pending-card .ant-btn-link {
+  padding: 0;
+  font-size: 12px;
+  color: #1890ff;
+}
+
+/* ============================================================
+   EXPIRING DOCUMENTS CARD
+   ============================================================ */
+.expiring-card .ant-list-item {
+  padding: 10px 0;
+}
+
+.expiring-card .ant-badge {
+  margin-right: 8px;
+}
+
+.expiring-card .ant-tag {
+  font-size: 11px;
+  padding: 0 8px;
+  line-height: 20px;
+}
+
+/* ============================================================
+   TOP CONTRIBUTORS
+   ============================================================ */
+.document-dashboard .ant-list-item-meta-avatar .ant-avatar {
+  background: #1890ff;
+  color: white;
+  font-size: 14px;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1200px) {
+  .dashboard-stats .stat-card .ant-statistic-content {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 992px) {
+  .document-dashboard {
+    padding: 16px;
+  }
+
+  .chart-card {
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .document-dashboard {
+    padding: 12px;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .dashboard-stats .stat-card .ant-statistic-content {
+    font-size: 16px;
+  }
+
+  .dashboard-stats .stat-card .ant-statistic-title {
+    font-size: 11px;
+  }
+
+  .quick-actions-card .ant-card-body {
+    padding: 12px 16px;
+  }
+
+  .quick-actions-card .ant-btn {
+    font-size: 12px;
+    height: 32px;
+    padding: 0 12px;
+  }
+
+  .chart-card .ant-card-body {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 576px) {
+  .document-dashboard {
+    padding: 8px;
+  }
+
+  .dashboard-stats .stat-card {
+    margin-bottom: 8px;
+  }
+
+  .dashboard-stats .stat-card .ant-statistic-title {
+    font-size: 10px;
+  }
+
+  .dashboard-stats .stat-card .ant-statistic-content {
+    font-size: 14px;
+  }
+
+  .quick-actions-card .ant-btn {
+    font-size: 11px;
+    height: 28px;
+    padding: 0 8px;
+  }
+
+  .chart-card .ant-card-body {
+    padding: 8px;
+  }
+
+  .document-dashboard .ant-list-item {
+    padding: 8px 0;
+  }
+
+  .pending-card .ant-timeline-item-content {
+    padding: 6px 10px;
+  }
+}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+.document-dashboard .ant-modal-body {
+  padding: 24px;
+}
+
+.document-dashboard .ant-modal-header {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 16px 24px;
+}
+
+.document-dashboard .ant-modal-footer {
+  border-top: 1px solid #f0f0f0;
+  padding: 12px 24px;
+}
+
+/* ============================================================
+   DARK MODE SUPPORT
+   ============================================================ */
+@media (prefers-color-scheme: dark) {
+  .document-dashboard {
+    background: #1a1a2e;
+  }
+
+  .document-dashboard .stat-card,
+  .document-dashboard .chart-card,
+  .document-dashboard .quick-actions-card,
+  .document-dashboard .ant-list,
+  .document-dashboard .ant-card {
+    background: #1f1f3a;
+    border-color: #2a2a4a;
+  }
+
+  .dashboard-header h2 {
+    color: #e8e8e8;
+  }
+
+  .document-dashboard .ant-list-item {
+    border-color: #2a2a4a;
+  }
+
+  .document-dashboard .ant-list-item-meta-title a {
+    color: #e8e8e8;
+  }
+
+  .document-dashboard .ant-list-item-meta-title a:hover {
+    color: #40a9ff;
+  }
+
+  .pending-card .ant-timeline-item-content {
+    background: #2a2a4a;
+  }
+
+  .document-dashboard .ant-statistic-title {
+    color: #bfbfbf !important;
+  }
+
+  .document-dashboard .ant-card-head {
+    border-color: #2a2a4a;
+  }
+
+  .document-dashboard .ant-card-head-title {
+    color: #e8e8e8;
+  }
+
+  .document-dashboard .ant-modal-content {
+    background: #1f1f3a;
+  }
+
+  .document-dashboard .ant-modal-header {
+    border-color: #2a2a4a;
+  }
+
+  .document-dashboard .ant-modal-title {
+    color: #e8e8e8;
+  }
+
+  .document-dashboard .ant-modal-footer {
+    border-color: #2a2a4a;
+  }
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.document-dashboard .stat-card {
+  animation: fadeInUp 0.5s ease;
+}
+
+.document-dashboard .stat-card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.document-dashboard .stat-card:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.document-dashboard .stat-card:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+.document-dashboard .stat-card:nth-child(5) {
+  animation-delay: 0.4s;
+}
+
+.document-dashboard .stat-card:nth-child(6) {
+  animation-delay: 0.5s;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.document-dashboard .ant-badge-status-processing {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ============================================================
+   CUSTOM SCROLLBAR
+   ============================================================ */
+.document-dashboard ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.document-dashboard ::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+.document-dashboard ::-webkit-scrollbar-thumb {
+  background: #d9d9d9;
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.document-dashboard ::-webkit-scrollbar-thumb:hover {
+  background: #bfbfbf;
+}
+
+@media (prefers-color-scheme: dark) {
+  .document-dashboard ::-webkit-scrollbar-track {
+    background: #2a2a4a;
+  }
+  
+  .document-dashboard ::-webkit-scrollbar-thumb {
+    background: #4a4a6a;
+  }
+  
+  .document-dashboard ::-webkit-scrollbar-thumb:hover {
+    background: #5a5a7a;
+  }
+}
+
+/* ============================================================
+   PRINT STYLES
+   ============================================================ */
+@media print {
+  .document-dashboard {
+    background: white;
+    padding: 16px;
+  }
+
+  .document-dashboard .stat-card,
+  .document-dashboard .chart-card,
+  .document-dashboard .quick-actions-card,
+  .document-dashboard .ant-list,
+  .document-dashboard .ant-card {
+    box-shadow: none !important;
+    border: 1px solid #d9d9d9;
+  }
+
+  .document-dashboard .quick-actions-card {
+    display: none !important;
+  }
+
+  .document-dashboard .ant-btn {
+    display: none !important;
+  }
+}

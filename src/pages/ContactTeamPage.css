@@ -1,0 +1,439 @@
+/* src/pages/ContactTeamPage.css */
+/* ============================================
+   CONTACT TEAM PAGE - FULLY RESPONSIVE
+   Mobile First Approach
+   ============================================ */
+
+/* BASE STYLES (Mobile: 0 - 767px) */
+.contact-team-container {
+  max-width: 100%;
+  margin: 16px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e8e8e8;
+  width: auto;
+}
+
+@media (min-width: 480px) {
+  .contact-team-container {
+    margin: 20px auto;
+    padding: 24px;
+    max-width: 540px;
+  }
+}
+
+@media (min-width: 640px) {
+  .contact-team-container {
+    margin: 40px auto;
+    padding: 32px;
+    max-width: 600px;
+  }
+}
+
+/* ============================================
+   HEADER STYLES - Mobile Optimized
+   ============================================ */
+.contact-team-container h2 {
+  text-align: center;
+  color: #262626;
+  margin-bottom: 20px;
+  font-weight: 600;
+  font-size: 20px;
+}
+
+@media (min-width: 480px) {
+  .contact-team-container h2 {
+    margin-bottom: 24px;
+    font-size: 22px;
+  }
+}
+
+@media (min-width: 640px) {
+  .contact-team-container h2 {
+    margin-bottom: 32px;
+    font-size: 24px;
+  }
+}
+
+/* ============================================
+   FORM ITEMS - Mobile Optimized
+   ============================================ */
+.ant-form-item {
+  margin-bottom: 16px;
+}
+
+@media (min-width: 640px) {
+  .ant-form-item {
+    margin-bottom: 20px;
+  }
+}
+
+/* Form labels - mobile friendly */
+.ant-form-item-label > label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+@media (min-width: 640px) {
+  .ant-form-item-label > label {
+    font-size: 14px;
+  }
+}
+
+/* Required field indicator */
+.ant-form-item-required::before {
+  font-size: 12px;
+}
+
+/* ============================================
+   INPUT FIELDS - Touch Friendly
+   ============================================ */
+.ant-input-affix-wrapper,
+.ant-input,
+.ant-input-textarea {
+  border-radius: 8px;
+  border: 1px solid #d9d9d9;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+/* Touch-friendly height */
+.ant-input-affix-wrapper,
+.ant-input {
+  height: 44px;
+}
+
+@media (min-width: 640px) {
+  .ant-input-affix-wrapper,
+  .ant-input {
+    height: 40px;
+  }
+}
+
+/* Textarea specific */
+.ant-input-textarea textarea {
+  min-height: 100px;
+  padding: 10px 12px;
+}
+
+@media (min-width: 640px) {
+  .ant-input-textarea textarea {
+    min-height: 120px;
+  }
+}
+
+/* Input hover and focus states */
+.ant-input-affix-wrapper:hover,
+.ant-input:hover,
+.ant-input-textarea:hover {
+  border-color: #40a9ff;
+}
+
+.ant-input-affix-wrapper:focus,
+.ant-input:focus,
+.ant-input-textarea:focus,
+.ant-input-affix-wrapper-focused {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+  outline: none;
+}
+
+/* Prefix/suffix icons */
+.ant-input-affix-wrapper .anticon {
+  color: #8c8c8c;
+}
+
+/* Placeholder styling */
+.ant-input::placeholder,
+.ant-input-textarea textarea::placeholder {
+  color: #bfbfbf;
+  font-size: 13px;
+}
+
+/* ============================================
+   SUBMIT BUTTON - Touch Optimized
+   ============================================ */
+.ant-btn-primary {
+  border-radius: 8px;
+  height: 48px;
+  font-size: 15px;
+  font-weight: 500;
+  background: #1890ff;
+  border-color: #1890ff;
+  margin-top: 8px;
+  width: 100%;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+@media (min-width: 480px) {
+  .ant-btn-primary {
+    width: auto;
+    min-width: 160px;
+    margin-top: 12px;
+  }
+}
+
+@media (min-width: 640px) {
+  .ant-btn-primary {
+    height: 48px;
+    font-size: 16px;
+    margin-top: 16px;
+  }
+}
+
+/* Button hover state */
+.ant-btn-primary:hover {
+  background: #40a9ff;
+  border-color: #40a9ff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+/* Button active state for touch feedback */
+.ant-btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Button loading state */
+.ant-btn-primary[disabled],
+.ant-btn-primary[disabled]:hover {
+  background: #d9d9d9;
+  border-color: #d9d9d9;
+  transform: none;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   FORM VALIDATION MESSAGES
+   ============================================ */
+.ant-form-item-explain-error {
+  font-size: 12px;
+  margin-top: 4px;
+  color: #ff4d4f;
+}
+
+/* Success state */
+.ant-form-item-has-success .ant-input,
+.ant-form-item-has-success .ant-input-affix-wrapper {
+  border-color: #52c41a;
+}
+
+/* Error state */
+.ant-form-item-has-error .ant-input,
+.ant-form-item-has-error .ant-input-affix-wrapper,
+.ant-form-item-has-error .ant-input-textarea {
+  border-color: #ff4d4f;
+}
+
+.ant-form-item-has-error .ant-input:focus,
+.ant-form-item-has-error .ant-input-affix-wrapper:focus {
+  box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2);
+}
+
+/* ============================================
+   SUCCESS MESSAGE / ALERT
+   ============================================ */
+.contact-team-container .ant-alert {
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 13px;
+}
+
+.contact-team-container .ant-alert-success {
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+/* Very small screens */
+@media (max-width: 380px) {
+  .contact-team-container {
+    margin: 12px;
+    padding: 16px;
+  }
+  
+  .contact-team-container h2 {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+  
+  .ant-form-item {
+    margin-bottom: 14px;
+  }
+  
+  .ant-input-affix-wrapper,
+  .ant-input {
+    height: 42px;
+  }
+  
+  .ant-btn-primary {
+    height: 44px;
+    font-size: 14px;
+  }
+}
+
+/* Tablet and up */
+@media (min-width: 768px) {
+  .contact-team-container {
+    margin: 48px auto;
+  }
+}
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
+.contact-team-container .ant-btn-loading {
+  opacity: 0.8;
+  cursor: wait;
+}
+
+/* ============================================
+   DARK MODE SUPPORT
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+  .contact-team-container {
+    background: #1f1f1f;
+    border-color: #303030;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  }
+  
+  .contact-team-container h2 {
+    color: #e8e8e8;
+  }
+  
+  .ant-input-affix-wrapper,
+  .ant-input,
+  .ant-input-textarea {
+    background: #2d2d2d;
+    border-color: #434343;
+    color: #e8e8e8;
+  }
+  
+  .ant-input-affix-wrapper .anticon {
+    color: #a8a8a8;
+  }
+  
+  .ant-input::placeholder,
+  .ant-input-textarea textarea::placeholder {
+    color: #8c8c8c;
+  }
+  
+  .ant-form-item-label > label {
+    color: #e8e8e8;
+  }
+  
+  .contact-team-container .ant-alert-success {
+    background: #1a3a1a;
+    border-color: #2a5c2a;
+    color: #a8e6a8;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+/* Focus states for keyboard navigation */
+.ant-btn-primary:focus-visible,
+.ant-input:focus-visible,
+.ant-input-affix-wrapper:focus-visible,
+.ant-input-textarea textarea:focus-visible {
+  outline: 2px solid #1890ff;
+  outline-offset: 2px;
+}
+
+/* Touch-friendly tap targets */
+@media (max-width: 640px) {
+  .ant-btn-primary,
+  .ant-input-affix-wrapper,
+  .ant-input,
+  .ant-select-selector {
+    touch-action: manipulation;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .ant-btn-primary {
+    transition: none;
+  }
+  
+  .ant-btn-primary:hover {
+    transform: none;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .contact-team-container {
+    border: 2px solid currentColor;
+  }
+  
+  .ant-btn-primary {
+    border: 2px solid currentColor;
+  }
+  
+  .ant-input:focus,
+  .ant-input-affix-wrapper:focus {
+    outline: 2px solid currentColor;
+  }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+  .contact-team-container {
+    box-shadow: none;
+    border: 1px solid #ddd;
+    margin: 0;
+    padding: 20px;
+  }
+  
+  .ant-btn-primary {
+    display: none;
+  }
+  
+  .ant-input,
+  .ant-input-affix-wrapper,
+  .ant-input-textarea {
+    border: 1px solid #999;
+    background: white;
+  }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+/* Center button container */
+.button-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+@media (min-width: 480px) {
+  .button-container {
+    justify-content: flex-start;
+  }
+}
+
+/* Full width inputs on mobile */
+.full-width-mobile {
+  width: 100%;
+}
+
+/* Responsive spacing */
+.responsive-spacing {
+  margin-bottom: 16px;
+}
+
+@media (min-width: 640px) {
+  .responsive-spacing {
+    margin-bottom: 20px;
+  }
+}

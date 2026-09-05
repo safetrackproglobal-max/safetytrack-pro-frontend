@@ -1,0 +1,573 @@
+/* src/pages/PricingPage.css */
+.pricing-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 40px 20px;
+}
+
+.pricing-page .container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.pricing-page .page-header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.pricing-page .page-header h1 {
+  font-size: 48px;
+  margin-bottom: 16px;
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.pricing-page .page-header .ant-typography-secondary {
+  font-size: 18px;
+  color: #666;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Selection Section */
+.pricing-page .selection-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 40px;
+}
+
+.pricing-page .selection-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pricing-page .selection-group .ant-typography {
+  font-size: 16px;
+  color: #333;
+}
+
+.pricing-page .selection-group .ant-select {
+  min-width: 150px;
+}
+
+/* Pricing Cards */
+.pricing-page .pricing-card {
+  height: 100%;
+  border-radius: 16px;
+  border: 2px solid #e8e8e8;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.pricing-page .pricing-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  border-color: #1890ff;
+}
+
+.pricing-page .pricing-card.featured {
+  border-color: #1890ff;
+  box-shadow: 0 8px 16px rgba(24, 144, 255, 0.2);
+}
+
+.pricing-page .pricing-card.featured:hover {
+  box-shadow: 0 16px 32px rgba(24, 144, 255, 0.3);
+}
+
+.pricing-page .recommended-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+
+.pricing-page .recommended-badge .ant-tag {
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+/* Plan Header */
+.pricing-page .plan-header {
+  text-align: center;
+  padding: 24px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.pricing-page .plan-header h3 {
+  margin-bottom: 16px;
+  color: #333;
+  font-weight: 600;
+}
+
+.pricing-page .plan-price {
+  margin: 24px 0;
+}
+
+.pricing-page .plan-price h2 {
+  color: #1890ff;
+  font-weight: 700;
+}
+
+.pricing-page .plan-price .ant-typography-secondary {
+  font-size: 14px;
+  color: #999;
+}
+
+.pricing-page .plan-header .ant-typography-secondary {
+  color: #666;
+  font-size: 16px;
+}
+
+/* Features List */
+.pricing-page .features {
+  padding: 24px 0;
+}
+
+.pricing-page .features .ant-list {
+  border: none;
+}
+
+.pricing-page .features .ant-list-item {
+  padding: 12px 0;
+  border: none;
+  display: flex;
+  align-items: flex-start;
+}
+
+.pricing-page .features .ant-list-item .anticon-check-circle {
+  color: #52c41a;
+  margin-right: 12px;
+  font-size: 16px;
+  margin-top: 2px;
+}
+
+.pricing-page .feature-item {
+  padding: 8px 0;
+  color: #333;
+  font-size: 15px;
+}
+
+/* Enterprise Section */
+.pricing-page .enterprise-section {
+  margin-top: 60px;
+}
+
+.pricing-page .enterprise-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 20px;
+  overflow: hidden;
+  color: white;
+}
+
+.pricing-page .enterprise-card h2 {
+  color: white !important;
+  margin-bottom: 24px;
+}
+
+.pricing-page .enterprise-card .ant-typography {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 16px;
+  margin-bottom: 32px;
+}
+
+.pricing-page .enterprise-card .ant-btn {
+  background: white;
+  color: #764ba2;
+  border: none;
+  font-weight: 600;
+  padding: 12px 32px;
+  height: auto;
+  border-radius: 8px;
+}
+
+.pricing-page .enterprise-card .ant-btn:hover {
+  background: #f0f0f0;
+  color: #667eea;
+}
+
+.pricing-page .enterprise-features {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pricing-page .enterprise-feature {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  color: white;
+}
+
+.pricing-page .enterprise-feature .anticon-check-circle {
+  color: #52c41a;
+  font-size: 18px;
+}
+
+/* FAQ Section */
+.pricing-page .faq-section {
+  background: white;
+  padding: 48px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-top: 60px;
+}
+
+.pricing-page .faq-section h3 {
+  color: #333;
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.pricing-page .faq-section .ant-typography-secondary {
+  color: #666;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.pricing-page .faq-section .ant-typography strong {
+  color: #333;
+  font-size: 16px;
+}
+
+/* Card Actions */
+.pricing-page .pricing-card .ant-card-actions {
+  border-top: 1px solid #f0f0f0;
+  padding: 24px;
+}
+
+.pricing-page .pricing-card .ant-card-actions .ant-btn {
+  width: 100%;
+  height: 48px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .pricing-page {
+    padding: 20px 16px;
+  }
+
+  .pricing-page .page-header h1 {
+    font-size: 32px;
+  }
+
+  .pricing-page .page-header .ant-typography-secondary {
+    font-size: 16px;
+  }
+
+  .pricing-page .selection-section {
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+  }
+
+  .pricing-page .selection-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .pricing-page .selection-group .ant-select {
+    min-width: 120px;
+  }
+
+  .pricing-page .pricing-card {
+    margin-bottom: 24px;
+  }
+
+  .pricing-page .enterprise-card .ant-row {
+    flex-direction: column;
+  }
+
+  .pricing-page .faq-section {
+    padding: 24px;
+  }
+}
+
+/* Loading State */
+.pricing-page .loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 24px;
+}
+
+.pricing-page .loading-container .ant-spin {
+  color: #1890ff;
+}
+
+.pricing-page .loading-container .ant-typography {
+  color: #666;
+  font-size: 16px;
+}
+
+/* Discount Badge */
+.pricing-page .discount-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+}
+
+.pricing-page .discount-badge .ant-tag {
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: #52c41a;
+  color: white;
+  border: none;
+}
+
+/* Custom Pricing Note */
+.pricing-page .custom-pricing-note {
+  text-align: center;
+  padding: 16px;
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.pricing-page .custom-pricing-note .ant-typography-secondary {
+  color: #52c41a;
+  font-size: 14px;
+}
+
+/* Divider Styling */
+.pricing-page .ant-divider {
+  margin: 40px 0;
+  border-color: #e8e8e8;
+}
+
+/* List Styling */
+.pricing-page .ant-list {
+  background: transparent;
+}
+
+.pricing-page .ant-list-item {
+  border-bottom: 1px dashed #f0f0f0;
+}
+
+.pricing-page .ant-list-item:last-child {
+  border-bottom: none;
+}
+
+/* Tag Styling */
+.pricing-page .ant-tag {
+  margin: 4px;
+  border-radius: 4px;
+  font-size: 13px;
+  padding: 2px 8px;
+}
+
+/* Button Hover Effects */
+.pricing-page .ant-btn-primary {
+  background: linear-gradient(90deg, #1890ff, #40a9ff);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.pricing-page .ant-btn-primary:hover {
+  background: linear-gradient(90deg, #40a9ff, #69c0ff);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+.pricing-page .ant-btn-default {
+  transition: all 0.3s ease;
+}
+
+.pricing-page .ant-btn-default:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+  transform: translateY(-2px);
+}
+
+/* Add these styles to your existing PricingPage.css */
+
+.selection-section {
+  background: #fafafa;
+  padding: 24px;
+  border-radius: 8px;
+  margin-bottom: 32px;
+}
+
+.selection-group {
+  display: inline-flex;
+  align-items: center;
+}
+
+.pricing-card {
+  height: 100%;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.pricing-card.featured {
+  border: 2px solid #1890ff;
+  transform: translateY(-8px);
+  box-shadow: 0 8px 24px rgba(24, 144, 255, 0.15);
+}
+
+.recommended-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.plan-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.price {
+  font-size: 36px;
+  font-weight: bold;
+  color: #1890ff;
+  margin: 16px 0;
+}
+
+.features {
+  margin-top: 24px;
+}
+
+.feature-item {
+  padding: 8px 0 !important;
+  border: none !important;
+}
+
+.enterprise-card {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.enterprise-feature {
+  padding: 8px 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Payment method cards */
+.ant-card-hoverable {
+  cursor: pointer;
+}
+
+.ant-card-hoverable:hover {
+  border-color: #1890ff;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .selection-section {
+    text-align: center;
+  }
+  
+  .selection-group {
+    display: block;
+    margin-bottom: 16px;
+  }
+  
+  .price {
+    font-size: 28px;
+  }
+}
+
+/* Add to your PricingPage.css */
+
+/* Modal Styles - Ensure visibility */
+.pricing-page .ant-modal-content {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.pricing-page .ant-modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px 24px;
+  border-bottom: none;
+}
+
+.pricing-page .ant-modal-title {
+  color: white;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.pricing-page .ant-modal-close {
+  color: white;
+}
+
+.pricing-page .ant-modal-close:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.pricing-page .ant-modal-body {
+  padding: 24px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* Payment Method Cards */
+.pricing-page .payment-method-card {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+}
+
+.pricing-page .payment-method-card:hover {
+  border-color: #1890ff;
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.1);
+}
+
+.payment-method-card .ant-card-body {
+  padding: 16px 20px;
+}
+
+/* Tab Styles */
+.pricing-page .ant-tabs-tab {
+  padding: 12px 24px;
+  font-size: 16px;
+}
+
+.pricing-page .ant-tabs-tab-active {
+  color: #1890ff;
+}
+
+.pricing-page .ant-tabs-ink-bar {
+  background: #1890ff;
+  height: 3px;
+}
+
+/* Modal Footer Button */
+.pricing-page .ant-modal-footer {
+  display: none; /* Since we have footer={null}, hide default */
+}
+
+/* Responsive Modal */
+@media (max-width: 768px) {
+  .pricing-page .ant-modal {
+    width: 95% !important;
+    max-width: 95%;
+  }
+  
+  .pricing-page .ant-modal-body {
+    padding: 16px;
+  }
+  
+  .pricing-page .ant-tabs-tab {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+}

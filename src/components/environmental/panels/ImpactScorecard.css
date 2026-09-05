@@ -1,0 +1,313 @@
+/* src/components/environmental/panels/ImpactScorecard.css */
+
+.impact-scorecard {
+  padding: 0;
+  background: #f0f2f5;
+  min-height: 100vh;
+}
+
+/* Header */
+.impact-header {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  padding: 16px 24px;
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.impact-header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.impact-header-title h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.impact-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Stat Cards */
+.stat-card {
+  border-radius: 12px;
+  border: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
+  background: #fff;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.stat-card .ant-statistic-title {
+  font-size: 12px;
+  color: #8c8c8c;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-card .ant-statistic-content {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.stat-card-green {
+  border-top: 3px solid #52c41a;
+}
+.stat-card-red {
+  border-top: 3px solid #f5222d;
+}
+.stat-card-blue {
+  border-top: 3px solid #1890ff;
+}
+.stat-card-orange {
+  border-top: 3px solid #faad14;
+}
+
+/* Chart Cards */
+.chart-card {
+  border-radius: 12px;
+  border: 1px solid #f0f0f0;
+  background: #fff;
+  height: 100%;
+}
+
+.chart-card .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 8px 12px;
+}
+
+.chart-card .ant-card-head-title {
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.chart-card .ant-card-body {
+  padding: 8px 12px;
+}
+
+/* Tabs */
+.impact-tabs .ant-tabs-nav {
+  margin-bottom: 16px;
+}
+
+.impact-tabs .ant-tabs-tab {
+  padding: 8px 16px;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.impact-tabs .ant-tabs-tab:hover {
+  background: #f5f5f5;
+}
+
+.impact-tabs .ant-tabs-tab-active {
+  background: #e6f7ff;
+}
+
+.impact-tabs .ant-tabs-ink-bar {
+  background: #1890ff;
+  height: 3px;
+}
+
+/* List Items */
+.impact-list .ant-list-item {
+  padding: 12px 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.impact-list .ant-list-item:hover {
+  background: #fafafa;
+  transform: translateX(4px);
+}
+
+.impact-list-item .impact-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.impact-list-item .impact-description {
+  font-size: 13px;
+  color: #595959;
+}
+
+.impact-list-item .impact-trend {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+}
+
+/* Filter */
+.impact-filter {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+/* Detail Modal */
+.impact-detail .ant-descriptions-item-label {
+  font-weight: 500;
+  width: 120px;
+}
+
+/* Legend */
+.impact-legend .ant-card {
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .impact-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px 16px;
+  }
+
+  .impact-header-title h2 {
+    font-size: 16px;
+  }
+
+  .stat-card .ant-statistic-content {
+    font-size: 20px;
+  }
+
+  .impact-list .ant-list-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .impact-list .ant-list-item .ant-list-item-action {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .impact-filter {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .impact-header {
+    padding: 10px 12px;
+  }
+
+  .stat-card .ant-statistic-content {
+    font-size: 18px;
+  }
+
+  .impact-tabs .ant-tabs-tab {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+
+  .chart-card .ant-card-head-title {
+    font-size: 12px;
+  }
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .impact-scorecard {
+    background: #141414;
+  }
+
+  .stat-card {
+    background: #1f1f1f;
+    border-color: #303030;
+  }
+
+  .stat-card .ant-statistic-title {
+    color: #8c8c8c;
+  }
+
+  .chart-card {
+    background: #1f1f1f;
+    border-color: #303030;
+  }
+
+  .chart-card .ant-card-head {
+    border-color: #303030;
+  }
+
+  .chart-card .ant-card-head-title {
+    color: #e8e8e8;
+  }
+
+  .impact-list .ant-list-item {
+    border-color: #303030;
+  }
+
+  .impact-list .ant-list-item:hover {
+    background: #2a2a2a;
+  }
+
+  .impact-list-item .impact-description {
+    color: #b8b8b8;
+  }
+
+  .impact-legend .ant-card {
+    background: #1f1f1f;
+    border-color: #303030;
+  }
+
+  .impact-tabs .ant-tabs-tab:hover {
+    background: #2a2a2a;
+  }
+
+  .impact-tabs .ant-tabs-tab-active {
+    background: #1f3a5f;
+  }
+
+  .impact-detail .ant-descriptions-item-label {
+    color: #e8e8e8;
+  }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+/* Loading State */
+.impact-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  background: #fff;
+  border-radius: 12px;
+}

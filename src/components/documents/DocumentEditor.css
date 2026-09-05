@@ -1,0 +1,1018 @@
+/* src/components/documents/DocumentEditor.css */
+
+.document-editor-container {
+  padding: 0;
+  background: #f0f2f5;
+  min-height: 100vh;
+}
+
+.document-editor-container.fullscreen-mode {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10000;
+  background: #f0f2f5;
+  padding: 16px;
+}
+
+/* ============================================================
+   EDITOR CARD
+   ============================================================ */
+.editor-card {
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  height: 100%;
+}
+
+.editor-card .ant-card-body {
+  padding: 24px;
+  height: 100%;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.editor-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.editor-title .ant-tag {
+  margin: 0;
+}
+
+/* ============================================================
+   METADATA PANEL
+   ============================================================ */
+.metadata-panel {
+  background: white;
+  border-radius: 8px;
+  padding: 8px 0;
+}
+
+.metadata-panel .ant-collapse-header {
+  font-weight: 500;
+  padding: 12px 16px !important;
+}
+
+.metadata-panel .ant-collapse-content-box {
+  padding: 0 16px 16px !important;
+}
+
+.metadata-panel .ant-form-item {
+  margin-bottom: 12px;
+}
+
+.metadata-panel .ant-form-item-label {
+  padding-bottom: 4px;
+}
+
+.metadata-panel .ant-form-item-label label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #262626;
+}
+
+/* ============================================================
+   ADVANCED TOOLBAR
+   ============================================================ */
+.editor-toolbar {
+  background: #fafafa;
+  padding: 8px 16px;
+  border-radius: 8px 8px 0 0;
+  border: 1px solid #d9d9d9;
+  border-bottom: none;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 48px;
+}
+
+.editor-toolbar .ant-divider {
+  height: 24px;
+  margin: 0 4px;
+}
+
+.editor-toolbar .ant-badge {
+  margin-right: 4px;
+}
+
+.editor-toolbar .ant-badge .ant-badge-count {
+  font-size: 10px;
+  min-width: 16px;
+  height: 16px;
+  line-height: 16px;
+  padding: 0 4px;
+}
+
+.editor-toolbar .ant-btn {
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.editor-toolbar .ant-btn-sm {
+  font-size: 12px;
+  height: 28px;
+  padding: 0 10px;
+}
+
+.editor-toolbar .ant-tag {
+  font-size: 12px;
+  line-height: 20px;
+  padding: 0 8px;
+  margin: 0;
+}
+
+.editor-toolbar .ant-switch {
+  min-width: 36px;
+}
+
+/* ============================================================
+   EDITOR WRAPPER
+   ============================================================ */
+.editor-wrapper {
+  position: relative;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+}
+
+.editor-container {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.editor-container.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  background: white;
+  padding: 16px;
+  border-radius: 0;
+}
+
+/* ============================================================
+   RICH TEXT EDITOR (ReactQuill)
+   ============================================================ */
+.document-editor {
+  min-height: 500px;
+  border-radius: 0 0 8px 8px;
+}
+
+.document-editor .ql-container {
+  min-height: 450px;
+  font-size: 16px;
+  line-height: 1.8;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.document-editor .ql-editor {
+  min-height: 450px;
+  padding: 20px 24px;
+  outline: none;
+}
+
+.document-editor .ql-editor p {
+  margin-bottom: 12px;
+}
+
+.document-editor .ql-editor h1,
+.document-editor .ql-editor h2,
+.document-editor .ql-editor h3,
+.document-editor .ql-editor h4,
+.document-editor .ql-editor h5,
+.document-editor .ql-editor h6 {
+  margin: 16px 0 8px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.document-editor .ql-editor h1 {
+  font-size: 32px;
+}
+
+.document-editor .ql-editor h2 {
+  font-size: 26px;
+}
+
+.document-editor .ql-editor h3 {
+  font-size: 22px;
+}
+
+.document-editor .ql-editor h4 {
+  font-size: 18px;
+}
+
+.document-editor .ql-editor h5 {
+  font-size: 16px;
+}
+
+.document-editor .ql-editor h6 {
+  font-size: 14px;
+}
+
+.document-editor .ql-editor ul,
+.document-editor .ql-editor ol {
+  padding-left: 24px;
+  margin-bottom: 12px;
+}
+
+.document-editor .ql-editor li {
+  margin-bottom: 4px;
+}
+
+.document-editor .ql-editor blockquote {
+  border-left: 4px solid #1890ff;
+  padding-left: 16px;
+  margin: 12px 0;
+  color: #595959;
+  font-style: italic;
+}
+
+.document-editor .ql-editor code {
+  background: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: 'Courier New', monospace;
+}
+
+.document-editor .ql-editor pre {
+  background: #f5f5f5;
+  padding: 16px;
+  border-radius: 8px;
+  overflow: auto;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.document-editor .ql-editor a {
+  color: #1890ff;
+  text-decoration: none;
+}
+
+.document-editor .ql-editor a:hover {
+  text-decoration: underline;
+}
+
+.document-editor .ql-editor img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin: 8px 0;
+}
+
+.document-editor .ql-editor table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+}
+
+.document-editor .ql-editor table td,
+.document-editor .ql-editor table th {
+  border: 1px solid #d9d9d9;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.document-editor .ql-editor table th {
+  background: #fafafa;
+  font-weight: 600;
+}
+
+.document-editor .ql-editor .editor-table td {
+  border: 1px solid #d9d9d9;
+  padding: 8px;
+}
+
+/* ============================================================
+   QUILL TOOLBAR CUSTOMIZATION
+   ============================================================ */
+.document-editor .ql-toolbar {
+  border: none;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+  padding: 8px 12px;
+  border-radius: 0;
+}
+
+.document-editor .ql-toolbar .ql-formats {
+  margin-right: 8px;
+}
+
+.document-editor .ql-toolbar .ql-formats:last-child {
+  margin-right: 0;
+}
+
+.document-editor .ql-toolbar button {
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.document-editor .ql-toolbar button:hover {
+  background: #e6f7ff;
+}
+
+.document-editor .ql-toolbar button.ql-active {
+  background: #1890ff;
+  color: white;
+}
+
+.document-editor .ql-toolbar .ql-picker {
+  border-radius: 4px;
+}
+
+.document-editor .ql-toolbar .ql-picker:hover {
+  border-color: #1890ff;
+}
+
+.document-editor .ql-toolbar .ql-picker-options {
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================================
+   EDITOR FOOTER
+   ============================================================ */
+.editor-footer {
+  background: #fafafa;
+  padding: 8px 16px;
+  border-radius: 0 0 8px 8px;
+  border: 1px solid #d9d9d9;
+  border-top: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 40px;
+}
+
+.editor-footer .ant-text {
+  font-size: 12px;
+}
+
+/* ============================================================
+   ACTIONS
+   ============================================================ */
+.editor-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.editor-actions .ant-btn {
+  border-radius: 20px;
+  font-size: 13px;
+  height: 36px;
+  padding: 0 20px;
+}
+
+.editor-actions .ant-btn-primary {
+  background: #1890ff;
+  border-color: #1890ff;
+}
+
+.editor-actions .ant-btn-primary:hover {
+  background: #40a9ff;
+  border-color: #40a9ff;
+}
+
+/* ============================================================
+   AI PANEL
+   ============================================================ */
+.ai-panel-suggestion {
+  padding: 12px;
+  background: #f6f9ff;
+  border: 1px solid #d6e4ff;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  transition: all 0.3s ease;
+}
+
+.ai-panel-suggestion:hover {
+  border-color: #1890ff;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
+}
+
+.ai-panel-suggestion .suggestion-title {
+  font-weight: 500;
+  color: #262626;
+  margin-bottom: 4px;
+}
+
+.ai-panel-suggestion .suggestion-description {
+  color: #595959;
+  font-size: 13px;
+}
+
+.ai-panel-suggestion .suggestion-preview {
+  background: #f0f5ff;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #595959;
+}
+
+/* ============================================================
+   LOADING
+   ============================================================ */
+.document-editor-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  min-height: 400px;
+}
+
+.document-editor-loading .ant-spin {
+  font-size: 32px;
+}
+
+.document-editor-loading .loading-text {
+  margin-top: 16px;
+  color: #8c8c8c;
+  font-size: 16px;
+}
+
+/* ============================================================
+   TABLE EDITING TOOLS
+   ============================================================ */
+.table-editor-tools {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px;
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.table-editor-tools .ant-btn {
+  font-size: 12px;
+  height: 28px;
+  padding: 0 8px;
+}
+
+.table-editor-tools .ant-btn .anticon {
+  font-size: 14px;
+}
+
+/* ============================================================
+   PDF VIEWER
+   ============================================================ */
+.pdf-viewer-container {
+  background: #f0f2f5;
+  border-radius: 8px;
+  padding: 16px;
+  min-height: 500px;
+  overflow: auto;
+}
+
+.pdf-viewer-container .react-pdf__Document {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pdf-viewer-container .react-pdf__Page {
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  background: white;
+}
+
+.pdf-viewer-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.pdf-viewer-controls .ant-input-number {
+  width: 70px;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1200px) {
+  .editor-toolbar {
+    padding: 8px 12px;
+  }
+  
+  .editor-toolbar .ant-btn {
+    font-size: 12px;
+    height: 26px;
+    padding: 0 8px;
+  }
+}
+
+@media (max-width: 992px) {
+  .metadata-panel {
+    margin-bottom: 16px;
+  }
+  
+  .document-editor .ql-editor {
+    padding: 16px;
+  }
+  
+  .editor-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .editor-actions {
+    width: 100%;
+  }
+  
+  .editor-actions .ant-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .document-editor-container {
+    padding: 0;
+  }
+  
+  .editor-card .ant-card-body {
+    padding: 16px;
+  }
+  
+  .editor-toolbar {
+    padding: 6px 10px;
+    gap: 4px;
+  }
+  
+  .editor-toolbar .ant-divider {
+    margin: 0 2px;
+  }
+  
+  .editor-toolbar .ant-btn {
+    font-size: 11px;
+    height: 24px;
+    padding: 0 6px;
+  }
+  
+  .document-editor .ql-editor {
+    padding: 12px;
+    font-size: 15px;
+  }
+  
+  .document-editor .ql-toolbar {
+    padding: 4px 8px;
+  }
+  
+  .document-editor .ql-toolbar .ql-formats {
+    margin-right: 4px;
+  }
+  
+  .document-editor .ql-toolbar button {
+    padding: 2px 4px;
+  }
+  
+  .editor-footer {
+    padding: 6px 12px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+  
+  .pdf-viewer-controls {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 576px) {
+  .document-editor-container {
+    padding: 0;
+  }
+  
+  .editor-card .ant-card-body {
+    padding: 12px;
+  }
+  
+  .editor-title {
+    flex-wrap: wrap;
+  }
+  
+  .editor-title .ant-typography {
+    font-size: 18px;
+  }
+  
+  .document-editor .ql-editor {
+    padding: 8px;
+    font-size: 14px;
+    min-height: 300px;
+  }
+  
+  .document-editor .ql-container {
+    min-height: 300px;
+  }
+  
+  .editor-actions .ant-btn {
+    font-size: 12px;
+    height: 30px;
+    padding: 0 12px;
+  }
+  
+  .pdf-viewer-container {
+    padding: 8px;
+    min-height: 300px;
+  }
+  
+  .pdf-viewer-container .react-pdf__Page {
+    max-width: 100%;
+  }
+  
+  .editor-toolbar .ant-badge .ant-badge-count {
+    font-size: 9px;
+    min-width: 14px;
+    height: 14px;
+    line-height: 14px;
+  }
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.document-editor-container {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.document-editor .ant-badge-status-processing {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ============================================================
+   CUSTOM SCROLLBAR
+   ============================================================ */
+.document-editor .ql-editor::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.document-editor .ql-editor::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+.document-editor .ql-editor::-webkit-scrollbar-thumb {
+  background: #d9d9d9;
+  border-radius: 4px;
+}
+
+.document-editor .ql-editor::-webkit-scrollbar-thumb:hover {
+  background: #bfbfbf;
+}
+
+/* ============================================================
+   DARK MODE SUPPORT
+   ============================================================ */
+@media (prefers-color-scheme: dark) {
+  .document-editor-container {
+    background: #1a1a2e;
+  }
+  
+  .editor-card {
+    background: #1f1f3a;
+    border-color: #2a2a4a;
+  }
+  
+  .editor-card .ant-card-body {
+    background: #1f1f3a;
+  }
+  
+  .editor-toolbar {
+    background: #2a2a4a;
+    border-color: #3a3a5a;
+  }
+  
+  .editor-toolbar .ant-btn {
+    color: #d9d9d9;
+  }
+  
+  .editor-toolbar .ant-btn:hover {
+    background: #3a3a5a;
+  }
+  
+  .editor-container {
+    background: #1f1f3a;
+  }
+  
+  .document-editor .ql-container {
+    background: #1f1f3a;
+    color: #d9d9d9;
+  }
+  
+  .document-editor .ql-editor {
+    background: #1f1f3a;
+    color: #d9d9d9;
+  }
+  
+  .document-editor .ql-toolbar {
+    background: #2a2a4a;
+    border-color: #3a3a5a;
+  }
+  
+  .document-editor .ql-toolbar .ql-picker {
+    color: #d9d9d9;
+  }
+  
+  .document-editor .ql-toolbar .ql-picker-options {
+    background: #2a2a4a;
+    border-color: #3a3a5a;
+  }
+  
+  .document-editor .ql-editor blockquote {
+    color: #bfbfbf;
+  }
+  
+  .document-editor .ql-editor code {
+    background: #2a2a4a;
+    color: #d9d9d9;
+  }
+  
+  .document-editor .ql-editor pre {
+    background: #2a2a4a;
+    color: #d9d9d9;
+  }
+  
+  .document-editor .ql-editor table td,
+  .document-editor .ql-editor table th {
+    border-color: #3a3a5a;
+  }
+  
+  .document-editor .ql-editor table th {
+    background: #2a2a4a;
+  }
+  
+  .editor-footer {
+    background: #2a2a4a;
+    border-color: #3a3a5a;
+    color: #d9d9d9;
+  }
+  
+  .metadata-panel {
+    background: #1f1f3a;
+  }
+  
+  .metadata-panel .ant-collapse-header {
+    color: #d9d9d9;
+  }
+  
+  .metadata-panel .ant-form-item-label label {
+    color: #d9d9d9;
+  }
+  
+  .metadata-panel .ant-input,
+  .metadata-panel .ant-select-selector,
+  .metadata-panel .ant-picker {
+    background: #2a2a4a;
+    border-color: #3a3a5a;
+    color: #d9d9d9;
+  }
+  
+  .metadata-panel .ant-input:hover,
+  .metadata-panel .ant-select-selector:hover,
+  .metadata-panel .ant-picker:hover {
+    border-color: #4a4a6a;
+  }
+  
+  .editor-actions .ant-btn {
+    color: #d9d9d9;
+  }
+  
+  .editor-actions .ant-btn:hover {
+    background: #3a3a5a;
+    border-color: #4a4a6a;
+  }
+  
+  .editor-actions .ant-btn-primary {
+    background: #1890ff;
+    border-color: #1890ff;
+  }
+  
+  .editor-actions .ant-btn-primary:hover {
+    background: #40a9ff;
+    border-color: #40a9ff;
+  }
+  
+  .pdf-viewer-container {
+    background: #1a1a2e;
+  }
+  
+  .pdf-viewer-controls {
+    background: #1f1f3a;
+    border-color: #2a2a4a;
+  }
+  
+  .pdf-viewer-controls .ant-btn {
+    color: #d9d9d9;
+  }
+  
+  .pdf-viewer-controls .ant-btn:hover {
+    background: #3a3a5a;
+  }
+  
+  .ai-panel-suggestion {
+    background: #1f2a4a;
+    border-color: #2a3a5a;
+  }
+  
+  .ai-panel-suggestion .suggestion-title {
+    color: #d9d9d9;
+  }
+  
+  .ai-panel-suggestion .suggestion-description {
+    color: #bfbfbf;
+  }
+  
+  .ai-panel-suggestion .suggestion-preview {
+    background: #2a3a5a;
+    color: #bfbfbf;
+  }
+}
+
+/* ============================================================
+   PRINT STYLES
+   ============================================================ */
+@media print {
+  .document-editor-container {
+    background: white;
+    padding: 0;
+  }
+  
+  .editor-toolbar {
+    display: none !important;
+  }
+  
+  .editor-header {
+    display: none !important;
+  }
+  
+  .editor-footer {
+    display: none !important;
+  }
+  
+  .editor-actions {
+    display: none !important;
+  }
+  
+  .metadata-panel {
+    display: none !important;
+  }
+  
+  .document-editor .ql-toolbar {
+    display: none !important;
+  }
+  
+  .document-editor .ql-container {
+    border: none !important;
+  }
+  
+  .document-editor .ql-editor {
+    padding: 20px !important;
+  }
+  
+  .editor-card .ant-card-body {
+    padding: 0 !important;
+  }
+  
+  .editor-card {
+    box-shadow: none !important;
+    border: none !important;
+  }
+  
+  .pdf-viewer-controls {
+    display: none !important;
+  }
+}
+
+/* ============================================================
+   KEYBOARD SHORTCUTS HINT
+   ============================================================ */
+.keyboard-shortcuts-hint {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  z-index: 1000;
+  max-width: 300px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.keyboard-shortcuts-hint.visible {
+  opacity: 1;
+}
+
+.keyboard-shortcuts-hint kbd {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: monospace;
+  color: #fff;
+}
+
+/* ============================================================
+   PROGRESS INDICATOR
+   ============================================================ */
+.document-editor .upload-progress {
+  margin: 16px 0;
+}
+
+.document-editor .upload-progress .ant-progress-text {
+  font-weight: 500;
+}
+
+/* ============================================================
+   SPLIT VIEW
+   ============================================================ */
+.editor-split-view {
+  display: flex;
+  gap: 16px;
+  height: 100%;
+}
+
+.editor-split-view .editor-pane {
+  flex: 1;
+  min-width: 0;
+}
+
+.editor-split-view .preview-pane {
+  flex: 1;
+  min-width: 0;
+  border-left: 1px solid #f0f0f0;
+  padding-left: 16px;
+  overflow: auto;
+}
+
+@media (max-width: 768px) {
+  .editor-split-view {
+    flex-direction: column;
+  }
+  
+  .editor-split-view .preview-pane {
+    border-left: none;
+    border-top: 1px solid #f0f0f0;
+    padding-left: 0;
+    padding-top: 16px;
+  }
+}

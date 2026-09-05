@@ -1,0 +1,114 @@
+/* src/components/documents/ExpirationDashboard.css */
+
+.expiration-dashboard {
+  padding: 0;
+}
+
+.expiration-dashboard .stat-card {
+  transition: all 0.3s ease;
+}
+
+.expiration-dashboard .stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.expiration-dashboard .stat-total .ant-statistic-content {
+  color: #1890ff;
+}
+
+.expiration-dashboard .stat-active .ant-statistic-content {
+  color: #52c41a;
+}
+
+.expiration-dashboard .stat-expiring .ant-statistic-content {
+  color: #faad14;
+}
+
+.expiration-dashboard .stat-expired .ant-statistic-content {
+  color: #f5222d;
+}
+
+.expiration-dashboard .stat-completed .ant-statistic-content {
+  color: #1890ff;
+}
+
+.expiration-dashboard .expiring-card .ant-card-head {
+  border-bottom: 2px solid #faad14;
+}
+
+.expiration-dashboard .expired-card .ant-card-head {
+  border-bottom: 2px solid #f5222d;
+}
+
+/* List item hover effect */
+.expiration-dashboard .ant-list-item:hover {
+  background: #fafafa;
+  border-radius: 8px;
+}
+
+/* Status badges */
+.expiration-dashboard .status-badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.expiration-dashboard .status-badge-active {
+  background: #f6ffed;
+  color: #52c41a;
+}
+
+.expiration-dashboard .status-badge-expiring {
+  background: #fff7e6;
+  color: #faad14;
+}
+
+.expiration-dashboard .status-badge-expired {
+  background: #fff1f0;
+  color: #f5222d;
+}
+
+.expiration-dashboard .status-badge-completed {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .expiration-dashboard .stat-card .ant-statistic-title {
+    font-size: 12px;
+  }
+  
+  .expiration-dashboard .stat-card .ant-statistic-content {
+    font-size: 16px;
+  }
+}
+
+/* Animation for expiring items */
+@keyframes pulse-warning {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+.expiration-dashboard .expiring-warning {
+  animation: pulse-warning 2s ease-in-out infinite;
+}
+
+/* Tooltip styles */
+.expiration-dashboard .days-tooltip {
+  font-weight: bold;
+}
+
+.expiration-dashboard .days-critical {
+  color: #f5222d;
+}
+
+.expiration-dashboard .days-warning {
+  color: #faad14;
+}
+
+.expiration-dashboard .days-safe {
+  color: #52c41a;
+}

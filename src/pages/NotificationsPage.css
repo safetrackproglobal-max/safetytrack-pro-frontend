@@ -1,0 +1,712 @@
+/* src/pages/NotificationsPage.css */
+/* ============================================
+   NOTIFICATIONS PAGE - FULLY RESPONSIVE
+   Mobile First Approach
+   ============================================ */
+
+/* BASE STYLES (Mobile: 0 - 767px) */
+.notifications-page {
+  padding: 12px;
+  min-height: calc(100vh - 56px);
+  background: #f0f2f5;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+@media (min-width: 640px) {
+  .notifications-page {
+    padding: 16px;
+  }
+}
+
+@media (min-width: 768px) {
+  .notifications-page {
+    padding: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .notifications-page {
+    padding: 24px;
+    min-height: calc(100vh - 64px);
+  }
+}
+
+/* ============================================
+   HEADER SECTION - Mobile Optimized
+   ============================================ */
+.notifications-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+@media (min-width: 640px) {
+  .notifications-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.header-icon {
+  font-size: 24px;
+  color: #1890ff;
+}
+
+@media (min-width: 768px) {
+  .header-icon {
+    font-size: 28px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .header-icon {
+    font-size: 32px;
+  }
+}
+
+.header-title h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+@media (min-width: 768px) {
+  .header-title h2 {
+    font-size: 22px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .header-title h2 {
+    font-size: 24px;
+  }
+}
+
+.unread-badge {
+  margin-left: 6px;
+}
+
+@media (min-width: 768px) {
+  .unread-badge {
+    margin-left: 8px;
+  }
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+@media (min-width: 640px) {
+  .header-actions {
+    width: auto;
+  }
+}
+
+/* Touch-friendly buttons in header */
+.header-actions .ant-btn {
+  min-height: 40px;
+}
+
+@media (max-width: 480px) {
+  .header-actions .ant-btn {
+    flex: 1;
+  }
+}
+
+/* ============================================
+   STATISTICS CARDS - Responsive Grid
+   ============================================ */
+.stats-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+@media (min-width: 480px) {
+  .stats-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .stats-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .stats-cards {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
+
+.stat-card {
+  text-align: center;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  height: 100%;
+  cursor: pointer;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+@media (max-width: 767px) {
+  .stat-card:active {
+    transform: translateY(-1px);
+  }
+}
+
+.stat-card .ant-card-body {
+  padding: 16px;
+}
+
+@media (min-width: 768px) {
+  .stat-card .ant-card-body {
+    padding: 18px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .stat-card .ant-card-body {
+    padding: 20px;
+  }
+}
+
+/* Stat Card Variants */
+.unread-stat .ant-typography {
+  color: #1890ff;
+}
+
+.read-stat .ant-typography {
+  color: #52c41a;
+}
+
+.critical-stat .ant-typography {
+  color: #ff4d4f;
+}
+
+/* Stat Card Typography */
+.stat-card .ant-statistic-title {
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+@media (min-width: 768px) {
+  .stat-card .ant-statistic-title {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+}
+
+.stat-card .ant-statistic-content {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+@media (min-width: 768px) {
+  .stat-card .ant-statistic-content {
+    font-size: 28px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .stat-card .ant-statistic-content {
+    font-size: 32px;
+  }
+}
+
+/* ============================================
+   FILTERS CARD
+   ============================================ */
+.filters-card {
+  margin-bottom: 20px;
+  border-radius: 12px;
+}
+
+@media (min-width: 768px) {
+  .filters-card {
+    margin-bottom: 24px;
+  }
+}
+
+.filters-card .ant-card-body {
+  padding: 12px 16px;
+}
+
+@media (min-width: 768px) {
+  .filters-card .ant-card-body {
+    padding: 16px 24px;
+  }
+}
+
+/* Filter Row Layout */
+.filters-card .ant-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .filters-card .ant-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+
+.filters-card .ant-col {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .filters-card .ant-col {
+    width: auto;
+    flex: 1;
+  }
+}
+
+/* Touch-friendly filter inputs */
+.filters-card .ant-picker,
+.filters-card .ant-select-selector,
+.filters-card .ant-input-affix-wrapper {
+  min-height: 40px;
+}
+
+@media (max-width: 480px) {
+  .filters-card .ant-space {
+    width: 100%;
+  }
+  
+  .filters-card .ant-space-item {
+    flex: 1;
+  }
+}
+
+/* ============================================
+   NOTIFICATIONS LIST
+   ============================================ */
+.notifications-list-card {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.list-header {
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 12px;
+}
+
+@media (min-width: 768px) {
+  .list-header {
+    padding: 12px 0;
+    margin-bottom: 16px;
+  }
+}
+
+/* Notification List Items */
+.notification-list-item {
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .notification-list-item {
+    padding: 20px 24px;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+}
+
+/* Touch feedback */
+.notification-list-item:active {
+  background: #f5f5f5;
+}
+
+@media (min-width: 768px) {
+  .notification-list-item:hover {
+    background: #fafafa;
+  }
+}
+
+/* Unread State */
+.notification-list-item.unread {
+  background: #f6ffed;
+}
+
+.notification-list-item.unread:hover {
+  background: #d9f7be;
+}
+
+/* Notification Content */
+.notification-item-title {
+  margin-bottom: 6px;
+  flex: 1;
+}
+
+@media (min-width: 768px) {
+  .notification-item-title {
+    margin-bottom: 8px;
+  }
+}
+
+.notification-item-title .ant-typography {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+@media (min-width: 768px) {
+  .notification-item-title .ant-typography {
+    font-size: 16px;
+  }
+}
+
+.notification-item-description {
+  width: 100%;
+  flex: 2;
+}
+
+.notification-message {
+  margin-bottom: 6px;
+  color: #666;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (min-width: 768px) {
+  .notification-message {
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+}
+
+/* Notification Meta Info */
+.notification-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 11px;
+}
+
+@media (min-width: 768px) {
+  .notification-meta {
+    gap: 16px;
+    font-size: 12px;
+  }
+}
+
+.notification-meta .ant-tag {
+  margin: 0;
+}
+
+/* Notification Actions */
+.notification-list-item .ant-list-item-actions {
+  margin-top: 10px;
+}
+
+@media (min-width: 768px) {
+  .notification-list-item .ant-list-item-actions {
+    margin-top: 0;
+  }
+}
+
+.notification-list-item .ant-btn-sm {
+  min-height: 32px;
+}
+
+@media (max-width: 480px) {
+  .notification-list-item .ant-space {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .notification-list-item .ant-btn-sm {
+    flex: 1;
+    text-align: center;
+  }
+}
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
+.notifications-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .notifications-loading {
+    min-height: 400px;
+  }
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+.notifications-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #bfbfbf;
+}
+
+.notifications-empty .anticon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.notifications-empty h4 {
+  color: #8c8c8c;
+  margin-bottom: 8px;
+  font-size: 18px;
+}
+
+.notifications-empty p {
+  color: #bfbfbf;
+  font-size: 14px;
+}
+
+/* ============================================
+   PAGINATION
+   ============================================ */
+.notifications-pagination {
+  margin-top: 20px;
+  text-align: center;
+  padding: 16px;
+}
+
+@media (min-width: 768px) {
+  .notifications-pagination {
+    margin-top: 24px;
+    padding: 20px;
+  }
+}
+
+/* Touch-friendly pagination */
+.notifications-pagination .ant-pagination-item,
+.notifications-pagination .ant-pagination-prev,
+.notifications-pagination .ant-pagination-next {
+  min-width: 40px;
+  height: 40px;
+  line-height: 38px;
+}
+
+@media (min-width: 768px) {
+  .notifications-pagination .ant-pagination-item,
+  .notifications-pagination .ant-pagination-prev,
+  .notifications-pagination .ant-pagination-next {
+    min-width: 32px;
+    height: 32px;
+    line-height: 30px;
+  }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.notification-list-item {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes highlight {
+  0% {
+    background: #e6f7ff;
+  }
+  100% {
+    background: transparent;
+  }
+}
+
+.notification-list-item.new {
+  animation: highlight 2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notification-list-item,
+  .notification-list-item.new {
+    animation: none;
+  }
+  
+  .stat-card:hover {
+    transform: none;
+  }
+}
+
+/* ============================================
+   DARK MODE SUPPORT
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+  .notifications-page {
+    background: #141414;
+  }
+  
+  .stat-card,
+  .filters-card,
+  .notifications-list-card {
+    background: #1f1f1f;
+    border-color: #303030;
+  }
+  
+  .notification-list-item {
+    border-bottom-color: #303030;
+  }
+  
+  .notification-list-item:hover {
+    background: #2a2a2a;
+  }
+  
+  .notification-list-item.unread {
+    background: #1a3a1a;
+  }
+  
+  .notification-list-item.unread:hover {
+    background: #1a4a1a;
+  }
+  
+  .notification-message {
+    color: #a6a6a6;
+  }
+  
+  .list-header {
+    border-bottom-color: #303030;
+  }
+  
+  .notifications-empty h4 {
+    color: #a6a6a6;
+  }
+  
+  .notifications-empty p {
+    color: #8c8c8c;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+.notification-list-item:focus-visible,
+.header-actions .ant-btn:focus-visible,
+.filters-card .ant-btn:focus-visible {
+  outline: 2px solid #1890ff;
+  outline-offset: 2px;
+}
+
+/* Touch-friendly tap targets */
+@media (max-width: 767px) {
+  .notification-list-item,
+  .stat-card,
+  .header-actions .ant-btn,
+  .filters-card .ant-btn,
+  .filters-card .ant-picker,
+  .filters-card .ant-select-selector {
+    min-height: 48px;
+  }
+  
+  .notification-list-item .ant-btn-sm {
+    min-height: 36px;
+  }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+  .notifications-page {
+    background: white;
+    padding: 0;
+  }
+  
+  .header-actions,
+  .filters-card,
+  .notifications-pagination,
+  .notification-list-item .ant-btn {
+    display: none;
+  }
+  
+  .notification-list-item {
+    break-inside: avoid;
+    border: 1px solid #ddd;
+    margin-bottom: 16px;
+    border-radius: 8px;
+  }
+  
+  .notification-list-item.unread {
+    background: none;
+    border-left: 4px solid #1890ff;
+  }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+/* Hide on mobile */
+.hide-on-mobile {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .hide-on-mobile {
+    display: block;
+  }
+}
+
+/* Show only on mobile */
+.show-on-mobile-only {
+  display: flex;
+}
+
+@media (min-width: 768px) {
+  .show-on-mobile-only {
+    display: none;
+  }
+}
+
+/* Full width on mobile */
+.full-width-mobile {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .full-width-mobile {
+    width: auto;
+  }
+}

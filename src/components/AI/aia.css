@@ -1,0 +1,169 @@
+/* src/components/environmental/ai.css */
+.ai-service-tab {
+  padding: 0;
+}
+
+.ai-main-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ai-tabs .ant-tabs-tab {
+  font-weight: 500;
+}
+
+.analysis-results,
+.prediction-results,
+.risk-results,
+.anomaly-results {
+  margin-top: 20px;
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.metric-card {
+  text-align: center;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.status-card,
+.model-card {
+  border-radius: 6px;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.status-item:last-child {
+  border-bottom: none;
+}
+
+.status-label {
+  font-weight: 500;
+  color: #666;
+}
+
+.risk-card {
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.risk-card.high-risk {
+  border-left: 4px solid #f5222d;
+}
+
+.risk-card.medium-risk {
+  border-left: 4px solid #faad14;
+}
+
+.risk-card.low-risk {
+  border-left: 4px solid #52c41a;
+}
+
+.risk-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.mitigation-card {
+  border-radius: 6px;
+}
+
+.strategy-number {
+  width: 24px;
+  height: 24px;
+  background: #1890ff;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.anomaly-severity {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.anomaly-severity.high {
+  background: #fff2f0;
+  border: 2px solid #ffccc7;
+}
+
+.anomaly-severity.medium {
+  background: #fffbe6;
+  border: 2px solid #ffe58f;
+}
+
+.anomaly-severity.low {
+  background: #f6ffed;
+  border: 2px solid #b7eb8f;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .ai-service-tab {
+    padding: 8px;
+  }
+  
+  .metric-card {
+    margin-bottom: 16px;
+  }
+  
+  .status-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+/* Loading animations */
+.ai-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+/* Custom badge styles */
+.ant-badge:not(.ant-badge-not-a-wrapper) {
+  margin-right: 0;
+}
+
+/* Tab content animations */
+.ant-tabs-tabpane {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from { 
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

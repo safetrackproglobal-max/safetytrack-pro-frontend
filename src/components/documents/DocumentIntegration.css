@@ -1,0 +1,169 @@
+/* src/components/documents/DocumentIntegration.css */
+
+.document-integration {
+  padding: 0;
+  background: #f0f2f5;
+  min-height: 100%;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.integration-header {
+  margin-bottom: 20px;
+}
+
+/* ============================================================
+   STATISTICS CARDS
+   ============================================================ */
+.integration-stats {
+  margin-bottom: 16px;
+}
+
+.integration-stats .stat-card {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: default;
+  height: 100%;
+}
+
+.integration-stats .stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.integration-stats .stat-total {
+  border-left: 4px solid #1890ff;
+}
+
+.integration-stats .stat-incident {
+  border-left: 4px solid #f5222d;
+}
+
+.integration-stats .stat-risk {
+  border-left: 4px solid #faad14;
+}
+
+.integration-stats .stat-training {
+  border-left: 4px solid #2f54eb;
+}
+
+.integration-stats .stat-card .ant-statistic-title {
+  font-size: 12px;
+  color: #8c8c8c;
+  white-space: nowrap;
+}
+
+.integration-stats .stat-card .ant-statistic-content {
+  font-size: 20px;
+}
+
+/* ============================================================
+   FILTERS
+   ============================================================ */
+.integration-filters {
+  background: white;
+  padding: 16px 20px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* ============================================================
+   TABLE
+   ============================================================ */
+.document-integration .ant-table-wrapper {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.document-integration .ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+  color: #262626;
+}
+
+.document-integration .ant-table-tbody > tr:hover > td {
+  background: #e6f7ff;
+}
+
+/* ============================================================
+   LINK MODAL
+   ============================================================ */
+.document-integration .ant-radio-group {
+  width: 100%;
+}
+
+.document-integration .ant-radio-button-wrapper {
+  text-align: center;
+  margin: 2px;
+  border-radius: 4px;
+}
+
+.document-integration .ant-radio-button-wrapper-checked {
+  border-color: #1890ff;
+  background: #e6f7ff;
+}
+
+.document-integration .ant-transfer {
+  width: 100%;
+}
+
+.document-integration .ant-transfer-list {
+  width: 48%;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .integration-stats .stat-card .ant-statistic-content {
+    font-size: 16px;
+  }
+  
+  .integration-filters {
+    padding: 12px 16px;
+  }
+  
+  .document-integration .ant-table-wrapper {
+    padding: 12px;
+  }
+  
+  .integration-filters .ant-col {
+    margin-bottom: 8px;
+  }
+  
+  .document-integration .ant-radio-button-wrapper {
+    font-size: 12px;
+    padding: 0 8px;
+  }
+}
+
+@media (max-width: 576px) {
+  .integration-stats .stat-card {
+    margin-bottom: 8px;
+  }
+  
+  .integration-stats .stat-card .ant-statistic-title {
+    font-size: 10px;
+  }
+  
+  .integration-stats .stat-card .ant-statistic-content {
+    font-size: 14px;
+  }
+  
+  .document-integration .ant-table-wrapper {
+    padding: 8px;
+    overflow-x: auto;
+  }
+  
+  .document-integration .ant-transfer-list {
+    width: 100%;
+  }
+  
+  .document-integration .ant-transfer {
+    flex-direction: column;
+  }
+}

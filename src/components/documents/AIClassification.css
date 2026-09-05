@@ -1,0 +1,61 @@
+/* src/components/documents/AIClassification.css */
+
+.ai-classification {
+  background: #f0f2f5;
+  min-height: 100%;
+}
+
+.ai-classification .classification-result {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.ai-classification .classification-result .ant-card-body {
+  padding: 24px;
+}
+
+.ai-classification .classification-result .ant-tag {
+  padding: 4px 12px;
+  font-size: 13px;
+  border-radius: 16px;
+}
+
+.ai-classification .classification-result .ant-tag-blue {
+  background: #e6f7ff;
+  border-color: #91d5ff;
+}
+
+.ai-classification .training-mode {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* Animations */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.ai-classification .ant-badge-status-processing {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ai-classification {
+    padding: 16px;
+  }
+  
+  .ai-classification .classification-result .ant-card-body {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 576px) {
+  .ai-classification {
+    padding: 8px;
+  }
+}

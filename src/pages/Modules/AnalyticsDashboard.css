@@ -1,0 +1,217 @@
+/* src/components/hospital/AnalyticsDashboard.css */
+
+.analytics-dashboard {
+  padding: 0;
+  background: #f5f7fa;
+  min-height: 100vh;
+}
+
+/* Header */
+.analytics-header {
+  background: white;
+  padding: 16px 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  margin-bottom: 16px;
+}
+
+/* Stat Cards */
+.stat-card {
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card .ant-statistic-title {
+  font-size: 13px;
+  color: #8c8c8c;
+  font-weight: 500;
+}
+
+.stat-card .ant-statistic-content {
+  font-size: 26px;
+}
+
+/* Analysis Tool Cards */
+.analysis-tool-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  margin-bottom: 16px;
+  background: white;
+}
+
+.analysis-tool-card .ant-card-head {
+  border-bottom: 2px solid #f0f0f0;
+  padding: 12px 20px;
+}
+
+.analysis-tool-card .ant-card-head-title {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.analysis-tool-card .ant-card-body {
+  padding: 20px;
+}
+
+/* Tool Navigation */
+.tool-navigation {
+  background: white;
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.tool-navigation .ant-btn {
+  border-radius: 20px;
+  padding: 4px 16px;
+  font-weight: 500;
+}
+
+.tool-navigation .ant-btn-primary {
+  background: #1890ff;
+  border-color: #1890ff;
+}
+
+/* Chart Containers */
+.chart-container {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+/* Table Styles */
+.ant-table-wrapper {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+}
+
+/* Alert Styles */
+.ant-alert {
+  border-radius: 8px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .stat-card .ant-statistic-content {
+    font-size: 20px;
+  }
+  
+  .analysis-tool-card .ant-card-body {
+    padding: 12px;
+  }
+  
+  .tool-navigation {
+    padding: 8px 12px;
+  }
+  
+  .tool-navigation .ant-btn {
+    padding: 2px 12px;
+    font-size: 12px;
+  }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stat-card, .analysis-tool-card {
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.05s; }
+.stat-card:nth-child(2) { animation-delay: 0.1s; }
+.stat-card:nth-child(3) { animation-delay: 0.15s; }
+.stat-card:nth-child(4) { animation-delay: 0.2s; }
+.stat-card:nth-child(5) { animation-delay: 0.25s; }
+.stat-card:nth-child(6) { animation-delay: 0.3s; }
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d9d9d9;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #bfbfbf;
+}
+
+/* Custom Progress */
+.ant-progress-bg {
+  border-radius: 4px;
+}
+
+/* Modal Customization */
+.custom-modal .ant-modal-content {
+  border-radius: 12px;
+}
+
+.custom-modal .ant-modal-header {
+  border-radius: 12px 12px 0 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.custom-modal .ant-modal-footer {
+  border-top: 1px solid #f0f0f0;
+  border-radius: 0 0 12px 12px;
+}
+
+/* Loading State */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Metric Highlights */
+.metric-highlight {
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+  border-radius: 8px;
+  padding: 12px 16px;
+  text-align: center;
+}
+
+.metric-highlight .value {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.metric-highlight .label {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-top: 4px;
+}

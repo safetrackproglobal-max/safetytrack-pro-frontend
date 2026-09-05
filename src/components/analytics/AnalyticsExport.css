@@ -1,0 +1,876 @@
+/* analytics-export.css */
+/* ============================================
+   ANALYTICS EXPORT - FULLY RESPONSIVE
+   Mobile First Approach
+   ============================================ */
+
+/* BASE STYLES (Mobile: 0 - 767px) */
+.analytics-export {
+  padding: 12px;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+@media (min-width: 640px) {
+  .analytics-export {
+    padding: 16px;
+  }
+}
+
+@media (min-width: 768px) {
+  .analytics-export {
+    padding: 20px;
+  }
+}
+
+/* ============================================
+   EXPORT HEADER - Mobile Optimized
+   ============================================ */
+.export-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+@media (min-width: 640px) {
+  .export-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+    padding-bottom: 14px;
+  }
+}
+
+@media (min-width: 768px) {
+  .export-header {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+  }
+}
+
+.export-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+@media (min-width: 768px) {
+  .export-header h3 {
+    font-size: 20px;
+  }
+}
+
+/* ============================================
+   EXPORT ACTIONS
+   ============================================ */
+.export-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+@media (min-width: 480px) {
+  .export-actions {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+}
+
+/* Bulk Actions */
+.bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  width: 100%;
+}
+
+@media (min-width: 480px) {
+  .bulk-actions {
+    width: auto;
+    justify-content: flex-start;
+  }
+}
+
+.selected-count-badge {
+  background: #f0f5ff;
+  color: #1890ff;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* ============================================
+   STATS GRID - Responsive
+   ============================================ */
+.export-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+@media (min-width: 480px) {
+  .export-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .export-stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+}
+
+.stat-card {
+  background: white;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  transition: all 0.3s ease;
+}
+
+@media (min-width: 480px) {
+  .stat-card {
+    padding: 14px 16px;
+  }
+}
+
+@media (min-width: 768px) {
+  .stat-card {
+    padding: 16px;
+  }
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #1890ff;
+}
+
+/* ============================================
+   EXPORT FILTERS - Mobile Optimized
+   ============================================ */
+.export-filters {
+  background: #fafafa;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+  margin-bottom: 20px;
+}
+
+@media (min-width: 640px) {
+  .export-filters {
+    padding: 14px 16px;
+  }
+}
+
+@media (min-width: 768px) {
+  .export-filters {
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+}
+
+.export-filters-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .export-filters-wrapper {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 16px;
+  }
+}
+
+.filter-group {
+  flex: 1;
+  min-width: 100%;
+}
+
+@media (min-width: 640px) {
+  .filter-group {
+    min-width: 180px;
+  }
+}
+
+.filter-group .ant-typography {
+  font-size: 12px;
+  font-weight: 500;
+  color: #595959;
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* Touch-friendly filter inputs */
+.filter-group .ant-picker,
+.filter-group .ant-select-selector {
+  min-height: 40px;
+}
+
+/* ============================================
+   QUICK EXPORT DROPDOWN
+   ============================================ */
+.quick-export-dropdown {
+  min-width: 260px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f0f0f0;
+  padding: 8px;
+}
+
+@media (min-width: 480px) {
+  .quick-export-dropdown {
+    min-width: 280px;
+  }
+}
+
+.quick-template-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.quick-template-item:hover {
+  background: #f5f5f5;
+}
+
+/* ============================================
+   EXPORT TABLE - Mobile Responsive
+   ============================================ */
+.export-table-container {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+  overflow-x: auto;
+}
+
+.export-table-container .ant-table {
+  min-width: 600px;
+}
+
+@media (max-width: 640px) {
+  .export-table-container .ant-table {
+    min-width: 550px;
+  }
+}
+
+/* Table Cells */
+.ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+  color: #262626;
+  padding: 12px 8px;
+}
+
+.ant-table-tbody > tr > td {
+  padding: 12px 8px;
+  vertical-align: middle;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background: #fafafa;
+}
+
+/* Export File Cell */
+.export-file-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 6px 0;
+}
+
+@media (min-width: 480px) {
+  .export-file-cell {
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+  }
+}
+
+.export-file-icon {
+  font-size: 28px;
+  padding: 6px;
+  border-radius: 6px;
+  background: #fafafa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .export-file-icon {
+    font-size: 32px;
+    width: 48px;
+    height: 48px;
+    padding: 8px;
+  }
+}
+
+.export-file-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.export-filename {
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 4px;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+  .export-filename {
+    font-size: 14px;
+  }
+}
+
+/* Export Tags */
+.export-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+  .export-tags {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Export Actions Cell */
+.export-actions-cell {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+@media (min-width: 480px) {
+  .export-actions-cell {
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+  }
+}
+
+.action-button {
+  padding: 4px;
+  min-width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================
+   STATUS BADGES
+   ============================================ */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.status-pending {
+  background: #fff7e6;
+  color: #fa8c16;
+  border: 1px solid #ffd591;
+}
+
+.status-processing {
+  background: #e6f7ff;
+  color: #1890ff;
+  border: 1px solid #91d5ff;
+}
+
+.status-completed {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
+
+.status-failed {
+  background: #fff2f0;
+  color: #ff4d4f;
+  border: 1px solid #ffccc7;
+}
+
+.status-scheduled {
+  background: #f9f0ff;
+  color: #722ed1;
+  border: 1px solid #d3adf7;
+}
+
+/* ============================================
+   EXPORT PROGRESS
+   ============================================ */
+.export-progress {
+  margin-top: 8px;
+}
+
+.export-progress .ant-progress-inner {
+  border-radius: 10px;
+}
+
+/* ============================================
+   TABS CONTAINER
+   ============================================ */
+.export-tabs-container {
+  margin-top: 20px;
+}
+
+@media (min-width: 768px) {
+  .export-tabs-container {
+    margin-top: 24px;
+  }
+}
+
+.export-tabs .ant-tabs-nav {
+  margin-bottom: 0;
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+.export-empty-state {
+  padding: 32px 16px;
+  text-align: center;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+  margin: 20px 0;
+}
+
+@media (min-width: 768px) {
+  .export-empty-state {
+    padding: 48px 24px;
+    margin: 24px 0;
+  }
+}
+
+.empty-state-icon {
+  font-size: 48px;
+  color: #d9d9d9;
+  margin-bottom: 12px;
+  opacity: 0.7;
+}
+
+@media (min-width: 768px) {
+  .empty-state-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+  }
+}
+
+.empty-state-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 6px;
+}
+
+@media (min-width: 768px) {
+  .empty-state-title {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+}
+
+.empty-state-description {
+  color: #8c8c8c;
+  margin-bottom: 20px;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 13px;
+}
+
+/* ============================================
+   EXPORT MODAL
+   ============================================ */
+.export-modal .ant-modal-content {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.export-modal .ant-modal-header {
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 16px;
+}
+
+@media (min-width: 768px) {
+  .export-modal .ant-modal-header {
+    padding: 20px 24px;
+  }
+}
+
+.export-modal .ant-modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+}
+
+@media (min-width: 768px) {
+  .export-modal .ant-modal-title {
+    font-size: 18px;
+  }
+}
+
+.export-modal .ant-modal-body {
+  padding: 16px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+@media (min-width: 768px) {
+  .export-modal .ant-modal-body {
+    padding: 24px;
+  }
+}
+
+.export-modal .ant-modal-footer {
+  padding: 12px 16px;
+}
+
+@media (min-width: 768px) {
+  .export-modal .ant-modal-footer {
+    padding: 16px 24px;
+  }
+}
+
+/* Modal width on mobile */
+@media (max-width: 480px) {
+  .export-modal {
+    max-width: calc(100vw - 32px);
+    margin: 16px auto;
+  }
+}
+
+/* ============================================
+   FORM STYLES
+   ============================================ */
+.export-form-row {
+  margin-bottom: 16px;
+}
+
+.export-form-label {
+  font-weight: 500;
+  color: #262626;
+  margin-bottom: 6px;
+  display: block;
+  font-size: 13px;
+}
+
+.export-divider {
+  margin: 20px 0;
+  border-color: #f0f0f0;
+}
+
+/* Export Preview */
+.export-preview {
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+  border: 1px dashed #d9d9d9;
+  text-align: center;
+  margin: 16px 0;
+}
+
+@media (min-width: 768px) {
+  .export-preview {
+    padding: 24px;
+  }
+}
+
+.preview-icon {
+  font-size: 36px;
+  color: #1890ff;
+  margin-bottom: 12px;
+  opacity: 0.8;
+}
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
+.export-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+  margin: 20px 0;
+}
+
+@media (min-width: 768px) {
+  .export-loading {
+    padding: 48px;
+    margin: 24px 0;
+  }
+}
+
+.loading-spinner {
+  margin-bottom: 12px;
+}
+
+.loading-text {
+  color: #595959;
+  font-size: 13px;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+.processing-animation {
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .processing-animation,
+  .animate-in,
+  .stat-card,
+  .quick-template-item {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* ============================================
+   DARK MODE SUPPORT
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+  .analytics-export {
+    background: #141414;
+    color: rgba(255, 255, 255, 0.85);
+  }
+  
+  .stat-card,
+  .export-filters,
+  .export-table-container,
+  .export-empty-state,
+  .export-loading {
+    background: #1f1f1f;
+    border-color: #434343;
+  }
+  
+  .export-file-icon {
+    background: #2a2a2a;
+  }
+  
+  .export-filename {
+    color: rgba(255, 255, 255, 0.85);
+  }
+  
+  .filter-group .ant-typography,
+  .export-form-label {
+    color: rgba(255, 255, 255, 0.65);
+  }
+  
+  .ant-table-thead > tr > th {
+    background: #1f1f1f;
+    color: rgba(255, 255, 255, 0.85);
+  }
+  
+  .ant-table-tbody > tr:hover > td {
+    background: #2a2a2a;
+  }
+  
+  .status-pending {
+    background: #2b2111;
+    color: #fa8c16;
+    border-color: #593815;
+  }
+  
+  .status-processing {
+    background: #111d2c;
+    color: #1890ff;
+    border-color: #153450;
+  }
+  
+  .status-completed {
+    background: #162312;
+    color: #52c41a;
+    border-color: #274916;
+  }
+  
+  .status-failed {
+    background: #2a1215;
+    color: #ff4d4f;
+    border-color: #58181c;
+  }
+  
+  .status-scheduled {
+    background: #1a1325;
+    color: #722ed1;
+    border-color: #391085;
+  }
+  
+  .export-divider {
+    border-color: #434343;
+  }
+  
+  .export-preview {
+    background: #2a2a2a;
+    border-color: #434343;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+.quick-template-item:focus-visible,
+.action-button:focus-visible {
+  outline: 2px solid #1890ff;
+  outline-offset: 2px;
+}
+
+/* Touch-friendly tap targets */
+@media (max-width: 767px) {
+  .action-button,
+  .quick-template-item,
+  .filter-group .ant-picker,
+  .filter-group .ant-select-selector {
+    min-height: 44px;
+  }
+}
+
+/* ============================================
+   CUSTOM SCROLLBAR
+   ============================================ */
+.export-modal .ant-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.export-modal .ant-modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.export-modal .ant-modal-body::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .export-modal .ant-modal-body::-webkit-scrollbar-track {
+    background: #2f2f2f;
+  }
+  
+  .export-modal .ant-modal-body::-webkit-scrollbar-thumb {
+    background: #555;
+  }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+  .export-actions,
+  .export-filters,
+  .bulk-actions,
+  .export-actions-cell,
+  .ant-tabs-nav,
+  .ant-modal {
+    display: none !important;
+  }
+  
+  .export-table-container {
+    border: 1px solid #000;
+  }
+  
+  .analytics-export {
+    padding: 0;
+  }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+.text-center {
+  text-align: center;
+}
+
+.mb-1 { margin-bottom: 8px; }
+.mb-2 { margin-bottom: 16px; }
+.mb-3 { margin-bottom: 24px; }
+
+.hide-on-mobile {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .hide-on-mobile {
+    display: block;
+  }
+}
+
+.show-on-mobile-only {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .show-on-mobile-only {
+    display: none;
+  }
+}

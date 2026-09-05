@@ -1,0 +1,512 @@
+/* src/pages/AuthPages.css */
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.auth-card {
+  border-radius: 16px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  border: none;
+  overflow: hidden;
+}
+
+.signup-card {
+  background: rgba(255, 255, 255, 0.95);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  max-width: 600px !important;
+}
+
+/* Steps Styling */
+.signup-steps {
+  padding: 0 20px;
+  margin-bottom: 32px;
+}
+
+.signup-steps .ant-steps-item-icon {
+  border-color: #d9d9d9;
+}
+
+.signup-steps .ant-steps-item-process .ant-steps-item-icon {
+  background: #1890ff;
+  border-color: #1890ff;
+}
+
+.signup-steps .ant-steps-item-finish .ant-steps-item-icon {
+  border-color: #1890ff;
+}
+
+.signup-steps .ant-steps-item-finish .ant-steps-icon {
+  color: #1890ff;
+}
+
+.step-content {
+  padding: 24px 0;
+  min-height: 300px;
+}
+
+/* User Type Selection */
+.user-type-selection {
+  text-align: center;
+}
+
+.user-type-cards {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.user-type-card {
+  flex: 1;
+  padding: 20px 16px;
+  border: 2px solid #f0f0f0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+  text-align: left;
+}
+
+.user-type-card:hover {
+  border-color: #1890ff;
+  transform: translateY(-4px);
+  box-shadow: 0 6px 12px rgba(24, 144, 255, 0.1);
+}
+
+.user-type-card.selected {
+  border-color: #1890ff;
+  background: #f0f8ff;
+  box-shadow: 0 6px 12px rgba(24, 144, 255, 0.15);
+}
+
+.card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #f0f8ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.card-icon .anticon {
+  font-size: 20px;
+  color: #1890ff;
+}
+
+.card-icon.admin {
+  background: #fff7e6;
+}
+
+.card-icon.admin .anticon {
+  color: #fa8c16;
+}
+
+.card-content h5 {
+  margin-bottom: 8px;
+  color: #333;
+  font-size: 16px;
+}
+
+.card-content .ant-typography {
+  color: #666;
+  margin-bottom: 12px;
+  display: block;
+  font-size: 12px;
+}
+
+.card-content ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.card-content li {
+  padding: 4px 0;
+  color: #666;
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+}
+
+.card-content li:before {
+  content: "✓";
+  color: #52c41a;
+  margin-right: 6px;
+  font-weight: bold;
+  font-size: 10px;
+}
+
+/* Plan Options Styling */
+.plan-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.plan-option {
+  padding: 14px 16px;
+  border: 2px solid #f0f0f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.plan-option:hover {
+  border-color: #1890ff;
+  background: #f0f8ff;
+  transform: translateY(-2px);
+}
+
+.plan-option.selected {
+  border-color: #1890ff;
+  background: #e6f7ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.plan-option.recommended {
+  border-color: #1890ff;
+}
+
+.plan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.plan-title {
+  display: flex;
+  align-items: center;
+}
+
+.plan-price {
+  text-align: right;
+}
+
+.plan-price .ant-typography strong {
+  font-size: 16px;
+  color: #1890ff;
+}
+
+.plan-price .ant-typography-secondary {
+  font-size: 11px;
+}
+
+.plan-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.plan-feature {
+  display: flex;
+  align-items: center;
+  background: #f6ffed;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid #b7eb8f;
+  font-size: 11px;
+}
+
+.plan-feature .anticon {
+  color: #52c41a;
+  font-size: 10px;
+  margin-right: 4px;
+}
+
+/* Language Flag */
+.language-flag {
+  margin-right: 8px;
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+/* Form Items */
+.auth-card .ant-form-item-label > label {
+  color: #333;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.auth-card .ant-input,
+.auth-card .ant-input-password,
+.auth-card .ant-select-selector {
+  border-radius: 8px;
+  border: 1px solid #d9d9d9;
+  font-size: 14px;
+}
+
+.auth-card .ant-input:hover,
+.auth-card .ant-input-password:hover,
+.auth-card .ant-select-selector:hover {
+  border-color: #1890ff;
+}
+
+.auth-card .ant-input:focus,
+.auth-card .ant-input-password:focus,
+.auth-card .ant-select-focused .ant-select-selector {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* Buttons */
+.steps-action {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.steps-action .ant-btn {
+  border-radius: 8px;
+  font-weight: 500;
+  height: 40px;
+  padding: 0 24px;
+  font-size: 14px;
+}
+
+.steps-action .ant-btn-primary {
+  background: linear-gradient(90deg, #1890ff, #40a9ff);
+  border: none;
+}
+
+.steps-action .ant-btn-primary:hover {
+  background: linear-gradient(90deg, #40a9ff, #69c0ff);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+/* Alert */
+.auth-card .ant-alert {
+  border-radius: 8px;
+  border: none;
+  font-size: 13px;
+}
+
+/* Divider */
+.auth-card .ant-divider {
+  margin: 20px 0;
+  color: #666;
+  font-size: 12px;
+}
+
+/* Links */
+.auth-card .ant-typography {
+  font-size: 13px;
+}
+
+.auth-card .ant-typography a {
+  color: #1890ff;
+  font-weight: 500;
+}
+
+.auth-card .ant-typography a:hover {
+  color: #40a9ff;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .auth-container {
+    padding: 10px;
+  }
+
+  .auth-card {
+    margin: 0 10px;
+  }
+
+  .signup-card {
+    max-width: 100% !important;
+  }
+
+  .user-type-cards {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .user-type-card {
+    padding: 16px 12px;
+  }
+
+  .signup-steps {
+    padding: 0 10px;
+  }
+
+  .signup-steps .ant-steps-item-title {
+    display: none;
+  }
+
+  .auth-card .ant-form-item {
+    margin-bottom: 16px;
+  }
+
+  .steps-action .ant-space {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .steps-action .ant-btn {
+    width: 100%;
+  }
+
+  .plan-option {
+    padding: 12px;
+  }
+
+  .plan-features {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .plan-feature {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+
+  .auth-card .ant-card-body {
+    padding: 20px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-card .ant-card-body {
+    padding: 16px !important;
+  }
+
+  .step-content {
+    min-height: 250px;
+    padding: 16px 0;
+  }
+
+  .signup-steps .ant-steps-item {
+    padding: 0 4px;
+  }
+
+  .signup-steps .ant-steps-item-icon {
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    font-size: 12px;
+  }
+}
+
+/* Tag styling for recommended badge */
+.plan-title .ant-tag {
+  font-size: 10px;
+  padding: 0 6px;
+  height: 18px;
+  line-height: 16px;
+}
+
+/* Ensure form fits within card */
+.steps-content {
+  overflow: hidden;
+}
+
+/* Loading state for submit button */
+.steps-action .ant-btn-loading {
+  opacity: 0.7;
+}
+
+/* Animation for step transitions */
+.steps-content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Custom scrollbar for select dropdowns */
+.auth-card .ant-select-dropdown {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.auth-card .ant-select-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.auth-card .ant-select-dropdown::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.auth-card .ant-select-dropdown::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.auth-card .ant-select-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Password strength indicator */
+.password-strength {
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.password-strength.weak {
+  color: #f5222d;
+}
+
+.password-strength.medium {
+  color: #fa8c16;
+}
+
+.password-strength.strong {
+  color: #52c41a;
+}
+
+/* Custom plan styling */
+.plan-option.custom {
+  border-color: #d3adf7;
+}
+
+.plan-option.custom:hover {
+  border-color: #9254de;
+  background: #f9f0ff;
+}
+
+.plan-option.custom.selected {
+  border-color: #722ed1;
+  background: #f9f0ff;
+  box-shadow: 0 0 0 2px rgba(114, 46, 209, 0.1);
+}
+
+/* Modal styling */
+.custom-plan-modal .ant-modal-header {
+  background: #f9f0ff;
+  border-bottom: 1px solid #d3adf7;
+}
+
+/* Contact form in modal */
+.custom-plan-modal .ant-form-item-label {
+  font-weight: 500;
+}
+
+.custom-plan-modal .ant-input,
+.custom-plan-modal .ant-input-textarea {
+  border-radius: 6px;
+}
+
+.custom-plan-modal .ant-input:focus,
+.custom-plan-modal .ant-input-textarea:focus {
+  border-color: #722ed1;
+  box-shadow: 0 0 0 2px rgba(114, 46, 209, 0.2);
+}

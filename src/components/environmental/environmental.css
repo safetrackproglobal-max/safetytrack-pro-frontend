@@ -1,0 +1,597 @@
+/* EnvironmentalDashboard.css */
+
+.environmental-dashboard {
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4efe9 100%);
+  min-height: 100vh;
+  padding: 24px;
+}
+
+/* Enhanced Header */
+.environmental-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 24px;
+  color: white;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.title-icon {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 24px;
+}
+
+.header-title h1 {
+  color: white;
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.header-title p {
+  color: rgba(255, 255, 255, 0.9);
+  margin: 4px 0 0 0;
+  font-size: 16px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Stats Cards */
+.stats-row {
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.stat-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.stat-icon {
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-icon.primary {
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  color: white;
+}
+
+.stat-icon.success {
+  background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
+  color: white;
+}
+
+.stat-icon.warning {
+  background: linear-gradient(135deg, #faad14 0%, #d48806 100%);
+  color: white;
+}
+
+.stat-icon.secondary {
+  background: linear-gradient(135deg, #722ed1 0%, #531dab 100%);
+  color: white;
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-trend {
+  margin-top: 8px;
+}
+
+.trend.positive {
+  color: #52c41a;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.risk-indicator {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #666;
+}
+
+/* Dashboard Tabs */
+.dashboard-tabs-card {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.environmental-tabs .ant-tabs-nav {
+  padding: 0 24px;
+  margin: 0;
+  background: white;
+}
+
+.environmental-tabs .ant-tabs-tab {
+  padding: 16px 24px;
+  margin: 0;
+  border-radius: 8px 8px 0 0;
+}
+
+.environmental-tabs .ant-tabs-tab-active {
+  background: linear-gradient(135deg, #f0f7ff 0%, #e6f7ff 100%);
+}
+
+.tab-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.tab-badge {
+  margin-left: 4px;
+  font-size: 10px;
+  padding: 0 6px;
+  height: 16px;
+  line-height: 16px;
+}
+
+.tab-extra {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.time-range-label {
+  color: #666;
+  font-size: 14px;
+}
+
+/* Section Cards */
+.section-card {
+  border-radius: 12px;
+  border: 1px solid #f0f0f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.view-all-btn {
+  color: #1890ff;
+  font-weight: 500;
+}
+
+.cards-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Tab Content */
+.tab-header {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.tab-header h3 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #262626;
+  margin: 0 0 8px 0;
+}
+
+.tab-header p {
+  color: #666;
+  font-size: 16px;
+  margin: 0;
+}
+
+/* Alert State */
+.alert-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.alert-icon {
+  font-size: 64px;
+  color: #52c41a;
+  margin-bottom: 20px;
+}
+
+.alert-content h3 {
+  font-size: 24px;
+  color: #262626;
+  margin: 0 0 12px 0;
+}
+
+.alert-content p {
+  color: #666;
+  font-size: 16px;
+  margin: 0 0 20px 0;
+}
+
+.alert-stats {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+/* No Data States */
+.no-data-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #bfbfbf;
+}
+
+.no-data-state .anticon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.no-data-state h4 {
+  color: #8c8c8c;
+  margin: 0 0 8px 0;
+}
+
+.no-data-state p {
+  margin: 0;
+  color: #bfbfbf;
+}
+
+/* Loading State */
+.environmental-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+.loading-container {
+  text-align: center;
+}
+
+.loading-content h3 {
+  margin: 16px 0 8px 0;
+  color: #262626;
+}
+
+.loading-content p {
+  color: #666;
+  margin: 0;
+}
+
+/* Dashboard Alert */
+.dashboard-alert {
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .environmental-dashboard {
+    padding: 16px;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+  
+  .header-title {
+    flex-direction: column;
+  }
+  
+  .stat-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .tab-extra {
+    display: none;
+  }
+}
+
+/* Add to src/pages/EnvironmentalDashboard.css */
+
+/* Thermal Section Styles */
+.thermal-section {
+  border-left: 4px solid #fa541c;
+  margin-top: 24px;
+}
+
+.subsection-title {
+  font-weight: 500;
+  margin-bottom: 16px;
+  color: #595959;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sensors-mini-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sensor-mini-card {
+  background: #fafafa;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.sensor-mini-card:hover {
+  background: #f0f0f0;
+}
+
+.sensor-mini-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sensor-name {
+  font-weight: 500;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.sensor-temp {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.comfort-preview {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  background: #fafafa;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.comfort-gauge-mini {
+  width: 120px;
+}
+
+.comfort-details {
+  flex: 1;
+}
+
+.comfort-details > div {
+  margin-bottom: 8px;
+}
+
+.detail-label {
+  color: #8c8c8c;
+  margin-right: 8px;
+  font-size: 13px;
+}
+
+.uhi-summary {
+  background: linear-gradient(135deg, #fff2e8 0%, #fff 100%);
+  padding: 16px;
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.uhi-card {
+  background: #f5f5f5;
+  border-radius: 8px;
+  height: 100%;
+}
+
+.uhi-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.uhi-date {
+  color: #8c8c8c;
+  font-size: 12px;
+}
+
+.uhi-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.uhi-temp {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.subsection-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.subsection-header h4 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Status Overview Updates */
+.status-item {
+  padding: 12px;
+  background: #fafafa;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.status-item:hover {
+  background: #f0f0f0;
+}
+
+.status-label {
+  color: #8c8c8c;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.status-value {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* Tab Enhancements */
+.tab-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tab-label .ant-badge {
+  margin-left: 4px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .comfort-preview {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .comfort-gauge-mini {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .uhi-temp {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .subsection-header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .sensor-mini-card {
+    background: #1f1f1f;
+  }
+  
+  .sensor-mini-card:hover {
+    background: #2a2a2a;
+  }
+  
+  .comfort-preview {
+    background: #1f1f1f;
+  }
+  
+  .uhi-summary {
+    background: linear-gradient(135deg, #2a1a0f 0%, #141414 100%);
+  }
+  
+  .uhi-card {
+    background: #1f1f1f;
+  }
+  
+  .status-item {
+    background: #1f1f1f;
+  }
+  
+  .status-item:hover {
+    background: #2a2a2a;
+  }
+  
+  .status-label {
+    color: #a6a6a6;
+  }
+  
+  .status-value {
+    color: #e6e6e6;
+  }
+}
+
+/* Animation for new data */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.thermal-section.updating {
+  animation: pulse 1s ease;
+}
+
+/* Tooltip enhancements */
+.ant-tooltip-inner {
+  font-size: 12px;
+}
+
+/* Progress bar customization */
+.ant-progress-circle .ant-progress-text {
+  font-family: 'Monospaced', monospace;
+}
+
+/* Card hover effects */
+.section-card {
+  transition: all 0.3s ease;
+}
+
+.section-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}

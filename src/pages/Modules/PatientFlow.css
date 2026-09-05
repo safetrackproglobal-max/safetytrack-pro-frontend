@@ -1,0 +1,209 @@
+/* src/pages/Modules/PatientFlow.css */
+
+/* ============================================
+   PATIENT FLOW DASHBOARD
+   ============================================ */
+.patient-flow-container {
+  padding: 24px;
+  background: #f0f2f5;
+  min-height: 100vh;
+}
+
+.patient-flow-container .ant-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Patient Status Cards */
+.patient-status-card {
+  text-align: center;
+  padding: 16px;
+  border-radius: 12px;
+  background: white;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.patient-status-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.patient-status-card .status-number {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.patient-status-card .status-label {
+  font-size: 14px;
+  color: #8c8c8c;
+  margin-top: 4px;
+}
+
+.patient-status-card .status-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* Patient Timeline */
+.patient-timeline .ant-timeline-item {
+  padding-bottom: 20px;
+}
+
+.patient-timeline .ant-timeline-item-content {
+  padding: 8px 16px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.patient-timeline .timeline-event {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.patient-timeline .timeline-event .event-time {
+  font-size: 12px;
+  color: #999;
+}
+
+.patient-timeline .timeline-event .event-type {
+  font-weight: 600;
+}
+
+/* Bed Management */
+.bed-card {
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
+  border-left: 4px solid #1890ff;
+}
+
+.bed-card.available {
+  border-left-color: #52c41a;
+  background: #f6ffed;
+}
+
+.bed-card.occupied {
+  border-left-color: #ff4d4f;
+  background: #fff1f0;
+}
+
+.bed-card.maintenance {
+  border-left-color: #faad14;
+  background: #fff7e6;
+}
+
+.bed-card .bed-number {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.bed-card .bed-patient {
+  font-size: 14px;
+  color: #666;
+}
+
+.bed-card .bed-department {
+  font-size: 12px;
+  color: #999;
+}
+
+/* Patient Admission Form */
+.admission-form .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.admission-form .ant-form-item-label {
+  font-weight: 500;
+}
+
+.admission-form .ant-input,
+.admission-form .ant-select-selector,
+.admission-form .ant-picker {
+  border-radius: 8px;
+}
+
+.admission-form .ant-input:focus,
+.admission-form .ant-select-selector:focus,
+.admission-form .ant-picker:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* Patient Discharge */
+.discharge-summary {
+  background: #f6ffed;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #b7eb8f;
+}
+
+.discharge-summary .summary-title {
+  font-weight: 600;
+  color: #52c41a;
+  font-size: 16px;
+}
+
+.discharge-summary .summary-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.discharge-summary .summary-item:last-child {
+  border-bottom: none;
+}
+
+/* Patient Search */
+.patient-search .ant-input-affix-wrapper {
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.patient-search .ant-input-affix-wrapper:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* Patient Quick Actions */
+.quick-actions .ant-btn {
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.quick-actions .ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  border: none;
+}
+
+.quick-actions .ant-btn-success {
+  background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
+  border: none;
+  color: white;
+}
+
+.quick-actions .ant-btn-danger {
+  background: linear-gradient(135deg, #ff4d4f 0%, #cf1322 100%);
+  border: none;
+  color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .patient-flow-container {
+    padding: 12px;
+  }
+  
+  .patient-status-card .status-number {
+    font-size: 24px;
+  }
+  
+  .bed-card {
+    padding: 8px;
+  }
+}

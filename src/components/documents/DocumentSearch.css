@@ -1,0 +1,158 @@
+/* src/components/documents/DocumentSearch.css */
+
+.document-search {
+  padding: 0;
+  background: #f0f2f5;
+  min-height: 100%;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.search-header {
+  margin-bottom: 20px;
+}
+
+/* ============================================================
+   SEARCH BAR
+   ============================================================ */
+.document-search .search-bar {
+  background: white;
+  padding: 16px 20px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.document-search .search-bar .ant-input-search {
+  border-radius: 8px;
+}
+
+.document-search .search-bar .ant-input-search .ant-input {
+  border-radius: 8px 0 0 8px;
+}
+
+.document-search .search-bar .ant-input-search .ant-btn {
+  border-radius: 0 8px 8px 0;
+}
+
+/* ============================================================
+   ADVANCED FILTERS
+   ============================================================ */
+.document-search .advanced-filters {
+  background: white;
+  padding: 0 20px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.document-search .advanced-filters .ant-collapse-header {
+  padding: 12px 0 !important;
+}
+
+.document-search .advanced-filters .ant-collapse-content-box {
+  padding: 16px 0 !important;
+}
+
+.document-search .advanced-filters .ant-slider {
+  margin: 8px 0;
+}
+
+/* ============================================================
+   SAVED SEARCHES
+   ============================================================ */
+.document-search .saved-searches {
+  background: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.document-search .saved-searches .ant-tag {
+  transition: all 0.3s ease;
+}
+
+.document-search .saved-searches .ant-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================================
+   RESULTS
+   ============================================================ */
+.document-search .result-card {
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  height: 100%;
+}
+
+.document-search .result-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.document-search .result-card .ant-card-body {
+  padding: 16px;
+}
+
+/* Highlight matches */
+.document-search mark {
+  background: #ffd666;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .document-search .search-bar {
+    padding: 12px 16px;
+  }
+  
+  .document-search .advanced-filters {
+    padding: 0 16px;
+  }
+  
+  .document-search .saved-searches {
+    padding: 10px 16px;
+  }
+}
+
+@media (max-width: 576px) {
+  .document-search .search-bar .ant-col {
+    margin-bottom: 8px;
+  }
+  
+  .document-search .advanced-filters .ant-col {
+    margin-bottom: 12px;
+  }
+  
+  .document-search .saved-searches .ant-tag {
+    margin-bottom: 4px;
+  }
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.document-search .result-card {
+  animation: fadeIn 0.3s ease;
+}
+
+.document-search .saved-searches .ant-tag {
+  animation: fadeIn 0.2s ease;
+}

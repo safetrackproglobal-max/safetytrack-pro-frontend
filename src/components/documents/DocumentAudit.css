@@ -1,0 +1,263 @@
+/* src/components/documents/DocumentAudit.css */
+
+.document-audit {
+  padding: 0;
+  background: #f0f2f5;
+  min-height: 100%;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.audit-header {
+  margin-bottom: 20px;
+}
+
+.audit-header .ant-title {
+  margin: 0;
+}
+
+/* ============================================================
+   STATISTICS CARDS
+   ============================================================ */
+.audit-stats {
+  margin-bottom: 16px;
+}
+
+.audit-stats .stat-card {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: default;
+  height: 100%;
+}
+
+.audit-stats .stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.audit-stats .stat-total {
+  border-left: 4px solid #1890ff;
+}
+
+.audit-stats .stat-views {
+  border-left: 4px solid #1890ff;
+}
+
+.audit-stats .stat-edits {
+  border-left: 4px solid #faad14;
+}
+
+.audit-stats .stat-approvals {
+  border-left: 4px solid #52c41a;
+}
+
+.audit-stats .stat-downloads {
+  border-left: 4px solid #722ed1;
+}
+
+.audit-stats .stat-shares {
+  border-left: 4px solid #13c2c2;
+}
+
+.audit-stats .stat-card .ant-statistic-title {
+  font-size: 12px;
+  color: #8c8c8c;
+  white-space: nowrap;
+}
+
+.audit-stats .stat-card .ant-statistic-content {
+  font-size: 20px;
+}
+
+/* ============================================================
+   FILTERS
+   ============================================================ */
+.audit-filters {
+  background: white;
+  padding: 16px 20px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.audit-filters .ant-select {
+  min-width: 120px;
+}
+
+/* ============================================================
+   TABLE
+   ============================================================ */
+.document-audit .ant-table-wrapper {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.document-audit .ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+  color: #262626;
+}
+
+.document-audit .ant-table-tbody > tr:hover > td {
+  background: #e6f7ff;
+}
+
+.document-audit .ant-table-tbody > tr > td {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* ============================================================
+   ACTION COLORS
+   ============================================================ */
+.audit-action-view {
+  color: #1890ff;
+}
+
+.audit-action-create {
+  color: #52c41a;
+}
+
+.audit-action-edit {
+  color: #faad14;
+}
+
+.audit-action-delete {
+  color: #f5222d;
+}
+
+.audit-action-approve {
+  color: #52c41a;
+}
+
+.audit-action-reject {
+  color: #f5222d;
+}
+
+.audit-action-publish {
+  color: #1890ff;
+}
+
+.audit-action-archive {
+  color: #faad14;
+}
+
+.audit-action-download {
+  color: #722ed1;
+}
+
+.audit-action-share {
+  color: #13c2c2;
+}
+
+/* ============================================================
+   DETAIL DRAWER
+   ============================================================ */
+.document-audit .ant-drawer-body {
+  padding: 24px;
+}
+
+.document-audit .ant-drawer-header {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 16px 24px;
+}
+
+.document-audit .ant-descriptions-item-label {
+  font-weight: 500;
+  background: #fafafa;
+}
+
+/* ============================================================
+   COMPLIANCE MODAL
+   ============================================================ */
+.document-audit .compliance-issue-critical {
+  border-left: 4px solid #f5222d;
+}
+
+.document-audit .compliance-issue-high {
+  border-left: 4px solid #faad14;
+}
+
+.document-audit .compliance-issue-medium {
+  border-left: 4px solid #1890ff;
+}
+
+.document-audit .compliance-issue-low {
+  border-left: 4px solid #52c41a;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .audit-stats .stat-card .ant-statistic-content {
+    font-size: 16px;
+  }
+  
+  .audit-filters {
+    padding: 12px 16px;
+  }
+  
+  .document-audit .ant-table-wrapper {
+    padding: 12px;
+  }
+  
+  .audit-filters .ant-col {
+    margin-bottom: 8px;
+  }
+}
+
+@media (max-width: 576px) {
+  .audit-stats .stat-card {
+    margin-bottom: 8px;
+  }
+  
+  .audit-stats .stat-card .ant-statistic-title {
+    font-size: 10px;
+  }
+  
+  .audit-stats .stat-card .ant-statistic-content {
+    font-size: 14px;
+  }
+  
+  .document-audit .ant-table-wrapper {
+    padding: 8px;
+    overflow-x: auto;
+  }
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.audit-stats .stat-card {
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.document-audit .ant-badge-status-processing {
+  animation: pulse 1.5s ease-in-out infinite;
+}

@@ -1,0 +1,687 @@
+/* SubscriptionPage.css */
+/* ============================================
+   SUBSCRIPTION PAGE - FULLY RESPONSIVE
+   Mobile First Approach
+   ============================================ */
+
+/* BASE STYLES (Mobile: 0 - 767px) */
+.subscription-page {
+  padding: 20px 16px;
+  background: #f8f9fa;
+  min-height: calc(100vh - 56px);
+  width: 100%;
+  overflow-x: hidden;
+}
+
+@media (min-width: 640px) {
+  .subscription-page {
+    padding: 24px 20px;
+  }
+}
+
+@media (min-width: 768px) {
+  .subscription-page {
+    padding: 30px 24px;
+    min-height: calc(100vh - 120px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .subscription-page {
+    padding: 40px 20px;
+  }
+}
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 250px;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .loading-container {
+    height: 300px;
+  }
+}
+
+.loading-container .ant-spin-text {
+  font-size: 14px;
+  color: #666;
+}
+
+/* ============================================
+   PAGE HEADER - Mobile Optimized
+   ============================================ */
+.page-header {
+  text-align: center;
+  margin-bottom: 30px;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (min-width: 768px) {
+  .page-header {
+    margin-bottom: 35px;
+    max-width: 700px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .page-header {
+    margin-bottom: 40px;
+    max-width: 800px;
+  }
+}
+
+.page-header .ant-typography {
+  color: #2c3e50 !important;
+  font-size: 24px;
+  margin-bottom: 12px;
+}
+
+@media (min-width: 640px) {
+  .page-header .ant-typography {
+    font-size: 28px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .page-header .ant-typography {
+    font-size: 32px;
+  }
+}
+
+.page-header .ant-typography + span {
+  font-size: 14px;
+  color: #666;
+}
+
+@media (min-width: 768px) {
+  .page-header .ant-typography + span {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .page-header .ant-typography + span {
+    font-size: 16px;
+  }
+}
+
+/* ============================================
+   SELECTION SECTION - Mobile Optimized
+   ============================================ */
+.selection-section {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 16px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+@media (min-width: 640px) {
+  .selection-section {
+    padding: 18px;
+    margin-bottom: 35px;
+  }
+}
+
+@media (min-width: 768px) {
+  .selection-section {
+    padding: 20px;
+    margin-bottom: 40px;
+  }
+}
+
+.selection-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (min-width: 640px) {
+  .selection-group {
+    flex-direction: row;
+    justify-content: center;
+    gap: 12px;
+  }
+}
+
+.selection-group .ant-typography {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  .selection-group .ant-typography {
+    font-size: 16px;
+  }
+}
+
+.selection-group .ant-segmented {
+  width: 100%;
+  max-width: 280px;
+}
+
+@media (min-width: 640px) {
+  .selection-group .ant-segmented {
+    width: auto;
+  }
+}
+
+/* ============================================
+   PRICING PLANS - Responsive Grid
+   ============================================ */
+.pricing-plans {
+  margin-bottom: 40px;
+}
+
+@media (min-width: 768px) {
+  .pricing-plans {
+    margin-bottom: 50px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .pricing-plans {
+    margin-bottom: 60px;
+  }
+}
+
+/* Plan Card */
+.plan-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid #d9d9d9;
+  position: relative;
+  transition: all 0.3s ease;
+  height: 100%;
+  overflow: hidden;
+  margin-bottom: 20px;
+  background: white;
+}
+
+@media (min-width: 768px) {
+  .plan-card {
+    margin-bottom: 0;
+  }
+}
+
+.plan-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Touch feedback for mobile */
+@media (max-width: 767px) {
+  .plan-card:active {
+    transform: translateY(-2px);
+  }
+}
+
+/* Recommended Plan */
+.plan-card.recommended {
+  border: 2px solid #1890ff;
+  transform: scale(1);
+}
+
+@media (min-width: 768px) {
+  .plan-card.recommended {
+    transform: scale(1.02);
+  }
+}
+
+.plan-card.recommended:hover {
+  transform: scale(1) translateY(-4px);
+}
+
+@media (min-width: 768px) {
+  .plan-card.recommended:hover {
+    transform: scale(1.02) translateY(-4px);
+  }
+}
+
+/* Selected Plan */
+.plan-card.selected {
+  border: 2px solid #52c41a;
+}
+
+/* Recommended Badge */
+.recommended-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1;
+}
+
+@media (min-width: 768px) {
+  .recommended-badge {
+    top: 16px;
+    right: 16px;
+  }
+}
+
+/* Plan Header */
+.plan-header {
+  text-align: center;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+@media (min-width: 768px) {
+  .plan-header {
+    margin-bottom: 18px;
+    padding-bottom: 18px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .plan-header {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+  }
+}
+
+.plan-name {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+}
+
+@media (min-width: 768px) {
+  .plan-name {
+    font-size: 20px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .plan-name {
+    font-size: 22px !important;
+  }
+}
+
+.plan-price {
+  margin: 12px 0;
+}
+
+@media (min-width: 768px) {
+  .plan-price {
+    margin: 14px 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .plan-price {
+    margin: 16px 0;
+  }
+}
+
+.plan-price .ant-typography {
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  color: #1890ff !important;
+}
+
+@media (min-width: 768px) {
+  .plan-price .ant-typography {
+    font-size: 32px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .plan-price .ant-typography {
+    font-size: 36px !important;
+  }
+}
+
+.discount-badge {
+  margin-top: 6px;
+}
+
+@media (min-width: 768px) {
+  .discount-badge {
+    margin-top: 8px;
+  }
+}
+
+/* Plan Features */
+.plan-features-list {
+  margin: 20px 0;
+}
+
+@media (min-width: 768px) {
+  .plan-features-list {
+    margin: 22px 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .plan-features-list {
+    margin: 24px 0;
+  }
+}
+
+.plan-feature {
+  padding: 8px 0 !important;
+  border: none !important;
+}
+
+.plan-feature .anticon {
+  color: #52c41a;
+}
+
+/* Custom Pricing Note */
+.custom-pricing-note {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 11px;
+  color: #999;
+}
+
+@media (min-width: 768px) {
+  .custom-pricing-note {
+    margin-top: 12px;
+    font-size: 12px;
+  }
+}
+
+/* ============================================
+   ENTERPRISE SECTION
+   ============================================ */
+.enterprise-section {
+  margin-bottom: 40px;
+}
+
+@media (min-width: 768px) {
+  .enterprise-section {
+    margin-bottom: 50px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .enterprise-section {
+    margin-bottom: 60px;
+  }
+}
+
+.enterprise-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: none;
+  background: linear-gradient(135deg, #f6ffed 0%, #e6f7ff 100%);
+  overflow: hidden;
+}
+
+.enterprise-card .ant-card-body {
+  padding: 20px;
+}
+
+@media (min-width: 768px) {
+  .enterprise-card .ant-card-body {
+    padding: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .enterprise-card .ant-card-body {
+    padding: 32px;
+  }
+}
+
+.enterprise-features {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+@media (min-width: 768px) {
+  .enterprise-features {
+    gap: 12px;
+    margin-top: 20px;
+  }
+}
+
+.enterprise-feature {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #5a6c7d;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+@media (min-width: 768px) {
+  .enterprise-feature {
+    font-size: 14px;
+  }
+}
+
+.enterprise-feature .anticon {
+  color: #1890ff;
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  .enterprise-feature .anticon {
+    font-size: 16px;
+  }
+}
+
+/* ============================================
+   SUBSCRIPTION BUTTON
+   ============================================ */
+.subscription-btn {
+  width: 100%;
+  margin-top: 16px;
+  height: 40px;
+  font-weight: 600;
+}
+
+@media (min-width: 640px) {
+  .subscription-btn {
+    width: auto;
+    min-width: 160px;
+  }
+}
+
+@media (max-width: 767px) {
+  .subscription-btn {
+    min-height: 44px;
+  }
+}
+
+/* ============================================
+   RESPONSIVE GRID LAYOUT
+   ============================================ */
+.subscription-page .ant-row {
+  margin: 0 -8px;
+}
+
+.subscription-page .ant-col {
+  padding: 0 8px;
+  margin-bottom: 20px;
+}
+
+@media (min-width: 768px) {
+  .subscription-page .ant-col {
+    margin-bottom: 0;
+  }
+}
+
+/* ============================================
+   TOGGLE / SWITCH STYLES
+   ============================================ */
+.ant-switch {
+  min-width: 44px;
+}
+
+/* Touch-friendly toggle */
+@media (max-width: 767px) {
+  .ant-switch {
+    min-height: 32px;
+  }
+}
+
+/* ============================================
+   DARK MODE SUPPORT
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+  .subscription-page {
+    background: #141414;
+  }
+  
+  .selection-section,
+  .plan-card {
+    background: #1f1f1f;
+    border-color: #303030;
+  }
+  
+  .plan-header {
+    border-bottom-color: #303030;
+  }
+  
+  .plan-feature {
+    color: #e6e6e6;
+  }
+  
+  .enterprise-card {
+    background: linear-gradient(135deg, #1a3a1a 0%, #1a2a3a 100%);
+  }
+  
+  .enterprise-feature {
+    color: #a6a6a6;
+  }
+  
+  .page-header .ant-typography {
+    color: #e6e6e6 !important;
+  }
+  
+  .custom-pricing-note {
+    color: #8c8c8c;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+.plan-card:focus-visible,
+.subscription-btn:focus-visible,
+.selection-group .ant-segmented:focus-visible {
+  outline: 2px solid #1890ff;
+  outline-offset: 2px;
+}
+
+/* Touch-friendly tap targets */
+@media (max-width: 767px) {
+  .plan-card,
+  .subscription-btn,
+  .ant-switch {
+    min-height: 44px;
+  }
+  
+  .selection-group .ant-segmented-item {
+    padding: 8px 12px;
+  }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.plan-card {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.plan-card:nth-child(1) { animation-delay: 0.05s; }
+.plan-card:nth-child(2) { animation-delay: 0.1s; }
+.plan-card:nth-child(3) { animation-delay: 0.15s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .plan-card {
+    animation: none;
+  }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+  .subscription-page {
+    background: white;
+    padding: 0;
+  }
+  
+  .subscription-btn,
+  .recommended-badge,
+  .selection-section {
+    display: none;
+  }
+  
+  .plan-card {
+    box-shadow: none;
+    border: 1px solid #ddd;
+    break-inside: avoid;
+  }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+.text-center-mobile {
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .text-center-mobile {
+    text-align: left;
+  }
+}
+
+.hide-on-mobile {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .hide-on-mobile {
+    display: block;
+  }
+}
+
+.show-on-mobile-only {
+  display: flex;
+}
+
+@media (min-width: 768px) {
+  .show-on-mobile-only {
+    display: none;
+  }
+}
+
+.full-width-mobile {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .full-width-mobile {
+    width: auto;
+  }
+}

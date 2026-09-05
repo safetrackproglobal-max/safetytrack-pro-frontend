@@ -1,0 +1,122 @@
+.file-upload-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.upload-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.upload-dragger {
+  border: 2px dashed #d9d9d9;
+  border-radius: 6px;
+  transition: border-color 0.3s;
+}
+
+.upload-dragger:hover {
+  border-color: #1890ff;
+}
+
+.upload-area {
+  padding: 40px 20px;
+}
+
+.upload-area .ant-upload-drag-icon {
+  font-size: 48px;
+  color: #1890ff;
+  margin-bottom: 16px;
+}
+
+.upload-area .ant-upload-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 8px;
+}
+
+.upload-area .ant-upload-hint {
+  color: #8c8c8c;
+  font-size: 14px;
+}
+
+.selected-files {
+  margin-top: 16px;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  padding: 16px;
+  background: #fafafa;
+}
+
+.file-item {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.file-item:last-child {
+  border-bottom: none;
+}
+
+.upload-progress {
+  margin-top: 16px;
+  padding: 16px;
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+  border-radius: 6px;
+}
+
+.upload-progress .ant-progress {
+  margin-bottom: 8px;
+}
+
+.upload-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .file-upload-container {
+    margin: 0 16px;
+  }
+  
+  .upload-area {
+    padding: 20px 16px;
+  }
+  
+  .upload-actions {
+    flex-direction: column;
+  }
+  
+  .upload-actions .ant-btn {
+    width: 100%;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .upload-card {
+    background: #1f1f1f;
+    border-color: #303030;
+  }
+  
+  .upload-dragger {
+    border-color: #434343;
+    background: #141414;
+  }
+  
+  .selected-files {
+    background: #141414;
+    border-color: #303030;
+  }
+  
+  .upload-progress {
+    background: #162312;
+    border-color: #274916;
+  }
+}

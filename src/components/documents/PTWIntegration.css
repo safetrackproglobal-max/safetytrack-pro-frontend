@@ -1,0 +1,186 @@
+/* src/components/documents/PTWIntegration.css */
+
+.ptw-integration {
+  padding: 0;
+  background: #f0f2f5;
+  min-height: 100%;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.ptw-header {
+  margin-bottom: 20px;
+}
+
+/* ============================================================
+   STATISTICS CARDS
+   ============================================================ */
+.ptw-stats {
+  margin-bottom: 16px;
+}
+
+.ptw-stats .stat-card {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: default;
+  height: 100%;
+}
+
+.ptw-stats .stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.ptw-stats .stat-total {
+  border-left: 4px solid #1890ff;
+}
+
+.ptw-stats .stat-active {
+  border-left: 4px solid #52c41a;
+}
+
+.ptw-stats .stat-approved {
+  border-left: 4px solid #1890ff;
+}
+
+.ptw-stats .stat-submitted {
+  border-left: 4px solid #faad14;
+}
+
+.ptw-stats .stat-card .ant-statistic-title {
+  font-size: 12px;
+  color: #8c8c8c;
+  white-space: nowrap;
+}
+
+.ptw-stats .stat-card .ant-statistic-content {
+  font-size: 20px;
+}
+
+/* ============================================================
+   FILTERS
+   ============================================================ */
+.ptw-filters {
+  background: white;
+  padding: 16px 20px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* ============================================================
+   TABLE
+   ============================================================ */
+.ptw-integration .ant-table-wrapper {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.ptw-integration .ant-table-cell {
+  vertical-align: middle;
+}
+
+/* ============================================================
+   STEPS (Create Modal)
+   ============================================================ */
+.ptw-integration .ant-steps {
+  margin-bottom: 24px;
+}
+
+.ptw-integration .ant-steps-item-title {
+  font-weight: 500;
+}
+
+.ptw-integration .ant-steps-item-description {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+/* ============================================================
+   UPLOAD
+   ============================================================ */
+.ptw-integration .ant-upload-drag {
+  border-radius: 8px;
+  border: 2px dashed #d9d9d9;
+  background: #fafafa;
+  transition: all 0.3s ease;
+}
+
+.ptw-integration .ant-upload-drag:hover {
+  border-color: #1890ff;
+  background: #f0f7ff;
+}
+
+.ptw-integration .ant-upload-drag .ant-upload-drag-icon {
+  font-size: 48px;
+  color: #1890ff;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .ptw-stats .stat-card .ant-statistic-content {
+    font-size: 16px;
+  }
+  
+  .ptw-filters {
+    padding: 12px 16px;
+  }
+  
+  .ptw-integration .ant-table-wrapper {
+    padding: 12px;
+  }
+  
+  .ptw-integration .ant-steps {
+    flex-wrap: wrap;
+  }
+  
+  .ptw-integration .ant-steps-item {
+    flex: 1 1 50%;
+  }
+}
+
+@media (max-width: 576px) {
+  .ptw-stats .stat-card {
+    margin-bottom: 8px;
+  }
+  
+  .ptw-stats .stat-card .ant-statistic-title {
+    font-size: 10px;
+  }
+  
+  .ptw-stats .stat-card .ant-statistic-content {
+    font-size: 14px;
+  }
+  
+  .ptw-integration .ant-table-wrapper {
+    padding: 8px;
+    overflow-x: auto;
+  }
+  
+  .ptw-integration .ant-steps-item {
+    flex: 1 1 100%;
+  }
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ptw-stats .stat-card {
+  animation: fadeIn 0.5s ease;
+}

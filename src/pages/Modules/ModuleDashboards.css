@@ -1,0 +1,29 @@
+/* Add to src/pages/Modules/ModuleDashboards.css */
+
+/* Supply Chain Module Specific */
+.supplychain-module .module-header h1 {
+  color: #fa541c;
+}
+
+.alerts-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: none;
+  height: 100%;
+}
+
+/* Timeline styling for supply chain */
+.ant-timeline-item-content {
+  font-size: 14px;
+}
+
+.ant-timeline-item-content strong {
+  color: #262626;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.ant-timeline-item-content small {
+  color: #8c8c8c;
+  font-size: 12px;
+}

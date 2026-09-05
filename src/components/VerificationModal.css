@@ -1,0 +1,40 @@
+/* src/components/VerificationModal.css */
+.verification-modal .ant-modal-content {
+  border-radius: 12px;
+}
+
+.verification-modal .ant-modal-header {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.verification-modal .ant-modal-body {
+  padding: 0 24px 24px;
+}
+
+.verification-modal .ant-input {
+  border-radius: 8px;
+}
+
+.verification-modal .ant-btn-primary {
+  border-radius: 8px;
+  height: 44px;
+  font-weight: 600;
+}
+
+.verification-modal .ant-alert {
+  border-radius: 8px;
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+  .verification-modal .ant-modal {
+    margin: 20px;
+    max-width: calc(100vw - 40px);
+  }
+  
+  .verification-modal .ant-input {
+    font-size: 18px;
+    height: 44px;
+  }
+}

@@ -1,0 +1,144 @@
+.aqi-meter {
+  text-align: center;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.aqi-value {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  line-height: 1;
+}
+
+.aqi-category {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.aqi-description {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 16px;
+  line-height: 1.4;
+  min-height: 34px;
+}
+
+.aqi-scale {
+  margin-top: 16px;
+}
+
+.scale-markers {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 10px;
+  color: #666;
+}
+
+.scale-bar {
+  position: relative;
+  height: 8px;
+  background: linear-gradient(
+    90deg,
+    #4CAF50 0%,
+    #4CAF50 10%,
+    #FFC107 10%,
+    #FFC107 20%,
+    #FF9800 20%,
+    #FF9800 30%,
+    #F44336 30%,
+    #F44336 40%,
+    #9C27B0 40%,
+    #9C27B0 60%,
+    #795548 60%,
+    #795548 100%
+  );
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.scale-fill {
+  height: 100%;
+  transition: width 0.5s ease;
+  border-radius: 4px;
+}
+
+.current-marker {
+  position: absolute;
+  top: -4px;
+  width: 4px;
+  height: 16px;
+  border-radius: 2px;
+  transform: translateX(-50%);
+  transition: left 0.5s ease;
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+  .aqi-meter {
+    padding: 12px;
+  }
+  
+  .aqi-value {
+    font-size: 28px;
+  }
+  
+  .aqi-category {
+    font-size: 13px;
+  }
+  
+  .scale-markers {
+    font-size: 9px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .aqi-meter {
+    background: #2d3748;
+    border-color: #4a5568;
+  }
+  
+  .aqi-description {
+    color: #a0aec0;
+  }
+  
+  .scale-markers {
+    color: #a0aec0;
+  }
+  
+  .scale-bar {
+    background: linear-gradient(
+      90deg,
+      #22543d 0%,
+      #22543d 10%,
+      #744210 10%,
+      #744210 20%,
+      #7b341e 20%,
+      #7b341e 30%,
+      #742a2a 30%,
+      #742a2a 40%,
+      #553c9a 40%,
+      #553c9a 60%,
+      #4a5568 60%,
+      #4a5568 100%
+    );
+  }
+}
+
+/* Animation for value changes */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.aqi-value.changed {
+  animation: pulse 0.5s ease;
+}

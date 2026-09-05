@@ -1,0 +1,594 @@
+/* src/pages/Dashboard/EmployeeDashboard.css */
+
+.employee-dashboard {
+  padding: 24px;
+  background: #f0f2f5;
+  min-height: 100vh;
+}
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
+.dashboard-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  flex-direction: column;
+}
+
+.dashboard-loading .ant-spin {
+  margin-bottom: 16px;
+}
+
+/* ============================================
+   USER PROFILE HEADER
+   ============================================ */
+.user-profile-header {
+  margin-bottom: 16px;
+}
+
+.user-profile-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+  border: none;
+}
+
+.user-profile-card .user-avatar {
+  border: 3px solid #1890ff;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+.user-profile-card .user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-profile-card .user-details h2 {
+  margin: 0;
+  color: #1a1a2e;
+}
+
+.user-profile-card .user-details .ant-space {
+  margin-top: 4px;
+}
+
+/* ============================================
+   COMPANY HEADER - INCREASED LOGO SIZE
+   ============================================ */
+.company-header {
+  margin-bottom: 24px;
+}
+
+.company-header-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  background: white;
+  border: none;
+  padding: 8px 0;
+}
+
+.company-header-card .company-logo-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ✅ INCREASED LOGO SIZE */
+.company-header-card .company-logo {
+  width: 120px !important;
+  height: 120px !important;
+  border: 3px solid #e8e8e8;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transition: all 0.3s ease;
+}
+
+.company-header-card .company-logo:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+/* ✅ INCREASED AVATAR SIZE INSIDE LOGO */
+.company-header-card .company-logo .ant-avatar-string {
+  font-size: 36px !important;
+  font-weight: 700;
+}
+
+.company-header-card .company-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.company-header-card .company-details h2 {
+  margin: 0;
+  color: #1a1a2e;
+  font-size: 28px !important;
+}
+
+.company-header-card .company-details .ant-space {
+  margin-top: 4px;
+}
+
+.company-header-card .ant-divider {
+  margin: 16px 0;
+}
+
+/* ============================================
+   DASHBOARD HEADER
+   ============================================ */
+.dashboard-header {
+  margin-bottom: 24px;
+  padding: 20px 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.dashboard-header .header-left {
+  flex: 1;
+}
+
+.dashboard-header .header-left h2 {
+  margin: 0;
+  color: #1a1a2e;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.dashboard-header .header-left .header-subtitle {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dashboard-header .header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ============================================
+   SECTION TITLES
+   ============================================ */
+.section-title {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-title h4 {
+  margin: 0;
+  color: #1a1a2e;
+  font-weight: 600;
+}
+
+.section-title .ant-tag {
+  margin: 0;
+}
+
+/* ============================================
+   STATISTICS CARDS
+   ============================================ */
+.stats-row {
+  margin-bottom: 8px;
+}
+
+.stats-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  border: none;
+  height: 100%;
+}
+
+.stats-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.stats-card .ant-statistic-title {
+  font-size: 14px;
+  color: #8c8c8c;
+  font-weight: 500;
+}
+
+.stats-card .ant-statistic-content {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+/* Incident Stat Cards */
+.incident-stat-card {
+  border-left: 4px solid #1890ff;
+}
+
+.incident-stat-card:nth-child(1) {
+  border-left-color: #faad14;
+}
+
+.incident-stat-card:nth-child(2) {
+  border-left-color: #1890ff;
+}
+
+.incident-stat-card:nth-child(3) {
+  border-left-color: #52c41a;
+}
+
+.incident-stat-card:nth-child(4) {
+  border-left-color: #722ed1;
+}
+
+/* ============================================
+   ACTIVITY CARD
+   ============================================ */
+.activity-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  height: 100%;
+}
+
+.activity-card .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.activity-card .activity-item {
+  padding: 4px 0;
+}
+
+.activity-card .activity-item .activity-title {
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.activity-card .activity-item .activity-description {
+  color: #595959;
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+.activity-card .activity-item .activity-time {
+  color: #8c8c8c;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.activity-card .ant-timeline {
+  padding: 8px 0;
+}
+
+.activity-card .ant-timeline-item {
+  padding-bottom: 16px;
+}
+
+/* ============================================
+   TEAM STATS CARD
+   ============================================ */
+.team-stats-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  height: 100%;
+}
+
+.team-stats-card .team-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.team-stats-card .team-stat-item {
+  text-align: center;
+  padding: 20px 16px;
+  background: #f5f7fa;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.team-stats-card .team-stat-item:hover {
+  background: #e6f7ff;
+  transform: scale(1.02);
+}
+
+.team-stats-card .team-stat-item .team-stat-value {
+  font-size: 32px;
+  font-weight: bold;
+  color: #1890ff;
+  line-height: 1.2;
+}
+
+.team-stats-card .team-stat-item .team-stat-label {
+  font-size: 13px;
+  color: #8c8c8c;
+  margin-top: 4px;
+}
+
+/* ============================================
+   COMPANY CARD
+   ============================================ */
+.company-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.company-card .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.company-card .company-metrics {
+  margin-top: 8px;
+}
+
+.company-card .company-metrics h5 {
+  margin-bottom: 16px;
+  color: #1a1a2e;
+}
+
+.company-card .company-metrics .ant-card {
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+}
+
+.company-card .company-metrics .ant-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.company-card .company-metrics .ant-progress {
+  margin-top: 4px;
+}
+
+/* ============================================
+   QUICK ACTIONS CARD
+   ============================================ */
+.quick-actions-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.quick-actions-card .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.quick-actions-card .ant-btn {
+  border-radius: 8px;
+  height: 48px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.quick-actions-card .ant-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.quick-actions-card .ant-btn .anticon {
+  font-size: 18px;
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+@media (max-width: 1200px) {
+  .employee-dashboard {
+    padding: 16px;
+  }
+  
+  .stats-card .ant-statistic-content {
+    font-size: 24px;
+  }
+  
+  .team-stats-card .team-stat-item .team-stat-value {
+    font-size: 28px;
+  }
+  
+  /* ✅ Smaller logo on medium screens */
+  .company-header-card .company-logo {
+    width: 100px !important;
+    height: 100px !important;
+  }
+}
+
+@media (max-width: 992px) {
+  .employee-dashboard {
+    padding: 12px;
+  }
+  
+  .dashboard-header .header-left h2 {
+    font-size: 24px;
+  }
+  
+  .company-header-card .company-logo {
+    width: 80px !important;
+    height: 80px !important;
+  }
+  
+  .company-header-card .company-logo .ant-avatar-string {
+    font-size: 28px !important;
+  }
+  
+  .company-header-card .company-details h2 {
+    font-size: 24px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .employee-dashboard {
+    padding: 8px;
+  }
+  
+  .dashboard-header {
+    padding: 16px;
+  }
+  
+  .dashboard-header .header-left h2 {
+    font-size: 20px;
+  }
+  
+  .dashboard-header .header-left .header-subtitle {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .user-profile-card .ant-row {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .user-profile-card .user-details {
+    align-items: center;
+  }
+  
+  .company-header-card .ant-row {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .company-header-card .company-details {
+    align-items: center;
+  }
+  
+  /* ✅ Smaller logo on mobile */
+  .company-header-card .company-logo {
+    width: 64px !important;
+    height: 64px !important;
+  }
+  
+  .company-header-card .company-logo .ant-avatar-string {
+    font-size: 24px !important;
+  }
+  
+  .company-header-card .company-details h2 {
+    font-size: 20px !important;
+  }
+  
+  .stats-card .ant-statistic-content {
+    font-size: 20px;
+  }
+  
+  .stats-card .ant-statistic-title {
+    font-size: 12px;
+  }
+  
+  .team-stats-card .team-stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  
+  .team-stats-card .team-stat-item .team-stat-value {
+    font-size: 24px;
+  }
+  
+  .team-stats-card .team-stat-item .team-stat-label {
+    font-size: 11px;
+  }
+  
+  .quick-actions-card .ant-btn {
+    height: 40px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .employee-dashboard {
+    padding: 4px;
+  }
+  
+  .dashboard-header .header-left h2 {
+    font-size: 18px;
+  }
+  
+  .stats-row .ant-col {
+    padding: 4px !important;
+  }
+  
+  .stats-card .ant-statistic-content {
+    font-size: 18px;
+  }
+  
+  .team-stats-card .team-stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+  }
+  
+  .team-stats-card .team-stat-item {
+    padding: 12px 8px;
+  }
+  
+  .team-stats-card .team-stat-item .team-stat-value {
+    font-size: 20px;
+  }
+  
+  .quick-actions-card .ant-btn {
+    height: 36px;
+    font-size: 11px;
+  }
+  
+  .quick-actions-card .ant-btn .anticon {
+    font-size: 14px;
+  }
+  
+  /* ✅ Very small logo on small mobile */
+  .company-header-card .company-logo {
+    width: 56px !important;
+    height: 56px !important;
+  }
+  
+  .company-header-card .company-logo .ant-avatar-string {
+    font-size: 20px !important;
+  }
+  
+  .company-header-card .company-details h2 {
+    font-size: 18px !important;
+  }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.employee-dashboard .fade-in-up {
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+.employee-dashboard .fade-in-up:nth-child(1) { animation-delay: 0.05s; }
+.employee-dashboard .fade-in-up:nth-child(2) { animation-delay: 0.1s; }
+.employee-dashboard .fade-in-up:nth-child(3) { animation-delay: 0.15s; }
+.employee-dashboard .fade-in-up:nth-child(4) { animation-delay: 0.2s; }
+.employee-dashboard .fade-in-up:nth-child(5) { animation-delay: 0.25s; }
+.employee-dashboard .fade-in-up:nth-child(6) { animation-delay: 0.3s; }
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+.employee-dashboard ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.employee-dashboard ::-webkit-scrollbar-track {
+  background: #f0f2f5;
+  border-radius: 3px;
+}
+
+.employee-dashboard ::-webkit-scrollbar-thumb {
+  background: #c1c7cd;
+  border-radius: 3px;
+}
+
+.employee-dashboard ::-webkit-scrollbar-thumb:hover {
+  background: #a0a6ad;
+}

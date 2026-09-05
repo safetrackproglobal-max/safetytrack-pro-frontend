@@ -1,0 +1,323 @@
+/* src/pages/Modules/IndustryHSEDashboard.css */
+
+.industry-dashboard {
+  padding: 24px;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* Loading State */
+.dashboard-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+}
+
+/* Header Styles */
+.dashboard-header {
+  margin-bottom: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.industry-info {
+  flex: 1;
+}
+
+.industry-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.industry-description {
+  margin: 8px 0 0 0;
+  color: #666;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.risk-level-tag {
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+/* Stats Row */
+.stats-row {
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  height: 100%;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Main Content */
+.main-content-row {
+  margin-bottom: 24px;
+}
+
+/* Features Section */
+.features-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 0;
+}
+
+.feature-card {
+  text-align: center;
+  height: 100%;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  padding: 20px;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border-color: var(--industry-color);
+}
+
+.feature-icon {
+  font-size: 32px;
+  color: var(--industry-color);
+  margin-bottom: 16px;
+  transition: transform 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+  transform: scale(1.1);
+}
+
+.feature-title {
+  color: var(--industry-color);
+  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.feature-description {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 16px;
+  min-height: 40px;
+}
+
+.feature-button {
+  border-radius: 20px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.feature-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Activity Section */
+.activity-card,
+.performance-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 16px;
+}
+
+.activity-item {
+  width: 100%;
+}
+
+.activity-description {
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.activity-timestamp {
+  font-size: 12px;
+  color: #666;
+  margin: 4px 0;
+}
+
+/* Performance Section */
+.performance-content {
+  text-align: center;
+  padding: 16px;
+}
+
+.performance-stats {
+  text-align: center;
+}
+
+.performance-value {
+  font-size: 24px;
+  font-weight: bold;
+  line-height: 1.2;
+}
+
+.performance-label {
+  color: #666;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.performance-trend {
+  margin-top: 16px;
+  padding: 12px;
+  background-color: #f6ffed;
+  border: 1px solid #b7eb8f;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #389e0d;
+}
+
+.trend-icon {
+  font-size: 16px;
+}
+
+/* Capabilities Section */
+.capabilities-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 24px;
+}
+
+.capability-item {
+  text-align: center;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  height: 100%;
+  padding: 16px 12px;
+}
+
+.capability-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.capability-icon {
+  color: var(--industry-color);
+  font-size: 20px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.capability-text {
+  font-size: 14px;
+  line-height: 1.4;
+  color: #333;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .industry-dashboard {
+    padding: 16px;
+  }
+  
+  .industry-title {
+    font-size: 24px;
+  }
+  
+  .industry-description {
+    font-size: 14px;
+  }
+  
+  .stats-row {
+    margin-bottom: 16px;
+  }
+  
+  .main-content-row {
+    margin-bottom: 16px;
+  }
+  
+  .feature-card {
+    padding: 16px;
+  }
+  
+  .feature-icon {
+    font-size: 28px;
+  }
+  
+  .feature-title {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 576px) {
+  .industry-dashboard {
+    padding: 12px;
+  }
+  
+  .industry-title {
+    font-size: 20px;
+  }
+  
+  .risk-level-tag {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+  
+  .feature-card {
+    margin-bottom: 12px;
+  }
+}
+
+/* Animation for cards */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stat-card,
+.feature-card,
+.activity-card,
+.performance-card,
+.capabilities-card {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+/* Custom scrollbar for activity timeline */
+.activity-card .ant-timeline {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.activity-card .ant-timeline::-webkit-scrollbar {
+  width: 4px;
+}
+
+.activity-card .ant-timeline::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 2px;
+}
+
+.activity-card .ant-timeline::-webkit-scrollbar-thumb {
+  background: #d9d9d9;
+  border-radius: 2px;
+}
+
+.activity-card .ant-timeline::-webkit-scrollbar-thumb:hover {
+  background: #bfbfbf;
+}

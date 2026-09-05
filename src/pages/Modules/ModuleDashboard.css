@@ -1,0 +1,380 @@
+/* src/pages/Modules/ModuleDashboards.css */
+.module-dashboard {
+  padding: 0;
+}
+
+.module-header {
+  margin-bottom: 24px;
+  padding: 16px 0;
+}
+
+.module-header h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.module-header p {
+  margin: 8px 0 0;
+  color: #8c8c8c;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* Module-specific header colors */
+.hospital-module .module-header h1 {
+  color: #1890ff;
+}
+
+.hse-module .module-header h1 {
+  color: #fa8c16;
+}
+
+.environmental-module .module-header h1 {
+  color: #13c2c2;
+}
+
+.quality-module .module-header h1 {
+  color: #722ed1;
+}
+
+/* Common card styles */
+.metric-card,
+.compliance-card,
+.equipment-card,
+.incidents-card,
+.ai-insights-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.metric-card:hover,
+.compliance-card:hover,
+.equipment-card:hover,
+.incidents-card:hover,
+.ai-insights-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.metric-card {
+  text-align: center;
+  height: 100%;
+}
+
+.metric-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 8px;
+}
+
+/* Compliance and progress items */
+.compliance-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.compliance-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  transition: background-color 0.2s ease;
+}
+
+.compliance-item:hover {
+  background-color: #fafafa;
+}
+
+.compliance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.department-name {
+  font-weight: 500;
+  color: #262626;
+}
+
+.incident-count {
+  font-size: 12px;
+  color: #8c8c8c;
+  font-weight: 500;
+}
+
+.compliance-details {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+/* Module-specific compliance item styles */
+.hospital-module .compliance-item {
+  border-left: 4px solid #1890ff;
+  background: #f0f8ff;
+}
+
+.environmental-module .compliance-item {
+  border-left: 4px solid #13c2c2;
+  background: #f6ffed;
+}
+
+/* Insights and alerts */
+.insights-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.insight-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid #e8e8e8;
+  transition: all 0.2s ease;
+}
+
+.insight-item:hover {
+  transform: translateX(4px);
+}
+
+.insight-icon {
+  font-size: 18px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.insight-icon.positive {
+  color: #52c41a;
+}
+
+.insight-icon.warning {
+  color: #faad14;
+}
+
+.insight-icon.alert {
+  color: #ff4d4f;
+}
+
+.insight-text {
+  flex: 1;
+  color: #262626;
+  line-height: 1.5;
+}
+
+/* Specific insight styles */
+.hospital-module .insight-item {
+  background: #f6ffed;
+  border-left-color: #b7eb8f;
+}
+
+.hospital-module .insight-item:nth-child(2) {
+  background: #fffbe6;
+  border-left-color: #ffe58f;
+}
+
+.environmental-module .insight-item {
+  background: #f6ffed;
+  border-left-color: #b7eb8f;
+}
+
+.environmental-module .insight-item:nth-child(2) {
+  background: #fffbe6;
+  border-left-color: #ffe58f;
+}
+
+/* Table styling */
+.environmental-module .ant-table-thead > tr > th {
+  background-color: #f0f8ff;
+  font-weight: 600;
+  color: #262626;
+}
+
+.environmental-module .ant-table-tbody > tr:hover > td {
+  background-color: #fafafa;
+}
+
+/* Progress bar enhancements */
+.ant-progress-text {
+  font-size: 12px !important;
+  font-weight: 500;
+}
+
+/* List item styling */
+.ant-list-item {
+  padding: 16px 0;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s ease;
+}
+
+.ant-list-item:hover {
+  background-color: #fafafa;
+  border-radius: 4px;
+}
+
+.ant-list-item:last-child {
+  border-bottom: none;
+}
+
+.ant-list-item-meta-title {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.ant-list-item-meta-description {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* Card header enhancements */
+.ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.ant-card-head-title {
+  font-weight: 600;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Statistics enhancements */
+.ant-statistic-title {
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.ant-statistic-content {
+  font-weight: 600;
+}
+
+/* Tag enhancements */
+.ant-tag {
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+}
+
+/* Button enhancements */
+.ant-btn {
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .module-header h1 {
+    font-size: 24px;
+  }
+  
+  .module-header p {
+    font-size: 14px;
+  }
+  
+  .compliance-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .compliance-details {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .insight-item {
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+  }
+  
+  .metric-title {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .ant-card-head-title {
+    font-size: 14px;
+  }
+  
+  .ant-statistic-title {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .module-header h1 {
+    font-size: 20px;
+  }
+  
+  .module-header {
+    margin-bottom: 16px;
+  }
+  
+  .compliance-item {
+    padding: 8px;
+  }
+  
+  .insight-item {
+    padding: 8px;
+  }
+}
+
+/* Animation for metric cards */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.metric-card {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.metric-card:nth-child(1) { animation-delay: 0.1s; }
+.metric-card:nth-child(2) { animation-delay: 0.2s; }
+.metric-card:nth-child(3) { animation-delay: 0.3s; }
+.metric-card:nth-child(4) { animation-delay: 0.4s; }
+
+/* Custom scrollbar for tables */
+.environmental-module .ant-table-body::-webkit-scrollbar {
+  height: 6px;
+}
+
+.environmental-module .ant-table-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.environmental-module .ant-table-body::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.environmental-module .ant-table-body::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}

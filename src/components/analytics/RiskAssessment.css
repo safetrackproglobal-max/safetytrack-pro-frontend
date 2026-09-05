@@ -1,0 +1,776 @@
+/* src/components/analytics/RiskAssessment.css */
+/* ============================================
+   RISK ASSESSMENT - FULLY RESPONSIVE
+   Mobile First Approach
+   ============================================ */
+
+/* BASE STYLES (Mobile: 0 - 767px) */
+.risk-assessment {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: #262626;
+  padding: 12px;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+@media (min-width: 640px) {
+  .risk-assessment {
+    padding: 16px;
+  }
+}
+
+@media (min-width: 768px) {
+  .risk-assessment {
+    padding: 20px;
+  }
+}
+
+/* ============================================
+   HEADER CARD
+   ============================================ */
+.risk-header-card {
+  background: linear-gradient(135deg, #fff2f0 0%, #ffffff 100%);
+  border: 2px solid #ffccc7;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+  padding: 16px;
+}
+
+@media (min-width: 768px) {
+  .risk-header-card {
+    margin-bottom: 24px;
+    padding: 20px;
+  }
+}
+
+.risk-header-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 77, 79, 0.1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .risk-header-card:hover {
+    transform: none;
+  }
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.header-content .ant-typography {
+  margin: 0;
+  font-size: 20px;
+}
+
+@media (min-width: 768px) {
+  .header-content .ant-typography {
+    font-size: 24px;
+  }
+}
+
+/* ============================================
+   STAT CARDS - Responsive Grid
+   ============================================ */
+.stat-card {
+  background: white;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  height: 100%;
+  margin-bottom: 16px;
+}
+
+@media (min-width: 768px) {
+  .stat-card {
+    margin-bottom: 0;
+  }
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #1890ff;
+}
+
+.stat-card .ant-card-body {
+  padding: 16px;
+}
+
+@media (min-width: 768px) {
+  .stat-card .ant-card-body {
+    padding: 20px;
+  }
+}
+
+.stat-card .ant-statistic-title {
+  color: #595959;
+  font-size: 12px;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+@media (min-width: 768px) {
+  .stat-card .ant-statistic-title {
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+}
+
+.stat-card .ant-statistic-content {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+@media (min-width: 768px) {
+  .stat-card .ant-statistic-content {
+    font-size: 22px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .stat-card .ant-statistic-content {
+    font-size: 24px;
+  }
+}
+
+/* ============================================
+   FILTERS SECTION - Mobile Optimized
+   ============================================ */
+.risk-filters {
+  background: #fafafa;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+  padding: 12px;
+  margin-bottom: 20px;
+}
+
+@media (min-width: 768px) {
+  .risk-filters {
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+}
+
+.risk-filters .ant-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+}
+
+@media (min-width: 640px) {
+  .risk-filters .ant-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+
+.risk-filters .ant-col {
+  width: 100%;
+  padding: 0;
+}
+
+@media (min-width: 640px) {
+  .risk-filters .ant-col {
+    width: auto;
+    flex: 1;
+    min-width: 160px;
+    padding: 0;
+  }
+}
+
+/* Touch-friendly filter inputs */
+.risk-filters .ant-select-selector,
+.risk-filters .ant-input-search .ant-input,
+.risk-filters .ant-picker {
+  min-height: 40px;
+}
+
+/* ============================================
+   TABLE STYLES - Responsive
+   ============================================ */
+.table-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+@media (min-width: 480px) {
+  .table-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.ant-table-wrapper {
+  border-radius: 8px;
+  overflow-x: auto;
+  border: 1px solid #f0f0f0;
+}
+
+.ant-table {
+  min-width: 600px;
+}
+
+.ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+  color: #262626;
+  border-bottom: 2px solid #f0f0f0;
+  padding: 10px 8px;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+@media (min-width: 768px) {
+  .ant-table-thead > tr > th {
+    padding: 12px 12px;
+    font-size: 13px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .ant-table-thead > tr > th {
+    padding: 16px;
+    font-size: 14px;
+  }
+}
+
+.ant-table-tbody > tr > td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
+  font-size: 12px;
+}
+
+@media (min-width: 768px) {
+  .ant-table-tbody > tr > td {
+    padding: 12px 12px;
+    font-size: 13px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .ant-table-tbody > tr > td {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+}
+
+/* Risk Level Row Backgrounds */
+.ant-table-tbody > tr.high-risk > td {
+  background: #fff2f0;
+}
+
+.ant-table-tbody > tr.medium-risk > td {
+  background: #fff7e6;
+}
+
+.ant-table-tbody > tr.low-risk > td {
+  background: #f6ffed;
+}
+
+/* ============================================
+   RISK LEVEL TAGS
+   ============================================ */
+.ant-tag {
+  font-weight: 500;
+  border: none;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+}
+
+@media (min-width: 768px) {
+  .ant-tag {
+    font-size: 12px;
+    padding: 2px 12px;
+  }
+}
+
+.ant-tag-red {
+  background: #fff2f0;
+  color: #ff4d4f;
+}
+
+.ant-tag-orange {
+  background: #fff7e6;
+  color: #fa8c16;
+}
+
+.ant-tag-green {
+  background: #f6ffed;
+  color: #52c41a;
+}
+
+/* ============================================
+   CARD STYLES
+   ============================================ */
+.ant-card {
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 12px 16px;
+}
+
+@media (min-width: 768px) {
+  .ant-card-head {
+    padding: 16px 24px;
+  }
+}
+
+.ant-card-head-title {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+@media (min-width: 768px) {
+  .ant-card-head-title {
+    font-size: 16px;
+  }
+}
+
+.ant-card-body {
+  padding: 16px;
+}
+
+@media (min-width: 768px) {
+  .ant-card-body {
+    padding: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .ant-card-body {
+    padding: 24px;
+  }
+}
+
+/* ============================================
+   LOADING & EMPTY STATES
+   ============================================ */
+.risk-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  background: white;
+  border-radius: 8px;
+  padding: 32px 16px;
+}
+
+@media (min-width: 768px) {
+  .risk-loading {
+    min-height: 400px;
+    padding: 48px;
+  }
+}
+
+.risk-empty {
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .risk-empty {
+    min-height: 400px;
+  }
+}
+
+/* ============================================
+   MODAL STYLES - Responsive
+   ============================================ */
+.risk-details .ant-modal-content {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.risk-details .ant-modal-header {
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 14px 16px;
+}
+
+@media (min-width: 768px) {
+  .risk-details .ant-modal-header {
+    padding: 16px 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .risk-details .ant-modal-header {
+    padding: 20px 24px;
+  }
+}
+
+.risk-details .ant-modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+}
+
+@media (min-width: 768px) {
+  .risk-details .ant-modal-title {
+    font-size: 18px;
+  }
+}
+
+.risk-details .ant-modal-body {
+  padding: 16px;
+}
+
+@media (min-width: 768px) {
+  .risk-details .ant-modal-body {
+    padding: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .risk-details .ant-modal-body {
+    padding: 24px;
+  }
+}
+
+/* Risk Header in Modal */
+.risk-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+@media (min-width: 480px) {
+  .risk-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+/* ============================================
+   TABS STYLES - Mobile Optimized
+   ============================================ */
+.ant-tabs {
+  background: white;
+  border-radius: 8px;
+  padding: 0 12px;
+}
+
+@media (min-width: 768px) {
+  .ant-tabs {
+    padding: 0 16px;
+  }
+}
+
+.ant-tabs-nav {
+  margin-bottom: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ant-tabs-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.ant-tabs-tab {
+  padding: 10px 0;
+  margin-right: 20px;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+@media (min-width: 480px) {
+  .ant-tabs-tab {
+    padding: 12px 0;
+    margin-right: 32px;
+    font-size: 14px;
+  }
+}
+
+/* Mobile tab stacking */
+@media (max-width: 480px) {
+  .ant-tabs-nav {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .ant-tabs-tab {
+    width: 100%;
+    text-align: center;
+    margin-right: 0;
+    margin-bottom: 8px;
+  }
+  
+  .ant-tabs-tab:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.ant-tabs-ink-bar {
+  background: #1890ff;
+  height: 3px;
+}
+
+/* ============================================
+   PROGRESS BAR
+   ============================================ */
+.ant-progress-line {
+  margin: 6px 0;
+}
+
+.ant-progress-text {
+  font-size: 11px;
+  color: #595959;
+}
+
+@media (min-width: 768px) {
+  .ant-progress-text {
+    font-size: 12px;
+  }
+}
+
+/* Progress Pulse Animation */
+@keyframes progressPulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+.ant-progress-status-active .ant-progress-bg {
+  animation: progressPulse 2s infinite ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ant-progress-status-active .ant-progress-bg {
+    animation: none;
+  }
+}
+
+/* ============================================
+   ALERT STYLES
+   ============================================ */
+.ant-alert {
+  border-radius: 8px;
+  border: 1px solid;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+}
+
+.ant-alert-message {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.ant-alert-description {
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+/* ============================================
+   TIMELINE
+   ============================================ */
+.ant-timeline-item {
+  padding-bottom: 12px;
+}
+
+.ant-timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+.ant-timeline-item-head {
+  width: 10px;
+  height: 10px;
+}
+
+/* ============================================
+   DARK MODE SUPPORT
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+  .risk-assessment {
+    background: #141414;
+    color: rgba(255, 255, 255, 0.85);
+  }
+  
+  .risk-header-card {
+    background: linear-gradient(135deg, #2a1215 0%, #1f1f1f 100%);
+    border-color: #58181c;
+  }
+  
+  .stat-card,
+  .risk-filters,
+  .ant-card,
+  .ant-tabs,
+  .risk-loading {
+    background: #1f1f1f;
+    border-color: #434343;
+  }
+  
+  .stat-card .ant-statistic-title,
+  .ant-table-thead > tr > th,
+  .ant-card-head-title {
+    color: rgba(255, 255, 255, 0.85);
+  }
+  
+  .stat-card .ant-statistic-content {
+    color: rgba(255, 255, 255, 0.85);
+  }
+  
+  .ant-table-tbody > tr > td {
+    border-bottom-color: #434343;
+    color: rgba(255, 255, 255, 0.85);
+  }
+  
+  .ant-table-tbody > tr.high-risk > td {
+    background: #2a1215;
+  }
+  
+  .ant-table-tbody > tr.medium-risk > td {
+    background: #2b2111;
+  }
+  
+  .ant-table-tbody > tr.low-risk > td {
+    background: #162312;
+  }
+  
+  .ant-tag-red {
+    background: #2a1215;
+    color: #ff7875;
+  }
+  
+  .ant-tag-orange {
+    background: #2b2111;
+    color: #ffa940;
+  }
+  
+  .ant-tag-green {
+    background: #162312;
+    color: #73d13d;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+.ant-btn:focus-visible,
+.ant-select-focused .ant-select-selector,
+.ant-input:focus-visible,
+.ant-picker-focused {
+  outline: 2px solid #1890ff;
+  outline-offset: 2px;
+}
+
+/* Touch-friendly tap targets */
+@media (max-width: 767px) {
+  .ant-btn,
+  .ant-select-selector,
+  .ant-picker,
+  .ant-tabs-tab {
+    min-height: 44px;
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  .risk-header-card,
+  .stat-card,
+  .ant-table-tbody > tr > td,
+  .ant-tabs-tab,
+  .ant-progress-bg {
+    transition: none;
+    animation: none;
+  }
+  
+  .risk-header-card:hover,
+  .stat-card:hover {
+    transform: none;
+  }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+  .risk-assessment {
+    background: white;
+    padding: 0;
+  }
+  
+  .ant-btn,
+  .risk-filters,
+  .ant-tabs-nav {
+    display: none !important;
+  }
+  
+  .stat-card,
+  .ant-card {
+    border: 1px solid #000;
+    box-shadow: none;
+  }
+  
+  .ant-table {
+    border: 1px solid #000;
+  }
+}
+
+/* ============================================
+   CUSTOM SCROLLBAR
+   ============================================ */
+.ant-modal-body::-webkit-scrollbar,
+.ant-table-body::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.ant-modal-body::-webkit-scrollbar-track,
+.ant-table-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.ant-modal-body::-webkit-scrollbar-thumb,
+.ant-table-body::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .ant-modal-body::-webkit-scrollbar-track,
+  .ant-table-body::-webkit-scrollbar-track {
+    background: #2f2f2f;
+  }
+  
+  .ant-modal-body::-webkit-scrollbar-thumb,
+  .ant-table-body::-webkit-scrollbar-thumb {
+    background: #555;
+  }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+.text-center {
+  text-align: center;
+}
+
+.mb-1 { margin-bottom: 8px; }
+.mb-2 { margin-bottom: 16px; }
+.mb-3 { margin-bottom: 24px; }

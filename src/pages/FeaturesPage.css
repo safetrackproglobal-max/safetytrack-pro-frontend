@@ -1,0 +1,528 @@
+/* src/pages/FeaturesPage.css */
+/* ============================================
+   FEATURES PAGE - FULLY RESPONSIVE
+   Mobile First Approach
+   ============================================ */
+
+/* BASE STYLES */
+.features-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    padding: 40px 0;
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 16px;
+  }
+  
+  @media (min-width: 768px) {
+    .container {
+      padding: 0 24px;
+    }
+  }
+  
+  /* Hero Section */
+  .features-hero {
+    text-align: center;
+    margin-bottom: 60px;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+    border-radius: 24px;
+    color: white;
+  }
+  
+  .features-hero h1 {
+    color: white !important;
+    font-size: 32px;
+    margin-bottom: 16px;
+  }
+  
+  @media (min-width: 768px) {
+    .features-hero h1 {
+      font-size: 42px;
+    }
+  }
+  
+  .hero-subtitle {
+    color: rgba(255, 255, 255, 0.95) !important;
+    font-size: 16px;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  
+  @media (min-width: 768px) {
+    .hero-subtitle {
+      font-size: 18px;
+    }
+  }
+  
+  /* Section Headers */
+  .section-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  
+  .section-header h2 {
+    color: #1a202c;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  
+  @media (min-width: 768px) {
+    .section-header h2 {
+      font-size: 34px;
+    }
+  }
+  
+  .section-header p {
+    color: #4a5568;
+    font-size: 16px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  /* Core Feature Cards */
+  .features-section {
+    margin-bottom: 60px;
+  }
+  
+  .feature-card-core {
+    height: 100%;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .feature-card-core:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 35px rgba(0, 0, 0, 0.12);
+  }
+  
+  .feature-icon-core {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #3498db20, #2c3e5020);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+  }
+  
+  .feature-icon-core svg {
+    font-size: 32px;
+    color: #3498db;
+  }
+  
+  .feature-card-core h4 {
+    color: #1a202c;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  
+  .feature-description {
+    color: #2c3e50;
+    font-weight: 500;
+    margin-bottom: 12px;
+  }
+  
+  .feature-details {
+    color: #4a5568;
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+  
+  .feature-benefits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+  
+  .benefit-tag {
+    background: #e8f4f8;
+    border: none;
+    color: #2c3e50;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+  
+  .benefit-tag svg {
+    color: #52c41a;
+    margin-right: 4px;
+  }
+  
+  /* Industry Solutions Section */
+  .industry-solutions-section {
+    margin-bottom: 60px;
+    background: #f8f9fa;
+    padding: 48px 0;
+    border-radius: 24px;
+  }
+  
+  .industry-tabs {
+    margin-top: 24px;
+  }
+  
+  .industry-tabs .ant-tabs-nav {
+    margin-bottom: 24px;
+  }
+  
+  .industry-tabs .ant-tabs-tab {
+    padding: 12px 20px;
+    font-weight: 500;
+  }
+  
+  .industry-feature-card {
+    height: 100%;
+    border-radius: 12px;
+    text-align: center;
+    padding: 20px;
+    transition: all 0.3s ease;
+  }
+  
+  .industry-feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  }
+  
+  .industry-feature-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+  }
+  
+  .industry-feature-icon svg {
+    font-size: 28px;
+  }
+  
+  .healthcare-icon {
+    background: linear-gradient(135deg, #1890ff20, #1890ff40);
+  }
+  .healthcare-icon svg { color: #1890ff; }
+  
+  .oilgas-icon {
+    background: linear-gradient(135deg, #fa8c1620, #fa8c1640);
+  }
+  .oilgas-icon svg { color: #fa8c16; }
+  
+  .construction-icon {
+    background: linear-gradient(135deg, #52c41a20, #52c41a40);
+  }
+  .construction-icon svg { color: #52c41a; }
+  
+  .manufacturing-icon {
+    background: linear-gradient(135deg, #722ed120, #722ed140);
+  }
+  .manufacturing-icon svg { color: #722ed1; }
+  
+  .maritime-icon {
+    background: linear-gradient(135deg, #13c2c220, #13c2c240);
+  }
+  .maritime-icon svg { color: #13c2c2; }
+  
+  .aviation-icon {
+    background: linear-gradient(135deg, #2f54eb20, #2f54eb40);
+  }
+  .aviation-icon svg { color: #2f54eb; }
+  
+  .industry-feature-card h4 {
+    color: #1a202c;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  
+  .industry-feature-card span {
+    color: #4a5568;
+    font-size: 13px;
+  }
+  
+  /* Additional Features */
+  .additional-features-section {
+    margin-bottom: 60px;
+  }
+  
+  .additional-feature-card {
+    height: 100%;
+    border-radius: 12px;
+    text-align: center;
+    padding: 20px;
+    transition: all 0.3s ease;
+  }
+  
+  .additional-feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  }
+  
+  .additional-feature-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #f0f0f0, #e8e8e8);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+  }
+  
+  .additional-feature-icon svg {
+    font-size: 24px;
+    color: #3498db;
+  }
+  
+  .additional-feature-card h5 {
+    color: #1a202c;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  
+  /* Integrations Section */
+  .integrations-section {
+    margin-bottom: 60px;
+    background: linear-gradient(135deg, #f8f9fa, #ffffff);
+    padding: 48px 0;
+    border-radius: 24px;
+  }
+  
+  .integration-card {
+    text-align: center;
+    padding: 20px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    height: 100%;
+  }
+  
+  .integration-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  }
+  
+  .integration-icon {
+    width: 55px;
+    height: 55px;
+    background: linear-gradient(135deg, #3498db20, #2c3e5020);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+  }
+  
+  .integration-icon svg {
+    font-size: 26px;
+    color: #3498db;
+  }
+  
+  .integration-card h5 {
+    color: #1a202c;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  
+  /* CTA Section */
+  .features-cta-section {
+    margin-top: 40px;
+  }
+  
+  .features-cta-card {
+    border-radius: 24px;
+    background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+    border: none;
+    overflow: hidden;
+  }
+  
+  .features-cta-content {
+    text-align: center;
+    padding: 48px 24px;
+  }
+  
+  .features-cta-content h2 {
+    color: white !important;
+    font-size: 28px;
+    margin-bottom: 16px;
+  }
+  
+  @media (min-width: 768px) {
+    .features-cta-content h2 {
+      font-size: 34px;
+    }
+  }
+  
+  .features-cta-content p {
+    color: rgba(255, 255, 255, 0.95) !important;
+    font-size: 16px;
+    margin-bottom: 32px;
+  }
+  
+  .cta-primary {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    border: none;
+    border-radius: 50px;
+    height: auto;
+    padding: 12px 28px;
+    font-weight: 600;
+  }
+  
+  .cta-secondary {
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    color: white;
+    border-radius: 50px;
+    height: auto;
+    padding: 12px 28px;
+    font-weight: 600;
+  }
+  
+  .cta-secondary:hover {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.6);
+    color: white;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .features-hero {
+      padding: 30px 16px;
+      margin-bottom: 40px;
+    }
+    
+    .features-hero h1 {
+      font-size: 24px;
+    }
+    
+    .section-header h2 {
+      font-size: 24px;
+    }
+    
+    .feature-icon-core {
+      width: 55px;
+      height: 55px;
+    }
+    
+    .feature-icon-core svg {
+      font-size: 26px;
+    }
+    
+    .industry-feature-icon {
+      width: 50px;
+      height: 50px;
+    }
+    
+    .features-cta-content {
+      padding: 32px 20px;
+    }
+    
+    .features-cta-content h2 {
+      font-size: 22px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .feature-benefits {
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .benefit-tag {
+      width: 100%;
+      text-align: center;
+    }
+    
+    .features-cta-content .ant-space {
+      flex-direction: column;
+      width: 100%;
+    }
+    
+    .features-cta-content .ant-space-item {
+      width: 100%;
+    }
+    
+    .cta-primary,
+    .cta-secondary {
+      width: 100%;
+    }
+  }
+  
+  /* Dark Mode */
+  @media (prefers-color-scheme: dark) {
+    .features-page {
+      background: linear-gradient(135deg, #141414 0%, #1f1f1f 100%);
+    }
+    
+    .section-header h2,
+    .feature-card-core h4,
+    .industry-feature-card h4,
+    .additional-feature-card h5,
+    .integration-card h5 {
+      color: rgba(255, 255, 255, 0.85);
+    }
+    
+    .section-header p,
+    .feature-details,
+    .industry-feature-card span,
+    .additional-feature-card span,
+    .integration-card span {
+      color: rgba(255, 255, 255, 0.65);
+    }
+    
+    .feature-card-core,
+    .industry-feature-card,
+    .additional-feature-card,
+    .integration-card {
+      background: #1f1f1f;
+      border-color: #434343;
+    }
+    
+    .industry-solutions-section {
+      background: #1a1a1a;
+    }
+  }
+  
+  /* Animations */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .feature-card-core,
+  .industry-feature-card,
+  .additional-feature-card,
+  .integration-card {
+    animation: fadeInUp 0.5s ease-out forwards;
+    opacity: 0;
+  }
+  
+  .feature-card-core:nth-child(1) { animation-delay: 0.05s; }
+  .feature-card-core:nth-child(2) { animation-delay: 0.1s; }
+  .feature-card-core:nth-child(3) { animation-delay: 0.15s; }
+  .feature-card-core:nth-child(4) { animation-delay: 0.2s; }
+  
+  @media (prefers-reduced-motion: reduce) {
+    .feature-card-core,
+    .industry-feature-card,
+    .additional-feature-card,
+    .integration-card {
+      animation: none;
+      opacity: 1;
+    }
+  }

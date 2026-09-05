@@ -1,0 +1,144 @@
+/* src/components/documents/DocumentAnalytics.css */
+
+.document-analytics {
+  background: #f0f2f5;
+  min-height: 100%;
+}
+
+.document-analytics .analytics-stats {
+  margin-bottom: 16px;
+}
+
+.document-analytics .stat-card {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  height: 100%;
+}
+
+.document-analytics .stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.document-analytics .stat-total {
+  border-left: 4px solid #1890ff;
+}
+
+.document-analytics .stat-published {
+  border-left: 4px solid #52c41a;
+}
+
+.document-analytics .stat-review {
+  border-left: 4px solid #1890ff;
+}
+
+.document-analytics .stat-draft {
+  border-left: 4px solid #d9d9d9;
+}
+
+.document-analytics .stat-card .ant-statistic-title {
+  font-size: 12px;
+  color: #8c8c8c;
+  white-space: nowrap;
+}
+
+.document-analytics .stat-card .ant-statistic-content {
+  font-size: 20px;
+}
+
+.document-analytics .chart-card {
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  height: 100%;
+}
+
+.document-analytics .chart-card .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 12px 16px;
+}
+
+.document-analytics .chart-card .ant-card-head-title {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.document-analytics .chart-card .ant-card-body {
+  padding: 16px;
+}
+
+.document-analytics .ant-list-item {
+  padding: 12px 0;
+}
+
+.document-analytics .ant-list-item:last-child {
+  border-bottom: none;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.document-analytics .stat-card {
+  animation: fadeInUp 0.5s ease;
+}
+
+.document-analytics .stat-card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.document-analytics .stat-card:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.document-analytics .stat-card:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+.document-analytics .chart-card {
+  animation: fadeInUp 0.5s ease;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .document-analytics {
+    padding: 16px;
+  }
+  
+  .document-analytics .stat-card .ant-statistic-content {
+    font-size: 16px;
+  }
+  
+  .document-analytics .chart-card .ant-card-body {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 576px) {
+  .document-analytics {
+    padding: 8px;
+  }
+  
+  .document-analytics .stat-card {
+    margin-bottom: 8px;
+  }
+  
+  .document-analytics .stat-card .ant-statistic-title {
+    font-size: 10px;
+  }
+  
+  .document-analytics .stat-card .ant-statistic-content {
+    font-size: 14px;
+  }
+  
+  .document-analytics .chart-card {
+    margin-bottom: 8px;
+  }
+}

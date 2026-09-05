@@ -1,0 +1,726 @@
+/* src/components/environmental/panels/EnvironmentalIntelligencePanel.css */
+
+/* ============================================================================
+   ENVIRONMENTAL INTELLIGENCE PANEL - MAIN CONTAINER
+   ============================================================================ */
+
+.environmental-intelligence-panel {
+  padding: 0;
+  background: #f0f2f5;
+  min-height: 100vh;
+}
+
+.environmental-intelligence-panel .ant-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.environmental-intelligence-panel .ant-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
+}
+
+/* ============================================================================
+   HEADER SECTION
+   ============================================================================ */
+
+.intelligence-header {
+  background: linear-gradient(135deg, #0c1e3a 0%, #1a3a5c 50%, #2d6a8f 100%);
+  padding: 24px 32px;
+  border-radius: 12px 12px 0 0;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.intelligence-header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.intelligence-header-title h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: white;
+}
+
+.intelligence-header-title .anticon {
+  font-size: 28px;
+  color: #4fc3f7;
+}
+
+.intelligence-header-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.intelligence-header-status .ant-tag {
+  font-size: 13px;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+/* ============================================================================
+   STATISTICS CARDS
+   ============================================================================ */
+
+.intel-stat-card {
+  border-radius: 12px;
+  border: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
+  background: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.intel-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.intel-stat-card .ant-statistic-title {
+  font-size: 13px;
+  color: #8c8c8c;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.intel-stat-card .ant-statistic-content {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.intel-stat-card .ant-statistic-content .anticon {
+  font-size: 20px;
+  margin-right: 8px;
+}
+
+.intel-stat-card .ant-progress {
+  margin-top: 8px;
+}
+
+.intel-stat-card .ant-progress .ant-progress-inner {
+  border-radius: 4px;
+  background: #f0f0f0;
+}
+
+.intel-stat-card .ant-progress .ant-progress-bg {
+  border-radius: 4px;
+}
+
+.intel-stat-card-green {
+  border-top: 3px solid #52c41a;
+}
+
+.intel-stat-card-green .ant-statistic-content {
+  color: #52c41a;
+}
+
+.intel-stat-card-gold {
+  border-top: 3px solid #faad14;
+}
+
+.intel-stat-card-gold .ant-statistic-content {
+  color: #faad14;
+}
+
+.intel-stat-card-blue {
+  border-top: 3px solid #1890ff;
+}
+
+.intel-stat-card-blue .ant-statistic-content {
+  color: #1890ff;
+}
+
+.intel-stat-card-red {
+  border-top: 3px solid #f5222d;
+}
+
+.intel-stat-card-red .ant-statistic-content {
+  color: #f5222d;
+}
+
+.intel-stat-card-icon {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  font-size: 32px;
+  opacity: 0.1;
+}
+
+.intel-stat-card .stat-subtitle {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-top: 4px;
+}
+
+/* ============================================================================
+   ALERT CARDS
+   ============================================================================ */
+
+.intel-alert {
+  border-radius: 12px;
+  margin-bottom: 16px;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.intel-alert:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.intel-alert.ant-alert-error {
+  background: linear-gradient(135deg, #fff1f0 0%, #ffccc7 100%);
+  border-left: 4px solid #f5222d;
+}
+
+.intel-alert.ant-alert-warning {
+  background: linear-gradient(135deg, #fffbe6 0%, #ffe58f 100%);
+  border-left: 4px solid #faad14;
+}
+
+.intel-alert.ant-alert-info {
+  background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%);
+  border-left: 4px solid #1890ff;
+}
+
+.intel-alert .ant-alert-message {
+  font-weight: 600;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.intel-alert .ant-alert-description {
+  font-size: 13px;
+  color: #595959;
+}
+
+.intel-alert .alert-confidence {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.intel-alert .alert-confidence .ant-tag {
+  border-radius: 12px;
+  padding: 2px 10px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.intel-alert .alert-confidence .ant-progress {
+  width: 80px;
+}
+
+/* ============================================================================
+   LIVE METRICS SECTION
+   ============================================================================ */
+
+.intel-live-metrics {
+  margin-top: 16px;
+}
+
+.intel-live-metrics .ant-card {
+  border-radius: 12px;
+  border: 1px solid #f0f0f0;
+}
+
+.intel-live-metrics .ant-card .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 12px 16px;
+}
+
+.intel-live-metrics .ant-card .ant-card-head-title {
+  font-weight: 500;
+  font-size: 14px;
+  color: #262626;
+}
+
+.intel-live-metrics .ant-card .ant-card-body {
+  padding: 16px;
+}
+
+.metric-circle {
+  text-align: center;
+  padding: 8px;
+  transition: all 0.3s ease;
+}
+
+.metric-circle:hover {
+  transform: scale(1.05);
+}
+
+.metric-circle .ant-progress {
+  display: inline-block;
+}
+
+.metric-circle .ant-progress-text {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.metric-circle .metric-label {
+  margin-top: 8px;
+  font-weight: 500;
+  font-size: 13px;
+  color: #262626;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metric-circle .metric-value {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-top: 2px;
+}
+
+/* ============================================================================
+   TIMELINE FOR PREDICTIONS
+   ============================================================================ */
+
+.intel-timeline .ant-timeline-item-tail {
+  border-left-color: #d9d9d9;
+}
+
+.intel-timeline .ant-timeline-item-head {
+  width: 14px;
+  height: 14px;
+}
+
+.intel-timeline .ant-timeline-item-content {
+  padding: 0 0 20px 24px;
+}
+
+.timeline-prediction-item {
+  padding: 8px 12px;
+  background: #fafafa;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
+}
+
+.timeline-prediction-item:hover {
+  background: #f5f5f5;
+  border-color: #d9d9d9;
+}
+
+.timeline-prediction-item .prediction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.timeline-prediction-item .prediction-title {
+  font-weight: 500;
+  color: #262626;
+}
+
+.timeline-prediction-item .prediction-time {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+.timeline-prediction-item .prediction-details {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #595959;
+}
+
+.timeline-prediction-item .prediction-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+
+@media (max-width: 1200px) {
+  .intelligence-header {
+    padding: 20px 24px;
+  }
+  
+  .intelligence-header-title h2 {
+    font-size: 20px;
+  }
+  
+  .intel-stat-card .ant-statistic-content {
+    font-size: 24px;
+  }
+  
+  .metric-circle .ant-progress {
+    width: 100px !important;
+    height: 100px !important;
+  }
+}
+
+@media (max-width: 992px) {
+  .intelligence-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .intelligence-header-status {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .intel-stat-card .ant-statistic-content {
+    font-size: 22px;
+  }
+  
+  .metric-circle .ant-progress {
+    width: 90px !important;
+    height: 90px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .intelligence-header {
+    padding: 16px 20px;
+  }
+  
+  .intelligence-header-title h2 {
+    font-size: 18px;
+  }
+  
+  .intelligence-header-title .anticon {
+    font-size: 22px;
+  }
+  
+  .intel-stat-card .ant-statistic-content {
+    font-size: 20px;
+  }
+  
+  .intel-stat-card .ant-statistic-title {
+    font-size: 11px;
+  }
+  
+  .metric-circle .ant-progress {
+    width: 80px !important;
+    height: 80px !important;
+  }
+  
+  .metric-circle .metric-label {
+    font-size: 11px;
+  }
+  
+  .intel-alert .ant-alert-message {
+    font-size: 13px;
+  }
+  
+  .intel-alert .ant-alert-description {
+    font-size: 12px;
+  }
+  
+  .timeline-prediction-item .prediction-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .intelligence-header {
+    padding: 12px 16px;
+  }
+  
+  .intelligence-header-title h2 {
+    font-size: 16px;
+  }
+  
+  .intelligence-header-title .anticon {
+    font-size: 18px;
+  }
+  
+  .intel-stat-card .ant-statistic-content {
+    font-size: 18px;
+  }
+  
+  .intel-stat-card .ant-statistic-title {
+    font-size: 10px;
+  }
+  
+  .metric-circle .ant-progress {
+    width: 70px !important;
+    height: 70px !important;
+  }
+  
+  .metric-circle .ant-progress-text {
+    font-size: 14px;
+  }
+  
+  .metric-circle .metric-label {
+    font-size: 10px;
+  }
+  
+  .intel-alert .ant-alert-message {
+    font-size: 12px;
+  }
+  
+  .intel-alert .ant-alert-description {
+    font-size: 11px;
+  }
+}
+
+/* ============================================================================
+   ANIMATIONS
+   ============================================================================ */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 5px rgba(24, 144, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(24, 144, 255, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(24, 144, 255, 0.2);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+.animate-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* ============================================================================
+   DARK MODE SUPPORT
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+  .environmental-intelligence-panel {
+    background: #141414;
+  }
+  
+  .environmental-intelligence-panel .ant-card {
+    background: #1f1f1f;
+    border-color: #303030;
+  }
+  
+  .intel-stat-card {
+    background: #1f1f1f;
+    border-color: #303030;
+  }
+  
+  .intel-stat-card .ant-statistic-title {
+    color: #8c8c8c;
+  }
+  
+  .intel-stat-card .stat-subtitle {
+    color: #6d6d6d;
+  }
+  
+  .intel-live-metrics .ant-card .ant-card-head {
+    border-color: #303030;
+  }
+  
+  .intel-live-metrics .ant-card .ant-card-head-title {
+    color: #e8e8e8;
+  }
+  
+  .metric-circle .metric-label {
+    color: #e8e8e8;
+  }
+  
+  .metric-circle .metric-value {
+    color: #6d6d6d;
+  }
+  
+  .intel-alert.ant-alert-error {
+    background: linear-gradient(135deg, #2a1a1a 0%, #3a1a1a 100%);
+  }
+  
+  .intel-alert.ant-alert-warning {
+    background: linear-gradient(135deg, #2a2a1a 0%, #3a3a1a 100%);
+  }
+  
+  .intel-alert.ant-alert-info {
+    background: linear-gradient(135deg, #1a2a3a 0%, #1a3a4a 100%);
+  }
+  
+  .intel-alert .ant-alert-description {
+    color: #b8b8b8;
+  }
+  
+  .timeline-prediction-item {
+    background: #2a2a2a;
+    border-color: #303030;
+  }
+  
+  .timeline-prediction-item:hover {
+    background: #333333;
+  }
+  
+  .timeline-prediction-item .prediction-title {
+    color: #e8e8e8;
+  }
+  
+  .timeline-prediction-item .prediction-details {
+    color: #b8b8b8;
+  }
+}
+
+/* ============================================================================
+   PRINT STYLES
+   ============================================================================ */
+
+@media print {
+  .environmental-intelligence-panel {
+    background: white !important;
+  }
+  
+  .intelligence-header {
+    background: #0c1e3a !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  .intel-stat-card {
+    border: 1px solid #d9d9d9 !important;
+    box-shadow: none !important;
+  }
+  
+  .metric-circle .ant-progress {
+    page-break-inside: avoid;
+  }
+  
+  .intel-alert {
+    page-break-inside: avoid;
+  }
+}
+
+/* ============================================================================
+   SCROLLBAR STYLING
+   ============================================================================ */
+
+.intelligence-panel-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.intelligence-panel-scroll::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+.intelligence-panel-scroll::-webkit-scrollbar-thumb {
+  background: #d9d9d9;
+  border-radius: 4px;
+}
+
+.intelligence-panel-scroll::-webkit-scrollbar-thumb:hover {
+  background: #bfbfbf;
+}
+
+/* ============================================================================
+   TOOLTIP CUSTOMIZATION
+   ============================================================================ */
+
+.intel-tooltip .ant-tooltip-inner {
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.intel-tooltip .ant-tooltip-arrow-content {
+  background: rgba(0, 0, 0, 0.85);
+}
+
+/* ============================================================================
+   BADGE ANIMATIONS
+   ============================================================================ */
+
+.live-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #52c41a;
+  margin-right: 6px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.live-dot.warning {
+  background: #faad14;
+}
+
+.live-dot.critical {
+  background: #f5222d;
+}
+
+/* ============================================================================
+   AI CONFIDENCE INDICATOR
+   ============================================================================ */
+
+.ai-confidence-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-confidence-bar .confidence-label {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+.ai-confidence-bar .confidence-value {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.ai-confidence-bar .confidence-value.high {
+  color: #52c41a;
+}
+
+.ai-confidence-bar .confidence-value.medium {
+  color: #faad14;
+}
+
+.ai-confidence-bar .confidence-value.low {
+  color: #f5222d;
+}

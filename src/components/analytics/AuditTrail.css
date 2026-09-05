@@ -1,0 +1,702 @@
+/* src/components/AuditTrail.css */
+/* ============================================
+   AUDIT TRAIL - FULLY RESPONSIVE
+   Mobile First Approach
+   ============================================ */
+
+/* BASE STYLES (Mobile: 0 - 767px) */
+.audit-trail {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding: 8px;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+@media (min-width: 640px) {
+  .audit-trail {
+    padding: 12px;
+  }
+}
+
+@media (min-width: 768px) {
+  .audit-trail {
+    padding: 16px;
+  }
+}
+
+/* ============================================
+   MAIN CARD
+   ============================================ */
+.audit-trail .ant-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f0f0f0;
+  margin-bottom: 12px;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@media (min-width: 768px) {
+  .audit-trail .ant-card {
+    margin-bottom: 0;
+  }
+}
+
+.audit-trail .ant-card .ant-card-head {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px 12px 0 0;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 12px 16px;
+}
+
+@media (min-width: 768px) {
+  .audit-trail .ant-card .ant-card-head {
+    padding: 16px 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .audit-trail .ant-card .ant-card-head {
+    padding: 20px 24px;
+  }
+}
+
+.audit-trail .ant-card .ant-card-head .ant-card-head-title {
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+@media (min-width: 768px) {
+  .audit-trail .ant-card .ant-card-head .ant-card-head-title {
+    font-size: 18px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .audit-trail .ant-card .ant-card-head .ant-card-head-title {
+    font-size: 20px;
+  }
+}
+
+/* Card Extra (Header Actions) */
+@media (max-width: 480px) {
+  .audit-trail .ant-card .ant-card-extra {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    margin-top: 12px;
+    margin-right: 0;
+  }
+}
+
+/* ============================================
+   STATS CARDS - Responsive Grid
+   ============================================ */
+.audit-trail .ant-card .ant-row .ant-col {
+  margin-bottom: 12px;
+}
+
+@media (min-width: 768px) {
+  .audit-trail .ant-card .ant-row .ant-col {
+    margin-bottom: 0;
+  }
+}
+
+.audit-trail .ant-card .ant-row .ant-col .ant-card {
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  border: 1px solid #f0f0f0;
+  background: white;
+  margin-bottom: 0;
+}
+
+.audit-trail .ant-card .ant-row .ant-col .ant-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  border-color: #1890ff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .audit-trail .ant-card .ant-row .ant-col .ant-card {
+    transition: none;
+  }
+  
+  .audit-trail .ant-card .ant-row .ant-col .ant-card:hover {
+    transform: none;
+  }
+}
+
+.audit-trail .ant-card .ant-row .ant-col .ant-card .ant-statistic-title {
+  color: #8c8c8c;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+@media (min-width: 768px) {
+  .audit-trail .ant-card .ant-row .ant-col .ant-card .ant-statistic-title {
+    font-size: 12px;
+  }
+}
+
+.audit-trail .ant-card .ant-row .ant-col .ant-card .ant-statistic-content {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+@media (min-width: 768px) {
+  .audit-trail .ant-card .ant-row .ant-col .ant-card .ant-statistic-content {
+    font-size: 24px;
+  }
+}
+
+/* ============================================
+   FILTERS SECTION - Mobile Optimized
+   ============================================ */
+.audit-filters {
+  background: white;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #f0f0f0;
+  margin-bottom: 16px;
+}
+
+@media (min-width: 640px) {
+  .audit-filters {
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+}
+
+@media (min-width: 768px) {
+  .audit-filters {
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+}
+
+.audit-filters .ant-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 0;
+}
+
+@media (min-width: 640px) {
+  .audit-filters .ant-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+
+.audit-filters .ant-col {
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+@media (min-width: 640px) {
+  .audit-filters .ant-col {
+    width: auto;
+    flex: 1;
+    min-width: 160px;
+    margin-bottom: 0;
+  }
+}
+
+/* Touch-friendly filter inputs */
+.audit-filters .ant-input-search .ant-input,
+.audit-filters .ant-select-selector,
+.audit-filters .ant-picker {
+  min-height: 40px;
+  border-radius: 8px;
+}
+
+/* ============================================
+   TABS - Mobile Optimized
+   ============================================ */
+.audit-trail .ant-tabs {
+  margin-bottom: 16px;
+}
+
+.audit-trail .ant-tabs-nav {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.audit-trail .ant-tabs-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.audit-trail .ant-tabs-tab {
+  padding: 8px 12px;
+  font-weight: 500;
+  transition: all 0.3s;
+  border: 1px solid transparent;
+  border-radius: 8px 8px 0 0;
+  margin: 0 2px;
+}
+
+@media (min-width: 480px) {
+  .audit-trail .ant-tabs-tab {
+    padding: 10px 16px;
+    margin: 0 4px;
+  }
+}
+
+@media (min-width: 768px) {
+  .audit-trail .ant-tabs-tab {
+    padding: 12px 16px;
+  }
+}
+
+.audit-trail .ant-tabs-tab .anticon {
+  margin-right: 6px;
+  font-size: 14px;
+}
+
+@media (min-width: 480px) {
+  .audit-trail .ant-tabs-tab .anticon {
+    margin-right: 8px;
+    font-size: 16px;
+  }
+}
+
+/* ============================================
+   TABLE STYLES - Responsive
+   ============================================ */
+.audit-trail .ant-table-wrapper {
+  overflow-x: auto;
+}
+
+.audit-trail .ant-table {
+  min-width: 800px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #f0f0f0;
+  background: white;
+}
+
+@media (max-width: 640px) {
+  .audit-trail .ant-table {
+    min-width: 700px;
+  }
+}
+
+.audit-trail .ant-table-thead > tr > th {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  color: #262626;
+  font-weight: 600;
+  padding: 10px 8px;
+  border-bottom: 2px solid #e8e8e8;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+@media (min-width: 768px) {
+  .audit-trail .ant-table-thead > tr > th {
+    padding: 12px 12px;
+    font-size: 12px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .audit-trail .ant-table-thead > tr > th {
+    padding: 16px;
+  }
+}
+
+.audit-trail .ant-table-tbody > tr > td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: all 0.3s;
+}
+
+@media (min-width: 768px) {
+  .audit-trail .ant-table-tbody > tr > td {
+    padding: 12px 12px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .audit-trail .ant-table-tbody > tr > td {
+    padding: 16px;
+  }
+}
+
+.audit-trail .ant-table-tbody > tr:hover > td {
+  background: #fafafa;
+}
+
+/* ============================================
+   TAG STYLES
+   ============================================ */
+.audit-trail .ant-tag {
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 10px;
+  padding: 2px 8px;
+  border: 1px solid transparent;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+@media (min-width: 768px) {
+  .audit-trail .ant-tag {
+    font-size: 11px;
+  }
+}
+
+/* ============================================
+   AVATAR STYLES
+   ============================================ */
+.audit-trail .ant-avatar {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s;
+}
+
+.audit-trail .ant-avatar:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .audit-trail .ant-avatar {
+    transition: none;
+  }
+}
+
+/* ============================================
+   MODAL STYLES - Responsive
+   ============================================ */
+.audit-details .ant-modal-content {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.audit-details .ant-modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-bottom: 1px solid #e8e8e8;
+  padding: 14px 16px;
+}
+
+@media (min-width: 768px) {
+  .audit-details .ant-modal-header {
+    padding: 16px 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .audit-details .ant-modal-header {
+    padding: 20px 24px;
+  }
+}
+
+.audit-details .ant-modal-title {
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+@media (min-width: 768px) {
+  .audit-details .ant-modal-title {
+    font-size: 18px;
+  }
+}
+
+.audit-details .ant-modal-body {
+  padding: 16px;
+}
+
+@media (min-width: 768px) {
+  .audit-details .ant-modal-body {
+    padding: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .audit-details .ant-modal-body {
+    padding: 24px;
+  }
+}
+
+/* Audit Header in Modal */
+.audit-header {
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+@media (min-width: 480px) {
+  .audit-header {
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+  }
+}
+
+.audit-header .ant-avatar {
+  width: 56px;
+  height: 56px;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 768px) {
+  .audit-header .ant-avatar {
+    width: 64px;
+    height: 64px;
+    font-size: 24px;
+  }
+}
+
+/* ============================================
+   CHANGES DISPLAY
+   ============================================ */
+.changes-display {
+  background: #f6f8fa;
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+  padding: 12px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  max-height: 250px;
+  overflow: auto;
+  margin: 0;
+}
+
+@media (min-width: 768px) {
+  .changes-display {
+    padding: 16px;
+    font-size: 13px;
+    max-height: 300px;
+  }
+}
+
+/* ============================================
+   SELECTED ACTIONS ALERT
+   ============================================ */
+.selected-actions .ant-alert {
+  border-radius: 8px;
+  border: 1px solid #91d5ff;
+  background: #e6f7ff;
+  padding: 8px 12px;
+}
+
+.selected-actions .ant-alert-message {
+  font-weight: 600;
+  color: #1890ff;
+  font-size: 13px;
+}
+
+.selected-actions .ant-alert-description {
+  color: #595959;
+  font-size: 12px;
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+.audit-trail .ant-empty {
+  padding: 32px 0;
+}
+
+@media (min-width: 768px) {
+  .audit-trail .ant-empty {
+    padding: 48px 0;
+  }
+}
+
+.audit-trail .ant-empty-image {
+  height: 80px;
+  margin-bottom: 16px;
+}
+
+@media (min-width: 768px) {
+  .audit-trail .ant-empty-image {
+    height: 120px;
+    margin-bottom: 24px;
+  }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .audit-trail .ant-card,
+  .audit-trail .ant-table-tbody > tr:hover > td {
+    animation: none;
+  }
+}
+
+/* ============================================
+   DARK MODE SUPPORT
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+  .audit-trail {
+    background: #141414;
+    color: rgba(255, 255, 255, 0.85);
+  }
+  
+  .audit-trail .ant-card {
+    background: #1f1f1f;
+    border-color: #434343;
+  }
+  
+  .audit-trail .ant-card .ant-card-head {
+    background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+  }
+  
+  .audit-trail .ant-card .ant-row .ant-col .ant-card {
+    background: #1a1a1a;
+    border-color: #434343;
+  }
+  
+  .audit-filters {
+    background: #1f1f1f;
+    border-color: #434343;
+  }
+  
+  .audit-trail .ant-table {
+    background: #1f1f1f;
+    border-color: #434343;
+  }
+  
+  .audit-trail .ant-table-thead > tr > th {
+    background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+    color: rgba(255, 255, 255, 0.85);
+    border-color: #434343;
+  }
+  
+  .audit-trail .ant-table-tbody > tr > td {
+    border-color: #434343;
+    color: rgba(255, 255, 255, 0.85);
+  }
+  
+  .audit-trail .ant-table-tbody > tr:hover > td {
+    background: #141414;
+  }
+  
+  .changes-display {
+    background: #141414;
+    border-color: #434343;
+    color: rgba(255, 255, 255, 0.85);
+  }
+  
+  .selected-actions .ant-alert {
+    background: #111d2c;
+    border-color: #153450;
+  }
+  
+  .selected-actions .ant-alert-description {
+    color: #a6a6a6;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+.audit-trail .ant-table-tbody .ant-btn:focus-visible,
+.audit-filters .ant-btn:focus-visible {
+  outline: 2px solid #1890ff;
+  outline-offset: 2px;
+}
+
+/* Touch-friendly tap targets */
+@media (max-width: 767px) {
+  .audit-filters .ant-btn,
+  .audit-trail .ant-table-tbody .ant-btn,
+  .audit-trail .ant-tabs-tab {
+    min-height: 44px;
+  }
+}
+
+/* ============================================
+   CUSTOM SCROLLBARS
+   ============================================ */
+.changes-display::-webkit-scrollbar,
+.ant-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.changes-display::-webkit-scrollbar-track,
+.ant-modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.changes-display::-webkit-scrollbar-thumb,
+.ant-modal-body::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .changes-display::-webkit-scrollbar-track,
+  .ant-modal-body::-webkit-scrollbar-track {
+    background: #2f2f2f;
+  }
+  
+  .changes-display::-webkit-scrollbar-thumb,
+  .ant-modal-body::-webkit-scrollbar-thumb {
+    background: #555;
+  }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+  .audit-trail .ant-card-extra,
+  .audit-filters,
+  .selected-actions,
+  .ant-table-row-selection,
+  .audit-trail .ant-table-tbody .ant-btn {
+    display: none !important;
+  }
+  
+  .audit-trail .ant-table {
+    border: 1px solid #000;
+  }
+  
+  .audit-trail .ant-table-thead > tr > th {
+    background: #fff !important;
+    color: #000 !important;
+    border-bottom: 2px solid #000;
+  }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+.text-center {
+  text-align: center;
+}
+
+.mb-1 { margin-bottom: 8px; }
+.mb-2 { margin-bottom: 16px; }
+.mb-3 { margin-bottom: 24px; }

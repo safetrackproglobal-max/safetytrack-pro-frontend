@@ -1,0 +1,114 @@
+{
+  "name": "safetrackproglobal",
+  "version": "2.0.0",
+  "description": "AI-Powered Safety Management Platform for Healthcare, Oil & Gas, Construction, Manufacturing, and more.",
+  "private": true,
+  "main": "src/index.js",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
+    "analyze": "source-map-explorer 'build/static/js/*.js'",
+    "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
+    "format": "prettier --write 'src/**/*.{js,jsx,ts,tsx,json,css,md}'",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf build"
+  },
+  "keywords": [
+    "safety",
+    "management",
+    "EHS",
+    "compliance",
+    "risk-assessment",
+    "AI-safety",
+    "industrial-safety",
+    "healthcare-safety",
+    "construction-safety",
+    "oil-and-gas-safety",
+    "react",
+    "pwa",
+    "progressive-web-app"
+  ],
+  "author": {
+    "name": "Abigalistic Studios",
+    "email": "abigalisticstudious@gmail.com",
+    "url": "https://safetrackproglobal.com"
+  },
+  "license": "MIT",
+  "homepage": "https://safetrackproglobal.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AbigalisticStudios/safetrack-pro-global.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AbigalisticStudios/safetrack-pro-global/issues",
+    "email": "abigalisticstudious@gmail.com"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all",
+      "not ie 11"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "dependencies": {
+    "@ant-design/icons": "^6.0.2",
+    "@fortawesome/fontawesome-free": "^7.0.1",
+    "@react-pdf/renderer": "^4.3.2",
+    "@types/diff": "^7.0.2",
+    "antd": "^5.27.4",
+    "axios": "^1.12.2",
+    "chart.js": "^4.5.1",
+    "chartjs-plugin-annotation": "^3.1.0",
+    "date-fns": "^4.1.0",
+    "diff": "^9.0.0",
+    "html2canvas": "^1.4.1",
+    "html2pdf.js": "^0.14.0",
+    "i18next": "^22.0.0",
+    "i18next-browser-languagedetector": "^7.0.0",
+    "jspdf": "^4.0.0",
+    "jspdf-autotable": "^5.0.7",
+    "leaflet": "^1.9.4",
+    "moment": "^2.30.1",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^5.6.205",
+    "react": "^18.2.0",
+    "react-chartjs-2": "^5.3.1",
+    "react-dom": "^18.2.0",
+    "react-i18next": "^12.0.0",
+    "react-leaflet": "^4.2.1",
+    "react-pdf": "^10.4.1",
+    "react-pdf-highlighter": "^8.0.0-rc.0",
+    "react-quill": "^2.0.0",
+    "react-router-dom": "^5.3.4",
+    "react-scripts": "^5.0.1",
+    "react-signature-canvas": "^1.1.0-alpha.2",
+    "recharts": "^3.2.1",
+    "socket.io-client": "^4.8.1",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "ajv": "^8.12.0",
+    "ajv-keywords": "^5.1.0",
+    "eslint": "^7.32.0",
+    "eslint-plugin-react": "^7.27.1",
+    "gh-pages": "^6.1.1",
+    "prettier": "^3.3.3",
+    "source-map-explorer": "^2.5.3",
+    "typescript": "^4.9.5",
+    "web-vitals": "^3.5.0"
+  }
+}

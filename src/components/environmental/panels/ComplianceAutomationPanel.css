@@ -1,0 +1,729 @@
+/* src/components/environmental/panels/ComplianceAutomationPanel.css */
+
+/* ============================================================================
+   COMPLIANCE AUTOMATION PANEL - MAIN CONTAINER
+   ============================================================================ */
+
+.compliance-automation-panel {
+  padding: 0;
+  background: #f0f2f5;
+  min-height: 100vh;
+}
+
+.compliance-automation-panel .ant-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.compliance-automation-panel .ant-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
+}
+
+/* ============================================================================
+   HEADER SECTION
+   ============================================================================ */
+
+.compliance-header {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  padding: 24px 32px;
+  border-radius: 12px 12px 0 0;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.compliance-header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.compliance-header-title h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: white;
+}
+
+.compliance-header-title .anticon {
+  font-size: 28px;
+  color: #4fc3f7;
+}
+
+.compliance-header-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.compliance-header-status .ant-tag {
+  font-size: 13px;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.compliance-header-status .ant-switch {
+  background-color: #1890ff;
+}
+
+/* ============================================================================
+   STATISTICS CARDS
+   ============================================================================ */
+
+.stat-card {
+  border-radius: 12px;
+  border: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
+  background: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.stat-card .ant-statistic-title {
+  font-size: 13px;
+  color: #8c8c8c;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-card .ant-statistic-content {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.stat-card .ant-statistic-content .anticon {
+  font-size: 20px;
+  margin-right: 8px;
+}
+
+.stat-card-green {
+  border-top: 3px solid #52c41a;
+}
+
+.stat-card-green .ant-statistic-content {
+  color: #52c41a;
+}
+
+.stat-card-blue {
+  border-top: 3px solid #1890ff;
+}
+
+.stat-card-blue .ant-statistic-content {
+  color: #1890ff;
+}
+
+.stat-card-yellow {
+  border-top: 3px solid #faad14;
+}
+
+.stat-card-yellow .ant-statistic-content {
+  color: #faad14;
+}
+
+.stat-card-red {
+  border-top: 3px solid #f5222d;
+}
+
+.stat-card-red .ant-statistic-content {
+  color: #f5222d;
+}
+
+.stat-card-purple {
+  border-top: 3px solid #722ed1;
+}
+
+.stat-card-purple .ant-statistic-content {
+  color: #722ed1;
+}
+
+.stat-card-cyan {
+  border-top: 3px solid #13c2c2;
+}
+
+.stat-card-cyan .ant-statistic-content {
+  color: #13c2c2;
+}
+
+.stat-card-icon {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  font-size: 32px;
+  opacity: 0.1;
+}
+
+/* ============================================================================
+   ALERT BANNER
+   ============================================================================ */
+
+.compliance-alert {
+  border-radius: 12px;
+  margin-bottom: 16px;
+  border: none;
+}
+
+.compliance-alert.ant-alert-success {
+  background: linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%);
+  border-left: 4px solid #52c41a;
+}
+
+.compliance-alert.ant-alert-warning {
+  background: linear-gradient(135deg, #fffbe6 0%, #ffe58f 100%);
+  border-left: 4px solid #faad14;
+}
+
+.compliance-alert .ant-alert-message {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.compliance-alert .ant-alert-description {
+  font-size: 13px;
+  color: #595959;
+}
+
+/* ============================================================================
+   CHARTS SECTION
+   ============================================================================ */
+
+.charts-section {
+  margin-top: 16px;
+}
+
+.charts-section .ant-divider {
+  margin: 24px 0 16px 0;
+}
+
+.charts-section .ant-divider .anticon {
+  margin-right: 8px;
+}
+
+.chart-card {
+  border-radius: 12px;
+  border: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.chart-card .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 12px 16px;
+}
+
+.chart-card .ant-card-head-title {
+  font-weight: 500;
+  font-size: 14px;
+  color: #262626;
+}
+
+.chart-card .ant-card-body {
+  padding: 16px;
+}
+
+.chart-container {
+  width: 100%;
+  height: 250px;
+}
+
+.chart-container .recharts-responsive-container {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Chart Tooltip Customization */
+.recharts-tooltip-wrapper {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  padding: 8px 12px !important;
+  border: none !important;
+}
+
+.recharts-tooltip-item {
+  font-size: 12px !important;
+  padding: 2px 0 !important;
+}
+
+.recharts-tooltip-item-name {
+  color: #8c8c8c !important;
+}
+
+.recharts-tooltip-item-value {
+  font-weight: 600 !important;
+}
+
+/* ============================================================================
+   TABS CUSTOMIZATION
+   ============================================================================ */
+
+.compliance-tabs .ant-tabs-nav {
+  margin-bottom: 16px;
+}
+
+.compliance-tabs .ant-tabs-tab {
+  padding: 8px 16px;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.compliance-tabs .ant-tabs-tab:hover {
+  background: #f5f5f5;
+}
+
+.compliance-tabs .ant-tabs-tab-active {
+  background: #e6f7ff;
+}
+
+.compliance-tabs .ant-tabs-tab .anticon {
+  margin-right: 6px;
+}
+
+.compliance-tabs .ant-tabs-ink-bar {
+  background: #1890ff;
+  height: 3px;
+}
+
+/* ============================================================================
+   TASK LIST
+   ============================================================================ */
+
+.task-list .ant-list-item {
+  padding: 12px 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.task-list .ant-list-item:hover {
+  background: #fafafa;
+}
+
+.task-list .ant-list-item:last-child {
+  border-bottom: none;
+}
+
+.task-list .ant-list-item-meta-avatar {
+  display: flex;
+  align-items: center;
+}
+
+.task-list .ant-list-item-meta-title {
+  font-weight: 500;
+  color: #262626;
+}
+
+.task-list .ant-list-item-meta-description {
+  color: #8c8c8c;
+  font-size: 12px;
+}
+
+.task-status-tag {
+  border-radius: 12px;
+  padding: 2px 10px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.task-status-tag.active {
+  background: #e6f7ff;
+  color: #1890ff;
+  border: 1px solid #91d5ff;
+}
+
+.task-status-tag.scheduled {
+  background: #fff7e6;
+  color: #fa8c16;
+  border: 1px solid #ffd591;
+}
+
+.task-status-tag.running {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
+
+.task-status-tag.completed {
+  background: #f0f0f0;
+  color: #8c8c8c;
+  border: 1px solid #d9d9d9;
+}
+
+/* ============================================================================
+   TIMELINE
+   ============================================================================ */
+
+.compliance-timeline .ant-timeline-item-tail {
+  border-left-color: #d9d9d9;
+}
+
+.compliance-timeline .ant-timeline-item-head {
+  width: 14px;
+  height: 14px;
+}
+
+.compliance-timeline .ant-timeline-item-content {
+  padding: 0 0 20px 24px;
+}
+
+.timeline-item-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #fafafa;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+}
+
+.timeline-item-content:hover {
+  background: #f5f5f5;
+  border-color: #d9d9d9;
+}
+
+.timeline-item-title {
+  font-weight: 500;
+  color: #262626;
+}
+
+.timeline-item-meta {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+.timeline-item-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* ============================================================================
+   BUTTONS
+   ============================================================================ */
+
+.compliance-action-btn {
+  border-radius: 8px;
+  font-weight: 500;
+  padding: 8px 20px;
+  transition: all 0.3s ease;
+}
+
+.compliance-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+.compliance-action-btn.ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  border: none;
+}
+
+/* ============================================================================
+   PROGRESS BARS
+   ============================================================================ */
+
+.compliance-progress .ant-progress-text {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.compliance-progress .ant-progress-inner {
+  border-radius: 4px;
+  background: #f0f0f0;
+}
+
+.compliance-progress .ant-progress-bg {
+  border-radius: 4px;
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+
+@media (max-width: 1200px) {
+  .compliance-header {
+    padding: 20px 24px;
+  }
+  
+  .compliance-header-title h2 {
+    font-size: 20px;
+  }
+  
+  .stat-card .ant-statistic-content {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 992px) {
+  .compliance-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .compliance-header-status {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .chart-container {
+    height: 220px;
+  }
+}
+
+@media (max-width: 768px) {
+  .compliance-header {
+    padding: 16px 20px;
+  }
+  
+  .compliance-header-title h2 {
+    font-size: 18px;
+  }
+  
+  .stat-card .ant-statistic-content {
+    font-size: 20px;
+  }
+  
+  .stat-card .ant-statistic-title {
+    font-size: 11px;
+  }
+  
+  .chart-container {
+    height: 200px;
+  }
+  
+  .compliance-tabs .ant-tabs-tab {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  
+  .timeline-item-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .compliance-alert .ant-alert-message {
+    font-size: 13px;
+  }
+  
+  .compliance-alert .ant-alert-description {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .compliance-header {
+    padding: 12px 16px;
+  }
+  
+  .compliance-header-title h2 {
+    font-size: 16px;
+  }
+  
+  .compliance-header-title .anticon {
+    font-size: 20px;
+  }
+  
+  .stat-card .ant-statistic-content {
+    font-size: 18px;
+  }
+  
+  .stat-card .ant-statistic-title {
+    font-size: 10px;
+  }
+  
+  .chart-container {
+    height: 180px;
+  }
+  
+  .compliance-tabs .ant-tabs-tab {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  
+  .compliance-tabs .ant-tabs-tab .anticon {
+    font-size: 12px;
+  }
+}
+
+/* ============================================================================
+   ANIMATIONS
+   ============================================================================ */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+.animate-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* ============================================================================
+   SCROLLBAR STYLING
+   ============================================================================ */
+
+.compliance-panel-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.compliance-panel-scroll::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+.compliance-panel-scroll::-webkit-scrollbar-thumb {
+  background: #d9d9d9;
+  border-radius: 4px;
+}
+
+.compliance-panel-scroll::-webkit-scrollbar-thumb:hover {
+  background: #bfbfbf;
+}
+
+/* ============================================================================
+   DARK MODE SUPPORT
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+  .compliance-automation-panel {
+    background: #141414;
+  }
+  
+  .compliance-automation-panel .ant-card {
+    background: #1f1f1f;
+    border-color: #303030;
+  }
+  
+  .stat-card {
+    background: #1f1f1f;
+    border-color: #303030;
+  }
+  
+  .stat-card .ant-statistic-title {
+    color: #8c8c8c;
+  }
+  
+  .chart-card {
+    background: #1f1f1f;
+    border-color: #303030;
+  }
+  
+  .chart-card .ant-card-head {
+    border-color: #303030;
+  }
+  
+  .chart-card .ant-card-head-title {
+    color: #e8e8e8;
+  }
+  
+  .task-list .ant-list-item {
+    border-color: #303030;
+  }
+  
+  .task-list .ant-list-item:hover {
+    background: #2a2a2a;
+  }
+  
+  .timeline-item-content {
+    background: #2a2a2a;
+    border-color: #303030;
+  }
+  
+  .timeline-item-content:hover {
+    background: #333333;
+  }
+  
+  .compliance-tabs .ant-tabs-tab:hover {
+    background: #2a2a2a;
+  }
+  
+  .compliance-tabs .ant-tabs-tab-active {
+    background: #1f3a5f;
+  }
+  
+  .compliance-alert.ant-alert-success {
+    background: linear-gradient(135deg, #1a3a1a 0%, #1a4a1a 100%);
+  }
+  
+  .compliance-alert.ant-alert-warning {
+    background: linear-gradient(135deg, #3a3a1a 0%, #4a4a1a 100%);
+  }
+  
+  .recharts-tooltip-wrapper {
+    background: rgba(30, 30, 30, 0.95) !important;
+    color: #e8e8e8 !important;
+  }
+}
+
+/* ============================================================================
+   PRINT STYLES
+   ============================================================================ */
+
+@media print {
+  .compliance-automation-panel {
+    background: white !important;
+  }
+  
+  .compliance-header {
+    background: #1a1a2e !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  .stat-card {
+    border: 1px solid #d9d9d9 !important;
+    box-shadow: none !important;
+  }
+  
+  .chart-container {
+    height: 200px !important;
+    page-break-inside: avoid;
+  }
+  
+  .compliance-tabs .ant-tabs-nav {
+    display: none !important;
+  }
+  
+  .compliance-tabs .ant-tabs-content-holder {
+    display: block !important;
+  }
+  
+  .compliance-tabs .ant-tabs-tabpane {
+    display: block !important;
+  }
+}

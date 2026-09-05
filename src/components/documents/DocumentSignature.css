@@ -1,0 +1,191 @@
+/* src/components/documents/DocumentSignature.css */
+
+.document-signature {
+  padding: 0;
+  background: #f0f2f5;
+  min-height: 100%;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.signature-header {
+  margin-bottom: 20px;
+}
+
+/* ============================================================
+   STATISTICS CARDS
+   ============================================================ */
+.signature-stats {
+  margin-bottom: 16px;
+}
+
+.signature-stats .stat-card {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: default;
+  height: 100%;
+}
+
+.signature-stats .stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.signature-stats .stat-total {
+  border-left: 4px solid #1890ff;
+}
+
+.signature-stats .stat-signed {
+  border-left: 4px solid #52c41a;
+}
+
+.signature-stats .stat-pending {
+  border-left: 4px solid #faad14;
+}
+
+.signature-stats .stat-rejected {
+  border-left: 4px solid #f5222d;
+}
+
+.signature-stats .stat-card .ant-statistic-title {
+  font-size: 12px;
+  color: #8c8c8c;
+  white-space: nowrap;
+}
+
+.signature-stats .stat-card .ant-statistic-content {
+  font-size: 20px;
+}
+
+/* ============================================================
+   SIGNATURE CANVAS
+   ============================================================ */
+.signature-canvas-wrapper {
+  position: relative;
+}
+
+.signature-canvas {
+  width: 100% !important;
+  height: 200px !important;
+  background: white !important;
+  cursor: crosshair !important;
+  touch-action: none !important;
+}
+
+.signature-canvas-wrapper .ant-btn {
+  margin-top: 8px;
+}
+
+/* ============================================================
+   SIGNATURE MODAL
+   ============================================================ */
+.signature-modal-content .ant-radio-group {
+  width: 100%;
+}
+
+.signature-modal-content .ant-radio-button-wrapper {
+  text-align: center;
+  margin: 2px;
+  border-radius: 4px;
+}
+
+.signature-modal-content .ant-upload {
+  display: block;
+}
+
+/* ============================================================
+   SIGNATURE LIST
+   ============================================================ */
+.document-signature .ant-list-item {
+  padding: 16px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.document-signature .ant-list-item:last-child {
+  border-bottom: none;
+}
+
+.document-signature .ant-list-item-meta-description {
+  font-size: 13px;
+}
+
+/* ============================================================
+   QR CODE
+   ============================================================ */
+.document-signature .ant-qrcode {
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .signature-stats .stat-card .ant-statistic-content {
+    font-size: 16px;
+  }
+  
+  .signature-modal-content .ant-radio-button-wrapper {
+    font-size: 12px;
+    padding: 0 8px;
+  }
+}
+
+@media (max-width: 576px) {
+  .signature-stats .stat-card {
+    margin-bottom: 8px;
+  }
+  
+  .signature-stats .stat-card .ant-statistic-title {
+    font-size: 10px;
+  }
+  
+  .signature-stats .stat-card .ant-statistic-content {
+    font-size: 14px;
+  }
+  
+  .signature-modal-content .ant-radio-button-wrapper {
+    width: 100%;
+    margin: 2px 0;
+  }
+  
+  .signature-canvas {
+    height: 150px !important;
+  }
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.signature-stats .stat-card {
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.document-signature .ant-badge-status-processing {
+  animation: pulse 1.5s ease-in-out infinite;
+}

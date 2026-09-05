@@ -1,0 +1,649 @@
+/* src/pages/Modules/DoctorDashboard.css */
+.doctor-dashboard-container {
+  padding: 24px;
+  background: #f0f2f5;
+  min-height: 100vh;
+}
+
+/* ============================================
+   DOCTOR HEADER
+   ============================================ */
+.doctor-dashboard-container .doctor-header {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.doctor-dashboard-container .doctor-header .doctor-avatar {
+  border: 3px solid #1890ff;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.2);
+}
+
+.doctor-dashboard-container .doctor-header .doctor-name {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+  color: #1a1a2e;
+}
+
+.doctor-dashboard-container .doctor-header .doctor-specialty {
+  font-size: 14px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.doctor-dashboard-container .doctor-header .doctor-badge {
+  background: #e6f7ff;
+  color: #1890ff;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.doctor-dashboard-container .doctor-header .logout-btn {
+  color: #ff4d4f;
+  border-color: #ff4d4f;
+  transition: all 0.3s;
+}
+
+.doctor-dashboard-container .doctor-header .logout-btn:hover {
+  background: #ff4d4f;
+  color: white;
+}
+
+/* ============================================
+   STATISTICS CARDS
+   ============================================ */
+.doctor-dashboard-container .stat-card {
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.doctor-dashboard-container .stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.doctor-dashboard-container .stat-card .ant-statistic-title {
+  font-size: 13px;
+  color: #666;
+  font-weight: 500;
+}
+
+.doctor-dashboard-container .stat-card .ant-statistic-content {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+/* Stat card colors */
+.doctor-dashboard-container .stat-card-total .ant-statistic-content {
+  color: #1890ff;
+}
+
+.doctor-dashboard-container .stat-card-critical .ant-statistic-content {
+  color: #ff4d4f;
+}
+
+.doctor-dashboard-container .stat-card-stable .ant-statistic-content {
+  color: #52c41a;
+}
+
+.doctor-dashboard-container .stat-card-observation .ant-statistic-content {
+  color: #faad14;
+}
+
+.doctor-dashboard-container .stat-card-discharge .ant-statistic-content {
+  color: #13c2c2;
+}
+
+.doctor-dashboard-container .stat-card-stay .ant-statistic-content {
+  color: #722ed1;
+}
+
+/* ============================================
+   CRITICAL ALERT
+   ============================================ */
+.doctor-dashboard-container .critical-alert {
+  border-radius: 12px;
+  border-left: 4px solid #ff4d4f;
+  margin-bottom: 16px;
+  animation: pulse-alert 2s infinite;
+}
+
+@keyframes pulse-alert {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(255, 77, 79, 0);
+  }
+}
+
+.doctor-dashboard-container .critical-alert .ant-alert-message {
+  font-weight: 600;
+  color: #cf1322;
+}
+
+.doctor-dashboard-container .critical-alert .ant-alert-description {
+  color: #666;
+}
+
+/* ============================================
+   SEARCH & FILTER SECTION
+   ============================================ */
+.doctor-dashboard-container .filter-section {
+  background: white;
+  padding: 16px 24px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.doctor-dashboard-container .filter-section .ant-input-affix-wrapper {
+  border-radius: 8px;
+}
+
+.doctor-dashboard-container .filter-section .ant-input-affix-wrapper:hover,
+.doctor-dashboard-container .filter-section .ant-input-affix-wrapper:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.doctor-dashboard-container .filter-section .ant-select-selector {
+  border-radius: 8px;
+}
+
+.doctor-dashboard-container .filter-section .ant-btn {
+  border-radius: 8px;
+}
+
+/* ============================================
+   PATIENT TABLE
+   ============================================ */
+.doctor-dashboard-container .patient-table {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.doctor-dashboard-container .patient-table .ant-table {
+  border-radius: 12px;
+}
+
+.doctor-dashboard-container .patient-table .ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+  color: #1a1a2e;
+  border-bottom: 2px solid #f0f0f0;
+  padding: 16px 16px;
+}
+
+.doctor-dashboard-container .patient-table .ant-table-tbody > tr > td {
+  padding: 16px 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.doctor-dashboard-container .patient-table .ant-table-tbody > tr:hover > td {
+  background: #f5f7fa;
+}
+
+.doctor-dashboard-container .patient-table .ant-table-tbody > tr:last-child > td {
+  border-bottom: none;
+}
+
+/* Patient row status indicators */
+.doctor-dashboard-container .patient-table .patient-row-critical {
+  background: #fff1f0 !important;
+}
+
+.doctor-dashboard-container .patient-table .patient-row-critical:hover > td {
+  background: #ffe6e5 !important;
+}
+
+.doctor-dashboard-container .patient-table .patient-row-observation {
+  background: #fff7e6 !important;
+}
+
+.doctor-dashboard-container .patient-table .patient-row-observation:hover > td {
+  background: #ffefd6 !important;
+}
+
+.doctor-dashboard-container .patient-table .patient-row-stable {
+  background: #f6ffed !important;
+}
+
+.doctor-dashboard-container .patient-table .patient-row-stable:hover > td {
+  background: #edffd6 !important;
+}
+
+/* ============================================
+   PATIENT STATUS TAGS
+   ============================================ */
+.doctor-dashboard-container .status-tag {
+  border-radius: 12px;
+  padding: 2px 12px;
+  font-weight: 500;
+  font-size: 12px;
+  border: none;
+}
+
+.doctor-dashboard-container .status-tag-critical {
+  background: #ff4d4f;
+  color: white;
+  animation: blink-critical 1.5s infinite;
+}
+
+@keyframes blink-critical {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.doctor-dashboard-container .status-tag-stable {
+  background: #52c41a;
+  color: white;
+}
+
+.doctor-dashboard-container .status-tag-observation {
+  background: #faad14;
+  color: white;
+}
+
+.doctor-dashboard-container .status-tag-admitted {
+  background: #1890ff;
+  color: white;
+}
+
+.doctor-dashboard-container .status-tag-discharged {
+  background: #13c2c2;
+  color: white;
+}
+
+.doctor-dashboard-container .status-tag-transferred {
+  background: #722ed1;
+  color: white;
+}
+
+/* ============================================
+   PATIENT AVATAR
+   ============================================ */
+.doctor-dashboard-container .patient-avatar {
+  border: 2px solid #e8e8e8;
+}
+
+.doctor-dashboard-container .patient-avatar-critical {
+  border-color: #ff4d4f;
+  animation: pulse-avatar 2s infinite;
+}
+
+@keyframes pulse-avatar {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(255, 77, 79, 0);
+  }
+}
+
+/* ============================================
+   ACTION BUTTONS
+   ============================================ */
+.doctor-dashboard-container .action-btn {
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.doctor-dashboard-container .action-btn:hover {
+  transform: scale(1.05);
+}
+
+.doctor-dashboard-container .action-btn-status {
+  background: #1890ff;
+  color: white;
+  border: none;
+}
+
+.doctor-dashboard-container .action-btn-status:hover {
+  background: #40a9ff;
+}
+
+.doctor-dashboard-container .action-btn-view {
+  background: #52c41a;
+  color: white;
+  border: none;
+}
+
+.doctor-dashboard-container .action-btn-view:hover {
+  background: #73d13d;
+}
+
+/* ============================================
+   STATUS MODAL
+   ============================================ */
+.doctor-dashboard-container .status-modal .ant-modal-content {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.doctor-dashboard-container .status-modal .ant-modal-header {
+  background: #f0f2f5;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 16px 24px;
+}
+
+.doctor-dashboard-container .status-modal .ant-modal-title {
+  font-weight: 600;
+}
+
+.doctor-dashboard-container .status-modal .ant-modal-body {
+  padding: 24px;
+}
+
+.doctor-dashboard-container .status-modal .patient-info-card {
+  background: #fafafa;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #f0f0f0;
+}
+
+.doctor-dashboard-container .status-modal .patient-info-card .info-label {
+  font-size: 12px;
+  color: #999;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.doctor-dashboard-container .status-modal .patient-info-card .info-value {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1a1a2e;
+}
+
+/* ============================================
+   AUTHENTICATION MODAL
+   ============================================ */
+.doctor-dashboard-container .auth-modal .ant-modal-content {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.doctor-dashboard-container .auth-modal .ant-modal-header {
+  background: linear-gradient(135deg, #1890ff, #096dd9);
+  border-bottom: none;
+  padding: 20px 24px;
+}
+
+.doctor-dashboard-container .auth-modal .ant-modal-title {
+  color: white;
+  font-weight: 600;
+}
+
+.doctor-dashboard-container .auth-modal .ant-modal-close {
+  color: white;
+}
+
+.doctor-dashboard-container .auth-modal .ant-modal-close:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.doctor-dashboard-container .auth-modal .auth-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.doctor-dashboard-container .auth-modal .auth-icon .anticon {
+  font-size: 48px;
+  color: #1890ff;
+  padding: 20px;
+  background: #e6f7ff;
+  border-radius: 50%;
+}
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
+.doctor-dashboard-container .loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.doctor-dashboard-container .loading-container .ant-spin {
+  margin-bottom: 16px;
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+.doctor-dashboard-container .empty-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.doctor-dashboard-container .empty-state .empty-icon {
+  font-size: 64px;
+  color: #d9d9d9;
+  margin-bottom: 16px;
+}
+
+.doctor-dashboard-container .empty-state .empty-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 8px;
+}
+
+.doctor-dashboard-container .empty-state .empty-description {
+  color: #999;
+  font-size: 14px;
+  max-width: 400px;
+  margin: 0 auto 24px;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 1200px) {
+  .doctor-dashboard-container .stat-card .ant-statistic-content {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 992px) {
+  .doctor-dashboard-container {
+    padding: 16px;
+  }
+  
+  .doctor-dashboard-container .doctor-header {
+    padding: 16px;
+  }
+  
+  .doctor-dashboard-container .doctor-header .doctor-name {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 768px) {
+  .doctor-dashboard-container {
+    padding: 12px;
+  }
+  
+  .doctor-dashboard-container .doctor-header {
+    padding: 12px;
+  }
+  
+  .doctor-dashboard-container .doctor-header .doctor-avatar {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .doctor-dashboard-container .doctor-header .doctor-name {
+    font-size: 16px;
+  }
+  
+  .doctor-dashboard-container .stat-card .ant-statistic-content {
+    font-size: 18px;
+  }
+  
+  .doctor-dashboard-container .stat-card .ant-statistic-title {
+    font-size: 11px;
+  }
+  
+  .doctor-dashboard-container .filter-section {
+    padding: 12px 16px;
+  }
+  
+  .doctor-dashboard-container .patient-table .ant-table {
+    font-size: 12px;
+  }
+  
+  .doctor-dashboard-container .patient-table .ant-table-thead > tr > th,
+  .doctor-dashboard-container .patient-table .ant-table-tbody > tr > td {
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .doctor-dashboard-container {
+    padding: 8px;
+  }
+  
+  .doctor-dashboard-container .doctor-header .doctor-name {
+    font-size: 14px;
+  }
+  
+  .doctor-dashboard-container .stat-card .ant-statistic-content {
+    font-size: 16px;
+  }
+  
+  .doctor-dashboard-container .stat-card .ant-statistic-title {
+    font-size: 10px;
+  }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.doctor-dashboard-container .fade-in-up {
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+.doctor-dashboard-container .fade-in-up:nth-child(1) { animation-delay: 0.05s; }
+.doctor-dashboard-container .fade-in-up:nth-child(2) { animation-delay: 0.1s; }
+.doctor-dashboard-container .fade-in-up:nth-child(3) { animation-delay: 0.15s; }
+.doctor-dashboard-container .fade-in-up:nth-child(4) { animation-delay: 0.2s; }
+.doctor-dashboard-container .fade-in-up:nth-child(5) { animation-delay: 0.25s; }
+.doctor-dashboard-container .fade-in-up:nth-child(6) { animation-delay: 0.3s; }
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+.doctor-dashboard-container ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.doctor-dashboard-container ::-webkit-scrollbar-track {
+  background: #f0f2f5;
+  border-radius: 3px;
+}
+
+.doctor-dashboard-container ::-webkit-scrollbar-thumb {
+  background: #c1c7cd;
+  border-radius: 3px;
+}
+
+.doctor-dashboard-container ::-webkit-scrollbar-thumb:hover {
+  background: #a0a6ad;
+}
+
+/* ============================================
+   TOOLTIP CUSTOMIZATION
+   ============================================ */
+.doctor-dashboard-container .ant-tooltip-inner {
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+/* ============================================
+   BADGE CUSTOMIZATION
+   ============================================ */
+.doctor-dashboard-container .ant-badge-status-text {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* ============================================
+   PROGRESS BAR CUSTOMIZATION
+   ============================================ */
+.doctor-dashboard-container .ant-progress-inner {
+  border-radius: 4px;
+}
+
+.doctor-dashboard-container .ant-progress-bg {
+  border-radius: 4px;
+}
+
+/* ============================================
+   DIVIDER CUSTOMIZATION
+   ============================================ */
+.doctor-dashboard-container .ant-divider {
+  margin: 16px 0;
+}
+
+/* ============================================
+   POPCONFIRM CUSTOMIZATION
+   ============================================ */
+.doctor-dashboard-container .ant-popconfirm-buttons {
+  margin-top: 8px;
+}
+
+/* ============================================
+   DRAWER CUSTOMIZATION
+   ============================================ */
+.doctor-dashboard-container .ant-drawer-header {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 16px 24px;
+}
+
+.doctor-dashboard-container .ant-drawer-body {
+  padding: 24px;
+}
+
+/* ============================================
+   MODAL CUSTOMIZATION
+   ============================================ */
+.doctor-dashboard-container .ant-modal-footer {
+  border-top: 1px solid #f0f0f0;
+  padding: 16px 24px;
+}
+
+.doctor-dashboard-container .ant-modal-header {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 16px 24px;
+}

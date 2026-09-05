@@ -1,0 +1,736 @@
+/* powerbi-dashboard.css */
+/* ============================================
+   POWER BI DASHBOARD - FULLY RESPONSIVE
+   Mobile First Approach
+   ============================================ */
+
+/* BASE STYLES (Mobile: 0 - 767px) */
+.powerbi-dashboard {
+  min-height: 100vh;
+  background: #f0f2f5;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.powerbi-dashboard.dark-mode {
+  background: #141414;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ============================================
+   DASHBOARD HEADER - Mobile Optimized
+   ============================================ */
+.dashboard-header {
+  background: white;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: auto;
+  min-height: 60px;
+}
+
+.dark-mode .dashboard-header {
+  background: #1f1f1f;
+  border-bottom: 1px solid #303030;
+}
+
+/* Header Left Section */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.header-left .ant-typography {
+  margin-bottom: 0 !important;
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+/* Header Right Section - Controls */
+.header-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex: 2;
+  min-width: 0;
+}
+
+/* Individual control items */
+.header-right .ant-picker,
+.header-right .ant-select,
+.header-right .ant-btn,
+.header-right .ant-switch {
+  flex-shrink: 0;
+}
+
+/* Hide scrollbar for cleaner look on mobile */
+.header-right::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============================================
+   TABLET STYLES (768px - 1023px)
+   ============================================ */
+@media (min-width: 768px) {
+  .dashboard-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    height: 72px;
+    min-height: 72px;
+  }
+  
+  .header-left {
+    flex: 0 1 auto;
+    min-width: auto;
+  }
+  
+  .header-left .ant-typography {
+    font-size: 18px;
+    white-space: nowrap;
+  }
+  
+  .header-right {
+    flex: 0 1 auto;
+    flex-wrap: nowrap;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+  
+  .header-right::-webkit-scrollbar {
+    display: block;
+  }
+  
+  .dashboard-content {
+    padding: 24px;
+    min-height: calc(100vh - 72px);
+  }
+  
+  .widget-library .widget-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ============================================
+   DESKTOP STYLES (1024px+)
+   ============================================ */
+@media (min-width: 1024px) {
+  .dashboard-header {
+    padding: 0 32px;
+    height: 80px;
+    min-height: 80px;
+  }
+  
+  .header-left .ant-typography {
+    font-size: 20px;
+  }
+  
+  .header-right {
+    gap: 12px;
+  }
+  
+  .dashboard-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 32px;
+    min-height: calc(100vh - 80px);
+  }
+  
+  .widget-library .widget-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+}
+
+/* ============================================
+   LARGE DESKTOP (1440px+)
+   ============================================ */
+@media (min-width: 1440px) {
+  .dashboard-content {
+    max-width: 1600px;
+    padding: 40px;
+  }
+  
+  .widget-library .widget-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ============================================
+   VERY SMALL SCREENS (Under 480px)
+   ============================================ */
+@media (max-width: 480px) {
+  .dashboard-header {
+    padding: 8px 12px;
+    min-height: 56px;
+  }
+  
+  .header-left .ant-typography {
+    font-size: 14px;
+  }
+  
+  .header-right {
+    gap: 4px;
+  }
+  
+  .header-right .ant-btn {
+    min-height: 32px;
+    padding: 0 8px;
+    font-size: 12px;
+  }
+  
+  .header-right .ant-picker {
+    min-height: 32px;
+    padding: 0 8px;
+    font-size: 12px;
+    width: 120px;
+  }
+  
+  .header-right .ant-select {
+    min-height: 32px;
+    font-size: 12px;
+    width: 100px;
+  }
+  
+  .header-right .ant-switch {
+    min-height: 24px;
+    min-width: 40px;
+  }
+  
+  .dashboard-content {
+    padding: 8px;
+  }
+  
+  .widget-footer button {
+    width: 100%;
+    margin-bottom: 4px;
+  }
+  
+  .widget-library-item {
+    padding: 12px;
+  }
+  
+  .widget-library-item .widget-icon {
+    font-size: 24px;
+  }
+}
+
+/* ============================================
+   DASHBOARD CONTENT
+   ============================================ */
+.dashboard-content {
+  padding: 12px;
+  min-height: calc(100vh - 120px);
+  width: 100%;
+  flex: 1;
+}
+
+/* ============================================
+   WIDGET CARDS - Mobile Optimized
+   ============================================ */
+.widget-card {
+  height: 100%;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  animation: fadeIn 0.5s ease-out;
+  margin-bottom: 16px;
+}
+
+.widget-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Touch-friendly tap feedback */
+.widget-card:active {
+  transform: scale(0.98);
+}
+
+.dark-mode .widget-card {
+  background: #1f1f1f;
+  border-color: #303030;
+}
+
+/* KPI Widget Special Styling */
+.widget-card.kpi-widget {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.widget-card.kpi-widget .ant-statistic-title,
+.widget-card.kpi-widget .ant-statistic-content {
+  color: white;
+}
+
+.widget-card.kpi-widget .ant-statistic-content {
+  font-size: 20px !important;
+}
+
+@media (min-width: 768px) {
+  .widget-card.kpi-widget .ant-statistic-content {
+    font-size: 24px !important;
+  }
+}
+
+/* Widget Footer */
+.widget-footer {
+  padding: 8px 12px;
+  border-top: 1px solid #f0f0f0;
+  background: #fafafa;
+  border-radius: 0 0 8px 8px;
+}
+
+.dark-mode .widget-footer {
+  background: #141414;
+  border-top-color: #303030;
+}
+
+/* ============================================
+   LOADING CONTAINER
+   ============================================ */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  gap: 24px;
+  text-align: center;
+  padding: 20px;
+}
+
+/* ============================================
+   WIDGET LIBRARY
+   ============================================ */
+.widget-library .widget-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.widget-library-item {
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 16px;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dark-mode .widget-library-item {
+  background: #1f1f1f;
+}
+
+.widget-library-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Touch feedback */
+.widget-library-item:active {
+  transform: translateY(0);
+}
+
+.widget-library-item .widget-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+  display: inline-block;
+}
+
+/* ============================================
+   FULLSCREEN MODE
+   ============================================ */
+.powerbi-dashboard.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  background: #f0f2f5;
+}
+
+.powerbi-dashboard.fullscreen.dark-mode {
+  background: #141414;
+}
+
+/* Fullscreen adjustments */
+.powerbi-dashboard.fullscreen .dashboard-header {
+  position: fixed;
+  width: 100%;
+}
+
+.powerbi-dashboard.fullscreen .dashboard-content {
+  padding-top: 80px;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+@media (min-width: 768px) {
+  .powerbi-dashboard.fullscreen .dashboard-content {
+    padding-top: 90px;
+  }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .widget-card,
+  .widget-library-item {
+    animation: none;
+    transition: none;
+  }
+  
+  .widget-card:hover {
+    transform: none;
+  }
+}
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+.dark-mode ::-webkit-scrollbar-thumb {
+  background: #555;
+}
+
+.dark-mode ::-webkit-scrollbar-thumb:hover {
+  background: #777;
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+  .dashboard-header, 
+  .header-right, 
+  .ant-btn, 
+  .ant-picker, 
+  .ant-select, 
+  .ant-switch, 
+  .ant-drawer, 
+  .ant-modal, 
+  .widget-footer button {
+    display: none !important;
+  }
+  
+  .dashboard-content { 
+    padding: 0 !important;
+  }
+  
+  .widget-card { 
+    break-inside: avoid; 
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+  }
+  
+  @page { 
+    size: landscape; 
+    margin: 1cm; 
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+/* Focus states for keyboard navigation */
+.widget-library-item:focus-visible,
+.widget-card:focus-visible,
+.ant-btn:focus-visible {
+  outline: 2px solid #1890ff;
+  outline-offset: 2px;
+}
+
+/* Touch-friendly tap targets on mobile */
+@media (max-width: 767px) {
+  .ant-btn,
+  .widget-library-item,
+  .widget-card {
+    min-height: 44px;
+  }
+  
+  .ant-btn-sm {
+    min-height: 36px;
+  }
+  
+  .header-right .ant-btn {
+    min-height: 36px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .widget-card {
+    border: 2px solid currentColor;
+  }
+  
+  .dashboard-header {
+    border-bottom: 2px solid currentColor;
+  }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+/* Hide scrollbar on mobile for horizontal scrolling areas */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============================================
+   DARK MODE ENHANCEMENTS
+   ============================================ */
+.dark-mode .widget-library-item {
+  border: 1px solid #303030;
+}
+
+.dark-mode .loading-container .ant-spin-text {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.dark-mode .widget-card .ant-card-head {
+  border-bottom-color: #303030;
+}
+
+/* ============================================
+   RESPONSIVE GRID SYSTEM
+   ============================================ */
+/* Auto-adjusting grid for different screen sizes */
+.responsive-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 480px) {
+  .responsive-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .responsive-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ============================================
+   PERFORMANCE OPTIMIZATIONS
+   ============================================ */
+/* Prevent layout shifts */
+.widget-card img,
+.widget-card video,
+.widget-card iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Smooth scrolling on mobile */
+.dashboard-content {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ============================================
+   RESPONSIVE DATE PICKER
+   ============================================ */
+@media (max-width: 480px) {
+  .header-right .ant-picker {
+    width: 100%;
+    max-width: 160px;
+  }
+  
+  .header-right .ant-picker-range {
+    width: 100%;
+    max-width: 180px;
+  }
+}
+
+/* ============================================
+   RESPONSIVE SELECT DROPDOWN
+   ============================================ */
+@media (max-width: 480px) {
+  .header-right .ant-select {
+    width: 100%;
+    min-width: 80px;
+    max-width: 120px;
+  }
+}
+
+/* ============================================
+   RESPONSIVE BUTTONS
+   ============================================ */
+@media (max-width: 480px) {
+  .header-right .ant-btn {
+    padding: 0 10px;
+    font-size: 12px;
+  }
+  
+  .header-right .ant-btn .anticon {
+    font-size: 14px;
+  }
+  
+  .header-right .ant-btn .anticon + span {
+    display: none;
+  }
+  
+  .header-right .ant-btn[title]::after {
+    content: attr(title);
+    font-size: 10px;
+    margin-left: 2px;
+  }
+}
+
+/* Show button text on larger screens */
+@media (min-width: 481px) {
+  .header-right .ant-btn .anticon + span {
+    display: inline-block;
+    margin-left: 4px;
+  }
+}
+
+/* ============================================
+   RESPONSIVE TITLE
+   ============================================ */
+@media (max-width: 480px) {
+  .header-left .ant-typography {
+    font-size: 12px !important;
+  }
+  
+  .header-left .ant-badge {
+    display: none;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .header-left .ant-typography {
+    font-size: 14px !important;
+  }
+}
+
+/* ============================================
+   RESPONSIVE SWITCH
+   ============================================ */
+@media (max-width: 480px) {
+  .header-right .ant-switch {
+    min-width: 36px;
+    min-height: 20px;
+  }
+  
+  .header-right .ant-switch .ant-switch-inner {
+    font-size: 10px;
+  }
+  
+  .header-right .ant-switch .ant-switch-inner .ant-switch-inner-unchecked {
+    margin-right: 18px;
+  }
+}
+
+/* ============================================
+   TOOLTIP & POPOVER
+   ============================================ */
+@media (max-width: 480px) {
+  .ant-tooltip-inner {
+    max-width: 200px !important;
+  }
+}
+
+/* ============================================
+   HEADER WRAP CONTROL
+   ============================================ */
+/* Prevent header controls from wrapping to center */
+.dashboard-header .header-right {
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* For very small screens where controls need to wrap */
+@media (max-width: 380px) {
+  .dashboard-header {
+    padding: 6px 8px;
+  }
+  
+  .header-right {
+    gap: 4px;
+  }
+  
+  .header-right .ant-btn {
+    padding: 0 6px;
+    font-size: 11px;
+    min-height: 28px;
+  }
+  
+  .header-right .ant-select {
+    min-width: 60px;
+    max-width: 80px;
+    font-size: 11px;
+  }
+  
+  .header-right .ant-picker {
+    max-width: 100px;
+    font-size: 11px;
+  }
+  
+  .header-right .ant-picker .ant-picker-input > input {
+    font-size: 11px;
+  }
+}

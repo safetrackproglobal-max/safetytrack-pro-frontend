@@ -1,0 +1,139 @@
+/* src/components/monitoring/TerminalCard.css */
+
+.terminal-card {
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.terminal-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.terminal-card.online {
+  border-left: 4px solid #52c41a;
+}
+
+.terminal-card.offline {
+  border-left: 4px solid #f5222d;
+  opacity: 0.7;
+}
+
+.terminal-card.warning {
+  border-left: 4px solid #faad14;
+}
+
+.terminal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.terminal-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.terminal-icon {
+  font-size: 20px;
+  color: #1890ff;
+}
+
+.terminal-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: #262626;
+}
+
+.status-tag {
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.terminal-location {
+  color: #8c8c8c;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.terminal-specs {
+  margin-bottom: 16px;
+}
+
+.temperature-section {
+  background: #f5f5f5;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.temp-item {
+  margin-bottom: 8px;
+}
+
+.temp-item:last-child {
+  margin-bottom: 0;
+}
+
+.temp-label {
+  display: inline-block;
+  width: 40px;
+  color: #595959;
+  font-size: 12px;
+}
+
+.temp-value {
+  float: right;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.usage-section {
+  margin-bottom: 12px;
+}
+
+.usage-item {
+  margin-bottom: 8px;
+}
+
+.usage-label {
+  display: block;
+  color: #595959;
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+
+.fans-section {
+  background: #fafafa;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-size: 12px;
+}
+
+.fan-item {
+  display: flex;
+  justify-content: space-between;
+  color: #595959;
+  margin-bottom: 4px;
+}
+
+.fan-item:last-child {
+  margin-bottom: 0;
+}
+
+.terminal-footer {
+  display: flex;
+  justify-content: space-between;
+  color: #8c8c8c;
+  font-size: 11px;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+}

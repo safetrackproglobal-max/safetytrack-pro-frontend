@@ -1,0 +1,126 @@
+/* src/components/documents/OCRProcessor.css */
+
+.ocr-processor {
+  background: #f0f2f5;
+  min-height: 100%;
+}
+
+.ocr-processor .upload-area {
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.ocr-processor .upload-area .ant-upload-drag {
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.ocr-processor .upload-area .ant-upload-drag .ant-upload-drag-icon {
+  font-size: 48px;
+  color: #1890ff;
+}
+
+.ocr-processor .ocr-results {
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.ocr-processor .ocr-text-area .ant-input {
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.8;
+  border-radius: 8px;
+}
+
+.ocr-processor .search-results {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.ocr-processor .search-results .ant-list-item {
+  padding: 12px 16px;
+  background: #fafafa;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.ocr-processor .search-results .ant-list-item:hover {
+  background: #f0f5ff;
+}
+
+.ocr-processor .ant-statistic-title {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+.ocr-processor .ant-statistic-content {
+  font-size: 20px;
+}
+
+.ocr-processor .ant-tabs {
+  margin-top: 16px;
+}
+
+.ocr-processor .ant-tabs-tab {
+  font-weight: 500;
+}
+
+.ocr-processor .ant-card {
+  border-radius: 8px;
+}
+
+.ocr-processor .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.ocr-processor .ant-list-item {
+  border: none;
+  padding: 4px 0;
+}
+
+/* Progress animation */
+.ocr-processor .ant-progress .ant-progress-outer {
+  background: #f0f0f0;
+  border-radius: 8px;
+}
+
+.ocr-processor .ant-progress .ant-progress-inner {
+  border-radius: 8px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ocr-processor {
+    padding: 16px;
+  }
+  
+  .ocr-processor .upload-area {
+    padding: 16px;
+  }
+  
+  .ocr-processor .ocr-results {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 576px) {
+  .ocr-processor {
+    padding: 8px;
+  }
+  
+  .ocr-processor .upload-area {
+    padding: 12px;
+  }
+  
+  .ocr-processor .ocr-results {
+    padding: 12px;
+  }
+  
+  .ocr-processor .ant-statistic-content {
+    font-size: 16px;
+  }
+}

@@ -1,0 +1,129 @@
+/* src/components/documents/ApprovalChain.css */
+
+.approval-chain {
+  background: #f0f2f5;
+  min-height: 100%;
+}
+
+.approval-chain .approval-stats {
+  margin-bottom: 16px;
+}
+
+.approval-chain .stat-card {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  height: 100%;
+}
+
+.approval-chain .stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.approval-chain .stat-total {
+  border-left: 4px solid #1890ff;
+}
+
+.approval-chain .stat-pending {
+  border-left: 4px solid #faad14;
+}
+
+.approval-chain .stat-active {
+  border-left: 4px solid #52c41a;
+}
+
+.approval-chain .stat-default {
+  border-left: 4px solid #faad14;
+}
+
+.approval-chain .stat-card .ant-statistic-title {
+  font-size: 12px;
+  color: #8c8c8c;
+  white-space: nowrap;
+}
+
+.approval-chain .stat-card .ant-statistic-content {
+  font-size: 20px;
+}
+
+.approval-chain .ant-card {
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.approval-chain .ant-list-item {
+  padding: 16px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.approval-chain .ant-list-item:last-child {
+  border-bottom: none;
+}
+
+.approval-chain .ant-steps {
+  margin: 16px 0;
+}
+
+.approval-chain .ant-steps-item {
+  padding-bottom: 16px;
+}
+
+.approval-chain .ant-steps-item .ant-steps-item-icon {
+  margin-top: 4px;
+}
+
+.approval-chain .ant-steps-item .ant-steps-item-description {
+  font-size: 13px;
+}
+
+.approval-chain .ant-tabs {
+  background: white;
+  border-radius: 8px;
+  padding: 16px 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.approval-chain .ant-tabs-nav {
+  margin-bottom: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .approval-chain {
+    padding: 16px;
+  }
+  
+  .approval-chain .stat-card .ant-statistic-content {
+    font-size: 16px;
+  }
+  
+  .approval-chain .ant-tabs {
+    padding: 12px 16px;
+  }
+}
+
+@media (max-width: 576px) {
+  .approval-chain {
+    padding: 8px;
+  }
+  
+  .approval-chain .stat-card {
+    margin-bottom: 8px;
+  }
+  
+  .approval-chain .stat-card .ant-statistic-title {
+    font-size: 10px;
+  }
+  
+  .approval-chain .stat-card .ant-statistic-content {
+    font-size: 14px;
+  }
+  
+  .approval-chain .ant-tabs {
+    padding: 8px 12px;
+  }
+  
+  .approval-chain .ant-steps-item .ant-steps-item-description {
+    font-size: 12px;
+  }
+}

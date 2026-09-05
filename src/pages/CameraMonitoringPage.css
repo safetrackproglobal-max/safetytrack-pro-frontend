@@ -1,0 +1,273 @@
+/* src/pages/CameraMonitoringPage.css */
+.camera-monitoring-page {
+  padding: 24px;
+  background: #f5f7fa;
+  min-height: 100vh;
+}
+
+.page-header {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: #1f2937;
+  background: linear-gradient(135deg, #1890ff 0%, #722ed1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.page-header p {
+  margin: 8px 0 0 0;
+  color: #6b7280;
+  font-size: 16px;
+}
+
+.monitoring-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f0f0f0;
+}
+
+.detection-tabs .ant-tabs-tab {
+  padding: 12px 16px;
+  font-weight: 500;
+}
+
+.detection-tabs .ant-tabs-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detection-content {
+  padding: 16px 0;
+}
+
+.detection-header {
+  margin-bottom: 24px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #1890ff;
+}
+
+.detection-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.detection-header p {
+  margin: 8px 0 0 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.camera-controls {
+  margin-bottom: 24px;
+  padding: 20px;
+  background: white;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+}
+
+.camera-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.video-display {
+  margin-top: 16px;
+}
+
+.video-container {
+  border: 2px solid #1890ff;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+}
+
+.video-placeholder {
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  color: white;
+  position: relative;
+}
+
+.video-placeholder p {
+  margin: 16px 0 0 0;
+  color: #e5e7eb;
+  font-size: 16px;
+}
+
+.monitoring-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 12px 20px;
+  background: rgba(82, 196, 26, 0.1);
+  border: 1px solid rgba(82, 196, 26, 0.3);
+  border-radius: 8px;
+  color: #52c41a;
+  font-weight: 500;
+}
+
+.no-camera-selected {
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #f8f9fa;
+  border: 2px dashed #d9d9d9;
+  border-radius: 12px;
+  color: #6b7280;
+}
+
+.violations-panel {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f0f0f0;
+  height: 400px;
+  overflow: auto;
+}
+
+.violation-time {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+.no-violations {
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #9ca3af;
+  text-align: center;
+}
+
+.upload-card, .stats-card {
+  margin-top: 16px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f0f0f0;
+}
+
+.analysis-results {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* Custom scrollbar for violations panel */
+.violations-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.violations-panel::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.violations-panel::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.violations-panel::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .camera-monitoring-page {
+    padding: 16px;
+  }
+  
+  .page-header h1 {
+    font-size: 24px;
+  }
+  
+  .camera-controls .ant-space {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .video-placeholder,
+  .no-camera-selected {
+    height: 300px;
+  }
+  
+  .violations-panel {
+    height: 300px;
+  }
+  
+  .detection-header {
+    padding: 16px;
+  }
+  
+  .camera-controls {
+    padding: 16px;
+  }
+}
+
+/* Animation for new violations */
+@keyframes highlight {
+  0% {
+    background: rgba(255, 77, 79, 0.1);
+  }
+  100% {
+    background: transparent;
+  }
+}
+
+.violations-panel .ant-list-item {
+  transition: all 0.3s ease;
+}
+
+.violations-panel .ant-list-item:first-child {
+  animation: highlight 2s ease;
+}
+
+/* Status indicators */
+.live-indicator {
+  width: 8px;
+  height: 8px;
+  background: #52c41a;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(82, 196, 26, 0.7);
+  }
+  
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(82, 196, 26, 0);
+  }
+  
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(82, 196, 26, 0);
+  }
+}
