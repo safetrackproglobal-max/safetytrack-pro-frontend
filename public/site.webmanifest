@@ -34,7 +34,7 @@
       "src": "/apple-touch-icon.png",
       "sizes": "180x180",
       "type": "image/png",
-      "purpose": "apple touch any"
+      "purpose": "any"
     },
     {
       "src": "/favicon-16x16.png",
@@ -59,16 +59,12 @@
     {
       "src": "/screenshot-desktop.png",
       "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "SafeTrack Pro Dashboard"
+      "type": "image/png"
     },
     {
       "src": "/screenshot-mobile.png",
       "sizes": "360x720",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "SafeTrack Pro Mobile Dashboard"
+      "type": "image/png"
     }
   ],
   "shortcuts": [
