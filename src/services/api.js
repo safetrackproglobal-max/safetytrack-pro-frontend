@@ -38,7 +38,6 @@ const trackRequest = (key) => {
   } else {
     requestMap.set(key, 1);
   }
-  // Clean up after 5 seconds
   setTimeout(() => {
     if (requestMap.has(key)) {
       const count = requestMap.get(key);
@@ -51,7 +50,6 @@ const trackRequest = (key) => {
 
 const generateRequestKey = (config) => {
   const { method, url, params, data } = config;
-  // Don't include data for GET requests to avoid false duplicates
   const dataStr = method?.toLowerCase() === 'get' ? '' : JSON.stringify(data);
   return `${method}-${url}-${JSON.stringify(params)}-${dataStr}`;
 };
@@ -66,28 +64,34 @@ const removePendingRequest = (key) => {
   }
 };
 
-
 // ============================================================
 // CONFIGURATION & INITIALIZATION
 // ============================================================
 
+// ✅ FIX: Safely get the hostname from window.location
+const hostname =
+  typeof window !== 'undefined' && window.location
+    ? window.location.hostname
+    : '';
+
 const isRailway = hostname.includes('railway.app');
-const isCloudflareTunnel = hostname.includes('safetrackproglobal.com') || 
-                           hostname.includes('cfargotunnel.com');
+const isCloudflareTunnel =
+  hostname.includes('safetrackproglobal.com') ||
+  hostname.includes('cfargotunnel.com');
 const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
 
 // Pick the right backend URL based on where the frontend is running
 let baseURL;
 if (isRailway) {
-  // Frontend and backend on same Railway project → use relative or explicit URL
   baseURL = 'https://web-production-ee051.up.railway.app/api';
 } else if (isCloudflareTunnel) {
   baseURL = 'https://api.safetrackproglobal.com/api';
 } else if (isLocalhost) {
   baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 } else {
-  // Fallback for any other domain
-  baseURL = process.env.REACT_APP_API_URL || 'https://web-production-ee051.up.railway.app/api';
+  baseURL =
+    process.env.REACT_APP_API_URL ||
+    'https://web-production-ee051.up.railway.app/api';
 }
 
 console.log('[API] Using baseURL:', baseURL);
@@ -100,6 +104,8 @@ const api = axios.create({
   },
   withCredentials: true,
 });
+
+
 
 // ============================================================
 // PREVENT DUPLICATE REQUESTS
