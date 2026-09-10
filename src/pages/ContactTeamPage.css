@@ -1,439 +1,595 @@
-/* src/pages/ContactTeamPage.css */
 /* ============================================
-   CONTACT TEAM PAGE - FULLY RESPONSIVE
-   Mobile First Approach
+   CONTACT TEAM PAGE STYLES
    ============================================ */
 
-/* BASE STYLES (Mobile: 0 - 767px) */
-.contact-team-container {
-  max-width: 100%;
-  margin: 16px;
-  padding: 20px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e8e8e8;
-  width: auto;
+.contact-team-page {
+  min-height: 100vh;
+  background: #f8fafc;
+  color: #1a202c;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-@media (min-width: 480px) {
-  .contact-team-container {
-    margin: 20px auto;
-    padding: 24px;
-    max-width: 540px;
-  }
+/* RTL Support */
+.contact-team-page.rtl {
+  direction: rtl;
+  text-align: right;
 }
 
-@media (min-width: 640px) {
-  .contact-team-container {
-    margin: 40px auto;
-    padding: 32px;
-    max-width: 600px;
-  }
+.contact-team-page.rtl .contact-method-card,
+.contact-team-page.rtl .trust-signal,
+.contact-team-page.rtl .quick-links-list li a,
+.contact-team-page.rtl .response-time-card,
+.contact-team-page.rtl .office-info {
+  flex-direction: row-reverse;
+}
+
+.contact-team-page .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
 }
 
 /* ============================================
-   HEADER STYLES - Mobile Optimized
+   HERO SECTION
    ============================================ */
-.contact-team-container h2 {
+
+.contact-hero {
+  background: linear-gradient(135deg, #1a202c 0%, #2563eb 100%);
+  padding: 100px 0 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.contact-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(124, 58, 237, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(37, 99, 235, 0.3) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.contact-hero-content {
+  position: relative;
+  z-index: 2;
   text-align: center;
-  color: #262626;
-  margin-bottom: 20px;
-  font-weight: 600;
-  font-size: 20px;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
-@media (min-width: 480px) {
-  .contact-team-container h2 {
-    margin-bottom: 24px;
+.contact-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: #ffffff;
+  padding: 8px 20px;
+  border-radius: 25px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.contact-title {
+  font-size: 44px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 20px 0;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.contact-description {
+  font-size: 17px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  margin: 0 0 32px 0;
+}
+
+.contact-trust-signals {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  flex-wrap: wrap;
+  margin-top: 32px;
+  padding-top: 32px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.trust-signal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.trust-signal .anticon {
+  font-size: 18px;
+  color: #52c41a;
+}
+
+/* ============================================
+   MAIN CONTENT
+   ============================================ */
+
+.contact-main {
+  padding: 80px 0;
+}
+
+/* ============================================
+   FORM WRAPPER
+   ============================================ */
+
+.contact-form-wrapper {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+}
+
+.form-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 8px 0;
+}
+
+.form-subtitle {
+  font-size: 15px;
+  color: #64748b;
+  margin: 0 0 32px 0;
+  line-height: 1.6;
+}
+
+.contact-form .ant-form-item-label > label {
+  font-weight: 600;
+  color: #1a202c;
+  font-size: 14px;
+}
+
+.contact-form .ant-input,
+.contact-form .ant-select-selector,
+.contact-form .ant-input-affix-wrapper {
+  border-radius: 10px;
+  border-color: #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.contact-form .ant-input:hover,
+.contact-form .ant-select-selector:hover,
+.contact-form .ant-input-affix-wrapper:hover {
+  border-color: #2563eb;
+}
+
+.contact-form .ant-input:focus,
+.contact-form .ant-select-focused .ant-select-selector,
+.contact-form .ant-input-affix-wrapper-focused {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.submit-button {
+  height: 52px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 16px;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  border: none;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+  transition: all 0.3s ease;
+}
+
+.submit-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+}
+
+.success-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 24px;
+  color: #166534;
+}
+
+.success-message .anticon {
+  font-size: 24px;
+  color: #22c55e;
+  flex-shrink: 0;
+}
+
+.success-message strong {
+  display: block;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.success-message p {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: #15803d;
+}
+
+/* ============================================
+   CONTACT INFO WRAPPER
+   ============================================ */
+
+.contact-info-wrapper {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+  position: sticky;
+  top: 100px;
+}
+
+.info-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 24px 0;
+}
+
+.contact-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.contact-method-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f8fafc;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+.contact-method-card:hover {
+  background: #ffffff;
+  border-color: #2563eb;
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+}
+
+.method-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.method-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.method-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.method-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a202c;
+  word-break: break-word;
+}
+
+.method-description {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+/* ============================================
+   QUICK LINKS
+   ============================================ */
+
+.quick-links-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 16px 0;
+}
+
+.quick-links-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quick-links-list li a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #475569;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.quick-links-list li a:hover {
+  background: #eff6ff;
+  color: #2563eb;
+  transform: translateX(4px);
+}
+
+.quick-links-list li a .anticon {
+  color: #22c55e;
+}
+
+/* ============================================
+   RESPONSE TIME & OFFICE INFO
+   ============================================ */
+
+.response-time-card,
+.office-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 12px;
+  margin-top: 16px;
+}
+
+.response-time-card {
+  background: linear-gradient(135deg, #eff6ff, #f0f9ff);
+  border: 1px solid #bae6fd;
+  color: #1e40af;
+}
+
+.response-time-card .anticon {
+  font-size: 24px;
+  color: #0284c7;
+  flex-shrink: 0;
+}
+
+.response-time-card strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.response-time-card p {
+  margin: 0;
+  font-size: 13px;
+  color: #0369a1;
+}
+
+.office-info {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+}
+
+.office-info .anticon {
+  font-size: 24px;
+  color: #fa8c16;
+  flex-shrink: 0;
+}
+
+.office-info strong {
+  display: block;
+  font-size: 14px;
+  color: #1a202c;
+  margin-bottom: 4px;
+}
+
+.office-info p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #64748b;
+}
+
+/* ============================================
+   CTA SECTION
+   ============================================ */
+
+.contact-cta {
+  padding: 80px 0;
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+}
+
+.contact-cta .cta-content {
+  text-align: center;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.contact-cta .cta-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 16px 0;
+}
+
+.contact-cta .cta-text {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0 0 32px 0;
+  line-height: 1.6;
+}
+
+.contact-cta .cta-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.contact-cta .cta-actions .ant-btn-primary {
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  border: none;
+  height: 48px;
+  padding: 0 32px;
+  font-weight: 600;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+}
+
+.contact-cta .cta-actions .ant-btn-default {
+  height: 48px;
+  padding: 0 32px;
+  font-weight: 600;
+  border-radius: 10px;
+  background: transparent;
+  color: #ffffff;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+}
+
+.contact-cta .cta-actions .ant-btn-default:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #ffffff;
+  color: #ffffff;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 992px) {
+  .contact-info-wrapper {
+    position: static;
+    margin-top: 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .contact-hero {
+    padding: 80px 0 60px;
+  }
+
+  .contact-title {
+    font-size: 32px;
+  }
+
+  .contact-description {
+    font-size: 15px;
+  }
+
+  .contact-trust-signals {
+    gap: 16px;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .contact-main {
+    padding: 60px 0;
+  }
+
+  .contact-form-wrapper,
+  .contact-info-wrapper {
+    padding: 24px;
+    border-radius: 16px;
+  }
+
+  .form-title {
     font-size: 22px;
   }
-}
 
-@media (min-width: 640px) {
-  .contact-team-container h2 {
-    margin-bottom: 32px;
+  .contact-cta .cta-title {
     font-size: 24px;
   }
-}
 
-/* ============================================
-   FORM ITEMS - Mobile Optimized
-   ============================================ */
-.ant-form-item {
-  margin-bottom: 16px;
-}
+  .contact-cta .cta-actions {
+    flex-direction: column;
+  }
 
-@media (min-width: 640px) {
-  .ant-form-item {
-    margin-bottom: 20px;
+  .contact-cta .cta-actions .ant-btn {
+    width: 100%;
   }
 }
 
-/* Form labels - mobile friendly */
-.ant-form-item-label > label {
-  font-size: 13px;
-  font-weight: 500;
-}
+@media (max-width: 480px) {
+  .contact-title {
+    font-size: 26px;
+  }
 
-@media (min-width: 640px) {
-  .ant-form-item-label > label {
+  .contact-form-wrapper,
+  .contact-info-wrapper {
+    padding: 20px;
+  }
+
+  .method-value {
     font-size: 14px;
   }
 }
 
-/* Required field indicator */
-.ant-form-item-required::before {
-  font-size: 12px;
-}
-
 /* ============================================
-   INPUT FIELDS - Touch Friendly
+   ACCESSIBILITY & PRINT
    ============================================ */
-.ant-input-affix-wrapper,
-.ant-input,
-.ant-input-textarea {
-  border-radius: 8px;
-  border: 1px solid #d9d9d9;
-  font-size: 14px;
-  transition: all 0.3s ease;
-}
 
-/* Touch-friendly height */
-.ant-input-affix-wrapper,
-.ant-input {
-  height: 44px;
-}
-
-@media (min-width: 640px) {
-  .ant-input-affix-wrapper,
-  .ant-input {
-    height: 40px;
-  }
-}
-
-/* Textarea specific */
-.ant-input-textarea textarea {
-  min-height: 100px;
-  padding: 10px 12px;
-}
-
-@media (min-width: 640px) {
-  .ant-input-textarea textarea {
-    min-height: 120px;
-  }
-}
-
-/* Input hover and focus states */
-.ant-input-affix-wrapper:hover,
-.ant-input:hover,
-.ant-input-textarea:hover {
-  border-color: #40a9ff;
-}
-
-.ant-input-affix-wrapper:focus,
-.ant-input:focus,
-.ant-input-textarea:focus,
-.ant-input-affix-wrapper-focused {
-  border-color: #1890ff;
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
-  outline: none;
-}
-
-/* Prefix/suffix icons */
-.ant-input-affix-wrapper .anticon {
-  color: #8c8c8c;
-}
-
-/* Placeholder styling */
-.ant-input::placeholder,
-.ant-input-textarea textarea::placeholder {
-  color: #bfbfbf;
-  font-size: 13px;
-}
-
-/* ============================================
-   SUBMIT BUTTON - Touch Optimized
-   ============================================ */
-.ant-btn-primary {
-  border-radius: 8px;
-  height: 48px;
-  font-size: 15px;
-  font-weight: 500;
-  background: #1890ff;
-  border-color: #1890ff;
-  margin-top: 8px;
-  width: 100%;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-@media (min-width: 480px) {
-  .ant-btn-primary {
-    width: auto;
-    min-width: 160px;
-    margin-top: 12px;
-  }
-}
-
-@media (min-width: 640px) {
-  .ant-btn-primary {
-    height: 48px;
-    font-size: 16px;
-    margin-top: 16px;
-  }
-}
-
-/* Button hover state */
-.ant-btn-primary:hover {
-  background: #40a9ff;
-  border-color: #40a9ff;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
-}
-
-/* Button active state for touch feedback */
-.ant-btn-primary:active {
-  transform: translateY(0);
-}
-
-/* Button loading state */
-.ant-btn-primary[disabled],
-.ant-btn-primary[disabled]:hover {
-  background: #d9d9d9;
-  border-color: #d9d9d9;
-  transform: none;
-  cursor: not-allowed;
-}
-
-/* ============================================
-   FORM VALIDATION MESSAGES
-   ============================================ */
-.ant-form-item-explain-error {
-  font-size: 12px;
-  margin-top: 4px;
-  color: #ff4d4f;
-}
-
-/* Success state */
-.ant-form-item-has-success .ant-input,
-.ant-form-item-has-success .ant-input-affix-wrapper {
-  border-color: #52c41a;
-}
-
-/* Error state */
-.ant-form-item-has-error .ant-input,
-.ant-form-item-has-error .ant-input-affix-wrapper,
-.ant-form-item-has-error .ant-input-textarea {
-  border-color: #ff4d4f;
-}
-
-.ant-form-item-has-error .ant-input:focus,
-.ant-form-item-has-error .ant-input-affix-wrapper:focus {
-  box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2);
-}
-
-/* ============================================
-   SUCCESS MESSAGE / ALERT
-   ============================================ */
-.contact-team-container .ant-alert {
-  border-radius: 8px;
-  margin-bottom: 20px;
-  font-size: 13px;
-}
-
-.contact-team-container .ant-alert-success {
-  background: #f6ffed;
-  border: 1px solid #b7eb8f;
-}
-
-/* ============================================
-   RESPONSIVE ADJUSTMENTS
-   ============================================ */
-/* Very small screens */
-@media (max-width: 380px) {
-  .contact-team-container {
-    margin: 12px;
-    padding: 16px;
-  }
-  
-  .contact-team-container h2 {
-    font-size: 18px;
-    margin-bottom: 16px;
-  }
-  
-  .ant-form-item {
-    margin-bottom: 14px;
-  }
-  
-  .ant-input-affix-wrapper,
-  .ant-input {
-    height: 42px;
-  }
-  
-  .ant-btn-primary {
-    height: 44px;
-    font-size: 14px;
-  }
-}
-
-/* Tablet and up */
-@media (min-width: 768px) {
-  .contact-team-container {
-    margin: 48px auto;
-  }
-}
-
-/* ============================================
-   LOADING STATE
-   ============================================ */
-.contact-team-container .ant-btn-loading {
-  opacity: 0.8;
-  cursor: wait;
-}
-
-/* ============================================
-   DARK MODE SUPPORT
-   ============================================ */
-@media (prefers-color-scheme: dark) {
-  .contact-team-container {
-    background: #1f1f1f;
-    border-color: #303030;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-  }
-  
-  .contact-team-container h2 {
-    color: #e8e8e8;
-  }
-  
-  .ant-input-affix-wrapper,
-  .ant-input,
-  .ant-input-textarea {
-    background: #2d2d2d;
-    border-color: #434343;
-    color: #e8e8e8;
-  }
-  
-  .ant-input-affix-wrapper .anticon {
-    color: #a8a8a8;
-  }
-  
-  .ant-input::placeholder,
-  .ant-input-textarea textarea::placeholder {
-    color: #8c8c8c;
-  }
-  
-  .ant-form-item-label > label {
-    color: #e8e8e8;
-  }
-  
-  .contact-team-container .ant-alert-success {
-    background: #1a3a1a;
-    border-color: #2a5c2a;
-    color: #a8e6a8;
-  }
-}
-
-/* ============================================
-   ACCESSIBILITY
-   ============================================ */
-/* Focus states for keyboard navigation */
-.ant-btn-primary:focus-visible,
-.ant-input:focus-visible,
-.ant-input-affix-wrapper:focus-visible,
-.ant-input-textarea textarea:focus-visible {
-  outline: 2px solid #1890ff;
+.contact-team-page button:focus-visible,
+.contact-team-page a:focus-visible,
+.contact-team-page input:focus-visible,
+.contact-team-page textarea:focus-visible,
+.contact-team-page select:focus-visible {
+  outline: 2px solid #2563eb;
   outline-offset: 2px;
 }
 
-/* Touch-friendly tap targets */
-@media (max-width: 640px) {
-  .ant-btn-primary,
-  .ant-input-affix-wrapper,
-  .ant-input,
-  .ant-select-selector {
-    touch-action: manipulation;
-  }
-}
-
-/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .ant-btn-primary {
-    transition: none;
-  }
-  
-  .ant-btn-primary:hover {
-    transform: none;
-  }
-}
-
-/* High contrast mode */
-@media (prefers-contrast: high) {
-  .contact-team-container {
-    border: 2px solid currentColor;
-  }
-  
-  .ant-btn-primary {
-    border: 2px solid currentColor;
-  }
-  
-  .ant-input:focus,
-  .ant-input-affix-wrapper:focus {
-    outline: 2px solid currentColor;
+  .contact-team-page *,
+  .contact-team-page *::before,
+  .contact-team-page *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
-/* ============================================
-   PRINT STYLES
-   ============================================ */
 @media print {
-  .contact-team-container {
-    box-shadow: none;
-    border: 1px solid #ddd;
-    margin: 0;
-    padding: 20px;
+  .contact-hero,
+  .contact-cta {
+    background: #ffffff !important;
+    color: #000000 !important;
   }
-  
-  .ant-btn-primary {
+
+  .contact-title,
+  .contact-description,
+  .trust-signal {
+    color: #000000 !important;
+  }
+
+  .contact-team-page button,
+  .contact-team-page .ant-btn {
     display: none;
-  }
-  
-  .ant-input,
-  .ant-input-affix-wrapper,
-  .ant-input-textarea {
-    border: 1px solid #999;
-    background: white;
-  }
-}
-
-/* ============================================
-   UTILITY CLASSES
-   ============================================ */
-/* Center button container */
-.button-container {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-}
-
-@media (min-width: 480px) {
-  .button-container {
-    justify-content: flex-start;
-  }
-}
-
-/* Full width inputs on mobile */
-.full-width-mobile {
-  width: 100%;
-}
-
-/* Responsive spacing */
-.responsive-spacing {
-  margin-bottom: 16px;
-}
-
-@media (min-width: 640px) {
-  .responsive-spacing {
-    margin-bottom: 20px;
   }
 }

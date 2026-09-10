@@ -34,7 +34,7 @@
   ],
   "author": {
     "name": "Abigalistic Studios",
-    "email": "abigalisticstudious@gmail.com",
+    "email": "info@safetrackproglobal.com",
     "url": "https://safetrackproglobal.com"
   },
   "license": "MIT",
@@ -45,7 +45,7 @@
   },
   "bugs": {
     "url": "https://github.com/AbigalisticStudios/safetrack-pro-global/issues",
-    "email": "abigalisticstudious@gmail.com"
+    "email": "info@safetrackproglobal.com"
   },
   "engines": {
     "node": ">=16.0.0",
