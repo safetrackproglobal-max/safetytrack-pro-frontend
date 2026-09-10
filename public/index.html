@@ -185,6 +185,16 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
+
+        /* SEO-only content (hidden from users, visible to crawlers) */
+        .seo-only {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
     </style>
 </head>
 <body>
@@ -209,6 +219,30 @@
     <!-- ============================================
          REACT ROOT ELEMENT
          ============================================ -->
-    <div id="root"></div>
+    <div id="root">
+        <!-- ============================================
+             SEO-ONLY CONTENT FOR CRAWLERS (Bingbot, Googlebot)
+             This content is hidden from users but visible to
+             search engine crawlers before React hydrates.
+             ============================================ -->
+        <div class="seo-only">
+            <h1>SafeTrack Pro Global - AI-Powered HSE & Safety Management Platform</h1>
+            <p>SafeTrack Pro Global is a complete HSE software platform for risk assessment, incident reporting, Permit to Work (PTW), compliance management, and AI-powered safety solutions across all industries including healthcare, oil and gas, construction, manufacturing, maritime, aviation, mining, and chemical.</p>
+            <h2>Key Features</h2>
+            <ul>
+                <li>AI-powered risk assessment and predictive analytics</li>
+                <li>Real-time safety dashboard and compliance monitoring</li>
+                <li>Permit to Work (PTW) management system</li>
+                <li>HSE document management and version control</li>
+                <li>AI camera monitoring with PPE compliance detection</li>
+                <li>Environmental monitoring and ESG reporting</li>
+                <li>Incident reporting and investigation tracking</li>
+                <li>HSE exams and professional certification</li>
+            </ul>
+            <h2>Industries Served</h2>
+            <p>Healthcare, Oil & Gas, Construction, Manufacturing, Maritime, Aviation, Mining, and Chemical industries.</p>
+            <p>Contact us at info@safetrackproglobal.com or call +974 33251705.</p>
+        </div>
+    </div>
 </body>
 </html>
