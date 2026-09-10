@@ -71,14 +71,29 @@ const removePendingRequest = (key) => {
 // CONFIGURATION & INITIALIZATION
 // ============================================================
 
-// Create axios instance with better configuration
-const isCloudflareTunnel = window.location.hostname.includes('safetrackproglobal.com') || 
-                           window.location.hostname.includes('cfargotunnel.com');
+const isRailway = hostname.includes('railway.app');
+const isCloudflareTunnel = hostname.includes('safetrackproglobal.com') || 
+                           hostname.includes('cfargotunnel.com');
+const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+
+// Pick the right backend URL based on where the frontend is running
+let baseURL;
+if (isRailway) {
+  // Frontend and backend on same Railway project → use relative or explicit URL
+  baseURL = 'https://web-production-ee051.up.railway.app/api';
+} else if (isCloudflareTunnel) {
+  baseURL = 'https://api.safetrackproglobal.com/api';
+} else if (isLocalhost) {
+  baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+} else {
+  // Fallback for any other domain
+  baseURL = process.env.REACT_APP_API_URL || 'https://web-production-ee051.up.railway.app/api';
+}
+
+console.log('[API] Using baseURL:', baseURL);
 
 const api = axios.create({
-  baseURL: isCloudflareTunnel 
-    ? 'https://api.safetrackproglobal.com/api' 
-    : (process.env.REACT_APP_API_URL || 'http://localhost:5000/api'),
+  baseURL,
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
