@@ -478,10 +478,10 @@ function HomePage() {
               </div>
               
               {/* ✅ THIS IS THE ONLY H1 ON THE PAGE */}
-              <h1 className="hero-title animate-fade-in">
-                The New Standard in <br />
-                <span className="gradient-text">Industrial Safety</span>
-              </h1>
+              <h2 className="hero-title animate-fade-in">
+  The New Standard in <br />
+  <span className="gradient-text">Industrial Safety</span>
+</h2>
               
               <p className="hero-description animate-fade-in-delay-2">
                 AI-powered safety management platform for healthcare, oil & gas, construction, 
