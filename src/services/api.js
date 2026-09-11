@@ -71,20 +71,24 @@ const removePendingRequest = (key) => {
 // CONFIGURATION & INITIALIZATION
 // ============================================================
 
-// Create axios instance with better configuration
-const isCloudflareTunnel = window.location.hostname.includes('safetrackproglobal.com') || 
-                           window.location.hostname.includes('cfargotunnel.com');
+// ✅ Environment-based baseURL (NO hostname usage)
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+const baseURL = isDevelopment
+  ? process.env.REACT_APP_API_URL || 'http://localhost:5000/api'
+  : process.env.REACT_APP_API_URL || 'https://web-production-ee051.up.railway.app/api';
+
+console.log('[API] Using baseURL:', baseURL, isDevelopment ? '(dev)' : '(prod)');
 
 const api = axios.create({
-  baseURL: isCloudflareTunnel 
-    ? 'https://api.safetrackproglobal.com/api' 
-    : (process.env.REACT_APP_API_URL || 'http://localhost:5000/api'),
+  baseURL,
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },
   withCredentials: true,
 });
+
 
 // ============================================================
 // PREVENT DUPLICATE REQUESTS
