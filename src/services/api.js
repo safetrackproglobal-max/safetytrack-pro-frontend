@@ -76,7 +76,7 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 
 const baseURL = isDevelopment
   ? process.env.REACT_APP_API_URL || 'http://localhost:5000/api'
-  : process.env.REACT_APP_API_URL || 'https://web-production-ee051.up.railway.app/api';
+  : process.env.REACT_APP_API_URL || 'safetrackproglobal-backend-production.up.railway.app/api';
 
 console.log('[API] Using baseURL:', baseURL, isDevelopment ? '(dev)' : '(prod)');
 
