@@ -71,12 +71,15 @@ const removePendingRequest = (key) => {
 // CONFIGURATION & INITIALIZATION
 // ============================================================
 
-// ✅ Environment-based baseURL (NO hostname usage)
+// ✅ Environment-based baseURL
 const isDevelopment = process.env.NODE_ENV === 'development';
 
+const PROD_API_URL = 'https://safetrackproglobal-backend-production.up.railway.app/api';
+const DEV_API_URL = 'http://localhost:5000/api';
+
 const baseURL = isDevelopment
-  ? process.env.REACT_APP_API_URL || 'http://localhost:5000/api'
-  : process.env.REACT_APP_API_URL || 'safetrackproglobal-backend-production.up.railway.app/api';
+  ? (process.env.REACT_APP_API_URL || DEV_API_URL)
+  : PROD_API_URL;
 
 console.log('[API] Using baseURL:', baseURL, isDevelopment ? '(dev)' : '(prod)');
 
@@ -88,7 +91,6 @@ const api = axios.create({
   },
   withCredentials: true,
 });
-
 
 // ============================================================
 // PREVENT DUPLICATE REQUESTS
