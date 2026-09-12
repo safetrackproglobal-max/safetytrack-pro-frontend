@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, Card, Row, Col, Typography, Space, Divider, Statistic, Tag } from 'antd';
-import { 
-  SafetyCertificateOutlined, 
-  TeamOutlined, 
-  DashboardOutlined, 
+import {
+  SafetyCertificateOutlined,
+  TeamOutlined,
+  DashboardOutlined,
   FileTextOutlined,
   BarChartOutlined,
   RobotOutlined,
@@ -32,7 +32,8 @@ import {
   AlertOutlined,
   HeartOutlined,
   ClockCircleOutlined,
-  VerifiedOutlined
+  VerifiedOutlined,
+  ReadOutlined
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../context/LanguageContext';
@@ -92,42 +93,42 @@ function HomePage() {
     return () => clearInterval(slideInterval.current);
   }, []);
 
-  // Hero Slides - Your Dashboard Screenshots
+  // Hero Slides - Dashboard Screenshots
   const heroSlides = [
     {
       id: 1,
-      image: "https://i.imgur.com/sisSwvH.png",
-      title: "Environmental Intelligence Dashboard",
-      description: "Real-time environmental monitoring with AI-powered insights",
-      badge: "Environmental Management"
+      image: 'https://i.imgur.com/sisSwvH.png',
+      title: 'Environmental Intelligence Dashboard',
+      description: 'Real-time environmental monitoring with AI-powered insights',
+      badge: 'Environmental Management'
     },
     {
       id: 2,
-      image: "https://i.imgur.com/8ZPHKkB.png",
-      title: "Environmental Health & Carbon Footprint",
-      description: "Track emissions, sustainability index, and live sensors",
-      badge: "Sustainability & ESG"
+      image: 'https://i.imgur.com/8ZPHKkB.png',
+      title: 'Environmental Health & Carbon Footprint',
+      description: 'Track emissions, sustainability index, and live sensors',
+      badge: 'Sustainability & ESG'
     },
     {
       id: 3,
-      image: "https://i.imgur.com/HGCjpo7.png",
-      title: "Live Enterprise Safety Metrics",
-      description: "94% Air Quality Compliance • 88% Water Quality",
-      badge: "Live Monitoring"
+      image: 'https://i.imgur.com/HGCjpo7.png',
+      title: 'Live Enterprise Safety Metrics',
+      description: '94% Air Quality Compliance • 88% Water Quality',
+      badge: 'Live Monitoring'
     },
     {
       id: 4,
-      image: "https://i.imgur.com/tGZqMim.png",
-      title: "Healthcare Management Suite",
-      description: "7 AI tools • 100 beds • Patient safety monitoring",
-      badge: "Healthcare Solutions"
+      image: 'https://i.imgur.com/tGZqMim.png',
+      title: 'Healthcare Management Suite',
+      description: '7 AI tools • 100 beds • Patient safety monitoring',
+      badge: 'Healthcare Solutions'
     },
     {
       id: 5,
-      image: "https://i.imgur.com/wyE6j0k.png",
-      title: "Safety Compliance Dashboard",
-      description: "Manpower distribution, LTI trends, and accident rates",
-      badge: "Safety Analytics"
+      image: 'https://i.imgur.com/wyE6j0k.png',
+      title: 'Safety Compliance Dashboard',
+      description: 'Manpower distribution, LTI trends, and accident rates',
+      badge: 'Safety Analytics'
     }
   ];
 
@@ -183,119 +184,115 @@ function HomePage() {
     }
   ];
 
-  // Industry Solutions with Your Screenshots
+  // Industry Solutions - Correct Images
   const industries = [
     {
       icon: <MedicineBoxOutlined />,
-      title: t('home.industries.healthcare') || 'Healthcare',
-      description: t('home.industries.healthcareDesc') || 'Patient safety, infection control, medical equipment compliance, and staff safety management',
-      features: [
-        t('home.industries.healthcareFeat1') || 'Patient Safety',
-        t('home.industries.healthcareFeat2') || 'Infection Control',
-        t('home.industries.healthcareFeat3') || 'Device Compliance',
-        t('home.industries.healthcareFeat4') || 'Staff Safety'
-      ],
+      title: 'Healthcare',
+      description:
+        'Comprehensive patient safety, infection control, medical equipment compliance, and healthcare workforce protection across hospitals, clinics, and care facilities.',
+      features: ['Patient Safety', 'Infection Control', 'Device Compliance', 'Staff Safety'],
+      details:
+        'HIPAA & Joint Commission ready • Real-time patient monitoring • Medication tracking • Clinical incident reporting',
       color: '#1890ff',
       gradient: 'linear-gradient(135deg, #1890ff15, #1890ff30)',
-      image: 'https://i.imgur.com/tGZqMim.png'
+      image: 'https://i.imgur.com/FEfAMkR.jpeg'
     },
     {
       icon: <FireOutlined />,
-      title: t('home.industries.oilGas') || 'Oil & Gas',
-      description: t('home.industries.oilGasDesc') || 'Process safety management, HAZOP studies, permit-to-work systems, and emergency response',
-      features: [
-        t('home.industries.oilGasFeat1') || 'Process Safety',
-        t('home.industries.oilGasFeat2') || 'HAZOP Studies',
-        t('home.industries.oilGasFeat3') || 'Permit-to-Work',
-        t('home.industries.oilGasFeat4') || 'Emergency Response'
-      ],
+      title: 'Oil & Gas',
+      description:
+        'End-to-end process safety management for upstream, midstream, and downstream operations, from HAZOP studies to permit-to-work and emergency response.',
+      features: ['Process Safety', 'HAZOP Studies', 'Permit-to-Work', 'Emergency Response'],
+      details:
+        'OSHA 1910.119 PSM compliant • Real-time gas detection • Fire & gas mapping • Offshore & onshore coverage',
       color: '#fa8c16',
       gradient: 'linear-gradient(135deg, #fa8c1615, #fa8c1630)',
-      image: 'https://i.imgur.com/wyE6j0k.png'
+      image: 'https://i.imgur.com/6vkeW5t.png'
     },
     {
       icon: <BuildOutlined />,
-      title: t('home.industries.construction') || 'Construction',
-      description: t('home.industries.constructionDesc') || 'Site safety, fall protection, equipment inspections, and contractor management',
-      features: [
-        t('home.industries.constructionFeat1') || 'Site Safety',
-        t('home.industries.constructionFeat2') || 'Fall Protection',
-        t('home.industries.constructionFeat3') || 'Equipment Inspections',
-        t('home.industries.constructionFeat4') || 'Contractor Management'
-      ],
+      title: 'Construction',
+      description:
+        'Complete site safety management for high-rise, infrastructure, and civil projects with fall protection, equipment inspections, and contractor compliance tracking.',
+      features: ['Site Safety', 'Fall Protection', 'Equipment Inspections', 'Contractor Management'],
+      details:
+        'OSHA 1926 compliant • Multi-site coordination • Permit-to-work systems • Daily safety audits • Toolbox talks',
       color: '#52c41a',
       gradient: 'linear-gradient(135deg, #52c41a15, #52c41a30)',
-      image: 'https://i.imgur.com/0kUXbFl.png'
+      image: 'https://i.imgur.com/LgvReqs.jpeg'
     },
     {
       icon: <BuildOutlined />,
-      title: t('home.industries.manufacturing') || 'Manufacturing',
-      description: t('home.industries.manufacturingDesc') || 'Machine safety, ergonomics, chemical handling, and industrial hygiene',
-      features: [
-        t('home.industries.manufacturingFeat1') || 'Machine Safety',
-        t('home.industries.manufacturingFeat2') || 'Ergonomics',
-        t('home.industries.manufacturingFeat3') || 'Chemical Handling',
-        t('home.industries.manufacturingFeat4') || 'Industrial Hygiene'
-      ],
+      title: 'Manufacturing',
+      description:
+        'Machine safety, ergonomic risk assessments, chemical handling procedures, and industrial hygiene monitoring for factories and production facilities.',
+      features: ['Machine Safety', 'Ergonomics', 'Chemical Handling', 'Industrial Hygiene'],
+      details:
+        'ISO 45001 compliant • Lockout/tagout systems • Machine guarding • Noise & vibration monitoring',
       color: '#722ed1',
       gradient: 'linear-gradient(135deg, #722ed115, #722ed130)',
-      image: 'https://i.imgur.com/3tTRi3B.png'
+      image: 'https://i.imgur.com/Lh45z4B.png'
     },
     {
       icon: <BlockOutlined />,
-      title: t('home.industries.maritime') || 'Maritime',
-      description: t('home.industries.maritimeDesc') || 'Vessel safety, crew management, navigation safety, and ISM compliance',
-      features: [
-        t('home.industries.maritimeFeat1') || 'Vessel Safety',
-        t('home.industries.maritimeFeat2') || 'Crew Management',
-        t('home.industries.maritimeFeat3') || 'Navigation Safety',
-        t('home.industries.maritimeFeat4') || 'ISM Compliance'
-      ],
+      title: 'Maritime',
+      description:
+        'Vessel safety, crew welfare management, ISM Code compliance, and navigation safety for shipping, ports, and offshore marine operations.',
+      features: ['Vessel Safety', 'Crew Management', 'Navigation Safety', 'ISM Compliance'],
+      details:
+        'MLC 2006 compliant • STCW training records • Crew welfare tracking • Emergency drills',
       color: '#13c2c2',
       gradient: 'linear-gradient(135deg, #13c2c215, #13c2c230)',
-      image: 'https://i.imgur.com/PUPzRJA.png'
+      image: 'https://i.imgur.com/7OYPUbO.png'
     },
     {
       icon: <CarOutlined />,
-      title: t('home.industries.aviation') || 'Aviation',
-      description: t('home.industries.aviationDesc') || 'Flight safety, ground operations, maintenance tracking, and regulatory compliance',
-      features: [
-        t('home.industries.aviationFeat1') || 'Flight Safety',
-        t('home.industries.aviationFeat2') || 'Ground Operations',
-        t('home.industries.aviationFeat3') || 'Maintenance Tracking',
-        t('home.industries.aviationFeat4') || 'Regulatory Compliance'
-      ],
+      title: 'Aviation',
+      description:
+        'Flight safety, ground operations, SMS compliance, and maintenance tracking for airlines, airports, and MRO facilities worldwide.',
+      features: ['Flight Safety', 'Ground Operations', 'Maintenance Tracking', 'Regulatory Compliance'],
+      details:
+        'ICAO SMS compliant • FAA & EASA ready • Fatigue risk management • Bird strike tracking',
       color: '#2f54eb',
       gradient: 'linear-gradient(135deg, #2f54eb15, #2f54eb30)',
-      image: 'https://i.imgur.com/3BKnvMF.png'
+      image: 'https://i.imgur.com/Ob1YCRi.png'
     },
     {
       icon: <DatabaseOutlined />,
-      title: t('home.industries.mining') || 'Mining',
-      description: t('home.industries.miningDesc') || 'Geotechnical safety, ventilation monitoring, equipment tracking, and emergency response',
-      features: [
-        t('home.industries.miningFeat1') || 'Geotechnical Safety',
-        t('home.industries.miningFeat2') || 'Ventilation',
-        t('home.industries.miningFeat3') || 'Equipment Tracking',
-        t('home.industries.miningFeat4') || 'Emergency Response'
-      ],
+      title: 'Mining',
+      description:
+        'Underground and surface mining safety including geotechnical monitoring, ventilation control, equipment tracking, and emergency response systems.',
+      features: ['Geotechnical Safety', 'Ventilation', 'Equipment Tracking', 'Emergency Response'],
+      details:
+        'MSHA compliant • Gas detection • Ground control monitoring • Blast management',
       color: '#d4380d',
       gradient: 'linear-gradient(135deg, #d4380d15, #d4380d30)',
-      image: 'https://i.imgur.com/JHlw888.png'
+      image: 'https://i.imgur.com/Zv35mJ3.jpeg'
     },
     {
       icon: <CloudOutlined />,
-      title: t('home.industries.chemical') || 'Chemical',
-      description: t('home.industries.chemicalDesc') || 'Hazardous material management, spill prevention, process safety, and environmental compliance',
-      features: [
-        t('home.industries.chemicalFeat1') || 'HazMat Management',
-        t('home.industries.chemicalFeat2') || 'Spill Prevention',
-        t('home.industries.chemicalFeat3') || 'Process Safety',
-        t('home.industries.chemicalFeat4') || 'Environmental Compliance'
-      ],
+      title: 'Chemical',
+      description:
+        'Hazardous material management, spill prevention, process safety, and environmental compliance for chemical plants, refineries, and pharmaceutical facilities.',
+      features: ['HazMat Management', 'Spill Prevention', 'Process Safety', 'Environmental Compliance'],
+      details:
+        'REACH & TSCA compliant • SDS management • Chemical inventory • Emergency response planning',
       color: '#eb2f96',
       gradient: 'linear-gradient(135deg, #eb2f9615, #eb2f9630)',
-      image: 'https://i.imgur.com/YLbcePe.png'
+      image: 'https://i.imgur.com/Ue9j403.png'
+    },
+    {
+      icon: <ReadOutlined />,
+      title: 'Education',
+      description:
+        'Complete campus safety management for schools, universities, and educational institutions with student welfare, emergency preparedness, and facility safety monitoring.',
+      features: ['Student Safety', 'Campus Security', 'Emergency Drills', 'Facility Inspections'],
+      details:
+        'FERPA compliant • Visitor management • Incident reporting • Emergency response plans',
+      color: '#faad14',
+      gradient: 'linear-gradient(135deg, #faad1415, #faad1430)',
+      image: 'https://i.imgur.com/RPQIyI9.jpeg'
     }
   ];
 
@@ -304,7 +301,7 @@ function HomePage() {
     { value: 99.5, suffix: '%', label: t('home.stats.complianceRate') || 'Compliance Rate', key: 'compliance' },
     { value: 65, suffix: '%', label: t('home.stats.timeSaved') || 'Time Saved', key: 'timeSaved' },
     { value: 24, suffix: '/7', label: t('home.stats.monitoring') || '24/7 Monitoring', key: 'monitoring' },
-    { value: 8, suffix: '+', label: t('home.stats.industriesServed') || 'Industries Served', key: 'industries' },
+    { value: 9, suffix: '+', label: t('home.stats.industriesServed') || 'Industries Served', key: 'industries' },
     { value: 5000, suffix: '+', label: t('home.stats.facilitiesProtected') || 'Facilities Protected', key: 'facilities' },
     { value: 100, suffix: 'K+', label: t('home.stats.incidentsPrevented') || 'Incidents Prevented', key: 'incidents' }
   ];
@@ -322,62 +319,82 @@ function HomePage() {
     {
       icon: <SafetyCertificateOutlined />,
       title: t('home.benefits.compliance.title') || 'Reduce Compliance Risks by 99%',
-      description: t('home.benefits.compliance.desc') || 'Stay ahead of regulatory changes with automated compliance tracking and real-time alerts'
+      description:
+        t('home.benefits.compliance.desc') ||
+        'Stay ahead of regulatory changes with automated compliance tracking and real-time alerts'
     },
     {
       icon: <RobotOutlined />,
       title: t('home.benefits.ai.title') || 'AI-Powered Risk Prediction',
-      description: t('home.benefits.ai.desc') || 'Predict and prevent incidents before they happen with advanced machine learning algorithms'
+      description:
+        t('home.benefits.ai.desc') ||
+        'Predict and prevent incidents before they happen with advanced machine learning algorithms'
     },
     {
       icon: <TeamOutlined />,
       title: t('home.benefits.team.title') || 'Improve Team Coordination',
-      description: t('home.benefits.team.desc') || 'Assign tasks, track progress, and ensure accountability across your entire safety team'
+      description:
+        t('home.benefits.team.desc') ||
+        'Assign tasks, track progress, and ensure accountability across your entire safety team'
     },
     {
       icon: <LineChartOutlined />,
       title: t('home.benefits.data.title') || 'Data-Driven Decisions',
-      description: t('home.benefits.data.desc') || 'Make informed decisions with comprehensive analytics, predictive modeling, and detailed reporting'
+      description:
+        t('home.benefits.data.desc') ||
+        'Make informed decisions with comprehensive analytics, predictive modeling, and detailed reporting'
     }
   ];
 
   // Testimonials
   const testimonials = [
     {
-      quote: t('home.testimonials.healthcare.quote') || "SafeTrack Pro transformed our safety management across 12 hospitals. The AI insights helped us reduce incidents by 45%.",
-      author: t('home.testimonials.healthcare.author') || "Sarah Johnson",
-      role: t('home.testimonials.healthcare.role') || "Safety Director, Healthcare Network",
-      industry: t('home.testimonials.healthcare.industry') || "Healthcare"
+      quote:
+        t('home.testimonials.healthcare.quote') ||
+        'SafeTrack Pro transformed our safety management across 12 hospitals. The AI insights helped us reduce incidents by 45%.',
+      author: t('home.testimonials.healthcare.author') || 'Sarah Johnson',
+      role: t('home.testimonials.healthcare.role') || 'Safety Director, Healthcare Network',
+      industry: t('home.testimonials.healthcare.industry') || 'Healthcare'
     },
     {
-      quote: t('home.testimonials.oilGas.quote') || "The permit-to-work system and real-time monitoring have been game-changers for our offshore operations.",
-      author: t('home.testimonials.oilGas.author') || "Michael Chen",
-      role: t('home.testimonials.oilGas.role') || "HSE Manager, Oil & Gas Corp",
-      industry: t('home.testimonials.oilGas.industry') || "Oil & Gas"
+      quote:
+        t('home.testimonials.oilGas.quote') ||
+        'The permit-to-work system and real-time monitoring have been game-changers for our offshore operations.',
+      author: t('home.testimonials.oilGas.author') || 'Michael Chen',
+      role: t('home.testimonials.oilGas.role') || 'HSE Manager, Oil & Gas Corp',
+      industry: t('home.testimonials.oilGas.industry') || 'Oil & Gas'
     },
     {
-      quote: t('home.testimonials.construction.quote') || "Equipment inspection tracking and contractor management saved us countless hours and improved site safety significantly.",
-      author: t('home.testimonials.construction.author') || "David Rodriguez",
-      role: t('home.testimonials.construction.role') || "Safety Manager, Construction Co",
-      industry: t('home.testimonials.construction.industry') || "Construction"
+      quote:
+        t('home.testimonials.construction.quote') ||
+        'Equipment inspection tracking and contractor management saved us countless hours and improved site safety significantly.',
+      author: t('home.testimonials.construction.author') || 'David Rodriguez',
+      role: t('home.testimonials.construction.role') || 'Safety Manager, Construction Co',
+      industry: t('home.testimonials.construction.industry') || 'Construction'
     },
     {
-      quote: t('home.testimonials.manufacturing.quote') || "The predictive maintenance alerts prevented multiple equipment failures in our manufacturing plants.",
-      author: t('home.testimonials.manufacturing.author') || "Emily Watson",
-      role: t('home.testimonials.manufacturing.role') || "Plant Manager, Manufacturing Inc",
-      industry: t('home.testimonials.manufacturing.industry') || "Manufacturing"
+      quote:
+        t('home.testimonials.manufacturing.quote') ||
+        'The predictive maintenance alerts prevented multiple equipment failures in our manufacturing plants.',
+      author: t('home.testimonials.manufacturing.author') || 'Emily Watson',
+      role: t('home.testimonials.manufacturing.role') || 'Plant Manager, Manufacturing Inc',
+      industry: t('home.testimonials.manufacturing.industry') || 'Manufacturing'
     },
     {
-      quote: t('home.testimonials.maritime.quote') || "Vessel safety compliance and crew training tracking have never been easier.",
-      author: t('home.testimonials.maritime.author') || "Capt. James Wilson",
-      role: t('home.testimonials.maritime.role') || "Fleet Safety Officer, Maritime Group",
-      industry: t('home.testimonials.maritime.industry') || "Maritime"
+      quote:
+        t('home.testimonials.maritime.quote') ||
+        'Vessel safety compliance and crew training tracking have never been easier.',
+      author: t('home.testimonials.maritime.author') || 'Capt. James Wilson',
+      role: t('home.testimonials.maritime.role') || 'Fleet Safety Officer, Maritime Group',
+      industry: t('home.testimonials.maritime.industry') || 'Maritime'
     },
     {
-      quote: t('home.testimonials.mining.quote') || "The geotechnical monitoring and emergency response features are outstanding for our mining operations.",
-      author: t('home.testimonials.mining.author') || "Robert Thompson",
-      role: t('home.testimonials.mining.role') || "Safety Superintendent, Mining Co",
-      industry: t('home.testimonials.mining.industry') || "Mining"
+      quote:
+        t('home.testimonials.mining.quote') ||
+        'The geotechnical monitoring and emergency response features are outstanding for our mining operations.',
+      author: t('home.testimonials.mining.author') || 'Robert Thompson',
+      role: t('home.testimonials.mining.role') || 'Safety Superintendent, Mining Co',
+      industry: t('home.testimonials.mining.industry') || 'Mining'
     }
   ];
 
@@ -426,7 +443,8 @@ function HomePage() {
       name: t('home.pricing.enterprise.name') || 'Enterprise',
       price: t('home.pricing.enterprise.price') || 'Custom',
       period: t('home.pricing.enterprise.period') || '',
-      description: t('home.pricing.enterprise.description') || 'For large enterprises and multi-site operations',
+      description:
+        t('home.pricing.enterprise.description') || 'For large enterprises and multi-site operations',
       features: [
         t('home.pricing.enterprise.feature1') || 'Unlimited users',
         t('home.pricing.enterprise.feature2') || 'All Professional features',
@@ -446,7 +464,6 @@ function HomePage() {
 
   return (
     <div className={`home-page ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
-      
       {/* ============================================
            HERO SECTION - ONLY ONE H1 TAG
            ============================================ */}
@@ -457,7 +474,7 @@ function HomePage() {
           <div className="orb orb-3"></div>
           <div className="orb orb-4"></div>
         </div>
-        
+
         <div className="container">
           <div className="hero-grid">
             <div className="hero-content">
@@ -465,7 +482,7 @@ function HomePage() {
                 <span className="badge-pulse">●</span>
                 AI-Powered Safety Platform
               </div>
-              
+
               <div className="hero-trust-banner animate-fade-in-delay">
                 <div className="trust-badge">
                   <ClockCircleOutlined />
@@ -476,26 +493,37 @@ function HomePage() {
                   <span>ISO 27001 & SOC2 Compliant</span>
                 </div>
               </div>
-              
-              {/* ✅ THIS IS THE ONLY H1 ON THE PAGE */}
-              <h2 className="hero-title animate-fade-in">
-  The New Standard in <br />
-  <span className="gradient-text">Industrial Safety</span>
-</h2>
-              
+
+              {/* ✅ THE ONLY H1 ON THE PAGE */}
+              <h1 className="hero-title animate-fade-in">
+                The New Standard in <br />
+                <span className="gradient-text">Industrial Safety</span>
+              </h1>
+
               <p className="hero-description animate-fade-in-delay-2">
-                AI-powered safety management platform for healthcare, oil & gas, construction, 
-                manufacturing, and more. Achieve 99.5% compliance with real-time monitoring.
+                AI-powered safety management platform for healthcare, oil & gas, construction,
+                manufacturing, maritime, aviation, mining, chemical, and education.
+                Achieve 99.5% compliance with real-time monitoring.
               </p>
-              
+
               <div className="hero-features animate-fade-in-delay-3">
-                <span className="feature-tag"><SafetyCertificateOutlined /> Compliance</span>
-                <span className="feature-tag"><RobotOutlined /> AI Analysis</span>
-                <span className="feature-tag"><DashboardOutlined /> Real-time</span>
-                <span className="feature-tag"><FileTextOutlined /> Reporting</span>
-                <span className="feature-tag"><VideoCameraOutlined /> Camera AI</span>
+                <span className="feature-tag">
+                  <SafetyCertificateOutlined /> Compliance
+                </span>
+                <span className="feature-tag">
+                  <RobotOutlined /> AI Analysis
+                </span>
+                <span className="feature-tag">
+                  <DashboardOutlined /> Real-time
+                </span>
+                <span className="feature-tag">
+                  <FileTextOutlined /> Reporting
+                </span>
+                <span className="feature-tag">
+                  <VideoCameraOutlined /> Camera AI
+                </span>
               </div>
-              
+
               <div className="hero-actions animate-fade-in-delay-4">
                 <Button type="primary" size="large" href="/signup" className="cta-button">
                   Start Free Trial <ArrowRightOutlined />
@@ -504,24 +532,29 @@ function HomePage() {
                   View Plans
                 </Button>
               </div>
-              
+
               <div className="trust-badges animate-fade-in-delay-5">
                 {trustBadges.map((badge, index) => (
                   <div key={index} className="trust-badge-item">
-                    <span className="badge-icon" style={{ color: badge.color }}>{badge.icon}</span>
+                    <span className="badge-icon" style={{ color: badge.color }}>
+                      {badge.icon}
+                    </span>
                     <span className="badge-label">{badge.label}</span>
                   </div>
                 ))}
               </div>
             </div>
-            
+
             <div className="hero-visual animate-slide-in-right">
               <div className="hero-carousel-container">
-                <div className="carousel-track" style={{ transform: `translateX(-${activeSlide * 20}%)` }}>
+                <div
+                  className="carousel-track"
+                  style={{ transform: `translateX(-${activeSlide * 20}%)` }}
+                >
                   {heroSlides.map((slide, index) => (
                     <div key={index} className="carousel-slide">
-                      <img 
-                        src={slide.image} 
+                      <img
+                        src={slide.image}
                         alt={slide.title}
                         loading="lazy"
                         className="carousel-image"
@@ -534,11 +567,11 @@ function HomePage() {
                     </div>
                   ))}
                 </div>
-                
+
                 <div className="carousel-dots">
                   {heroSlides.map((_, index) => (
-                    <span 
-                      key={index} 
+                    <span
+                      key={index}
                       className={`dot ${activeSlide === index ? 'active' : ''}`}
                       onClick={() => {
                         setActiveSlide(index);
@@ -563,24 +596,39 @@ function HomePage() {
         <div className="container">
           <div className="trust-grid">
             <div className="trust-item">
-              <div className="trust-icon"><VerifiedOutlined /></div>
+              <div className="trust-icon">
+                <VerifiedOutlined />
+              </div>
               <div className="trust-content">
                 <h4>Transparent Development</h4>
-                <p>We believe in open communication. Track our progress, see our roadmap, and help shape the future of SafeTrack Pro.</p>
+                <p>
+                  We believe in open communication. Track our progress, see our roadmap, and help
+                  shape the future of SafeTrack Pro.
+                </p>
               </div>
             </div>
             <div className="trust-item">
-              <div className="trust-icon"><SecurityScanOutlined /></div>
+              <div className="trust-icon">
+                <SecurityScanOutlined />
+              </div>
               <div className="trust-content">
                 <h4>Enterprise-Grade Security</h4>
-                <p>ISO 27001 and SOC2 compliant. We take your data security and privacy seriously from day one.</p>
+                <p>
+                  ISO 27001 and SOC2 compliant. We take your data security and privacy seriously
+                  from day one.
+                </p>
               </div>
             </div>
             <div className="trust-item">
-              <div className="trust-icon"><TeamOutlined /></div>
+              <div className="trust-icon">
+                <TeamOutlined />
+              </div>
               <div className="trust-content">
                 <h4>Built for Your Industry</h4>
-                <p>8+ industries supported with specialized modules. We understand your safety challenges.</p>
+                <p>
+                  9+ industries supported with specialized modules. We understand your safety
+                  challenges.
+                </p>
               </div>
             </div>
           </div>
@@ -597,9 +645,9 @@ function HomePage() {
               <Col xs={12} sm={8} md={4} key={index}>
                 <div className="stat-card animate-on-scroll">
                   <div className="stat-number-wrapper">
-                    <span 
-                      className="stat-number-animated" 
-                      data-value={stat.value} 
+                    <span
+                      className="stat-number-animated"
+                      data-value={stat.value}
                       data-suffix={stat.suffix}
                       data-key={stat.key}
                     >
@@ -615,54 +663,74 @@ function HomePage() {
       </section>
 
       {/* ============================================
-           INDUSTRIES SECTION - USING H2
+           INDUSTRIES SECTION - CORRECT IMAGES
            ============================================ */}
       <section className="industries-section" id="industries">
         <div className="container">
           <div className="section-header">
             <span className="section-tag">Solutions</span>
-            <h2 className="section-title">Tailored for Every <span className="gradient-text">Industry</span></h2>
+            <h2 className="section-title">
+              Tailored for Every <span className="gradient-text">Industry</span>
+            </h2>
             <p className="section-subtitle">
               AI-powered safety management solutions designed for diverse industrial sectors
             </p>
           </div>
-          
+
           <Row gutter={[24, 24]}>
             {industries.map((industry, index) => (
-              <Col xs={24} sm={12} lg={6} key={index}>
-                <div 
+              <Col xs={24} sm={12} lg={8} key={index}>
+                <div
                   className="industry-card-wrapper"
                   onMouseEnter={() => setHoveredIndustry(index)}
                   onMouseLeave={() => setHoveredIndustry(null)}
                 >
-                  <div 
-                    className="industry-card" 
-                    style={{ 
+                  <div
+                    className="industry-card"
+                    style={{
                       borderTop: `4px solid ${industry.color}`,
                       transform: hoveredIndustry === index ? 'translateY(-8px)' : 'none',
-                      boxShadow: hoveredIndustry === index ? `0 20px 40px ${industry.color}25` : 'none'
+                      boxShadow:
+                        hoveredIndustry === index ? `0 20px 40px ${industry.color}25` : 'none'
                     }}
                   >
                     <div className="industry-image-wrapper">
-                      <img 
-                        src={industry.image} 
+                      <img
+                        src={industry.image}
                         alt={industry.title}
                         className="industry-image"
                         loading="lazy"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
                       />
-                      <div className="industry-icon-overlay" style={{ background: industry.gradient, color: industry.color }}>
-                        {React.cloneElement(industry.icon, { style: { fontSize: 28, color: industry.color } })}
+                      <div
+                        className="industry-icon-overlay"
+                        style={{ background: industry.gradient, color: industry.color }}
+                      >
+                        {React.cloneElement(industry.icon, {
+                          style: { fontSize: 28, color: industry.color }
+                        })}
                       </div>
                     </div>
                     <h4>{industry.title}</h4>
                     <p className="industry-description">{industry.description}</p>
                     <div className="industry-features">
                       {industry.features.map((feat, idx) => (
-                        <span key={idx} className="industry-feature-tag" style={{ background: `${industry.color}15`, color: industry.color }}>
+                        <span
+                          key={idx}
+                          className="industry-feature-tag"
+                          style={{ background: `${industry.color}15`, color: industry.color }}
+                        >
                           {feat}
                         </span>
                       ))}
                     </div>
+                    {industry.details && (
+                      <p className="industry-details" style={{ color: industry.color }}>
+                        {industry.details}
+                      </p>
+                    )}
                   </div>
                 </div>
               </Col>
@@ -672,23 +740,28 @@ function HomePage() {
       </section>
 
       {/* ============================================
-           FEATURES SECTION - USING H2
+           FEATURES SECTION
            ============================================ */}
       <section className="features-section" id="features">
         <div className="container">
           <div className="section-header">
             <span className="section-tag">Capabilities</span>
-            <h2 className="section-title">Enterprise-Grade <span className="gradient-text">Features</span></h2>
+            <h2 className="section-title">
+              Enterprise-Grade <span className="gradient-text">Features</span>
+            </h2>
             <p className="section-subtitle">
               Everything you need for comprehensive safety management across all industries
             </p>
           </div>
-          
+
           <Row gutter={[24, 24]}>
             {features.map((feature, index) => (
               <Col xs={24} sm={12} lg={6} key={index}>
                 <div className="feature-card" style={{ borderTop: `4px solid ${feature.color}` }}>
-                  <div className="feature-icon" style={{ background: feature.color + '25', color: feature.color }}>
+                  <div
+                    className="feature-icon"
+                    style={{ background: feature.color + '25', color: feature.color }}
+                  >
                     {feature.icon}
                   </div>
                   <h4 className="feature-title">{feature.title}</h4>
@@ -704,7 +777,7 @@ function HomePage() {
       </section>
 
       {/* ============================================
-           BENEFITS SECTION - USING H2
+           BENEFITS SECTION
            ============================================ */}
       <section className="benefits-section">
         <div className="container">
@@ -712,26 +785,26 @@ function HomePage() {
             <Col xs={24} lg={12}>
               <div className="benefits-content">
                 <span className="section-tag">Why Choose Us</span>
-                <h2>Built for the <span className="gradient-text">Future of Safety</span></h2>
-                
+                <h2>
+                  Built for the <span className="gradient-text">Future of Safety</span>
+                </h2>
+
                 {benefits.map((benefit, index) => (
                   <div className="benefit-item" key={index}>
-                    <div className="benefit-icon">
-                      {benefit.icon}
-                    </div>
+                    <div className="benefit-icon">{benefit.icon}</div>
                     <div className="benefit-text">
                       <h5>{benefit.title}</h5>
                       <span>{benefit.description}</span>
                     </div>
                   </div>
                 ))}
-                
+
                 <Button type="primary" size="large" href="/features" className="benefits-cta">
                   Explore All Features <ArrowRightOutlined />
                 </Button>
               </div>
             </Col>
-            
+
             <Col xs={24} lg={12}>
               <div className="benefits-visual">
                 <div className="floating-cards">
@@ -749,7 +822,7 @@ function HomePage() {
                   </div>
                   <div className="floating-card card-4">
                     <GlobalOutlined />
-                    <span>8+ Industries</span>
+                    <span>9+ Industries</span>
                   </div>
                 </div>
               </div>
@@ -759,18 +832,20 @@ function HomePage() {
       </section>
 
       {/* ============================================
-           TESTIMONIALS SECTION - USING H2
+           TESTIMONIALS SECTION
            ============================================ */}
       <section className="testimonials-section">
         <div className="container">
           <div className="section-header">
             <span className="section-tag">Testimonials</span>
-            <h2 className="section-title">Trusted by <span className="gradient-text">Industry Leaders</span></h2>
+            <h2 className="section-title">
+              Trusted by <span className="gradient-text">Industry Leaders</span>
+            </h2>
             <p className="section-subtitle">
               See what safety professionals are saying about SafeTrack Pro
             </p>
           </div>
-          
+
           <Row gutter={[24, 24]}>
             {testimonials.map((testimonial, index) => (
               <Col xs={24} md={12} lg={8} key={index}>
@@ -779,7 +854,9 @@ function HomePage() {
                   <p className="testimonial-text">{testimonial.quote}</p>
                   <div className="testimonial-rating">
                     {[...Array(5)].map((_, i) => (
-                      <span key={i} className="star">★</span>
+                      <span key={i} className="star">
+                        ★
+                      </span>
                     ))}
                   </div>
                   <div className="testimonial-author">
@@ -799,18 +876,20 @@ function HomePage() {
       </section>
 
       {/* ============================================
-           PRICING SECTION - USING H2
+           PRICING SECTION
            ============================================ */}
       <section className="pricing-section" id="pricing">
         <div className="container">
           <div className="section-header">
             <span className="section-tag">Pricing</span>
-            <h2 className="section-title">Choose Your <span className="gradient-text">Plan</span></h2>
+            <h2 className="section-title">
+              Choose Your <span className="gradient-text">Plan</span>
+            </h2>
             <p className="section-subtitle">
               Flexible plans for every organization's safety management needs
             </p>
           </div>
-          
+
           <Row gutter={[24, 24]} justify="center">
             {pricingPlans.map((plan) => (
               <Col xs={24} md={12} lg={8} key={plan.id}>
@@ -836,9 +915,9 @@ function HomePage() {
                       </div>
                     ))}
                   </div>
-                  <Button 
-                    type={plan.popular ? 'primary' : 'default'} 
-                    size="large" 
+                  <Button
+                    type={plan.popular ? 'primary' : 'default'}
+                    size="large"
                     href={plan.link}
                     block
                     className={`pricing-cta ${plan.popular ? 'cta-primary' : ''}`}
@@ -853,16 +932,20 @@ function HomePage() {
       </section>
 
       {/* ============================================
-           CTA SECTION - USING H2
+           CTA SECTION
            ============================================ */}
       <section className="cta-section">
         <div className="container">
           <div className="cta-card">
             <div className="cta-content">
               <span className="cta-tag">Get Started</span>
-              <h2>Ready to Transform Your <span className="gradient-text">Safety Management</span>?</h2>
+              <h2>
+                Ready to Transform Your{' '}
+                <span className="gradient-text">Safety Management</span>?
+              </h2>
               <p className="cta-description">
-                Join thousands of organizations across 8+ industries that trust SafeTrack Pro for their safety compliance needs.
+                Join thousands of organizations across 9+ industries that trust SafeTrack Pro for
+                their safety compliance needs.
               </p>
               <div className="cta-actions">
                 <Button type="primary" size="large" href="/signup" className="cta-primary-btn">
@@ -882,7 +965,6 @@ function HomePage() {
           </div>
         </div>
       </section>
-
     </div>
   );
 }

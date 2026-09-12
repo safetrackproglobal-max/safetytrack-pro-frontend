@@ -2093,3 +2093,58 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
 }
+
+/* ============================================
+   INDUSTRY CARD DETAILS
+   ============================================ */
+
+.industry-details {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(0, 0, 0, 0.08);
+  opacity: 0.85;
+  letter-spacing: 0.2px;
+  text-align: center;
+}
+
+/* Adjust card height to fit details */
+.industry-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.industry-card h4 {
+  margin-top: 0;
+}
+
+/* Better grid on large screens - 3 columns for more space */
+@media (min-width: 1200px) {
+  .industries-section .ant-col-lg-8 {
+    flex: 0 0 33.333333%;
+    max-width: 33.333333%;
+  }
+}
+
+/* Ensure industry image handles error gracefully */
+.industry-image {
+  background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+  min-height: 140px;
+}
+
+/* RTL support for industry details */
+.home-page.rtl .industry-details {
+  text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .industry-details {
+    font-size: 11px;
+    margin-top: 10px;
+    padding-top: 10px;
+  }
+}
