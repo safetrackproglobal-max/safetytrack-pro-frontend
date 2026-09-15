@@ -125,7 +125,7 @@ const SafetyProDashboard = () => {
     
     if (token) {
       try {
-        const response = await fetch('http://localhost:5000/api/admin/users/all?per_page=100', {
+        const response = await fetch('https://safetrackproglobal-backend-production.up.railway.app/api/admin/users/all?per_page=100', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
