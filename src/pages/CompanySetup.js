@@ -521,7 +521,7 @@ function CompanySetup() {
       const values = await form.validateFields();
       
       // Update company profile
-      const response = await fetch('http://localhost:5000/api/company/update', {
+      const response = await fetch('https://safetrackproglobal-backend-production.up.railway.app/api/company/update', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
