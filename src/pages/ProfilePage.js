@@ -110,7 +110,7 @@ const ProfilePage = () => {
     if (path.startsWith('http://') || path.startsWith('https://')) {
       return path;
     }
-    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+    const apiUrl = process.env.REACT_APP_API_URL || 'https://safetrackproglobal-backend-production.up.railway.app';
     const baseUrl = apiUrl.replace(/\/api$/, '').replace(/\/$/, '');
     if (path.startsWith('/static')) {
       return `${baseUrl}${path}`;
