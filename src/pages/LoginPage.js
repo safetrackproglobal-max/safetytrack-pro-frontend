@@ -532,7 +532,7 @@ function LoginPage() {
 
   const activateFreePlan = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/user/update-plan', {
+      const response = await fetch('https://safetrackproglobal-backend-production.up.railway.app/api/user/update-plan', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -645,7 +645,7 @@ const showManualPaymentInstructions = (methodId, plan) => {
   const paymentReference = `MANUAL-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
   
   // ✅ Get the API base URL
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://safetrackproglobal-backend-production.up.railway.app';
   
   // ✅ DEBUG: Log everything
   console.log('🔵 ===== MANUAL PAYMENT DEBUG START =====');
