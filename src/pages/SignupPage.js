@@ -1354,9 +1354,9 @@ const handleCreateAccount = async () => {
     // ✅ Only admin and regular user registration
     let endpoint;
     if (userType === 'admin') {
-      endpoint = 'http://localhost:5000/api/admin/register';
+      endpoint = 'http://https://safetrackproglobal-backend-production.up.railway.app/api/admin/register';
     } else {
-      endpoint = 'http://localhost:5000/api/register';
+      endpoint = 'https://safetrackproglobal-backend-production.up.railway.app/api/register';
     }
 
     const response = await fetch(endpoint, {
@@ -1506,7 +1506,7 @@ const handleCreateAccount = async () => {
     try {
       const userIdLocal = userId || localStorage.getItem('pendingUserId');
       
-      const response = await fetch('http://localhost:5000/api/user/activate-plan', {
+      const response = await fetch('https://safetrackproglobal-backend-production.up.railway.app/api/user/activate-plan', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
