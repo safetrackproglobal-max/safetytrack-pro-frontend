@@ -18,7 +18,7 @@ import {
   Table,
   Tabs,
   Statistic,
-   Typography
+  Typography
 } from 'antd';
 import {
   DashboardOutlined,
