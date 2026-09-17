@@ -60,6 +60,7 @@ const { Search } = Input;
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 const { TabPane } = Tabs;
+const { Text } = Typography; 
 
 // ==================== MAIN SAFETYPRO DASHBOARD COMPONENT ====================
 const SafetyProDashboard = () => {
