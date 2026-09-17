@@ -1,5 +1,5 @@
 // src/components/DocumentControl.js
-// Complete Document Control Component with Plan-Based Access Control
+// Complete Document Control Component with Plan-Based Access Control & Real-Time Collaboration
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
@@ -110,7 +110,12 @@ import {
   ExportOutlined,
   QrcodeOutlined,
   ScanOutlined,
-  FingerprintOutlined
+  FingerprintOutlined,
+  WifiOutlined,
+  DisconnectOutlined,
+  SyncOutlined,
+  LoadingOutlined,
+  UsergroupAddOutlined
 } from '@ant-design/icons';
 import documentServiceAPI from '../services/documentService';
 import { 
@@ -126,6 +131,7 @@ import {
 } from '../services/api';
 import DocumentEditor from './documents/DocumentEditor';
 import DocumentSignature from './documents/DocumentSignature';
+import RealtimeCollaborativeEditor from './editor/RealtimeCollaborativeEditor';
 import './DocumentControl.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -279,11 +285,16 @@ const DocumentControl = ({
   // Versions
   const [versions, setVersions] = useState([]);
   
-  // ✅ NEW: Editor & Signature State
+  // Editor & Signature State
   const [editorVisible, setEditorVisible] = useState(false);
   const [editingDocument, setEditingDocument] = useState(null);
   const [signatureModalVisible, setSignatureModalVisible] = useState(false);
   const [signatureDocumentId, setSignatureDocumentId] = useState(null);
+  
+  // ✅ NEW: Real-time Collaboration State
+  const [collaborationModalVisible, setCollaborationModalVisible] = useState(false);
+  const [collaboratingDocument, setCollaboratingDocument] = useState(null);
+  const [activeCollaborators, setActiveCollaborators] = useState({}); // docId -> collaborators[]
   
   // Auto refresh
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -576,6 +587,43 @@ const DocumentControl = ({
       console.error('Archive failed:', error);
       message.error(error.message || 'Failed to archive document');
     }
+  };
+
+  // ============================================================
+  // ✅ NEW: REAL-TIME COLLABORATION HANDLERS
+  // ============================================================
+
+  const handleStartCollaboration = (document) => {
+    if (!canEdit) {
+      message.error('Your plan does not allow editing documents. Please upgrade.');
+      showUpgradeModal({
+        requiredPlan: 'pro',
+        message: 'Real-time collaboration requires at least Pro plan'
+      });
+      return;
+    }
+    
+    setCollaboratingDocument(document);
+    setCollaborationModalVisible(true);
+  };
+
+  const handleCollaborationClose = () => {
+    setCollaborationModalVisible(false);
+    setCollaboratingDocument(null);
+  };
+
+  const handleCollaborationSave = (result) => {
+    message.success('Document saved from collaboration session');
+    loadDocuments();
+    loadStats();
+    if (onDocumentChange) onDocumentChange();
+  };
+
+  const handleCollaboratorsUpdate = (docId, collaborators) => {
+    setActiveCollaborators(prev => ({
+      ...prev,
+      [docId]: collaborators || []
+    }));
   };
 
   // ============================================================
@@ -938,7 +986,7 @@ const DocumentControl = ({
     </div>
   );
 
-  // ✅ UPDATED: Render Document Table with Edit and Sign buttons
+  // ✅ UPDATED: Render Document Table with Edit, Sign, and Collaborate buttons
   const renderDocumentTable = () => {
     const columns = [
       {
@@ -991,124 +1039,167 @@ const DocumentControl = ({
       {
         title: 'Actions',
         key: 'actions',
-        width: 240,
-        render: (_, record) => (
-          <Space>
-            <Tooltip title="Edit Document">
-              <Button
-                type="text"
-                size="small"
-                icon={<EditOutlined />}
-                onClick={() => {
-                  setEditingDocument(record);
-                  setEditorVisible(true);
-                }}
-              />
-            </Tooltip>
-            <Tooltip title="View Details">
-              <Button
-                type="text"
-                size="small"
-                icon={<EyeOutlined />}
-                onClick={() => {
-                  setSelectedDocument(record);
-                  setDetailDrawerVisible(true);
-                  loadDocumentDetail(record.id);
-                }}
-              />
-            </Tooltip>
-            <Tooltip title="Sign Document">
-              <Button
-                type="text"
-                size="small"
-                icon={<SignatureOutlined />}
-                onClick={() => {
-                  setSignatureDocumentId(record.id);
-                  setSignatureModalVisible(true);
-                }}
-              />
-            </Tooltip>
-            <Tooltip title="Download">
-              <Button
-                type="text"
-                size="small"
-                icon={<DownloadOutlined />}
-                onClick={() => documentServiceAPI.downloadDocument(record.id)}
-              />
-            </Tooltip>
-            <Dropdown
-              overlay={
-                <Menu>
-                  {record.status === 'draft' && (
-                    <Menu.Item key="submit" icon={<SendOutlined />} onClick={() => handleSubmitForReview(record.id)}>
-                      Submit for Review
+        width: 280,
+        render: (_, record) => {
+          const collaborators = activeCollaborators[record.id] || [];
+          const hasActiveCollaborators = collaborators.length > 0;
+
+          return (
+            <Space>
+              <Tooltip title="Edit Document">
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<EditOutlined />}
+                  onClick={() => {
+                    setEditingDocument(record);
+                    setEditorVisible(true);
+                  }}
+                />
+              </Tooltip>
+
+              {/* ✅ NEW: Collaborate Button with Badge */}
+              <Tooltip 
+                title={
+                  hasActiveCollaborators 
+                    ? `${collaborators.length} user(s) currently editing - Click to join`
+                    : "Start real-time collaboration"
+                }
+              >
+                <Badge 
+                  count={collaborators.length} 
+                  size="small"
+                  offset={[-2, 2]}
+                >
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<TeamOutlined />}
+                    style={{ 
+                      color: hasActiveCollaborators ? '#52c41a' : undefined 
+                    }}
+                    onClick={() => handleStartCollaboration(record)}
+                  />
+                </Badge>
+              </Tooltip>
+
+              <Tooltip title="View Details">
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<EyeOutlined />}
+                  onClick={() => {
+                    setSelectedDocument(record);
+                    setDetailDrawerVisible(true);
+                    loadDocumentDetail(record.id);
+                  }}
+                />
+              </Tooltip>
+
+              <Tooltip title="Sign Document">
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<SignatureOutlined />}
+                  onClick={() => {
+                    setSignatureDocumentId(record.id);
+                    setSignatureModalVisible(true);
+                  }}
+                />
+              </Tooltip>
+
+              <Tooltip title="Download">
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<DownloadOutlined />}
+                  onClick={() => documentServiceAPI.downloadDocument(record.id)}
+                />
+              </Tooltip>
+
+              <Dropdown
+                overlay={
+                  <Menu>
+                    <Menu.Item 
+                      key="collaborate" 
+                      icon={<TeamOutlined />} 
+                      onClick={() => handleStartCollaboration(record)}
+                    >
+                      Real-Time Collaborate
                     </Menu.Item>
-                  )}
-                  {record.status === 'review' && (
-                    <>
-                      <Menu.Item key="approve" icon={<CheckOutlined />} onClick={() => handleApprove(record.id)}>
-                        Approve
+                    <Menu.Divider />
+                    
+                    {record.status === 'draft' && (
+                      <Menu.Item key="submit" icon={<SendOutlined />} onClick={() => handleSubmitForReview(record.id)}>
+                        Submit for Review
                       </Menu.Item>
-                      <Menu.Item key="reject" icon={<CloseOutlined />} onClick={() => {
-                        Modal.confirm({
-                          title: 'Reject Document',
-                          content: (
-                            <Input.TextArea
-                              placeholder="Reason for rejection..."
-                              id="reject-reason"
-                              rows={3}
-                            />
-                          ),
-                          onOk: () => {
-                            const reason = document.getElementById('reject-reason')?.value || '';
-                            handleReject(record.id, reason);
-                          }
-                        });
+                    )}
+                    {record.status === 'review' && (
+                      <>
+                        <Menu.Item key="approve" icon={<CheckOutlined />} onClick={() => handleApprove(record.id)}>
+                          Approve
+                        </Menu.Item>
+                        <Menu.Item key="reject" icon={<CloseOutlined />} onClick={() => {
+                          Modal.confirm({
+                            title: 'Reject Document',
+                            content: (
+                              <Input.TextArea
+                                placeholder="Reason for rejection..."
+                                id="reject-reason"
+                                rows={3}
+                              />
+                            ),
+                            onOk: () => {
+                              const reason = document.getElementById('reject-reason')?.value || '';
+                              handleReject(record.id, reason);
+                            }
+                          });
+                        }}>
+                          Reject
+                        </Menu.Item>
+                      </>
+                    )}
+                    {record.status === 'approved' && (
+                      <Menu.Item key="publish" icon={<SafetyCertificateOutlined />} onClick={() => handlePublish(record.id)}>
+                        Publish
+                      </Menu.Item>
+                    )}
+                    {(record.status === 'published' || record.status === 'approved') && (
+                      <Menu.Item key="archive" icon={<FolderOutlined />} onClick={() => handleArchive(record.id)}>
+                        Archive
+                      </Menu.Item>
+                    )}
+                    <Menu.Divider />
+                    {canSign && (
+                      <Menu.Item key="sign" icon={<SignatureOutlined />} onClick={() => {
+                        setSignatureDocumentId(record.id);
+                        setSignatureModalVisible(true);
                       }}>
-                        Reject
+                        Sign Document
                       </Menu.Item>
-                    </>
-                  )}
-                  {record.status === 'approved' && (
-                    <Menu.Item key="publish" icon={<SafetyCertificateOutlined />} onClick={() => handlePublish(record.id)}>
-                      Publish
-                    </Menu.Item>
-                  )}
-                  {(record.status === 'published' || record.status === 'approved') && (
-                    <Menu.Item key="archive" icon={<FolderOutlined />} onClick={() => handleArchive(record.id)}>
-                      Archive
-                    </Menu.Item>
-                  )}
-                  <Menu.Divider />
-                  {canSign && (
-                    <Menu.Item key="sign" icon={<SignatureOutlined />} onClick={() => {
-                      setSignatureDocumentId(record.id);
-                      setSignatureModalVisible(true);
-                    }}>
-                      Sign Document
-                    </Menu.Item>
-                  )}
-                  {canAI && (
-                    <Menu.Item key="ai" icon={<RobotOutlined />} onClick={() => {
-                      message.info('AI analysis feature coming soon');
-                    }}>
-                      AI Analyze
-                    </Menu.Item>
-                  )}
-                  <Menu.Divider />
-                  {canDelete && (
-                    <Menu.Item key="delete" icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)}>
-                      Delete
-                    </Menu.Item>
-                  )}
-                </Menu>
-              }
-              trigger={['click']}
-            >
-              <Button type="text" size="small" icon={<MoreOutlined />} />
-            </Dropdown>
-          </Space>
-        )
+                    )}
+                    {canAI && (
+                      <Menu.Item key="ai" icon={<RobotOutlined />} onClick={() => {
+                        message.info('AI analysis feature coming soon');
+                      }}>
+                        AI Analyze
+                      </Menu.Item>
+                    )}
+                    <Menu.Divider />
+                    {canDelete && (
+                      <Menu.Item key="delete" icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)}>
+                        Delete
+                      </Menu.Item>
+                    )}
+                  </Menu>
+                }
+                trigger={['click']}
+              >
+                <Button type="text" size="small" icon={<MoreOutlined />} />
+              </Dropdown>
+            </Space>
+          );
+        }
       }
     ];
 
@@ -1296,7 +1387,7 @@ const DocumentControl = ({
     }
   };
 
-  // ✅ UPDATED: Detail Drawer with Edit and Sign buttons
+  // ✅ UPDATED: Detail Drawer with Edit, Sign, and Collaborate buttons
   const renderDetailDrawer = () => (
     <Drawer
       title={
@@ -1311,6 +1402,20 @@ const DocumentControl = ({
       width={800}
       extra={
         <Space>
+          {/* ✅ NEW: Collaborate button */}
+          <Tooltip title="Start Real-Time Collaboration">
+            <Button 
+              icon={<TeamOutlined />}
+              onClick={() => {
+                setDetailDrawerVisible(false);
+                handleStartCollaboration(selectedDocument);
+              }}
+              style={{ color: '#52c41a', borderColor: '#52c41a' }}
+            >
+              Collaborate
+            </Button>
+          </Tooltip>
+          
           <Button 
             icon={<EditOutlined />} 
             onClick={() => {
@@ -1409,6 +1514,19 @@ const DocumentControl = ({
             <div style={{ marginTop: 16 }}>
               <Title level={5}>Workflow Actions</Title>
               <Space wrap>
+                {/* ✅ NEW: Collaborate Action */}
+                <Button 
+                  type="primary"
+                  icon={<TeamOutlined />}
+                  onClick={() => {
+                    setDetailDrawerVisible(false);
+                    handleStartCollaboration(selectedDocument);
+                  }}
+                  style={{ background: '#52c41a', borderColor: '#52c41a' }}
+                >
+                  Start Collaboration
+                </Button>
+
                 {selectedDocument.status === 'draft' && (
                   <Button type="primary" icon={<SendOutlined />} onClick={() => handleSubmitForReview(selectedDocument.id)}>
                     Submit for Review
@@ -1591,7 +1709,7 @@ const DocumentControl = ({
     </Drawer>
   );
 
-  // ✅ NEW: Render Editor Modal
+  // ✅ Render Editor Modal
   const renderEditorModal = () => (
     <Modal
       title="Edit Document"
@@ -1632,7 +1750,7 @@ const DocumentControl = ({
     </Modal>
   );
 
-  // ✅ NEW: Render Signature Modal
+  // ✅ Render Signature Modal
   const renderSignatureModal = () => (
     <Modal
       title="Document Signatures"
@@ -1661,6 +1779,77 @@ const DocumentControl = ({
       />
     </Modal>
   );
+
+  // ============================================================
+  // ✅ NEW: RENDER COLLABORATION MODAL
+  // ============================================================
+
+  const renderCollaborationModal = () => {
+    if (!collaboratingDocument) return null;
+
+    return (
+      <Modal
+        title={
+          <Space>
+            <TeamOutlined style={{ color: '#52c41a' }} />
+            <span>Real-Time Collaboration</span>
+            <Tag color="blue">{collaboratingDocument.title}</Tag>
+            <Badge status="processing" text="Live" />
+          </Space>
+        }
+        open={collaborationModalVisible}
+        onCancel={handleCollaborationClose}
+        footer={null}
+        width="95%"
+        style={{ top: 20 }}
+        bodyStyle={{ 
+          padding: '16px', 
+          maxHeight: 'calc(100vh - 120px)', 
+          overflow: 'auto' 
+        }}
+        destroyOnClose
+        maskClosable={false}
+      >
+        <Alert
+          message="Real-Time Collaboration Session"
+          description={
+            <div>
+              <p>You are now editing this document in real-time with other users.</p>
+              <ul style={{ marginBottom: 0, paddingLeft: 20 }}>
+                <li>Changes are synchronized instantly across all connected users</li>
+                <li>Document can be locked to prevent concurrent edits</li>
+                <li>Auto-save is enabled by default</li>
+                <li>All collaborators are shown at the top of the editor</li>
+              </ul>
+            </div>
+          }
+          type="info"
+          showIcon
+          style={{ marginBottom: 16 }}
+          closable
+        />
+
+        <RealtimeCollaborativeEditor
+          documentId={collaboratingDocument.id}
+          documentTitle={collaboratingDocument.title}
+          currentUser={{
+            id: window.currentUser?.id || 'current_user',
+            name: window.currentUser?.name || window.currentUser?.email || 'You',
+            email: window.currentUser?.email
+          }}
+          onSave={handleCollaborationSave}
+          onContentChange={(content) => {
+            console.log('Content changed:', content.length, 'characters');
+          }}
+          onCollaboratorsChange={(collaborators) => {
+            handleCollaboratorsUpdate(collaboratingDocument.id, collaborators);
+          }}
+          readOnly={false}
+          embedded={true}
+        />
+      </Modal>
+    );
+  };
 
   // ============================================================
   // MAIN RENDER
@@ -1776,6 +1965,9 @@ const DocumentControl = ({
 
       {/* Signature Modal */}
       {renderSignatureModal()}
+
+      {/* ✅ NEW: Real-Time Collaboration Modal */}
+      {renderCollaborationModal()}
     </div>
   );
 };
