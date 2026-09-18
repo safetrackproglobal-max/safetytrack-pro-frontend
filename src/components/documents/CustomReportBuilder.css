@@ -1,0 +1,307 @@
+/* src/components/documents/CustomReportBuilder.css */
+
+.custom-report-builder {
+  background: transparent;
+}
+
+.report-builder-header {
+  background: white;
+  padding: 16px 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* Field Library */
+.field-library {
+  max-height: 500px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.field-library::-webkit-scrollbar {
+  width: 6px;
+}
+
+.field-library::-webkit-scrollbar-thumb {
+  background: #d9d9d9;
+  border-radius: 3px;
+}
+
+.field-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 4px;
+  border: 1px solid transparent;
+  background: #fafafa;
+}
+
+.field-item:hover {
+  background: #f0f8ff;
+  border-color: #91d5ff;
+  transform: translateX(2px);
+}
+
+.field-item.selected {
+  background: #e6f7ff;
+  border-color: #1890ff;
+}
+
+.field-item.selected:hover {
+  background: #bae7ff;
+}
+
+/* Selected Fields Panel */
+.selected-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 60px;
+  padding: 8px;
+  background: #fafafa;
+  border-radius: 6px;
+  border: 1px dashed #d9d9d9;
+}
+
+.selected-field-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: white;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.selected-field-item:hover {
+  border-color: #1890ff;
+  box-shadow: 0 2px 4px rgba(24, 144, 255, 0.1);
+}
+
+.selected-field-item .ant-space {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Draggable Field Handle */
+.field-drag-handle {
+  cursor: grab;
+  color: #bfbfbf;
+  padding: 0 4px;
+}
+
+.field-drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Filter Tags */
+.report-builder-header .ant-tag {
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  font-size: 11px;
+  padding: 2px 8px;
+}
+
+/* Chart Preview */
+.report-preview-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.report-preview-card .ant-card-body {
+  padding: 20px;
+}
+
+/* KPI Preview Cards */
+.kpi-preview-card {
+  border-radius: 8px;
+  text-align: center;
+  border-left: 4px solid #1890ff;
+  transition: all 0.3s ease;
+}
+
+.kpi-preview-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.kpi-preview-card .ant-statistic-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #8c8c8c;
+}
+
+.kpi-preview-card .ant-statistic-content {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* Visualization Type Selector */
+.custom-report-builder .ant-segmented {
+  padding: 2px;
+  background: #f5f5f5;
+}
+
+.custom-report-builder .ant-segmented-item {
+  transition: all 0.2s ease;
+}
+
+.custom-report-builder .ant-segmented-item-label {
+  padding: 6px 12px;
+}
+
+/* Saved Reports List */
+.saved-report-item {
+  padding: 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.saved-report-item:hover {
+  background: #f0f8ff;
+  border-color: #91d5ff;
+}
+
+/* Chart Container */
+.chart-container {
+  min-height: 400px;
+  position: relative;
+}
+
+/* Data Table */
+.report-data-table .ant-table-tbody > tr > td {
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.report-data-table .ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .report-builder-header {
+    padding: 12px 16px;
+  }
+  
+  .field-library {
+    max-height: 250px;
+  }
+  
+  .kpi-preview-card .ant-statistic-content {
+    font-size: 20px;
+  }
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .report-builder-header {
+    background: #1f1f1f;
+  }
+  
+  .field-library {
+    background: #1f1f1f;
+  }
+  
+  .field-item {
+    background: #262626;
+    border-color: #303030;
+  }
+  
+  .field-item:hover {
+    background: #111a2c;
+    border-color: #177ddc;
+  }
+  
+  .field-item.selected {
+    background: #111a2c;
+    border-color: #177ddc;
+  }
+  
+  .selected-fields {
+    background: #262626;
+    border-color: #303030;
+  }
+  
+  .selected-field-item {
+    background: #1f1f1f;
+    border-color: #303030;
+  }
+  
+  .custom-report-builder .ant-segmented {
+    background: #262626;
+  }
+  
+  .saved-report-item:hover {
+    background: #111a2c;
+  }
+  
+  .report-data-table .ant-table-thead > tr > th {
+    background: #262626;
+  }
+}
+
+/* Animations */
+@keyframes field-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.field-item {
+  animation: field-slide-in 0.2s ease-out;
+}
+
+/* Drag and Drop Styles */
+.field-item.dragging {
+  opacity: 0.5;
+  transform: scale(0.98);
+}
+
+.field-item.drag-over {
+  border-color: #1890ff;
+  background: #e6f7ff;
+}
+
+/* Empty State */
+.custom-report-builder .ant-empty {
+  padding: 40px 20px;
+}
+
+/* Aggregation Selector */
+.aggregation-selector {
+  width: 90px;
+}
+
+.aggregation-selector .ant-select-selector {
+  font-size: 11px;
+  padding: 0 8px;
+}
+
+/* Print Styles */
+@media print {
+  .report-builder-header,
+  .ant-tabs-nav,
+  .ant-btn {
+    display: none !important;
+  }
+  
+  .report-preview-card {
+    box-shadow: none;
+    border: 1px solid #d9d9d9;
+  }
+}

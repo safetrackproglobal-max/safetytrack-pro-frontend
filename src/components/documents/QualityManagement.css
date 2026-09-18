@@ -1,0 +1,326 @@
+/* src/components/documents/QualityManagement.css */
+
+.quality-management {
+  background: transparent;
+}
+
+.qms-header {
+  background: white;
+  padding: 16px 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* QMS Stat Cards */
+.qms-stat-card {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  height: 100%;
+  border-left: 4px solid #1890ff;
+}
+
+.qms-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.qms-stat-card.overdue {
+  border-left-color: #f5222d;
+}
+
+.qms-stat-card.critical {
+  border-left-color: #cf1322;
+}
+
+.qms-stat-card.closed {
+  border-left-color: #52c41a;
+}
+
+.qms-stat-card.open {
+  border-left-color: #1890ff;
+}
+
+/* Overdue Row Highlight */
+.quality-management .overdue-row > td {
+  background: #fff1f0 !important;
+}
+
+.quality-management .overdue-row:hover > td {
+  background: #ffccc7 !important;
+}
+
+/* Record Type Tags */
+.record-type-capa { color: #1890ff; }
+.record-type-ncr { color: #f5222d; }
+.record-type-deviation { color: #faad14; }
+.record-type-change_request { color: #722ed1; }
+.record-type-observation { color: #13c2c2; }
+
+/* Status Steps */
+.qms-workflow-steps {
+  margin: 24px 0;
+}
+
+.qms-workflow-steps .ant-steps-item-title {
+  font-size: 12px;
+}
+
+/* Severity Badges */
+.severity-critical {
+  background: #fff1f0;
+  border: 1px solid #ffa39e;
+  color: #cf1322;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.severity-major {
+  background: #fff1f0;
+  border: 1px solid #ffa39e;
+  color: #f5222d;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.severity-minor {
+  background: #fff7e6;
+  border: 1px solid #ffd591;
+  color: #faad14;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.severity-observation {
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+  color: #52c41a;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+/* Action Items */
+.action-item {
+  padding: 12px;
+  border-left: 3px solid #1890ff;
+  background: #fafafa;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+}
+
+.action-item:hover {
+  background: #f0f8ff;
+}
+
+.action-item.completed {
+  border-left-color: #52c41a;
+  background: #f6ffed;
+}
+
+.action-item.overdue {
+  border-left-color: #f5222d;
+  background: #fff1f0;
+}
+
+/* RCA Cards */
+.rca-section {
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border-left: 3px solid #722ed1;
+}
+
+.rca-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #722ed1;
+  margin-bottom: 12px;
+}
+
+/* Timeline Enhancements */
+.quality-management .ant-timeline-item-content {
+  padding-left: 8px;
+}
+
+.quality-management .ant-timeline-item-head-custom {
+  background: white;
+}
+
+/* Metrics Dashboard Cards */
+.qms-metric-card {
+  text-align: center;
+  padding: 16px;
+}
+
+.qms-metric-card .ant-progress-circle-text {
+  font-weight: 600;
+}
+
+/* Aging Analysis */
+.aging-bar {
+  height: 20px;
+  border-radius: 10px;
+  background: #f0f0f0;
+  overflow: hidden;
+  display: flex;
+}
+
+.aging-bar-segment {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.aging-bar-segment.segment-0-7 { background: #52c41a; }
+.aging-bar-segment.segment-8-30 { background: #1890ff; }
+.aging-bar-segment.segment-31-60 { background: #faad14; }
+.aging-bar-segment.segment-61-90 { background: #fa541c; }
+.aging-bar-segment.segment-90-plus { background: #f5222d; }
+
+/* Drawer Tabs */
+.quality-management .ant-drawer-body .ant-tabs-nav {
+  margin-bottom: 16px;
+}
+
+/* Table Enhancements */
+.quality-management .ant-table-tbody > tr > td {
+  padding: 12px 16px;
+}
+
+.quality-management .ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* Record Number Badge */
+.record-number {
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  font-size: 12px;
+  background: #f0f8ff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: #1890ff;
+  font-weight: 500;
+}
+
+/* Progress Dashboard */
+.qms-dashboard-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .qms-header {
+    padding: 12px 16px;
+  }
+  
+  .qms-stat-card {
+    margin-bottom: 12px;
+  }
+  
+  .qms-workflow-steps .ant-steps-item-title {
+    font-size: 10px;
+  }
+  
+  .quality-management .ant-table {
+    font-size: 12px;
+  }
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .qms-header {
+    background: #1f1f1f;
+  }
+  
+  .qms-stat-card {
+    background: #1f1f1f;
+  }
+  
+  .action-item {
+    background: #262626;
+  }
+  
+  .action-item:hover {
+    background: #303030;
+  }
+  
+  .rca-section {
+    background: #262626;
+  }
+  
+  .record-number {
+    background: #111a2c;
+  }
+  
+  .quality-management .overdue-row > td {
+    background: #2c1618 !important;
+  }
+}
+
+/* Animations */
+@keyframes qms-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.qms-stat-card.critical {
+  animation: qms-pulse 2s ease-in-out infinite;
+}
+
+/* Progress Indicators */
+.qms-progress-ring {
+  position: relative;
+  display: inline-block;
+}
+
+.qms-progress-ring-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+/* Detail Drawer Enhancements */
+.quality-management .ant-drawer-body {
+  padding: 16px;
+}
+
+/* RCA Form */
+.rca-method-selector .ant-radio-button-wrapper {
+  height: auto;
+  padding: 12px;
+  text-align: left;
+  white-space: normal;
+}
+
+/* Print Styles */
+@media print {
+  .qms-header,
+  .ant-tabs-nav,
+  .ant-btn,
+  .qms-stat-card {
+    display: none !important;
+  }
+  
+  .quality-management {
+    padding: 0 !important;
+  }
+  
+  .quality-management .ant-table {
+    font-size: 10px;
+  }
+}

@@ -1,9 +1,9 @@
-// src/App.js - Fixed with proper ResponsiveWrapper + Complete Document Management
+// src/App.js - Complete with Full-Page Route Override + All Document Management Components
 
 console.log('🔴 App component is rendering');
 
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Switch, Redirect, useLocation } from 'react-router-dom';
 import { I18nextProvider, useTranslation } from 'react-i18next';
 import i18n from './i18n';
 import MainLayout from './Layouts/MainLayout';
@@ -132,18 +132,26 @@ import ComplianceCenterPage from './pages/ComplianceCenterPage';
 import SupplyChainPage from './pages/SupplyChainPage';
 import TemplateMarketplacePage from './pages/TemplateMarketplacePage';
 import CameraMonitoringPage from './pages/CameraMonitoringPage';
-
-// ============================================================
-// ✅ DOCUMENT MANAGEMENT IMPORTS (ALL NEW COMPONENTS)
-// ============================================================
-
-// Main Document Control
 import DocumentControl from './components/DocumentControl';
-
-// Document Management Page (Full Integration)
 import DocumentManagementPage from './pages/DocumentManagementPage';
-
-// Individual Document Components (if needed separately)
+import AccessControl from './components/documents/AccessControl';
+import RetentionPolicy from './components/documents/RetentionPolicy';
+import Watermarking from './components/documents/Watermarking';
+import WorkflowBuilder from './components/documents/WorkflowBuilder';
+import ComplianceReports from './components/documents/ComplianceReports';
+import DocumentBundles from './components/documents/DocumentBundles';
+import SharePortal from './components/documents/SharePortal';
+import SmartIntake from './components/documents/SmartIntake';
+import AdvancedSearch from './components/documents/AdvancedSearch';
+import DocumentAssistant from './components/documents/DocumentAssistant';
+import DocumentBI from './components/documents/DocumentBI';
+import AnomalyDetection from './components/documents/AnomalyDetection';
+import CustomReportBuilder from './components/documents/CustomReportBuilder';
+import PredictiveAnalytics from './components/documents/PredictiveAnalytics';
+import QualityManagementSystem from './components/documents/QualityManagement';
+import OfflineManager from './components/documents/OfflineManager';
+import IntegrationHub from './components/documents/IntegrationHub';
+import RealtimeCollaborativeEditor from './components/editor/RealtimeCollaborativeEditor';
 import DocumentReview from './components/documents/DocumentReview';
 import DocumentAudit from './components/documents/DocumentAudit';
 import DocumentIntegration from './components/documents/DocumentIntegration';
@@ -152,8 +160,9 @@ import DocumentBulk from './components/documents/DocumentBulk';
 import DocumentAnalytics from './components/documents/DocumentAnalytics';
 import DocumentEditor from './components/documents/DocumentEditor';
 import DocumentSignature from './components/documents/DocumentSignature';
-
-// AI Components
+import DocumentDashboard from './components/documents/DocumentDashboard';
+import DocumentCompare from './components/documents/DocumentCompare';
+import TemplateLibrary from './components/documents/TemplateLibrary';
 import RiskAssessment from './components/AI/RiskAssessment';
 import SafetyDocumentAnalyzer from './components/AI/SafetyDocumentAnalyzer';
 import VideoSafetyAnalysis from './components/AI/VideoSafetyAnalysis';
@@ -165,23 +174,61 @@ import MedicalTextAnalysis from './components/AI/MedicalTextAnalysis';
 import AIChatAssistant from './components/AI/AIChatAssistant';
 import AIAnalysis from './components/AI/AIAnalysis';
 import VideoAI from './components/AI/VideoAi';
+import IncidentLinking from './components/documents/IncidentLinking';
+import SDSManagement from './components/documents/SDSManagement';
+import PTWIntegration from './components/documents/PTWIntegration';
+import AIClassification from './components/documents/AIClassification';
+import OCRProcessor from './components/documents/OCRProcessor';
+import ExpirationDashboard from './components/documents/ExpirationDashboard';
+import ApprovalChain from './components/documents/ApprovalChain';
+import ComplianceFramework from './components/documents/ComplianceFramework';
 
 import './styles/main.css';
 import './pages/safetyproDashboard.css';
 import './pages/PerformanceDashboard.css';
 import './App.css';
 
+// ============================================================
+// ✅ FULL-PAGE ROUTES — These routes bypass the global DashboardLayout
+// They render their OWN header + sidebar
+// ============================================================
+const FULL_PAGE_ROUTES = [
+  '/document-management',
+  // Add more routes here as needed for future full-page workspaces:
+  // '/camera-monitoring-full',
+  // '/analytics-workspace',
+];
+
+// ============================================================
 // Wrapper components for different layouts
+// ============================================================
 const MainLayoutWrapper = ({ children }) => (
   <MainLayout>
     {children}
   </MainLayout>
 );
 
-// ✅ UPDATED: DashboardLayoutWrapper with sidebar state support
+// ============================================================
+// ✅ SMART DashboardLayoutWrapper
+// Detects full-page routes and bypasses the global layout
+// ============================================================
 const DashboardLayoutWrapper = ({ children }) => {
+  const location = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
+  // ✅ Check if current route is a full-page route
+  const isFullPageRoute = FULL_PAGE_ROUTES.some(route => 
+    location.pathname.startsWith(route)
+  );
+  
+  console.log('🔍 [Layout] Path:', location.pathname, '| Full-page?', isFullPageRoute);
+  
+  // ✅ If full-page route → render children directly WITHOUT global layout
+  if (isFullPageRoute) {
+    return <>{children}</>;
+  }
+  
+  // Otherwise → wrap in global DashboardLayout (existing behavior)
   const handleToggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
@@ -664,7 +711,7 @@ const AppContent = () => {
           {/* ✅ DOCUMENT MANAGEMENT ROUTES - ALL NEW */}
           {/* ============================================================ */}
           
-          {/* Main Document Management Page (Full Integration) */}
+          {/* Main Document Management Page (Full-Page - bypasses global layout) */}
           <ProtectedRoute path="/document-management">
             <DashboardLayoutWrapper>
               <DocumentManagementPage />
@@ -672,65 +719,330 @@ const AppContent = () => {
           </ProtectedRoute>
 
           {/* Document Control (Main component) */}
-          <ProtectedRoute path="/documents">
+          <ProtectedRoute path="/documents" exact>
             <DashboardLayoutWrapper>
               <DocumentControl />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* Document Review */}
+          {/* ============================================ */}
+          {/* ✅ NEW: ACCESS CONTROL & SECURITY ROUTES */}
+          {/* ============================================ */}
+          <ProtectedRoute path="/documents/access-control/:documentId?">
+            <DashboardLayoutWrapper>
+              <AccessControl />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ============================================ */}
+          {/* ✅ NEW: RETENTION POLICY ROUTES */}
+          {/* ============================================ */}
+          <ProtectedRoute path="/documents/retention/:documentId?">
+            <DashboardLayoutWrapper>
+              <RetentionPolicy />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ============================================ */}
+          {/* ✅ NEW: WATERMARKING ROUTES */}
+          {/* ============================================ */}
+          <ProtectedRoute path="/documents/watermarking/:documentId?">
+            <DashboardLayoutWrapper>
+              <Watermarking />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ============================================ */}
+          {/* ✅ NEW: WORKFLOW BUILDER ROUTES */}
+          {/* ============================================ */}
+          <ProtectedRoute path="/documents/workflow-builder/:workflowId?">
+            <DashboardLayoutWrapper>
+              <WorkflowBuilder />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ============================================ */}
+          {/* ✅ NEW: COMPLIANCE REPORTS ROUTES */}
+          {/* ============================================ */}
+          <ProtectedRoute path="/documents/compliance-reports/:documentId?">
+            <DashboardLayoutWrapper>
+              <ComplianceReports />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ============================================ */}
+          {/* ✅ NEW: DOCUMENT BUNDLES ROUTES */}
+          {/* ============================================ */}
+          <ProtectedRoute path="/documents/bundles/:bundleId?">
+            <DashboardLayoutWrapper>
+              <DocumentBundles />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ============================================ */}
+          {/* ✅ NEW: SHARE PORTAL ROUTES */}
+          {/* ============================================ */}
+          <ProtectedRoute path="/documents/share/:documentId?">
+            <DashboardLayoutWrapper>
+              <SharePortal />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ============================================ */}
+          {/* ✅ NEW: SMART INTAKE ROUTES */}
+          {/* ============================================ */}
+          <ProtectedRoute path="/documents/smart-intake">
+            <DashboardLayoutWrapper>
+              <SmartIntake />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ============================================ */}
+          {/* ✅ NEW: ADVANCED SEARCH ROUTES */}
+          {/* ============================================ */}
+          <ProtectedRoute path="/documents/advanced-search">
+            <DashboardLayoutWrapper>
+              <AdvancedSearch />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ============================================ */}
+          {/* ✅ NEW: DOCUMENT ASSISTANT (AI CHAT) ROUTES */}
+          {/* ============================================ */}
+          <ProtectedRoute path="/documents/assistant/:documentId?">
+            <DashboardLayoutWrapper>
+              <DocumentAssistant />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ============================================ */}
+          {/* ✅ NEW: BUSINESS INTELLIGENCE ROUTES */}
+          {/* ============================================ */}
+          <ProtectedRoute path="/documents/bi">
+            <DashboardLayoutWrapper>
+              <DocumentBI />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ============================================ */}
+          {/* ✅ NEW: ANOMALY DETECTION ROUTES */}
+          {/* ============================================ */}
+          <ProtectedRoute path="/documents/anomaly-detection">
+            <DashboardLayoutWrapper>
+              <AnomalyDetection />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ============================================ */}
+          {/* ✅ NEW: CUSTOM REPORT BUILDER ROUTES */}
+          {/* ============================================ */}
+          <ProtectedRoute path="/documents/report-builder">
+            <DashboardLayoutWrapper>
+              <CustomReportBuilder />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ============================================ */}
+          {/* ✅ NEW: PREDICTIVE ANALYTICS ROUTES */}
+          {/* ============================================ */}
+          <ProtectedRoute path="/documents/predictive-analytics">
+            <DashboardLayoutWrapper>
+              <PredictiveAnalytics />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ============================================ */}
+          {/* ✅ NEW: QUALITY MANAGEMENT ROUTES */}
+          {/* ============================================ */}
+          <ProtectedRoute path="/documents/quality-management">
+            <DashboardLayoutWrapper>
+              <QualityManagementSystem />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ============================================ */}
+          {/* ✅ NEW: OFFLINE MANAGER ROUTES */}
+          {/* ============================================ */}
+          <ProtectedRoute path="/documents/offline">
+            <DashboardLayoutWrapper>
+              <OfflineManager />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ============================================ */}
+          {/* ✅ NEW: INTEGRATION HUB ROUTES */}
+          {/* ============================================ */}
+          <ProtectedRoute path="/documents/integrations">
+            <DashboardLayoutWrapper>
+              <IntegrationHub />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ============================================ */}
+          {/* ✅ NEW: REALTIME COLLABORATIVE EDITOR ROUTES */}
+          {/* ============================================ */}
+          <ProtectedRoute path="/documents/collaborate/:documentId?">
+            <DashboardLayoutWrapper>
+              <RealtimeCollaborativeEditor />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ============================================ */}
+          {/* DOCUMENT REVIEW */}
+          {/* ============================================ */}
           <ProtectedRoute path="/documents/review">
             <DashboardLayoutWrapper>
               <DocumentReview />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* Document Audit */}
+          {/* ============================================ */}
+          {/* DOCUMENT AUDIT */}
+          {/* ============================================ */}
           <ProtectedRoute path="/documents/audit">
             <DashboardLayoutWrapper>
               <DocumentAudit />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* Document Integration */}
+          {/* ============================================ */}
+          {/* DOCUMENT INTEGRATION */}
+          {/* ============================================ */}
           <ProtectedRoute path="/documents/integration">
             <DashboardLayoutWrapper>
               <DocumentIntegration />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* Document Search */}
+          {/* ============================================ */}
+          {/* DOCUMENT SEARCH */}
+          {/* ============================================ */}
           <ProtectedRoute path="/documents/search">
             <DashboardLayoutWrapper>
               <DocumentSearch />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* Document Bulk Operations */}
+          {/* ============================================ */}
+          {/* DOCUMENT BULK OPERATIONS */}
+          {/* ============================================ */}
           <ProtectedRoute path="/documents/bulk">
             <DashboardLayoutWrapper>
               <DocumentBulk />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* Document Analytics */}
+          {/* ============================================ */}
+          {/* DOCUMENT ANALYTICS */}
+          {/* ============================================ */}
           <ProtectedRoute path="/documents/analytics">
             <DashboardLayoutWrapper>
               <DocumentAnalytics />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* Document Editor */}
+          {/* ============================================ */}
+          {/* DOCUMENT DASHBOARD */}
+          {/* ============================================ */}
+          <ProtectedRoute path="/documents/dashboard">
+            <DashboardLayoutWrapper>
+              <DocumentDashboard />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ============================================ */}
+          {/* DOCUMENT COMPARE */}
+          {/* ============================================ */}
+          <ProtectedRoute path="/documents/compare">
+            <DashboardLayoutWrapper>
+              <DocumentCompare />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ============================================ */}
+          {/* TEMPLATE LIBRARY */}
+          {/* ============================================ */}
+          <ProtectedRoute path="/documents/templates">
+            <DashboardLayoutWrapper>
+              <TemplateLibrary />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ============================================ */}
+          {/* DOCUMENT EDITOR */}
+          {/* ============================================ */}
           <ProtectedRoute path="/documents/edit/:id?">
             <DashboardLayoutWrapper>
               <DocumentEditor />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* Document Signatures */}
+          {/* ============================================ */}
+          {/* DOCUMENT SIGNATURES */}
+          {/* ============================================ */}
           <ProtectedRoute path="/documents/signatures/:id?">
             <DashboardLayoutWrapper>
               <DocumentSignature />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ============================================ */}
+          {/* HSE-SPECIFIC DOCUMENT ROUTES */}
+          {/* ============================================ */}
+
+          {/* INCIDENT LINKING */}
+          <ProtectedRoute path="/documents/incidents/:documentId?">
+            <DashboardLayoutWrapper>
+              <IncidentLinking />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* SDS MANAGEMENT */}
+          <ProtectedRoute path="/documents/sds">
+            <DashboardLayoutWrapper>
+              <SDSManagement />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* PTW INTEGRATION */}
+          <ProtectedRoute path="/documents/ptw">
+            <DashboardLayoutWrapper>
+              <PTWIntegration />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* AI CLASSIFICATION */}
+          <ProtectedRoute path="/documents/ai-classification">
+            <DashboardLayoutWrapper>
+              <AIClassification />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* OCR PROCESSOR */}
+          <ProtectedRoute path="/documents/ocr">
+            <DashboardLayoutWrapper>
+              <OCRProcessor />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* EXPIRATION DASHBOARD */}
+          <ProtectedRoute path="/documents/expiration">
+            <DashboardLayoutWrapper>
+              <ExpirationDashboard />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* APPROVAL CHAIN */}
+          <ProtectedRoute path="/documents/approvals/:documentId?">
+            <DashboardLayoutWrapper>
+              <ApprovalChain />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* COMPLIANCE FRAMEWORK */}
+          <ProtectedRoute path="/documents/compliance-framework/:documentId?">
+            <DashboardLayoutWrapper>
+              <ComplianceFramework />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
@@ -849,7 +1161,7 @@ const AppContent = () => {
           </ProtectedRoute>
 
           {/* ============================================ */}
-          {/* LEGACY HOSPITAL ROUTES - HospitalPage REMOVED */}
+          {/* LEGACY ROUTES */}
           {/* ============================================ */}
           <ProtectedRoute path="/incidents">
             <DashboardLayoutWrapper>

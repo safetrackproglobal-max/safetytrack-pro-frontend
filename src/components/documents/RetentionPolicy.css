@@ -1,0 +1,281 @@
+/* src/components/documents/RetentionPolicy.css */
+
+.retention-policy {
+  background: transparent;
+}
+
+.retention-header {
+  background: white;
+  padding: 16px 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* Retention Stat Cards */
+.retention-stat-card {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  height: 100%;
+}
+
+.retention-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.retention-stat-card .ant-statistic-title {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-bottom: 8px;
+}
+
+/* Lifecycle Stage Colors */
+.stage-active {
+  border-left: 4px solid #52c41a;
+}
+
+.stage-inactive {
+  border-left: 4px solid #d9d9d9;
+}
+
+.stage-archived {
+  border-left: 4px solid #1890ff;
+}
+
+.stage-pending-disposal {
+  border-left: 4px solid #faad14;
+}
+
+.stage-disposed {
+  border-left: 4px solid #f5222d;
+}
+
+.stage-legal-hold {
+  border-left: 4px solid #722ed1;
+}
+
+/* Retention Timeline */
+.retention-timeline {
+  position: relative;
+  padding: 20px 0;
+}
+
+.retention-timeline::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(to right, #52c41a, #faad14, #f5222d);
+  transform: translateY(-50%);
+}
+
+.retention-timeline-point {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  border: 3px solid;
+  position: relative;
+  z-index: 1;
+}
+
+/* Disposal Warning */
+.disposal-warning {
+  background: #fff2e8;
+  border: 1px solid #ffbb96;
+  border-radius: 6px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.disposal-warning-icon {
+  font-size: 24px;
+  color: #fa541c;
+}
+
+/* Legal Hold Card */
+.legal-hold-card {
+  border-left: 4px solid #722ed1;
+  background: linear-gradient(to right, #f9f0ff, white);
+}
+
+.legal-hold-card .ant-list-item-meta-title {
+  color: #722ed1;
+}
+
+/* Certificate Card */
+.certificate-card {
+  border-left: 4px solid #52c41a;
+  background: linear-gradient(to right, #f6ffed, white);
+}
+
+/* Disposal Method Selection */
+.disposal-method-radio .ant-radio-wrapper {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.disposal-method-radio .ant-radio-wrapper:hover {
+  background: #fafafa;
+  border-color: #1890ff;
+}
+
+.disposal-method-radio .ant-radio-wrapper-checked {
+  background: #e6f7ff;
+  border-color: #1890ff;
+}
+
+/* Countdown Timer */
+.countdown-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-weight: 500;
+}
+
+.countdown-safe {
+  background: #f6ffed;
+  color: #52c41a;
+}
+
+.countdown-warning {
+  background: #fff7e6;
+  color: #faad14;
+}
+
+.countdown-critical {
+  background: #fff1f0;
+  color: #f5222d;
+  animation: pulse-warning 2s ease-in-out infinite;
+}
+
+/* Retention Schedule Tags */
+.retention-schedule-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-weight: 500;
+  font-size: 12px;
+}
+
+/* Framework Icons */
+.framework-icon {
+  font-size: 16px;
+  margin-right: 4px;
+}
+
+/* Policy Form */
+.retention-policy-form .ant-form-item-label > label {
+  font-weight: 500;
+}
+
+.retention-policy-form .ant-divider {
+  font-weight: 600;
+  color: #262626;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .retention-header {
+    padding: 12px 16px;
+  }
+  
+  .retention-stat-card {
+    margin-bottom: 12px;
+  }
+  
+  .retention-timeline-point {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Animations */
+@keyframes pulse-warning {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .retention-header {
+    background: #1f1f1f;
+  }
+  
+  .disposal-method-radio .ant-radio-wrapper {
+    border-color: #303030;
+  }
+  
+  .disposal-method-radio .ant-radio-wrapper:hover {
+    background: #262626;
+  }
+}
+
+/* Certificate Preview */
+.certificate-preview {
+  border: 2px solid #d9d9d9;
+  border-radius: 8px;
+  padding: 40px;
+  text-align: center;
+  background: white;
+  position: relative;
+}
+
+.certificate-preview::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 60px;
+  height: 60px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='none' stroke='%2352c41a' stroke-width='3'/%3E%3Ctext x='50' y='55' text-anchor='middle' font-size='14' fill='%2352c41a' font-weight='bold'%3EVERIFIED%3C/text%3E%3C/svg%3E") no-repeat center;
+  background-size: contain;
+  opacity: 0.6;
+}
+
+/* Retention Progress Bar */
+.retention-progress {
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.retention-progress-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.retention-progress-safe {
+  background: linear-gradient(to right, #52c41a, #95de64);
+}
+
+.retention-progress-warning {
+  background: linear-gradient(to right, #faad14, #ffc53d);
+}
+
+.retention-progress-critical {
+  background: linear-gradient(to right, #f5222d, #ff7875);
+}

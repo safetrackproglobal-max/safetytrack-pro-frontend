@@ -1,0 +1,343 @@
+/* src/components/documents/AdvancedSearch.css */
+
+.advanced-search {
+  background: transparent;
+}
+
+.search-header {
+  background: white;
+  padding: 16px 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* Search Bar Card */
+.search-bar-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: none;
+}
+
+.search-bar-card .ant-card-body {
+  padding: 20px;
+}
+
+/* Search Input */
+.search-input-wrapper {
+  position: relative;
+}
+
+.search-input-wrapper .ant-input-affix-wrapper-lg {
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
+
+.search-input-wrapper .ant-input-affix-wrapper-lg:hover {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.search-input-wrapper .ant-input-affix-wrapper-lg:focus-within {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.15);
+}
+
+/* Boolean Help */
+.boolean-help {
+  padding: 8px 12px;
+  background: #fafafa;
+  border-radius: 6px;
+  border-left: 3px solid #722ed1;
+}
+
+.boolean-help .ant-tag {
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  background: white;
+  border-color: #d9d9d9;
+}
+
+.boolean-help .ant-tag:hover {
+  background: #722ed1;
+  color: white;
+  border-color: #722ed1;
+}
+
+/* Search Results */
+.search-results {
+  max-height: calc(100vh - 400px);
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.search-results::-webkit-scrollbar {
+  width: 8px;
+}
+
+.search-results::-webkit-scrollbar-thumb {
+  background: #bfbfbf;
+  border-radius: 4px;
+}
+
+.search-results::-webkit-scrollbar-thumb:hover {
+  background: #8c8c8c;
+}
+
+/* Search Result Card */
+.search-result-card {
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: 1px solid #f0f0f0;
+}
+
+.search-result-card:hover {
+  border-color: #1890ff;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.1);
+  transform: translateX(2px);
+}
+
+.search-result-card .ant-card-body {
+  padding: 12px 16px;
+}
+
+/* Highlighted Text */
+.search-result-card mark {
+  background: #ffe58f;
+  padding: 0 2px;
+  border-radius: 2px;
+  font-weight: 500;
+}
+
+/* Filters Panel */
+.filters-panel {
+  padding: 0;
+}
+
+.filters-panel .ant-divider {
+  font-size: 12px;
+  font-weight: 600;
+  color: #262626;
+  margin: 12px 0;
+}
+
+.filters-panel .ant-divider::before,
+.filters-panel .ant-divider::after {
+  border-color: #f0f0f0;
+}
+
+.filters-panel .ant-checkbox-wrapper {
+  font-size: 12px;
+}
+
+.filters-panel .ant-slider {
+  margin: 8px 0;
+}
+
+.filters-panel .ant-slider-mark-text {
+  font-size: 10px;
+}
+
+/* Search Mode Segmented */
+.advanced-search .ant-segmented {
+  background: #f5f5f5;
+  padding: 2px;
+}
+
+.advanced-search .ant-segmented-item {
+  transition: all 0.2s ease;
+}
+
+.advanced-search .ant-segmented-item-label {
+  font-size: 13px;
+  padding: 6px 12px;
+}
+
+/* Empty State */
+.advanced-search .ant-empty {
+  padding: 60px 20px;
+}
+
+.advanced-search .ant-empty h5 {
+  margin-bottom: 4px;
+}
+
+/* Pagination */
+.advanced-search .ant-pagination {
+  display: flex;
+  justify-content: center;
+}
+
+.advanced-search .ant-pagination-item-active {
+  border-color: #1890ff;
+}
+
+/* Saved Search Item */
+.advanced-search .ant-list-item-meta-title a {
+  color: #1890ff;
+  transition: color 0.2s ease;
+}
+
+.advanced-search .ant-list-item-meta-title a:hover {
+  color: #40a9ff;
+}
+
+/* Search Suggestion Dropdown */
+.ant-select-dropdown .ant-select-item {
+  font-size: 13px;
+}
+
+/* Statistic in Detail Drawer */
+.advanced-search .ant-statistic-title {
+  font-size: 11px;
+  color: #8c8c8c;
+}
+
+/* Filter Badge */
+.advanced-search .ant-badge-count {
+  box-shadow: 0 0 0 1px #fff;
+}
+
+/* Grid View Cards */
+.advanced-search .ant-col .ant-card {
+  transition: all 0.2s ease;
+}
+
+.advanced-search .ant-col .ant-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .search-header {
+    padding: 12px 16px;
+  }
+  
+  .search-bar-card .ant-card-body {
+    padding: 12px;
+  }
+  
+  .search-input-wrapper .ant-input-affix-wrapper-lg {
+    font-size: 14px;
+    padding: 6px 12px;
+  }
+  
+  .boolean-help {
+    font-size: 11px;
+  }
+  
+  .search-results {
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .search-header {
+    background: #1f1f1f;
+  }
+  
+  .boolean-help {
+    background: #262626;
+    border-left-color: #722ed1;
+  }
+  
+  .boolean-help .ant-tag {
+    background: #1f1f1f;
+    border-color: #303030;
+    color: #e6e6e6;
+  }
+  
+  .search-result-card {
+    background: #1f1f1f;
+    border-color: #303030;
+  }
+  
+  .search-result-card:hover {
+    border-color: #177ddc;
+  }
+  
+  .search-result-card mark {
+    background: #7c5914;
+    color: #ffe58f;
+  }
+  
+  .advanced-search .ant-segmented {
+    background: #1f1f1f;
+  }
+  
+  .filters-panel .ant-divider {
+    color: #e6e6e6;
+  }
+}
+
+/* Animations */
+@keyframes search-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.search-result-card {
+  animation: search-fade-in 0.2s ease-out;
+}
+
+/* Loading Skeleton */
+.search-loading-skeleton {
+  padding: 16px;
+}
+
+/* Selected Result */
+.search-result-card.selected {
+  border-color: #1890ff;
+  background: #f0f8ff;
+}
+
+/* Score Progress */
+.advanced-search .ant-progress-line {
+  margin-bottom: 0;
+}
+
+/* Did You Mean */
+.advanced-search .ant-alert-info {
+  background: #e6f7ff;
+  border-color: #91d5ff;
+}
+
+.advanced-search .ant-alert-info .ant-btn-link {
+  color: #1890ff;
+  font-weight: 500;
+}
+
+/* Filter Drawer */
+.advanced-search .ant-drawer-body {
+  padding: 16px;
+}
+
+/* Search Suggestions */
+.ant-select-item-option-content {
+  font-size: 13px;
+}
+
+/* Print Styles */
+@media print {
+  .search-header,
+  .search-bar-card,
+  .ant-pagination,
+  .filters-panel {
+    display: none !important;
+  }
+  
+  .search-result-card {
+    break-inside: avoid;
+    border: 1px solid #d9d9d9;
+  }
+}

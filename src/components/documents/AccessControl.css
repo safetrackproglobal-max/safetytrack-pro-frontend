@@ -1,0 +1,237 @@
+/* src/components/documents/AccessControl.css */
+
+.access-control {
+  background: transparent;
+}
+
+.access-control-header {
+  background: white;
+  padding: 16px 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* Security Stat Cards */
+.security-stat-card {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.security-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.security-stat-card .ant-statistic-title {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-bottom: 8px;
+}
+
+/* Sensitivity Levels */
+.sensitivity-public {
+  border-left: 4px solid #52c41a;
+}
+
+.sensitivity-internal {
+  border-left: 4px solid #1890ff;
+}
+
+.sensitivity-confidential {
+  border-left: 4px solid #faad14;
+}
+
+.sensitivity-restricted {
+  border-left: 4px solid #f5222d;
+}
+
+.sensitivity-top-secret {
+  border-left: 4px solid #cf1322;
+}
+
+/* Permission Tags */
+.permission-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+/* Principal Avatar Group */
+.principal-avatar-group .ant-avatar {
+  border: 2px solid white;
+  margin-left: -8px;
+}
+
+.principal-avatar-group .ant-avatar:first-child {
+  margin-left: 0;
+}
+
+/* Access Level Buttons */
+.access-level-radio .ant-radio-button-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  height: auto;
+}
+
+/* Permission Checkbox Group */
+.permission-checkbox-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+}
+
+.permission-checkbox-item {
+  padding: 8px 12px;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.permission-checkbox-item:hover {
+  background: #fafafa;
+  border-color: #1890ff;
+}
+
+.permission-checkbox-item.checked {
+  background: #e6f7ff;
+  border-color: #1890ff;
+}
+
+/* IP Restriction Tags */
+.ip-restriction-tag {
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  font-size: 12px;
+  background: #f5f5f5;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* Audit Timeline */
+.access-audit-timeline .ant-timeline-item-content {
+  margin-left: 24px;
+}
+
+.access-audit-timeline .ant-card {
+  border-radius: 6px;
+}
+
+/* Expiration Warning */
+.expiration-warning {
+  color: #f5222d;
+  font-weight: 500;
+}
+
+.expiration-ok {
+  color: #52c41a;
+}
+
+/* Security Settings Form */
+.security-settings-form .ant-form-item-label > label {
+  font-weight: 500;
+}
+
+.security-settings-form .ant-divider {
+  font-weight: 600;
+  color: #262626;
+}
+
+/* Watermark Preview */
+.watermark-preview {
+  position: relative;
+  border: 1px dashed #d9d9d9;
+  border-radius: 8px;
+  padding: 40px 20px;
+  text-align: center;
+  background: #fafafa;
+  overflow: hidden;
+}
+
+.watermark-preview::before {
+  content: 'CONFIDENTIAL';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-30deg);
+  font-size: 48px;
+  font-weight: bold;
+  color: rgba(255, 0, 0, 0.08);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .access-control-header {
+    padding: 12px 16px;
+  }
+  
+  .security-stat-card {
+    margin-bottom: 12px;
+  }
+  
+  .permission-checkbox-group {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .access-control-header {
+    background: #1f1f1f;
+  }
+  
+  .permission-checkbox-item {
+    border-color: #303030;
+  }
+  
+  .permission-checkbox-item:hover {
+    background: #262626;
+  }
+  
+  .ip-restriction-tag {
+    background: #262626;
+    color: #e6e6e6;
+  }
+}
+
+/* Animations */
+@keyframes pulse-warning {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.pulse-warning {
+  animation: pulse-warning 2s ease-in-out infinite;
+}
+
+/* Loading States */
+.access-control-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+/* Tooltip Enhancements */
+.ant-tooltip-inner {
+  max-width: 300px;
+}
+
+/* Card Enhancements */
+.access-control .ant-card {
+  border-radius: 8px;
+}
+
+.access-control .ant-tabs-content-holder {
+  padding-top: 16px;
+}

@@ -1,117 +1,143 @@
 /* src/components/documents/DocumentCompare.css */
 
 .document-compare {
-  background: #f0f2f5;
-  min-height: 100%;
+  background: transparent;
 }
 
-.document-compare .comparison-selector {
-  background: white;
-  padding: 24px;
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+/* ============================================================
+   HEADER — Prevent Title Wrap
+   ============================================================ */
+.compare-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  white-space: nowrap;
+  overflow: hidden;
   margin-bottom: 16px;
 }
 
-.document-compare .comparison-stats {
+.compare-header > .ant-space:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.compare-header > .ant-space:last-child {
+  flex-shrink: 0;
+}
+
+.compare-header h4.ant-typography,
+.compare-header .ant-typography h4,
+.compare-header h4 {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  word-break: keep-all !important;
+  max-width: 400px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* ============================================================
+   SELECTOR
+   ============================================================ */
+.comparison-selector {
   background: white;
-  padding: 24px;
+  padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f0f0f0;
   margin-bottom: 16px;
 }
 
-.document-compare .comparison-diff {
-  background: white;
-  padding: 24px;
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-}
-
-.document-compare .comparison-diff .react-diff-viewer {
-  border-radius: 8px;
-}
-
-.document-compare .ant-card {
-  border-radius: 8px;
-}
-
-.document-compare .ant-tabs {
-  background: white;
-  border-radius: 8px;
-  padding: 24px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-}
-
-.document-compare .ant-tabs-nav {
+/* ============================================================
+   STATS
+   ============================================================ */
+.comparison-stats {
   margin-bottom: 16px;
 }
 
-/* Print styles */
-@media print {
-  .document-compare .comparison-selector {
-    display: none !important;
-  }
-  
-  .document-compare .ant-tabs-nav {
-    display: none !important;
-  }
-  
-  .document-compare .ant-tabs-tabpane {
-    display: block !important;
-  }
-  
-  .document-compare .ant-btn {
-    display: none !important;
-  }
+.comparison-stats .ant-statistic-title {
+  font-size: 12px;
+  color: #8c8c8c;
 }
 
-/* Responsive */
+/* ============================================================
+   DIFF VIEWER
+   ============================================================ */
+.comparison-diff {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.diff-viewer {
+  background: #fafafa;
+  border-radius: 8px;
+  overflow: auto;
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  line-height: 1.6;
+}
+
+.diff-viewer::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.diff-viewer::-webkit-scrollbar-thumb {
+  background: #d9d9d9;
+  border-radius: 4px;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
 @media (max-width: 768px) {
-  .document-compare {
-    padding: 16px;
+  .compare-header h4 {
+    font-size: 16px;
+    max-width: 150px;
   }
   
-  .document-compare .comparison-selector {
-    padding: 16px;
+  .compare-header .ant-badge-status-text {
+    display: none;
   }
   
-  .document-compare .comparison-stats {
-    padding: 16px;
-  }
-  
-  .document-compare .comparison-diff {
-    padding: 16px;
-  }
-  
-  .document-compare .ant-tabs {
-    padding: 16px;
+  .comparison-selector {
+    padding: 12px;
   }
 }
 
-@media (max-width: 576px) {
-  .document-compare {
-    padding: 8px;
+/* ============================================================
+   DARK MODE
+   ============================================================ */
+@media (prefers-color-scheme: dark) {
+  .comparison-selector {
+    background: #1f1f1f;
+    border-color: #303030;
   }
   
-  .document-compare .comparison-selector {
-    padding: 12px;
+  .comparison-diff {
+    background: #1f1f1f;
   }
   
-  .document-compare .comparison-stats {
-    padding: 12px;
+  .diff-viewer {
+    background: #262626;
+    color: #e6e6e6;
+  }
+}
+
+/* ============================================================
+   PRINT
+   ============================================================ */
+@media print {
+  .compare-header,
+  .comparison-selector,
+  .ant-tabs-nav,
+  .ant-btn {
+    display: none !important;
   }
   
-  .document-compare .comparison-diff {
-    padding: 12px;
-  }
-  
-  .document-compare .ant-tabs {
-    padding: 12px;
-  }
-  
-  .document-compare .comparison-diff .react-diff-viewer td {
-    padding: 2px 4px !important;
-    font-size: 12px !important;
+  .comparison-diff {
+    box-shadow: none;
   }
 }

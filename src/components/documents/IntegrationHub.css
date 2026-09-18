@@ -1,0 +1,307 @@
+/* src/components/documents/IntegrationHub.css */
+
+.integration-hub {
+  background: transparent;
+}
+
+.integration-header {
+  background: white;
+  padding: 16px 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* Stat Cards */
+.integration-stat-card {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  height: 100%;
+  border-left: 4px solid #1890ff;
+}
+
+.integration-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Integration Cards */
+.integration-card {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  height: 100%;
+  border: 1px solid #f0f0f0;
+}
+
+.integration-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #1890ff;
+}
+
+.integration-card.connected {
+  border-color: #52c41a;
+  background: linear-gradient(to bottom right, #f6ffed, white);
+}
+
+.integration-card .ant-card-body {
+  padding: 16px;
+}
+
+/* Integration Icon */
+.integration-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+/* Webhook URL */
+.integration-hub .ant-typography code {
+  font-size: 11px;
+  word-break: break-all;
+  display: inline-block;
+  max-width: 100%;
+}
+
+/* API Key Display */
+.api-key-display {
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 6px;
+  border: 1px solid #d9d9d9;
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  font-size: 12px;
+  word-break: break-all;
+  margin-top: 8px;
+}
+
+/* Category Filters */
+.integration-hub .ant-btn-group {
+  flex-wrap: wrap;
+}
+
+.integration-hub .ant-btn-sm {
+  height: 28px;
+  font-size: 12px;
+}
+
+/* Connection Status Colors */
+.status-connected { color: #52c41a; }
+.status-disconnected { color: #8c8c8c; }
+.status-error { color: #f5222d; }
+.status-connecting { color: #1890ff; }
+.status-expired { color: #faad14; }
+
+/* Activity Timeline */
+.integration-hub .ant-timeline-item-content {
+  padding-left: 8px;
+}
+
+.integration-hub .ant-timeline-item-head {
+  background: white;
+}
+
+/* Webhook List */
+.webhook-item {
+  padding: 12px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.webhook-item:hover {
+  background: #fafafa;
+}
+
+/* API Keys Table */
+.integration-hub .ant-table-tbody > tr > td {
+  padding: 12px 16px;
+}
+
+.integration-hub .ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* OAuth Popup Notice */
+.oauth-notice {
+  padding: 12px;
+  background: #e6f7ff;
+  border: 1px solid #91d5ff;
+  border-radius: 6px;
+  color: #1890ff;
+  text-align: center;
+  font-size: 13px;
+}
+
+/* Popular Badge */
+.integration-card .popular-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #faad14;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .integration-header {
+    padding: 12px 16px;
+  }
+  
+  .integration-stat-card {
+    margin-bottom: 12px;
+  }
+  
+  .integration-hub .ant-btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  
+  .integration-hub .ant-btn-group .ant-btn {
+    flex: 1;
+    min-width: 100px;
+  }
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .integration-header {
+    background: #1f1f1f;
+  }
+  
+  .integration-card {
+    background: #1f1f1f;
+    border-color: #303030;
+  }
+  
+  .integration-card.connected {
+    background: linear-gradient(to bottom right, #162312, #1f1f1f);
+  }
+  
+  .api-key-display {
+    background: #262626;
+    border-color: #303030;
+    color: #e6e6e6;
+  }
+  
+  .webhook-item:hover {
+    background: #262626;
+  }
+  
+  .integration-hub .ant-table-thead > tr > th {
+    background: #262626;
+  }
+  
+  .oauth-notice {
+    background: #111a2c;
+    border-color: #15395b;
+  }
+}
+
+/* Animations */
+@keyframes integration-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.integration-card.connected .integration-icon {
+  animation: integration-pulse 3s ease-in-out infinite;
+}
+
+/* Loading States */
+.integration-card .anticon-sync {
+  color: #1890ff;
+}
+
+/* Connection Test Indicator */
+.connection-test-success {
+  color: #52c41a;
+  animation: fade-in 0.3s ease;
+}
+
+.connection-test-error {
+  color: #f5222d;
+  animation: shake 0.3s ease;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+/* Category Badge */
+.category-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.category-storage {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.category-communication {
+  background: #f6ffed;
+  color: #52c41a;
+}
+
+.category-productivity {
+  background: #f9f0ff;
+  color: #722ed1;
+}
+
+.category-crm {
+  background: #fffbe6;
+  color: #faad14;
+}
+
+.category-erp {
+  background: #e6fffb;
+  color: #13c2c2;
+}
+
+.category-identity {
+  background: #fff0f6;
+  color: #eb2f96;
+}
+
+.category-esignature {
+  background: #fff2e8;
+  color: #fa541c;
+}
+
+.category-custom {
+  background: #f5f5f5;
+  color: #8c8c8c;
+}
+
+/* Print Styles */
+@media print {
+  .integration-header,
+  .integration-stat-card,
+  .ant-tabs-nav {
+    display: none !important;
+  }
+}

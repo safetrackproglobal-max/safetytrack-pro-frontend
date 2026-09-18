@@ -33,6 +33,7 @@ import {
   QrcodeOutlined,
   ScanOutlined,
   FingerprintOutlined,
+  UploadOutlined,
   VerifiedOutlined,
   HistoryOutlined,
   FilePdfOutlined

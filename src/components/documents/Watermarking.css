@@ -1,0 +1,336 @@
+/* src/components/documents/Watermarking.css */
+
+.watermarking {
+  background: transparent;
+}
+
+.watermarking-header {
+  background: white;
+  padding: 16px 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* Watermark Preview Container */
+.watermark-preview-container {
+  position: relative;
+  background: white;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  min-height: 400px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.watermark-preview-container:hover {
+  border-color: #1890ff;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.1);
+}
+
+/* Mock Document Content */
+.watermark-mock-content {
+  padding: 40px;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.watermark-mock-line {
+  height: 12px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.watermark-mock-line.title {
+  height: 20px;
+  width: 60%;
+  margin-bottom: 16px;
+}
+
+.watermark-mock-block {
+  height: 200px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+/* Watermark Overlay */
+.watermark-overlay {
+  position: absolute;
+  pointer-events: none;
+   -webkit-user-select: none;
+  user-select: none;
+  white-space: nowrap;
+  letter-spacing: 4px;
+  transition: all 0.3s ease;
+}
+
+.watermark-overlay.centered {
+  top: 50%;
+  left: 50%;
+  transform-origin: center;
+}
+
+/* Dynamic Tracking Footer */
+.watermark-tracking-footer {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  font-size: 8px;
+  color: #8c8c8c;
+  opacity: 0.6;
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  pointer-events: none;
+   -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Template Preview Cards */
+.watermark-template-card {
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.watermark-template-card:hover {
+  border-color: #1890ff;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.watermark-template-card.selected {
+  border: 2px solid #1890ff;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.2);
+}
+
+.watermark-template-preview {
+  height: 100px;
+  background: #fafafa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.watermark-template-preview-text {
+  font-weight: bold;
+  white-space: nowrap;
+  transform-origin: center;
+}
+
+/* Variable Tags */
+.watermark-variable-tag {
+  cursor: pointer;
+  font-size: 11px;
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  transition: all 0.2s ease;
+   -webkit-user-select: none;
+  user-select: none;
+}
+
+.watermark-variable-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.watermark-variable-tag:active {
+  transform: translateY(0);
+}
+
+/* Resolved Text Preview */
+.watermark-resolved-text {
+  font-size: 12px;
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  background: #fafafa;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-top: 4px;
+  word-break: break-all;
+  border-left: 3px solid #1890ff;
+}
+
+/* Actions Card */
+.watermark-actions-card .ant-btn {
+  text-align: left;
+  justify-content: flex-start;
+}
+
+/* Position Grid Selector */
+.watermark-position-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  max-width: 150px;
+}
+
+.watermark-position-cell {
+  aspect-ratio: 1;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #8c8c8c;
+}
+
+.watermark-position-cell:hover {
+  border-color: #1890ff;
+  background: #f0f8ff;
+}
+
+.watermark-position-cell.selected {
+  border-color: #1890ff;
+  background: #1890ff;
+  color: white;
+}
+
+/* Log Timeline */
+.watermark-log-timeline .ant-timeline-item {
+  padding-bottom: 16px;
+}
+
+.watermark-log-timeline .ant-timeline-item-content {
+  margin-left: 24px;
+}
+
+/* Color Picker Enhancement */
+.watermarking .ant-color-picker-trigger {
+  width: 100%;
+  height: 32px;
+  border-radius: 6px;
+}
+
+/* Slider Labels */
+.watermarking .ant-slider-mark-text {
+  font-size: 10px;
+}
+
+/* Form Enhancements */
+.watermarking .ant-form-item-label > label {
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.watermarking .ant-form-item-extra {
+  font-size: 11px;
+  color: #8c8c8c;
+}
+
+/* Logo Upload */
+.watermark-logo-preview {
+  margin-top: 8px;
+  padding: 8px;
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafafa;
+}
+
+.watermark-logo-preview img {
+  max-height: 60px;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+/* Status Indicators */
+.watermark-status-active {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+  border-radius: 12px;
+  font-size: 11px;
+  color: #52c41a;
+}
+
+.watermark-status-inactive {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: #f5f5f5;
+  border: 1px solid #d9d9d9;
+  border-radius: 12px;
+  font-size: 11px;
+  color: #8c8c8c;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .watermarking-header {
+    padding: 12px 16px;
+  }
+  
+  .watermark-preview-container {
+    min-height: 300px;
+  }
+  
+  .watermark-template-preview {
+    height: 80px;
+  }
+  
+  .watermark-position-grid {
+    max-width: 100%;
+  }
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .watermarking-header {
+    background: #1f1f1f;
+  }
+  
+  .watermark-preview-container {
+    background: #141414;
+    border-color: #303030;
+  }
+  
+  .watermark-mock-line {
+    background: #303030;
+  }
+  
+  .watermark-mock-block {
+    background: #262626;
+  }
+  
+  .watermark-resolved-text {
+    background: #262626;
+    color: #e6e6e6;
+  }
+  
+  .watermark-template-preview {
+    background: #262626;
+  }
+}
+
+/* Animations */
+@keyframes watermark-pulse {
+  0%, 100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.watermark-overlay.animated {
+  animation: watermark-pulse 4s ease-in-out infinite;
+}
+
+/* Print Styles */
+@media print {
+  .watermark-overlay {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

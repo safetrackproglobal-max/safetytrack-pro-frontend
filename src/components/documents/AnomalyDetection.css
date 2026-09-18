@@ -1,0 +1,200 @@
+/* src/components/documents/AnomalyDetection.css */
+
+.anomaly-detection {
+  background: transparent;
+}
+
+/* Header */
+.anomaly-header {
+  background: white;
+  padding: 16px 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  margin-bottom: 16px;
+}
+
+/* Stat Cards */
+.anomaly-stat-card {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  height: 100%;
+  border-left: 4px solid #faad14;
+}
+
+.anomaly-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.anomaly-stat-card.critical {
+  border-left-color: #cf1322;
+  animation: pulse-critical 2s ease-in-out infinite;
+}
+
+.anomaly-stat-card.success {
+  border-left-color: #52c41a;
+}
+
+.anomaly-stat-card .ant-statistic-title {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+/* Critical Alert */
+.anomaly-detection .ant-alert-error {
+  border-left: 4px solid #cf1322;
+  border-radius: 8px;
+}
+
+/* Table Row Highlighting */
+.anomaly-detection .critical-row > td {
+  background: #fff1f0 !important;
+}
+
+.anomaly-detection .critical-row:hover > td {
+  background: #ffccc7 !important;
+}
+
+.anomaly-detection .high-row > td {
+  background: #fff7e6 !important;
+}
+
+.anomaly-detection .high-row:hover > td {
+  background: #ffe7ba !important;
+}
+
+/* Chart Cards */
+.anomaly-detection .ant-card {
+  border-radius: 8px;
+}
+
+.anomaly-detection .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+  font-weight: 600;
+}
+
+/* Risk Score Indicator */
+.risk-score-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 13px;
+  color: white;
+}
+
+.risk-score-critical {
+  background: linear-gradient(135deg, #cf1322, #f5222d);
+  box-shadow: 0 2px 8px rgba(207, 19, 34, 0.3);
+}
+
+.risk-score-high {
+  background: linear-gradient(135deg, #f5222d, #ff7875);
+  box-shadow: 0 2px 8px rgba(245, 34, 45, 0.3);
+}
+
+.risk-score-medium {
+  background: linear-gradient(135deg, #faad14, #ffc53d);
+  box-shadow: 0 2px 8px rgba(250, 173, 20, 0.3);
+}
+
+.risk-score-low {
+  background: linear-gradient(135deg, #52c41a, #95de64);
+  box-shadow: 0 2px 8px rgba(82, 196, 26, 0.3);
+}
+
+/* Timeline in Detail Drawer */
+.anomaly-detection .ant-timeline-item-content {
+  padding-left: 8px;
+}
+
+/* Rule List */
+.anomaly-detection .ant-list-item {
+  padding: 12px 0;
+  transition: background 0.2s ease;
+}
+
+.anomaly-detection .ant-list-item:hover {
+  background: #fafafa;
+  border-radius: 8px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+/* Baseline Table */
+.baseline-score-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: #f0f0f0;
+  overflow: hidden;
+}
+
+.baseline-score-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.baseline-score-fill.high {
+  background: linear-gradient(90deg, #52c41a, #95de64);
+}
+
+.baseline-score-fill.medium {
+  background: linear-gradient(90deg, #faad14, #ffc53d);
+}
+
+.baseline-score-fill.low {
+  background: linear-gradient(90deg, #f5222d, #ff7875);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .anomaly-header {
+    padding: 12px 16px;
+  }
+
+  .anomaly-stat-card {
+    margin-bottom: 12px;
+  }
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .anomaly-header {
+    background: #1f1f1f;
+  }
+
+  .anomaly-stat-card {
+    background: #1f1f1f;
+  }
+
+  .anomaly-detection .critical-row > td {
+    background: #2c1618 !important;
+  }
+
+  .anomaly-detection .high-row > td {
+    background: #2b2000 !important;
+  }
+}
+
+/* Animations */
+@keyframes pulse-critical {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(207, 19, 34, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(207, 19, 34, 0);
+  }
+}
+
+/* Print */
+@media print {
+  .anomaly-header,
+  .anomaly-stat-card,
+  .ant-tabs-nav {
+    display: none !important;
+  }
+}

@@ -5,7 +5,7 @@ import {
   Card, Row, Col, Button, Space, Input, Select, Modal,
   Typography, Divider, Tag, Badge, Tooltip, message,
   Spin, Empty, Alert, Progress, Statistic, Tabs, List,
-  Collapse, Table, Timeline, Avatar, Descriptions
+  Collapse, Table, Timeline, Avatar, Descriptions, Switch
 } from 'antd';
 import {
   DiffOutlined,
@@ -25,7 +25,8 @@ import {
   HistoryOutlined,
   ClockCircleOutlined,
   WarningOutlined,
-  InfoCircleOutlined
+  InfoCircleOutlined,
+  UnorderedListOutlined as ListOutlined
 } from '@ant-design/icons';
 import * as Diff from 'diff';
 import documentService from '../../services/documentService';
@@ -319,17 +320,20 @@ const DocumentCompare = ({
     );
   };
   
-  // Render Diff Viewer
+  // Render Diff Viewer (as simple text diff since ReactDiffViewer is not installed)
   const renderDiff = () => {
     if (!comparisonResult) return null;
     
     const oldValue = comparisonResult.document1?.content || '';
     const newValue = comparisonResult.document2?.content || '';
     
+    // Compute diff inline
+    const diffParts = Diff.diffLines(oldValue, newValue);
+    
     return (
       <div className="comparison-diff">
         <div style={{ marginBottom: 16 }}>
-          <Space>
+          <Space wrap>
             <Button.Group>
               <Button 
                 type={viewMode === 'split' ? 'primary' : 'default'}
@@ -342,12 +346,6 @@ const DocumentCompare = ({
                 onClick={() => setViewMode('unified')}
               >
                 Unified View
-              </Button>
-              <Button 
-                type={viewMode === 'inline' ? 'primary' : 'default'}
-                onClick={() => setViewMode('inline')}
-              >
-                Inline View
               </Button>
             </Button.Group>
             
@@ -378,36 +376,40 @@ const DocumentCompare = ({
           </Space>
         </div>
         
-        <div style={{ 
-          border: '1px solid #f0f0f0', 
-          borderRadius: '8px',
-          overflow: 'hidden',
-          fontSize: `${14 * zoomLevel}px`
-        }}>
-          <ReactDiffViewer
-            oldValue={oldValue}
-            newValue={newValue}
-            splitView={viewMode === 'split'}
-            showDiffOnly={false}
-            leftTitle={comparisonResult.document1?.title || 'Document 1'}
-            rightTitle={comparisonResult.document2?.title || 'Document 2'}
-            styles={{
-              diffContainer: {
-                backgroundColor: '#fafafa'
-              },
-              diffRemoved: {
-                backgroundColor: '#ffddd6',
-                textDecoration: highlightChanges ? 'line-through' : 'none'
-              },
-              diffAdded: {
-                backgroundColor: '#d4fcd9'
-              },
-              line: {
-                fontSize: `${14 * zoomLevel}px`,
-                lineHeight: 1.6
-              }
-            }}
-          />
+        <div 
+          className="diff-viewer"
+          style={{ 
+            border: '1px solid #f0f0f0', 
+            borderRadius: '8px',
+            overflow: 'auto',
+            fontSize: `${14 * zoomLevel}px`,
+            maxHeight: '60vh',
+            padding: 16,
+            background: '#fafafa',
+            fontFamily: 'Monaco, Menlo, Consolas, monospace'
+          }}
+        >
+          {diffParts.map((part, index) => (
+            <div
+              key={index}
+              style={{
+                background: part.added 
+                  ? (highlightChanges ? '#d4fcd9' : 'transparent')
+                  : part.removed 
+                    ? (highlightChanges ? '#ffddd6' : 'transparent')
+                    : 'transparent',
+                color: part.added ? '#135200' : part.removed ? '#a8071a' : '#262626',
+                padding: '2px 8px',
+                margin: '2px 0',
+                borderRadius: 4,
+                textDecoration: part.removed && highlightChanges ? 'line-through' : 'none',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word'
+              }}
+            >
+              {part.value}
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -419,38 +421,42 @@ const DocumentCompare = ({
     
     const changes = comparisonResult.changes;
     const allChanges = [
-      ...changes.additions.map(c => ({ type: 'addition', content: c })),
-      ...changes.deletions.map(c => ({ type: 'deletion', content: c })),
-      ...changes.modifications.map(c => ({ type: 'modification', content: c }))
+      ...(changes.additions || []).map(c => ({ type: 'addition', content: c })),
+      ...(changes.deletions || []).map(c => ({ type: 'deletion', content: c })),
+      ...(changes.modifications || []).map(c => ({ type: 'modification', content: c }))
     ];
     
     return (
       <Card title="Changes List" size="small">
-        <List
-          dataSource={allChanges}
-          renderItem={(item, index) => (
-            <List.Item>
-              <List.Item.Meta
-                avatar={
-                  item.type === 'addition' ? 
-                    <PlusOutlined style={{ color: '#52c41a' }} /> :
-                    item.type === 'deletion' ? 
-                      <MinusOutlined style={{ color: '#f5222d' }} /> :
-                      <EditOutlined style={{ color: '#faad14' }} />
-                }
-                title={
-                  <Tag color={
-                    item.type === 'addition' ? 'green' :
-                    item.type === 'deletion' ? 'red' : 'orange'
-                  }>
-                    {item.type.toUpperCase()}
-                  </Tag>
-                }
-                description={item.content}
-              />
-            </List.Item>
-          )}
-        />
+        {allChanges.length > 0 ? (
+          <List
+            dataSource={allChanges}
+            renderItem={(item) => (
+              <List.Item>
+                <List.Item.Meta
+                  avatar={
+                    item.type === 'addition' ? 
+                      <PlusOutlined style={{ color: '#52c41a' }} /> :
+                      item.type === 'deletion' ? 
+                        <MinusOutlined style={{ color: '#f5222d' }} /> :
+                        <EditOutlined style={{ color: '#faad14' }} />
+                  }
+                  title={
+                    <Tag color={
+                      item.type === 'addition' ? 'green' :
+                      item.type === 'deletion' ? 'red' : 'orange'
+                    }>
+                      {item.type.toUpperCase()}
+                    </Tag>
+                  }
+                  description={item.content}
+                />
+              </List.Item>
+            )}
+          />
+        ) : (
+          <Empty description="No changes detected" />
+        )}
       </Card>
     );
   };
@@ -460,16 +466,38 @@ const DocumentCompare = ({
   // ============================================================
   
   return (
-    <div className="document-compare" style={{ padding: embedded ? '0' : '24px' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <Space>
-          <DiffOutlined style={{ fontSize: 24, color: '#4fc3f7' }} />
-          <Title level={4} style={{ margin: 0 }}>Document Comparison</Title>
-          <Badge status="processing" text="Live" />
+    <div className="document-compare" style={{ padding: embedded ? 0 : 24 }}>
+      {/* ============================================ */}
+      {/* HEADER — Fixed title wrap                   */}
+      {/* ============================================ */}
+      <div className="compare-header">
+        <Space 
+          align="center" 
+          style={{ 
+            flex: '1 1 auto', 
+            minWidth: 0,
+            overflow: 'hidden',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          <DiffOutlined style={{ fontSize: 24, color: '#4fc3f7', flexShrink: 0 }} />
+          <Title 
+            level={4} 
+            style={{ 
+              margin: 0,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              flexShrink: 0
+            }}
+          >
+            Document Comparison
+          </Title>
+          <Badge status="processing" text="Live" style={{ flexShrink: 0 }} />
         </Space>
+        
         {comparisonResult && (
-          <Space>
+          <Space style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
             <Button 
               icon={<PrinterOutlined />} 
               onClick={() => window.print()}

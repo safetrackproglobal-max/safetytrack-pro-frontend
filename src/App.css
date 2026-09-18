@@ -1,0 +1,913 @@
+/* ============================================================
+   src/App.css
+   Global Application Styles
+   - Title wrap prevention
+   - Mobile responsive
+   - Dark mode support
+   - Cross-component consistency
+   ============================================================ */
+
+/* ============================================================
+   CSS VARIABLES — Light Mode (Default)
+   ============================================================ */
+:root {
+  /* Brand Colors */
+  --app-primary: #1890ff;
+  --app-primary-hover: #40a9ff;
+  --app-primary-active: #096dd9;
+  --app-success: #52c41a;
+  --app-warning: #faad14;
+  --app-error: #f5222d;
+  --app-info: #13c2c2;
+  
+  /* Backgrounds */
+  --app-bg-primary: #ffffff;
+  --app-bg-secondary: #f0f2f5;
+  --app-bg-tertiary: #fafafa;
+  --app-bg-hover: #f0f8ff;
+  --app-bg-selected: #e6f7ff;
+  
+  /* Text Colors */
+  --app-text-primary: #262626;
+  --app-text-secondary: #595959;
+  --app-text-tertiary: #8c8c8c;
+  --app-text-disabled: #bfbfbf;
+  --app-text-inverse: #ffffff;
+  
+  /* Borders */
+  --app-border: #f0f0f0;
+  --app-border-strong: #d9d9d9;
+  --app-border-hover: #91d5ff;
+  
+  /* Shadows */
+  --app-shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.06);
+  --app-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --app-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.12);
+  
+  /* Spacing */
+  --app-radius-sm: 4px;
+  --app-radius-md: 8px;
+  --app-radius-lg: 12px;
+  
+  /* Transitions */
+  --app-transition-fast: 0.15s ease;
+  --app-transition-base: 0.2s ease;
+  --app-transition-slow: 0.3s ease;
+  
+  /* Header Height */
+  --app-header-height: 64px;
+  --app-sider-width: 260px;
+  --app-sider-collapsed-width: 64px;
+}
+
+/* ============================================================
+   CSS VARIABLES — Dark Mode
+   ============================================================ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --app-bg-primary: #1f1f1f;
+    --app-bg-secondary: #141414;
+    --app-bg-tertiary: #262626;
+    --app-bg-hover: #111a2c;
+    --app-bg-selected: #111a2c;
+    
+    --app-text-primary: #e6e6e6;
+    --app-text-secondary: #b0b0b0;
+    --app-text-tertiary: #8c8c8c;
+    --app-text-disabled: #595959;
+    --app-text-inverse: #141414;
+    
+    --app-border: #303030;
+    --app-border-strong: #434343;
+    --app-border-hover: #177ddc;
+    
+    --app-shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.3);
+    --app-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
+    --app-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* Body dark mode override */
+body.dark-mode {
+  --app-bg-primary: #1f1f1f;
+  --app-bg-secondary: #141414;
+  --app-bg-tertiary: #262626;
+  --app-text-primary: #e6e6e6;
+  --app-text-secondary: #b0b0b0;
+  --app-border: #303030;
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 
+               'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 
+               'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--app-bg-secondary);
+  color: var(--app-text-primary);
+  overflow-x: hidden;
+  transition: background-color var(--app-transition-base),
+              color var(--app-transition-base);
+}
+
+/* ============================================================
+   APP LAYOUT
+   ============================================================ */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================================
+   ✅ CRITICAL FIX: PREVENT TITLE WRAPPING
+   ============================================================ */
+
+/* All Ant Design typography — prevent per-character wrapping */
+.ant-typography,
+.ant-typography h1,
+.ant-typography h2,
+.ant-typography h3,
+.ant-typography h4,
+.ant-typography h5,
+h1.ant-typography,
+h2.ant-typography,
+h3.ant-typography,
+h4.ant-typography,
+h5.ant-typography {
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+
+/* Prevent headers from wrapping in flex containers */
+.ant-space > .ant-space-item:has(h1),
+.ant-space > .ant-space-item:has(h2),
+.ant-space > .ant-space-item:has(h3),
+.ant-space > .ant-space-item:has(h4),
+.ant-space > .ant-space-item:has(h5),
+.ant-space > .ant-space-item:has(.ant-typography) {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Card head title — truncate with ellipsis */
+.ant-card-head-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.ant-card-head-title > * {
+  white-space: nowrap;
+}
+
+/* Header patterns — prevent wrapping */
+[class*="header"] h1,
+[class*="header"] h2,
+[class*="header"] h3,
+[class*="header"] h4,
+[class*="title"] h1,
+[class*="title"] h2,
+[class*="title"] h3,
+[class*="title"] h4 {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Modal titles */
+.ant-modal-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Drawer titles */
+.ant-drawer-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Page headers (custom class) */
+.page-header,
+.component-header,
+.docmgmt-header,
+.compare-header,
+.bi-header,
+.share-header,
+.offline-header,
+.anomaly-header,
+.qms-header,
+.integration-header,
+.search-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  flex-wrap: nowrap;
+}
+
+.page-header > .ant-space:first-child,
+.component-header > .ant-space:first-child,
+.docmgmt-header > .ant-space:first-child,
+.compare-header > .ant-space:first-child,
+.bi-header > .ant-space:first-child,
+.share-header > .ant-space:first-child,
+.offline-header > .ant-space:first-child,
+.anomaly-header > .ant-space:first-child,
+.qms-header > .ant-space:first-child,
+.integration-header > .ant-space:first-child,
+.search-header > .ant-space:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.page-header > .ant-space:last-child,
+.component-header > .ant-space:last-child,
+.docmgmt-header > .ant-space:last-child,
+.compare-header > .ant-space:last-child,
+.bi-header > .ant-space:last-child,
+.share-header > .ant-space:last-child,
+.offline-header > .ant-space:last-child,
+.anomaly-header > .ant-space:last-child,
+.qms-header > .ant-space:last-child,
+.integration-header > .ant-space:last-child,
+.search-header > .ant-space:last-child {
+  flex-shrink: 0;
+}
+
+/* All header titles — enforce no wrap */
+.page-header h4,
+.component-header h4,
+.docmgmt-header h4,
+.compare-header h4,
+.bi-header h4,
+.share-header h4,
+.offline-header h4,
+.anomaly-header h4,
+.qms-header h4,
+.integration-header h4,
+.search-header h4 {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  word-break: keep-all !important;
+  max-width: 400px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* ============================================================
+   RESPONSIVE — Mobile First
+   ============================================================ */
+
+/* Tablets & small laptops */
+@media (max-width: 1200px) {
+  .page-header h4,
+  .component-header h4,
+  .docmgmt-header h4,
+  .compare-header h4,
+  .bi-header h4,
+  .share-header h4,
+  .offline-header h4,
+  .anomaly-header h4,
+  .qms-header h4,
+  .integration-header h4,
+  .search-header h4 {
+    max-width: 250px;
+  }
+}
+
+/* Tablets */
+@media (max-width: 992px) {
+  .page-header h4,
+  .component-header h4,
+  .docmgmt-header h4,
+  .compare-header h4,
+  .bi-header h4,
+  .share-header h4,
+  .offline-header h4,
+  .anomaly-header h4,
+  .qms-header h4,
+  .integration-header h4,
+  .search-header h4 {
+    max-width: 180px;
+    font-size: 16px !important;
+  }
+  
+  /* Hide badge text */
+  .ant-badge-status-text {
+    display: none;
+  }
+  
+  /* Hide "Live" text in badges */
+  [class*="header"] .ant-badge-status-text,
+  [class*="title"] .ant-badge-status-text {
+    display: none;
+  }
+}
+
+/* Mobile phones */
+@media (max-width: 768px) {
+  /* Global spacing reduction */
+  .ant-layout-content {
+    padding: 12px !important;
+  }
+  
+  /* Header padding */
+  .ant-layout-header {
+    padding: 0 12px !important;
+  }
+  
+  /* Component headers */
+  .page-header,
+  .component-header,
+  .docmgmt-header,
+  .compare-header,
+  .bi-header,
+  .share-header,
+  .offline-header,
+  .anomaly-header,
+  .qms-header,
+  .integration-header,
+  .search-header {
+    gap: 8px;
+    padding: 8px 0;
+  }
+  
+  /* Hide titles on very small screens */
+  .page-header h4,
+  .component-header h4,
+  .docmgmt-header h4,
+  .compare-header h4,
+  .bi-header h4,
+  .share-header h4,
+  .offline-header h4,
+  .anomaly-header h4,
+  .qms-header h4,
+  .integration-header h4,
+  .search-header h4 {
+    max-width: 120px;
+    font-size: 14px !important;
+  }
+  
+  /* Stack cards vertically */
+  .ant-card {
+    margin-bottom: 12px;
+  }
+  
+  /* Stats rows */
+  .ant-statistic-title {
+    font-size: 11px !important;
+  }
+  
+  .ant-statistic-content {
+    font-size: 18px !important;
+  }
+  
+  /* Tables scroll horizontally */
+  .ant-table-wrapper {
+    overflow-x: auto;
+  }
+  
+  /* Modals full width on mobile */
+  .ant-modal {
+    max-width: 95vw !important;
+    margin: 8px auto !important;
+  }
+  
+  /* Drawers full width */
+  .ant-drawer-content-wrapper {
+    max-width: 100vw !important;
+  }
+  
+  /* Hide horizontal dividers */
+  .ant-divider-horizontal {
+    margin: 12px 0 !important;
+  }
+  
+  /* Sidebar collapsed by default on mobile */
+  .ant-layout-sider {
+    position: fixed !important;
+    z-index: 1000;
+    height: 100vh !important;
+  }
+  
+  /* Buttons compact */
+  .ant-btn:not(.ant-btn-block):not(.ant-btn-lg) {
+    padding: 4px 12px;
+    font-size: 13px;
+  }
+  
+  /* Cards body padding */
+  .ant-card-body {
+    padding: 12px !important;
+  }
+  
+  /* Breadcrumb */
+  .ant-breadcrumb {
+    font-size: 11px !important;
+  }
+  
+  /* Breadcrumb — hide intermediate items on mobile */
+  .ant-breadcrumb li:not(:first-child):not(:last-child) {
+    display: none;
+  }
+  
+  /* Tags smaller */
+  .ant-tag {
+    font-size: 11px;
+    padding: 0 6px;
+  }
+  
+  /* Progress */
+  .ant-progress-text {
+    font-size: 11px;
+  }
+}
+
+/* Small phones */
+@media (max-width: 480px) {
+  .page-header h4,
+  .component-header h4,
+  .docmgmt-header h4,
+  .compare-header h4 {
+    display: none !important;
+  }
+  
+  /* Full width buttons */
+  .ant-space-item > .ant-btn:only-child {
+    min-width: auto;
+  }
+  
+  /* Compact spacing */
+  .ant-layout-content {
+    padding: 8px !important;
+  }
+  
+  .ant-card-body {
+    padding: 8px !important;
+  }
+}
+
+/* ============================================================
+   DARK MODE OVERRIDES
+   ============================================================ */
+
+@media (prefers-color-scheme: dark) {
+  /* Body */
+  body {
+    background: var(--app-bg-secondary);
+    color: var(--app-text-primary);
+  }
+  
+  /* Layout */
+  .ant-layout {
+    background: var(--app-bg-secondary) !important;
+  }
+  
+  .ant-layout-header {
+    background: var(--app-bg-primary) !important;
+    border-bottom-color: var(--app-border) !important;
+  }
+  
+  .ant-layout-sider {
+    background: var(--app-bg-primary) !important;
+    border-right-color: var(--app-border) !important;
+  }
+  
+  .ant-layout-content {
+    background: var(--app-bg-secondary) !important;
+  }
+  
+  /* Cards */
+  .ant-card {
+    background: var(--app-bg-primary);
+    border-color: var(--app-border);
+    color: var(--app-text-primary);
+  }
+  
+  .ant-card-head {
+    background: var(--app-bg-primary);
+    border-bottom-color: var(--app-border);
+    color: var(--app-text-primary);
+  }
+  
+  /* Typography */
+  .ant-typography,
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--app-text-primary);
+  }
+  
+  .ant-typography.ant-typography-secondary {
+    color: var(--app-text-secondary);
+  }
+  
+  /* Stats */
+  .ant-statistic-title {
+    color: var(--app-text-tertiary);
+  }
+  
+  .ant-statistic-content {
+    color: var(--app-text-primary);
+  }
+  
+  /* Tables */
+  .ant-table {
+    background: var(--app-bg-primary);
+    color: var(--app-text-primary);
+  }
+  
+  .ant-table-thead > tr > th {
+    background: var(--app-bg-tertiary) !important;
+    color: var(--app-text-primary);
+    border-bottom-color: var(--app-border);
+  }
+  
+  .ant-table-tbody > tr > td {
+    background: var(--app-bg-primary);
+    border-bottom-color: var(--app-border);
+    color: var(--app-text-primary);
+  }
+  
+  .ant-table-tbody > tr:hover > td {
+    background: var(--app-bg-hover) !important;
+  }
+  
+  /* Inputs */
+  .ant-input,
+  .ant-input-affix-wrapper,
+  .ant-select-selector,
+  .ant-picker {
+    background: var(--app-bg-tertiary) !important;
+    border-color: var(--app-border) !important;
+    color: var(--app-text-primary) !important;
+  }
+  
+  .ant-input::placeholder {
+    color: var(--app-text-disabled);
+  }
+  
+  /* Buttons */
+  .ant-btn-default {
+    background: var(--app-bg-primary);
+    border-color: var(--app-border-strong);
+    color: var(--app-text-primary);
+  }
+  
+  .ant-btn-default:hover {
+    background: var(--app-bg-hover);
+    border-color: var(--app-primary);
+    color: var(--app-primary);
+  }
+  
+  .ant-btn-text {
+    color: var(--app-text-primary);
+  }
+  
+  .ant-btn-text:hover {
+    background: var(--app-bg-hover);
+    color: var(--app-primary);
+  }
+  
+  /* Modals */
+  .ant-modal-content {
+    background: var(--app-bg-primary);
+    color: var(--app-text-primary);
+  }
+  
+  .ant-modal-header {
+    background: var(--app-bg-primary);
+    border-bottom-color: var(--app-border);
+  }
+  
+  .ant-modal-title {
+    color: var(--app-text-primary);
+  }
+  
+  /* Drawers */
+  .ant-drawer-content {
+    background: var(--app-bg-primary);
+  }
+  
+  .ant-drawer-header {
+    background: var(--app-bg-primary);
+    border-bottom-color: var(--app-border);
+  }
+  
+  .ant-drawer-title {
+    color: var(--app-text-primary);
+  }
+  
+  /* Dropdowns */
+  .ant-dropdown-menu {
+    background: var(--app-bg-primary);
+  }
+  
+  .ant-dropdown-menu-item {
+    color: var(--app-text-primary);
+  }
+  
+  .ant-dropdown-menu-item:hover {
+    background: var(--app-bg-hover) !important;
+  }
+  
+  /* Tabs */
+  .ant-tabs-tab {
+    color: var(--app-text-secondary);
+  }
+  
+  .ant-tabs-tab-active .ant-tabs-tab-btn {
+    color: var(--app-primary);
+  }
+  
+  .ant-tabs-ink-bar {
+    background: var(--app-primary);
+  }
+  
+  /* Menu */
+  .ant-menu {
+    background: var(--app-bg-primary);
+    color: var(--app-text-primary);
+  }
+  
+  .ant-menu-item {
+    color: var(--app-text-primary);
+  }
+  
+  .ant-menu-item:hover {
+    background: var(--app-bg-hover) !important;
+    color: var(--app-primary) !important;
+  }
+  
+  .ant-menu-item-selected {
+    background: var(--app-bg-selected) !important;
+    color: var(--app-primary) !important;
+  }
+  
+  .ant-menu-submenu-title {
+    color: var(--app-text-primary);
+  }
+  
+  .ant-menu-submenu-title:hover {
+    background: var(--app-bg-hover) !important;
+    color: var(--app-primary) !important;
+  }
+  
+  /* Breadcrumb */
+  .ant-breadcrumb {
+    color: var(--app-text-tertiary);
+  }
+  
+  .ant-breadcrumb a,
+  .ant-breadcrumb-link {
+    color: var(--app-text-secondary);
+  }
+  
+  .ant-breadcrumb a:hover {
+    color: var(--app-primary);
+  }
+  
+  /* Empty */
+  .ant-empty-description {
+    color: var(--app-text-tertiary);
+  }
+  
+  /* Timeline */
+  .ant-timeline-item-content {
+    color: var(--app-text-primary);
+  }
+  
+  /* Descriptions */
+  .ant-descriptions-item-label {
+    background: var(--app-bg-tertiary);
+    color: var(--app-text-secondary);
+  }
+  
+  .ant-descriptions-item-content {
+    background: var(--app-bg-primary);
+    color: var(--app-text-primary);
+  }
+  
+  .ant-descriptions-bordered .ant-descriptions-view {
+    border-color: var(--app-border);
+  }
+  
+  /* Tags */
+  .ant-tag {
+    background: var(--app-bg-tertiary);
+    border-color: var(--app-border-strong);
+    color: var(--app-text-primary);
+  }
+  
+  /* Alerts */
+  .ant-alert {
+    background: var(--app-bg-tertiary);
+    border-color: var(--app-border);
+    color: var(--app-text-primary);
+  }
+  
+  /* Dividers */
+  .ant-divider {
+    border-color: var(--app-border);
+  }
+  
+  .ant-divider-inner-text {
+    color: var(--app-text-primary);
+  }
+  
+  /* Scrollbars */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: var(--app-bg-secondary);
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: var(--app-border-strong);
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--app-text-tertiary);
+  }
+}
+
+/* ============================================================
+   SCROLLBARS — All Modes
+   ============================================================ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d9d9d9;
+  border-radius: 4px;
+  transition: background var(--app-transition-base);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #bfbfbf;
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes app-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes app-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes app-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Apply fade-in to tab content */
+.ant-tabs-tabpane {
+  animation: app-fade-in 0.2s ease-out;
+}
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+.text-nowrap {
+  white-space: nowrap !important;
+}
+
+.text-ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.min-w-0 {
+  min-width: 0;
+}
+
+.no-shrink {
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   ACCESSIBILITY
+   ============================================================ */
+
+/* Focus visible outline */
+*:focus-visible {
+  outline: 2px solid var(--app-primary);
+  outline-offset: 2px;
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================
+   PRINT STYLES
+   ============================================================ */
+@media print {
+  .ant-layout-header,
+  .ant-layout-sider,
+  .ant-btn,
+  .ant-tabs-nav,
+  .no-print {
+    display: none !important;
+  }
+  
+  .ant-layout-content {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: white !important;
+  }
+  
+  .ant-card {
+    box-shadow: none !important;
+    border: 1px solid #d9d9d9 !important;
+    break-inside: avoid;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}
