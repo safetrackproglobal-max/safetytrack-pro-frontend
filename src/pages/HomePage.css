@@ -2148,3 +2148,118 @@
     padding-top: 10px;
   }
 }
+
+/* ============================================
+   TRUST SECTION — Second Row
+   ============================================ */
+
+.trust-grid-secondary {
+  margin-top: 24px;
+}
+
+/* Feature tag icons pop more */
+.feature-tag .anticon {
+  color: #60a5fa;
+  font-size: 14px;
+}
+
+/* Highlighted words in hero description */
+.hero-description strong {
+  color: #ffffff;
+  font-weight: 600;
+  background: linear-gradient(180deg, transparent 60%, rgba(96, 165, 250, 0.35) 60%);
+  padding: 0 2px;
+}
+
+/* Benefits intro paragraph */
+.benefits-intro {
+  font-size: 15px;
+  color: #4a5568;
+  line-height: 1.65;
+  margin: 0 0 32px 0;
+  max-width: 560px;
+}
+
+/* ============================================
+   DOCUMENT LIFECYCLE SECTION
+   ============================================ */
+
+.document-lifecycle-section {
+  padding: 72px 0;
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.lifecycle-flow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-top: 40px;
+}
+
+.lifecycle-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lifecycle-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.lifecycle-step:hover .lifecycle-icon {
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.15);
+}
+
+.lifecycle-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a202c;
+  letter-spacing: 0.2px;
+}
+
+.lifecycle-arrow {
+  color: #cbd5e1;
+  font-size: 18px;
+  margin-left: 8px;
+}
+
+@media (max-width: 768px) {
+  .lifecycle-flow {
+    gap: 16px;
+  }
+
+  .lifecycle-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+  }
+
+  .lifecycle-label {
+    font-size: 12px;
+  }
+
+  .lifecycle-arrow {
+    display: none;
+  }
+}
+
+/* ============================================
+   RTL Support
+   ============================================ */
+
+.home-page.rtl .lifecycle-arrow {
+  transform: scaleX(-1);
+}

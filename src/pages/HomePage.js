@@ -33,7 +33,13 @@ import {
   HeartOutlined,
   ClockCircleOutlined,
   VerifiedOutlined,
-  ReadOutlined
+  ReadOutlined,
+  EditOutlined,
+  SaveOutlined,
+  SignatureOutlined,
+  DownloadOutlined,
+  FileAddOutlined,
+  FundOutlined
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../context/LanguageContext';
@@ -132,56 +138,74 @@ function HomePage() {
     }
   ];
 
-  // Core Features
+  // Core Features - Action-Driven
   const features = [
     {
       icon: <SafetyCertificateOutlined />,
-      title: t('home.features.safetyCompliance') || 'Compliance Management',
-      description: t('home.features.safetyComplianceDesc') || 'Automated tracking and reporting for all safety regulations across industries',
+      title: 'Compliance Management',
+      description:
+        'Automated regulatory tracking, real-time alerts, and one-click reporting for OSHA, ISO 45001, HIPAA, and 20+ frameworks.',
       color: '#4CAF50'
     },
     {
       icon: <RobotOutlined />,
-      title: t('home.features.aiRiskAssessment') || 'AI Risk Assessment',
-      description: t('home.features.aiRiskAssessmentDesc') || 'Predictive analytics for proactive risk management in any environment',
+      title: 'AI Risk Assessment',
+      description:
+        'Predictive analytics that identify hazards before they become incidents — with 94% AI accuracy.',
       color: '#2196F3'
     },
     {
       icon: <DashboardOutlined />,
-      title: t('home.features.realTimeDashboard') || 'Real-time Dashboard',
-      description: t('home.features.realTimeDashboardDesc') || 'Monitor safety metrics, incidents, and compliance status with customizable dashboards',
+      title: 'Real-time Safety Dashboard',
+      description:
+        'Live KPIs, incident heatmaps, and compliance status — configurable for any industry, any role.',
       color: '#FF9800'
     },
     {
       icon: <FileTextOutlined />,
-      title: t('home.features.smartDocumentManagement') || 'Smart Document Management',
-      description: t('home.features.smartDocumentManagementDesc') || 'Create, manage, and share safety documents with intelligent version control',
+      title: 'Smart Document Lifecycle',
+      description:
+        'Auto-create, modify, submit, digitally sign, download, and archive — with AI classification and version control.',
       color: '#9C27B0'
     },
     {
       icon: <BarChartOutlined />,
-      title: t('home.features.advancedAnalytics') || 'Advanced Analytics',
-      description: t('home.features.advancedAnalyticsDesc') || 'Gain actionable insights from safety data with predictive analytics and trend analysis',
+      title: 'Advanced Analytics',
+      description:
+        'Trend analysis, predictive modeling, and custom reporting that turn safety data into decisions.',
       color: '#E91E63'
     },
     {
       icon: <TeamOutlined />,
-      title: t('home.features.teamCollaboration') || 'Team Collaboration',
-      description: t('home.features.teamCollaborationDesc') || 'Seamless coordination across departments, shifts, and locations',
+      title: 'Team Collaboration',
+      description:
+        'Role-based access across departments, shifts, and sites — with real-time task assignment and tracking.',
       color: '#00BCD4'
     },
     {
       icon: <VideoCameraOutlined />,
       title: 'AI Camera Monitoring',
-      description: 'Real-time video analysis with PPE compliance detection and hazard identification',
+      description:
+        'Live video analysis detecting PPE compliance, unsafe behavior, and hazards — instant alerts, 24/7.',
       color: '#8BC34A'
     },
     {
       icon: <EnvironmentOutlined />,
-      title: 'Environmental Monitoring',
-      description: 'Monitor air quality, emissions, waste management, and environmental compliance',
+      title: 'Live Environmental Monitoring',
+      description:
+        'Track air, water, emissions, and carbon in real-time — with AI prediction and ESG reporting.',
       color: '#FF5722'
     }
+  ];
+
+  // Document Lifecycle Steps
+  const documentLifecycle = [
+    { icon: <FileAddOutlined />, label: 'Auto-Create', color: '#2563eb' },
+    { icon: <EditOutlined />, label: 'Modify', color: '#7c3aed' },
+    { icon: <SaveOutlined />, label: 'Submit', color: '#0891b2' },
+    { icon: <SignatureOutlined />, label: 'Sign', color: '#059669' },
+    { icon: <DownloadOutlined />, label: 'Download', color: '#ca8a04' },
+    { icon: <DatabaseOutlined />, label: 'Archive', color: '#dc2626' }
   ];
 
   // Industry Solutions - Correct Images
@@ -314,35 +338,31 @@ function HomePage() {
     { icon: <GlobalOutlined />, label: 'Multi-Industry Ready', color: '#722ed1' }
   ];
 
-  // Benefits
+  // Benefits - Highlight Positives
   const benefits = [
     {
-      icon: <SafetyCertificateOutlined />,
-      title: t('home.benefits.compliance.title') || 'Reduce Compliance Risks by 99%',
+      icon: <ThunderboltOutlined />,
+      title: 'Instant Incident Reports & Analysis',
       description:
-        t('home.benefits.compliance.desc') ||
-        'Stay ahead of regulatory changes with automated compliance tracking and real-time alerts'
+        'Report from any device in seconds. AI captures photos, classifies severity, notifies managers, and tracks corrective actions to closure.'
     },
     {
-      icon: <RobotOutlined />,
-      title: t('home.benefits.ai.title') || 'AI-Powered Risk Prediction',
+      icon: <VideoCameraOutlined />,
+      title: 'AI Camera Monitoring That Never Blinks',
       description:
-        t('home.benefits.ai.desc') ||
-        'Predict and prevent incidents before they happen with advanced machine learning algorithms'
+        '24/7 detection of PPE compliance, unsafe behavior, and hazards — with instant alerts to your team before incidents occur.'
     },
     {
-      icon: <TeamOutlined />,
-      title: t('home.benefits.team.title') || 'Improve Team Coordination',
+      icon: <FileTextOutlined />,
+      title: 'Complete Document Lifecycle in One Flow',
       description:
-        t('home.benefits.team.desc') ||
-        'Assign tasks, track progress, and ensure accountability across your entire safety team'
+        'Auto-create, modify, submit, sign, download, and archive — with version control, expiry tracking, and full audit trails.'
     },
     {
-      icon: <LineChartOutlined />,
-      title: t('home.benefits.data.title') || 'Data-Driven Decisions',
+      icon: <EnvironmentOutlined />,
+      title: 'Live Environmental Intelligence',
       description:
-        t('home.benefits.data.desc') ||
-        'Make informed decisions with comprehensive analytics, predictive modeling, and detailed reporting'
+        'Monitor air, water, emissions, biodiversity, and carbon footprint in real-time with AI predictions and automated ESG reporting.'
     }
   ];
 
@@ -501,26 +521,30 @@ function HomePage() {
               </h1>
 
               <p className="hero-description animate-fade-in-delay-2">
-                AI-powered safety management platform for healthcare, oil & gas, construction,
-                manufacturing, maritime, aviation, mining, chemical, and education.
-                Achieve 99.5% compliance with real-time monitoring.
+                Complete AI-powered safety platform trusted across 9+ industries. From{' '}
+                <strong>AI camera monitoring</strong> and{' '}
+                <strong>instant incident analysis</strong> to{' '}
+                <strong>full document lifecycle control</strong> and{' '}
+                <strong>live environmental monitoring</strong> — everything your safety
+                team needs in one platform. Achieve 99.5% compliance with real-time
+                intelligence.
               </p>
 
               <div className="hero-features animate-fade-in-delay-3">
                 <span className="feature-tag">
-                  <SafetyCertificateOutlined /> Compliance
+                  <VideoCameraOutlined /> AI Camera Monitoring
                 </span>
                 <span className="feature-tag">
-                  <RobotOutlined /> AI Analysis
+                  <ThunderboltOutlined /> Instant Incident Reports
                 </span>
                 <span className="feature-tag">
-                  <DashboardOutlined /> Real-time
+                  <FileTextOutlined /> Document Lifecycle Control
                 </span>
                 <span className="feature-tag">
-                  <FileTextOutlined /> Reporting
+                  <EnvironmentOutlined /> Live Environmental Monitoring
                 </span>
                 <span className="feature-tag">
-                  <VideoCameraOutlined /> Camera AI
+                  <RobotOutlined /> AI-Powered Analysis
                 </span>
               </div>
 
@@ -590,47 +614,122 @@ function HomePage() {
       </section>
 
       {/* ============================================
-           TRUST SECTION
+           TRUST SECTION - FEATURE-FOCUSED CONFIDENCE
            ============================================ */}
       <section className="trust-section">
         <div className="container">
           <div className="trust-grid">
             <div className="trust-item">
               <div className="trust-icon">
-                <VerifiedOutlined />
+                <VideoCameraOutlined />
               </div>
               <div className="trust-content">
-                <h4>Transparent Development</h4>
+                <h4>AI Camera Monitoring</h4>
                 <p>
-                  We believe in open communication. Track our progress, see our roadmap, and help
-                  shape the future of SafeTrack Pro.
+                  Real-time video analysis with automatic PPE detection, hazard
+                  identification, and instant safety violation alerts — 24/7 coverage across
+                  every site and shift.
                 </p>
               </div>
             </div>
             <div className="trust-item">
               <div className="trust-icon">
-                <SecurityScanOutlined />
+                <ThunderboltOutlined />
+              </div>
+              <div className="trust-content">
+                <h4>Instant Incident Reports & Analysis</h4>
+                <p>
+                  Report incidents in seconds from any device with auto-capture, AI severity
+                  scoring, witness tracking, and immediate manager notification — no paperwork,
+                  no delays.
+                </p>
+              </div>
+            </div>
+            <div className="trust-item">
+              <div className="trust-icon">
+                <FileTextOutlined />
+              </div>
+              <div className="trust-content">
+                <h4>Complete Document Lifecycle Control</h4>
+                <p>
+                  Auto-create, modify, submit, digitally sign, download, and archive every
+                  safety document — with AI classification, version control, and full compliance
+                  audit trails.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Second row — environmental + enterprise */}
+          <div className="trust-grid trust-grid-secondary">
+            <div className="trust-item">
+              <div className="trust-icon">
+                <EnvironmentOutlined />
+              </div>
+              <div className="trust-content">
+                <h4>Live Environmental Monitoring</h4>
+                <p>
+                  Track air quality, water quality, emissions, biodiversity, and carbon footprint
+                  in real-time with AI predictions, ESG reporting, and instant regulatory alerts.
+                </p>
+              </div>
+            </div>
+            <div className="trust-item">
+              <div className="trust-icon">
+                <SafetyCertificateOutlined />
               </div>
               <div className="trust-content">
                 <h4>Enterprise-Grade Security</h4>
                 <p>
-                  ISO 27001 and SOC2 compliant. We take your data security and privacy seriously
-                  from day one.
+                  ISO 27001 and SOC2 Type II certified. Bank-level encryption, role-based access
+                  control, and complete compliance audit trails across every module.
                 </p>
               </div>
             </div>
             <div className="trust-item">
               <div className="trust-icon">
-                <TeamOutlined />
+                <GlobalOutlined />
               </div>
               <div className="trust-content">
-                <h4>Built for Your Industry</h4>
+                <h4>Built for Regulated Industries</h4>
                 <p>
-                  9+ industries supported with specialized modules. We understand your safety
-                  challenges.
+                  Trusted across 9+ industries with compliance frameworks including OSHA, ISO
+                  45001, HIPAA, MLC 2006, ICAO SMS, MSHA, and REACH — with region-specific
+                  modules.
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================
+           DOCUMENT LIFECYCLE SECTION
+           ============================================ */}
+      <section className="document-lifecycle-section">
+        <div className="container">
+          <div className="section-header">
+            <span className="section-tag">Document Control</span>
+            <h2 className="section-title">
+              Complete Document Lifecycle in <span className="gradient-text">One Flow</span>
+            </h2>
+            <p className="section-subtitle">
+              From creation to archive — everything automated, traceable, and compliant
+            </p>
+          </div>
+
+          <div className="lifecycle-flow">
+            {documentLifecycle.map((step, index) => (
+              <div key={index} className="lifecycle-step">
+                <div className="lifecycle-icon" style={{ background: `${step.color}15`, color: step.color }}>
+                  {step.icon}
+                </div>
+                <span className="lifecycle-label">{step.label}</span>
+                {index < documentLifecycle.length - 1 && (
+                  <ArrowRightOutlined className="lifecycle-arrow" />
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -663,7 +762,7 @@ function HomePage() {
       </section>
 
       {/* ============================================
-           INDUSTRIES SECTION - CORRECT IMAGES
+           INDUSTRIES SECTION
            ============================================ */}
       <section className="industries-section" id="industries">
         <div className="container">
@@ -747,10 +846,13 @@ function HomePage() {
           <div className="section-header">
             <span className="section-tag">Capabilities</span>
             <h2 className="section-title">
-              Enterprise-Grade <span className="gradient-text">Features</span>
+              Everything You Need to{' '}
+              <span className="gradient-text">Protect Your Workforce</span>
             </h2>
             <p className="section-subtitle">
-              Everything you need for comprehensive safety management across all industries
+              From AI camera monitoring and instant incident analysis to full document
+              lifecycle control and live environmental intelligence — one platform, complete
+              coverage.
             </p>
           </div>
 
@@ -786,8 +888,14 @@ function HomePage() {
               <div className="benefits-content">
                 <span className="section-tag">Why Choose Us</span>
                 <h2>
-                  Built for the <span className="gradient-text">Future of Safety</span>
+                  Powerful Features That{' '}
+                  <span className="gradient-text">Deliver Results</span>
                 </h2>
+                <p className="benefits-intro">
+                  Everything you need to run a safer, more compliant organization — from AI
+                  camera monitoring and instant incident reporting to full document control
+                  and live environmental intelligence.
+                </p>
 
                 {benefits.map((benefit, index) => (
                   <div className="benefit-item" key={index}>
@@ -809,20 +917,20 @@ function HomePage() {
               <div className="benefits-visual">
                 <div className="floating-cards">
                   <div className="floating-card card-1">
-                    <SafetyCertificateOutlined />
-                    <span>99% Compliance</span>
+                    <VideoCameraOutlined />
+                    <span>AI Camera 24/7</span>
                   </div>
                   <div className="floating-card card-2">
-                    <RobotOutlined />
-                    <span>AI Risk Prediction</span>
+                    <ThunderboltOutlined />
+                    <span>Instant Reports</span>
                   </div>
                   <div className="floating-card card-3">
-                    <BarChartOutlined />
-                    <span>65% Time Saved</span>
+                    <FileTextOutlined />
+                    <span>Doc Lifecycle</span>
                   </div>
                   <div className="floating-card card-4">
-                    <GlobalOutlined />
-                    <span>9+ Industries</span>
+                    <EnvironmentOutlined />
+                    <span>Live Environmental</span>
                   </div>
                 </div>
               </div>
@@ -944,8 +1052,9 @@ function HomePage() {
                 <span className="gradient-text">Safety Management</span>?
               </h2>
               <p className="cta-description">
-                Join thousands of organizations across 9+ industries that trust SafeTrack Pro for
-                their safety compliance needs.
+                Join organizations across 9+ industries using AI camera monitoring, instant
+                incident analysis, complete document lifecycle control, and live environmental
+                intelligence — all in one platform.
               </p>
               <div className="cta-actions">
                 <Button type="primary" size="large" href="/signup" className="cta-primary-btn">
@@ -956,10 +1065,9 @@ function HomePage() {
                 </Button>
               </div>
               <div className="cta-trust">
-                <span>✓ No credit card required</span>
-                <span>✓ Free 14-day trial</span>
-                <span>✓ 24/7 support</span>
+                
                 <span>✓ ISO 27001 Certified</span>
+                <span>✓ SOC2 Compliant</span>
               </div>
             </div>
           </div>

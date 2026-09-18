@@ -17,7 +17,8 @@ import {
   Tag,
   Table,
   Tabs,
-  Statistic
+  Statistic,
+  Typography
 } from 'antd';
 import {
   DashboardOutlined,
@@ -60,6 +61,7 @@ const { Search } = Input;
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 const { TabPane } = Tabs;
+const { Text } = Typography; 
 
 // ==================== MAIN SAFETYPRO DASHBOARD COMPONENT ====================
 const SafetyProDashboard = () => {
@@ -125,7 +127,7 @@ const SafetyProDashboard = () => {
     
     if (token) {
       try {
-        const response = await fetch('http://localhost:5000/api/admin/users/all?per_page=100', {
+        const response = await fetch('https://safetrackproglobal-backend-production.up.railway.app/api/admin/users/all?per_page=100', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'

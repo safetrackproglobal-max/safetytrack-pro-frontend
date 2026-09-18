@@ -1,5 +1,5 @@
 // src/components/DocumentControl.js
-// Complete Document Control Component with Plan-Based Access Control + Full Feature Integration
+// Complete Document Control Component with Plan-Based Access Control
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
@@ -110,19 +110,7 @@ import {
   ExportOutlined,
   QrcodeOutlined,
   ScanOutlined,
-  FingerprintOutlined,
-  // ✅ NEW ICONS FOR INTEGRATION
-  KeyOutlined,
-  FileProtectOutlined,
-  MessageOutlined,
-  FolderOpenOutlined,
-  ApartmentOutlined,
-  FundOutlined,
-  ExperimentOutlined as ExperimentIcon,
-  ApiOutlined,
-  CloudOutlined,
-  SecurityScanOutlined,
-  BranchesOutlined
+  FingerprintOutlined
 } from '@ant-design/icons';
 import documentServiceAPI from '../services/documentService';
 import { 
@@ -138,6 +126,7 @@ import {
 } from '../services/api';
 import DocumentEditor from './documents/DocumentEditor';
 import DocumentSignature from './documents/DocumentSignature';
+import RealtimeCollaborativeEditor from './editor/RealtimeCollaborativeEditor';
 import './DocumentControl.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -301,12 +290,6 @@ const DocumentControl = ({
   const [editingDocument, setEditingDocument] = useState(null);
   const [signatureModalVisible, setSignatureModalVisible] = useState(false);
   const [signatureDocumentId, setSignatureDocumentId] = useState(null);
-  
-  // ✅ NEW: Feature navigation state
-  const [bulkTagModalVisible, setBulkTagModalVisible] = useState(false);
-  const [bulkStatusModalVisible, setBulkStatusModalVisible] = useState(false);
-  const [bulkTags, setBulkTags] = useState('');
-  const [bulkStatus, setBulkStatus] = useState('approved');
   
   // Auto refresh
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -725,6 +708,43 @@ const DocumentControl = ({
   };
 
   // ============================================================
+  // ✅ NEW: REAL-TIME COLLABORATION HANDLERS
+  // ============================================================
+
+  const handleStartCollaboration = (document) => {
+    if (!canEdit) {
+      message.error('Your plan does not allow editing documents. Please upgrade.');
+      showUpgradeModal({
+        requiredPlan: 'pro',
+        message: 'Real-time collaboration requires at least Pro plan'
+      });
+      return;
+    }
+    
+    setCollaboratingDocument(document);
+    setCollaborationModalVisible(true);
+  };
+
+  const handleCollaborationClose = () => {
+    setCollaborationModalVisible(false);
+    setCollaboratingDocument(null);
+  };
+
+  const handleCollaborationSave = (result) => {
+    message.success('Document saved from collaboration session');
+    loadDocuments();
+    loadStats();
+    if (onDocumentChange) onDocumentChange();
+  };
+
+  const handleCollaboratorsUpdate = (docId, collaborators) => {
+    setActiveCollaborators(prev => ({
+      ...prev,
+      [docId]: collaborators || []
+    }));
+  };
+
+  // ============================================================
   // COMMENTS
   // ============================================================
   
@@ -1086,7 +1106,7 @@ const DocumentControl = ({
     </div>
   );
 
-  // ✅ FULLY UPDATED: Render Document Table with all new features
+  // ✅ UPDATED: Render Document Table with Edit and Sign buttons
   const renderDocumentTable = () => {
     const columns = [
       {
@@ -1139,7 +1159,7 @@ const DocumentControl = ({
       {
         title: 'Actions',
         key: 'actions',
-        width: 260,
+        width: 240,
         render: (_, record) => (
           <Space>
             <Tooltip title="Edit Document">
@@ -1159,7 +1179,7 @@ const DocumentControl = ({
                 size="small"
                 icon={<EyeOutlined />}
                 onClick={() => {
-                  handleSelectDocument(record);
+                  setSelectedDocument(record);
                   setDetailDrawerVisible(true);
                   loadDocumentDetail(record.id);
                 }}
@@ -1187,123 +1207,47 @@ const DocumentControl = ({
             <Dropdown
               overlay={
                 <Menu>
-                  {/* ✅ NEW: Analysis & Compliance Group */}
-                  <Menu.ItemGroup title="Analysis & Compliance">
-                    <Menu.Item 
-                      key="access-control" 
-                      icon={<KeyOutlined />}
-                      onClick={() => handleNavigateToFeature('access-control', record)}
-                    >
-                      Access Control
+                  {record.status === 'draft' && (
+                    <Menu.Item key="submit" icon={<SendOutlined />} onClick={() => handleSubmitForReview(record.id)}>
+                      Submit for Review
                     </Menu.Item>
-                    <Menu.Item 
-                      key="retention" 
-                      icon={<ClockCircleOutlined />}
-                      onClick={() => handleNavigateToFeature('retention', record)}
-                    >
-                      Retention Policy
+                  )}
+                  {record.status === 'review' && (
+                    <>
+                      <Menu.Item key="approve" icon={<CheckOutlined />} onClick={() => handleApprove(record.id)}>
+                        Approve
+                      </Menu.Item>
+                      <Menu.Item key="reject" icon={<CloseOutlined />} onClick={() => {
+                        Modal.confirm({
+                          title: 'Reject Document',
+                          content: (
+                            <Input.TextArea
+                              placeholder="Reason for rejection..."
+                              id="reject-reason"
+                              rows={3}
+                            />
+                          ),
+                          onOk: () => {
+                            const reason = document.getElementById('reject-reason')?.value || '';
+                            handleReject(record.id, reason);
+                          }
+                        });
+                      }}>
+                        Reject
+                      </Menu.Item>
+                    </>
+                  )}
+                  {record.status === 'approved' && (
+                    <Menu.Item key="publish" icon={<SafetyCertificateOutlined />} onClick={() => handlePublish(record.id)}>
+                      Publish
                     </Menu.Item>
-                    <Menu.Item 
-                      key="watermark" 
-                      icon={<FileProtectOutlined />}
-                      onClick={() => handleNavigateToFeature('watermarking', record)}
-                    >
-                      Watermark
+                  )}
+                  {(record.status === 'published' || record.status === 'approved') && (
+                    <Menu.Item key="archive" icon={<FolderOutlined />} onClick={() => handleArchive(record.id)}>
+                      Archive
                     </Menu.Item>
-                    <Menu.Item 
-                      key="compliance-reports" 
-                      icon={<AuditOutlined />}
-                      onClick={() => handleNavigateToFeature('compliance-reports', record)}
-                    >
-                      Compliance Report
-                    </Menu.Item>
-                  </Menu.ItemGroup>
-                  
+                  )}
                   <Menu.Divider />
-                  
-                  {/* ✅ NEW: Collaboration Group */}
-                  <Menu.ItemGroup title="Collaboration">
-                    <Menu.Item 
-                      key="collaborate" 
-                      icon={<TeamOutlined />}
-                      onClick={() => handleNavigateToFeature('collaborate', record)}
-                    >
-                      Real-Time Collaborate
-                    </Menu.Item>
-                    <Menu.Item 
-                      key="share" 
-                      icon={<ShareAltOutlined />}
-                      onClick={() => handleNavigateToFeature('share', record)}
-                    >
-                      Share Portal
-                    </Menu.Item>
-                    <Menu.Item 
-                      key="ai-assistant" 
-                      icon={<MessageOutlined />}
-                      onClick={() => handleNavigateToFeature('assistant', record)}
-                    >
-                      Ask AI
-                    </Menu.Item>
-                    {canAI && (
-                      <Menu.Item 
-                        key="ai-analyze" 
-                        icon={<RobotOutlined />}
-                        onClick={() => handleNavigateToFeature('ai', record)}
-                      >
-                        AI Analyze
-                      </Menu.Item>
-                    )}
-                  </Menu.ItemGroup>
-                  
-                  <Menu.Divider />
-                  
-                  {/* Workflow Group */}
-                  <Menu.ItemGroup title="Workflow">
-                    {record.status === 'draft' && (
-                      <Menu.Item key="submit" icon={<SendOutlined />} onClick={() => handleSubmitForReview(record.id)}>
-                        Submit for Review
-                      </Menu.Item>
-                    )}
-                    {record.status === 'review' && (
-                      <>
-                        <Menu.Item key="approve" icon={<CheckOutlined />} onClick={() => handleApprove(record.id)}>
-                          Approve
-                        </Menu.Item>
-                        <Menu.Item key="reject" icon={<CloseOutlined />} onClick={() => {
-                          Modal.confirm({
-                            title: 'Reject Document',
-                            content: (
-                              <Input.TextArea
-                                placeholder="Reason for rejection..."
-                                id="reject-reason"
-                                rows={3}
-                              />
-                            ),
-                            onOk: () => {
-                              const reason = document.getElementById('reject-reason')?.value || '';
-                              handleReject(record.id, reason);
-                            }
-                          });
-                        }}>
-                          Reject
-                        </Menu.Item>
-                      </>
-                    )}
-                    {record.status === 'approved' && (
-                      <Menu.Item key="publish" icon={<SafetyCertificateOutlined />} onClick={() => handlePublish(record.id)}>
-                        Publish
-                      </Menu.Item>
-                    )}
-                    {(record.status === 'published' || record.status === 'approved') && (
-                      <Menu.Item key="archive" icon={<FolderOutlined />} onClick={() => handleArchive(record.id)}>
-                        Archive
-                      </Menu.Item>
-                    )}
-                  </Menu.ItemGroup>
-                  
-                  <Menu.Divider />
-                  
-                  {/* Signature */}
                   {canSign && (
                     <Menu.Item key="sign" icon={<SignatureOutlined />} onClick={() => {
                       setSignatureDocumentId(record.id);
@@ -1312,10 +1256,14 @@ const DocumentControl = ({
                       Sign Document
                     </Menu.Item>
                   )}
-                  
+                  {canAI && (
+                    <Menu.Item key="ai" icon={<RobotOutlined />} onClick={() => {
+                      message.info('AI analysis feature coming soon');
+                    }}>
+                      AI Analyze
+                    </Menu.Item>
+                  )}
                   <Menu.Divider />
-                  
-                  {/* Delete */}
                   {canDelete && (
                     <Menu.Item key="delete" icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)}>
                       Delete
@@ -1516,7 +1464,7 @@ const DocumentControl = ({
     }
   };
 
-  // ✅ UPDATED: Detail Drawer with all new feature buttons
+  // ✅ UPDATED: Detail Drawer with Edit and Sign buttons
   const renderDetailDrawer = () => (
     <Drawer
       title={
@@ -1530,7 +1478,7 @@ const DocumentControl = ({
       onClose={() => setDetailDrawerVisible(false)}
       width={900}
       extra={
-        <Space wrap>
+        <Space>
           <Button 
             icon={<EditOutlined />} 
             onClick={() => {
@@ -1712,6 +1660,19 @@ const DocumentControl = ({
             <div style={{ marginTop: 16 }}>
               <Title level={5}>Workflow Actions</Title>
               <Space wrap>
+                {/* ✅ NEW: Collaborate Action */}
+                <Button 
+                  type="primary"
+                  icon={<TeamOutlined />}
+                  onClick={() => {
+                    setDetailDrawerVisible(false);
+                    handleStartCollaboration(selectedDocument);
+                  }}
+                  style={{ background: '#52c41a', borderColor: '#52c41a' }}
+                >
+                  Start Collaboration
+                </Button>
+
                 {selectedDocument.status === 'draft' && (
                   <Button type="primary" icon={<SendOutlined />} onClick={() => handleSubmitForReview(selectedDocument.id)}>
                     Submit for Review
@@ -1894,68 +1855,7 @@ const DocumentControl = ({
     </Drawer>
   );
 
-  // ✅ NEW: Bulk Tag Modal
-  const renderBulkTagModal = () => (
-    <Modal
-      title="Add Tags to Selected Documents"
-      open={bulkTagModalVisible}
-      onCancel={() => {
-        setBulkTagModalVisible(false);
-        setBulkTags('');
-      }}
-      onOk={handleBulkAssignTags}
-      okText={`Apply to ${selectedRowKeys.length} document(s)`}
-    >
-      <Alert
-        message={`Applying tags to ${selectedRowKeys.length} document(s)`}
-        type="info"
-        showIcon
-        style={{ marginBottom: 16 }}
-      />
-      <Input 
-        placeholder="Enter tags separated by commas"
-        value={bulkTags}
-        onChange={(e) => setBulkTags(e.target.value)}
-        onPressEnter={handleBulkAssignTags}
-        autoFocus
-      />
-      <div style={{ marginTop: 8, fontSize: 12, color: '#8c8c8c' }}>
-        Example: compliance, 2024, q1, urgent
-      </div>
-    </Modal>
-  );
-
-  // ✅ NEW: Bulk Status Change Modal
-  const renderBulkStatusModal = () => (
-    <Modal
-      title="Change Status for Selected Documents"
-      open={bulkStatusModalVisible}
-      onCancel={() => setBulkStatusModalVisible(false)}
-      onOk={handleBulkStatusChange}
-      okText={`Update ${selectedRowKeys.length} document(s)`}
-    >
-      <Alert
-        message={`Changing status for ${selectedRowKeys.length} document(s)`}
-        type="warning"
-        showIcon
-        style={{ marginBottom: 16 }}
-      />
-      <Select
-        value={bulkStatus}
-        onChange={setBulkStatus}
-        style={{ width: '100%' }}
-        size="large"
-      >
-        {Object.entries(DOCUMENT_STATUSES).map(([key, value]) => (
-          <Option key={key} value={key}>
-            {value.icon} {value.label}
-          </Option>
-        ))}
-      </Select>
-    </Modal>
-  );
-
-  // ✅ NEW: Enhanced Editor Modal
+  // ✅ NEW: Render Editor Modal
   const renderEditorModal = () => (
     <Modal
       title="Edit Document"
@@ -1996,7 +1896,7 @@ const DocumentControl = ({
     </Modal>
   );
 
-  // ✅ NEW: Enhanced Signature Modal
+  // ✅ NEW: Render Signature Modal
   const renderSignatureModal = () => (
     <Modal
       title="Document Signatures"
@@ -2025,6 +1925,77 @@ const DocumentControl = ({
       />
     </Modal>
   );
+
+  // ============================================================
+  // ✅ NEW: RENDER COLLABORATION MODAL
+  // ============================================================
+
+  const renderCollaborationModal = () => {
+    if (!collaboratingDocument) return null;
+
+    return (
+      <Modal
+        title={
+          <Space>
+            <TeamOutlined style={{ color: '#52c41a' }} />
+            <span>Real-Time Collaboration</span>
+            <Tag color="blue">{collaboratingDocument.title}</Tag>
+            <Badge status="processing" text="Live" />
+          </Space>
+        }
+        open={collaborationModalVisible}
+        onCancel={handleCollaborationClose}
+        footer={null}
+        width="95%"
+        style={{ top: 20 }}
+        bodyStyle={{ 
+          padding: '16px', 
+          maxHeight: 'calc(100vh - 120px)', 
+          overflow: 'auto' 
+        }}
+        destroyOnClose
+        maskClosable={false}
+      >
+        <Alert
+          message="Real-Time Collaboration Session"
+          description={
+            <div>
+              <p>You are now editing this document in real-time with other users.</p>
+              <ul style={{ marginBottom: 0, paddingLeft: 20 }}>
+                <li>Changes are synchronized instantly across all connected users</li>
+                <li>Document can be locked to prevent concurrent edits</li>
+                <li>Auto-save is enabled by default</li>
+                <li>All collaborators are shown at the top of the editor</li>
+              </ul>
+            </div>
+          }
+          type="info"
+          showIcon
+          style={{ marginBottom: 16 }}
+          closable
+        />
+
+        <RealtimeCollaborativeEditor
+          documentId={collaboratingDocument.id}
+          documentTitle={collaboratingDocument.title}
+          currentUser={{
+            id: window.currentUser?.id || 'current_user',
+            name: window.currentUser?.name || window.currentUser?.email || 'You',
+            email: window.currentUser?.email
+          }}
+          onSave={handleCollaborationSave}
+          onContentChange={(content) => {
+            console.log('Content changed:', content.length, 'characters');
+          }}
+          onCollaboratorsChange={(collaborators) => {
+            handleCollaboratorsUpdate(collaboratingDocument.id, collaborators);
+          }}
+          readOnly={false}
+          embedded={true}
+        />
+      </Modal>
+    );
+  };
 
   // ============================================================
   // MAIN RENDER
@@ -2191,6 +2162,12 @@ const DocumentControl = ({
       {renderDetailDrawer()}
       {renderVersionDrawer()}
       {renderCommentDrawer()}
+
+      {/* Editor Modal */}
+      {renderEditorModal()}
+
+      {/* Signature Modal */}
+      {renderSignatureModal()}
     </div>
   );
 };

@@ -11,7 +11,7 @@ class LanguageService {
       }
       
       // If logged in, update on server
-      const response = await fetch('http://localhost:5000/api/user/update-language', {
+      const response = await fetch('https://safetrackproglobal-backend-production.up.railway.app/api/user/update-language', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -44,7 +44,7 @@ class LanguageService {
       }
       
       // Get from server if logged in
-      const response = await fetch('http://localhost:5000/api/user/language', {
+      const response = await fetch('https://safetrackproglobal-backend-production.up.railway.app/api/user/language', {
         headers: {
           'Authorization': `Bearer ${token}`
         }

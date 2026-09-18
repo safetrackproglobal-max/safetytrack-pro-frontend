@@ -65,7 +65,7 @@ function VerificationModal({ email, onVerified, visible = true, onCancel }) {
         // ✅ Check with backend if token exists
         if (token) {
           try {
-            const response = await fetch('http://localhost:5000/api/user/status', {
+            const response = await fetch('https://safetrackproglobal-backend-production.up.railway.app/api/user/status', {
               method: 'GET',
               headers: {
                 'Authorization': `Bearer ${token}`,
@@ -148,7 +148,7 @@ function VerificationModal({ email, onVerified, visible = true, onCancel }) {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/verify', {
+      const response = await fetch('https://safetrackproglobal-backend-production.up.railway.app/api/verify', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -215,7 +215,7 @@ function VerificationModal({ email, onVerified, visible = true, onCancel }) {
     setSuccess('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/resend-verification', {
+      const response = await fetch('https://safetrackproglobal-backend-production.up.railway.app/api/resend-verification', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
