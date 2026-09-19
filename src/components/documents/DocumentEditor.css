@@ -1,1018 +1,1086 @@
 /* src/components/documents/DocumentEditor.css */
+/* Modern Document Editor — Tiptap-powered
+   Full stylesheet: layout, toolbar, content, bubble menu,
+   reading mode, focus mode, track changes, tables, code,
+   drawers, responsive, dark mode.
+*/
+
+/* ============================================================
+   1. ROOT / CONTAINER
+   ============================================================ */
 
 .document-editor-container {
-  padding: 0;
-  background: #f0f2f5;
-  min-height: 100vh;
+  background: #ffffff;
+  border-radius: 8px;
+  position: relative;
 }
 
 .document-editor-container.fullscreen-mode {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 10000;
+  inset: 0;
+  z-index: 1100;
+  overflow: auto;
   background: #f0f2f5;
   padding: 16px;
+  border-radius: 0;
 }
 
-/* ============================================================
-   EDITOR CARD
-   ============================================================ */
 .editor-card {
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-  height: 100%;
+  background: #ffffff;
+  border: none;
 }
 
-.editor-card .ant-card-body {
-  padding: 24px;
-  height: 100%;
+.document-editor-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  background: #ffffff;
+  border-radius: 8px;
 }
 
 /* ============================================================
-   HEADER
+   2. HEADER
    ============================================================ */
+
 .editor-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;
   flex-wrap: wrap;
-  gap: 12px;
 }
 
-.editor-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.editor-title .ant-tag {
+.editor-header h4.ant-typography {
   margin: 0;
-}
-
-/* ============================================================
-   METADATA PANEL
-   ============================================================ */
-.metadata-panel {
-  background: white;
-  border-radius: 8px;
-  padding: 8px 0;
-}
-
-.metadata-panel .ant-collapse-header {
-  font-weight: 500;
-  padding: 12px 16px !important;
-}
-
-.metadata-panel .ant-collapse-content-box {
-  padding: 0 16px 16px !important;
-}
-
-.metadata-panel .ant-form-item {
-  margin-bottom: 12px;
-}
-
-.metadata-panel .ant-form-item-label {
-  padding-bottom: 4px;
-}
-
-.metadata-panel .ant-form-item-label label {
-  font-size: 13px;
-  font-weight: 500;
-  color: #262626;
-}
-
-/* ============================================================
-   ADVANCED TOOLBAR
-   ============================================================ */
-.editor-toolbar {
-  background: #fafafa;
-  padding: 8px 16px;
-  border-radius: 8px 8px 0 0;
-  border: 1px solid #d9d9d9;
-  border-bottom: none;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  min-height: 48px;
-}
-
-.editor-toolbar .ant-divider {
-  height: 24px;
-  margin: 0 4px;
-}
-
-.editor-toolbar .ant-badge {
-  margin-right: 4px;
-}
-
-.editor-toolbar .ant-badge .ant-badge-count {
-  font-size: 10px;
-  min-width: 16px;
-  height: 16px;
-  line-height: 16px;
-  padding: 0 4px;
-}
-
-.editor-toolbar .ant-btn {
-  border-radius: 4px;
-  font-size: 13px;
-}
-
-.editor-toolbar .ant-btn-sm {
-  font-size: 12px;
-  height: 28px;
-  padding: 0 10px;
-}
-
-.editor-toolbar .ant-tag {
-  font-size: 12px;
-  line-height: 20px;
-  padding: 0 8px;
-  margin: 0;
-}
-
-.editor-toolbar .ant-switch {
-  min-width: 36px;
-}
-
-/* ============================================================
-   EDITOR WRAPPER
-   ============================================================ */
-.editor-wrapper {
-  position: relative;
-  border-radius: 0 0 8px 8px;
-  overflow: hidden;
-}
-
-.editor-container {
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.editor-container.fullscreen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 9999;
-  background: white;
-  padding: 16px;
-  border-radius: 0;
-}
-
-/* ============================================================
-   RICH TEXT EDITOR (ReactQuill)
-   ============================================================ */
-.document-editor {
-  min-height: 500px;
-  border-radius: 0 0 8px 8px;
-}
-
-.document-editor .ql-container {
-  min-height: 450px;
-  font-size: 16px;
-  line-height: 1.8;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-}
-
-.document-editor .ql-editor {
-  min-height: 450px;
-  padding: 20px 24px;
-  outline: none;
-}
-
-.document-editor .ql-editor p {
-  margin-bottom: 12px;
-}
-
-.document-editor .ql-editor h1,
-.document-editor .ql-editor h2,
-.document-editor .ql-editor h3,
-.document-editor .ql-editor h4,
-.document-editor .ql-editor h5,
-.document-editor .ql-editor h6 {
-  margin: 16px 0 8px;
-  font-weight: 600;
-  line-height: 1.4;
-}
-
-.document-editor .ql-editor h1 {
-  font-size: 32px;
-}
-
-.document-editor .ql-editor h2 {
-  font-size: 26px;
-}
-
-.document-editor .ql-editor h3 {
-  font-size: 22px;
-}
-
-.document-editor .ql-editor h4 {
   font-size: 18px;
-}
-
-.document-editor .ql-editor h5 {
-  font-size: 16px;
-}
-
-.document-editor .ql-editor h6 {
-  font-size: 14px;
-}
-
-.document-editor .ql-editor ul,
-.document-editor .ql-editor ol {
-  padding-left: 24px;
-  margin-bottom: 12px;
-}
-
-.document-editor .ql-editor li {
-  margin-bottom: 4px;
-}
-
-.document-editor .ql-editor blockquote {
-  border-left: 4px solid #1890ff;
-  padding-left: 16px;
-  margin: 12px 0;
-  color: #595959;
-  font-style: italic;
-}
-
-.document-editor .ql-editor code {
-  background: #f5f5f5;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 14px;
-  font-family: 'Courier New', monospace;
-}
-
-.document-editor .ql-editor pre {
-  background: #f5f5f5;
-  padding: 16px;
-  border-radius: 8px;
-  overflow: auto;
-  font-family: 'Courier New', monospace;
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.document-editor .ql-editor a {
-  color: #1890ff;
-  text-decoration: none;
-}
-
-.document-editor .ql-editor a:hover {
-  text-decoration: underline;
-}
-
-.document-editor .ql-editor img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 4px;
-  margin: 8px 0;
-}
-
-.document-editor .ql-editor table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 12px 0;
-}
-
-.document-editor .ql-editor table td,
-.document-editor .ql-editor table th {
-  border: 1px solid #d9d9d9;
-  padding: 8px 12px;
-  text-align: left;
-}
-
-.document-editor .ql-editor table th {
-  background: #fafafa;
   font-weight: 600;
+  color: #1f1f1f;
 }
 
-.document-editor .ql-editor .editor-table td {
-  border: 1px solid #d9d9d9;
-  padding: 8px;
+.editor-header .ant-tag {
+  margin: 0 4px 0 0;
 }
 
 /* ============================================================
-   QUILL TOOLBAR CUSTOMIZATION
+   3. TOOLBAR
    ============================================================ */
-.document-editor .ql-toolbar {
-  border: none;
-  border-bottom: 1px solid #f0f0f0;
+
+.editor-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   background: #fafafa;
-  padding: 8px 12px;
-  border-radius: 0;
-}
-
-.document-editor .ql-toolbar .ql-formats {
-  margin-right: 8px;
-}
-
-.document-editor .ql-toolbar .ql-formats:last-child {
-  margin-right: 0;
-}
-
-.document-editor .ql-toolbar button {
-  padding: 4px 6px;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-.document-editor .ql-toolbar button:hover {
-  background: #e6f7ff;
-}
-
-.document-editor .ql-toolbar button.ql-active {
-  background: #1890ff;
-  color: white;
-}
-
-.document-editor .ql-toolbar .ql-picker {
-  border-radius: 4px;
-}
-
-.document-editor .ql-toolbar .ql-picker:hover {
-  border-color: #1890ff;
-}
-
-.document-editor .ql-toolbar .ql-picker-options {
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-/* ============================================================
-   EDITOR FOOTER
-   ============================================================ */
-.editor-footer {
-  background: #fafafa;
-  padding: 8px 16px;
-  border-radius: 0 0 8px 8px;
-  border: 1px solid #d9d9d9;
-  border-top: none;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  min-height: 40px;
-}
-
-.editor-footer .ant-text {
-  font-size: 12px;
-}
-
-/* ============================================================
-   ACTIONS
-   ============================================================ */
-.editor-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.editor-actions .ant-btn {
-  border-radius: 20px;
-  font-size: 13px;
-  height: 36px;
-  padding: 0 20px;
-}
-
-.editor-actions .ant-btn-primary {
-  background: #1890ff;
-  border-color: #1890ff;
-}
-
-.editor-actions .ant-btn-primary:hover {
-  background: #40a9ff;
-  border-color: #40a9ff;
-}
-
-/* ============================================================
-   AI PANEL
-   ============================================================ */
-.ai-panel-suggestion {
-  padding: 12px;
-  background: #f6f9ff;
-  border: 1px solid #d6e4ff;
+  border: 1px solid #f0f0f0;
   border-radius: 8px;
+  padding: 8px 10px;
   margin-bottom: 12px;
-  transition: all 0.3s ease;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
-.ai-panel-suggestion:hover {
-  border-color: #1890ff;
-  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
-}
-
-.ai-panel-suggestion .suggestion-title {
-  font-weight: 500;
-  color: #262626;
-  margin-bottom: 4px;
-}
-
-.ai-panel-suggestion .suggestion-description {
-  color: #595959;
-  font-size: 13px;
-}
-
-.ai-panel-suggestion .suggestion-preview {
-  background: #f0f5ff;
-  padding: 8px 12px;
-  border-radius: 4px;
-  margin-top: 8px;
-  font-size: 13px;
-  color: #595959;
-}
-
-/* ============================================================
-   LOADING
-   ============================================================ */
-.document-editor-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  min-height: 400px;
-}
-
-.document-editor-loading .ant-spin {
-  font-size: 32px;
-}
-
-.document-editor-loading .loading-text {
-  margin-top: 16px;
-  color: #8c8c8c;
-  font-size: 16px;
-}
-
-/* ============================================================
-   TABLE EDITING TOOLS
-   ============================================================ */
-.table-editor-tools {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 8px;
-  background: #fafafa;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.table-editor-tools .ant-btn {
-  font-size: 12px;
-  height: 28px;
-  padding: 0 8px;
-}
-
-.table-editor-tools .ant-btn .anticon {
-  font-size: 14px;
-}
-
-/* ============================================================
-   PDF VIEWER
-   ============================================================ */
-.pdf-viewer-container {
-  background: #f0f2f5;
-  border-radius: 8px;
-  padding: 16px;
-  min-height: 500px;
-  overflow: auto;
-}
-
-.pdf-viewer-container .react-pdf__Document {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.pdf-viewer-container .react-pdf__Page {
-  margin-bottom: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
-  background: white;
-}
-
-.pdf-viewer-controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-
-.pdf-viewer-controls .ant-input-number {
-  width: 70px;
-}
-
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
-@media (max-width: 1200px) {
-  .editor-toolbar {
-    padding: 8px 12px;
-  }
-  
-  .editor-toolbar .ant-btn {
-    font-size: 12px;
-    height: 26px;
-    padding: 0 8px;
-  }
-}
-
-@media (max-width: 992px) {
-  .metadata-panel {
-    margin-bottom: 16px;
-  }
-  
-  .document-editor .ql-editor {
-    padding: 16px;
-  }
-  
-  .editor-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .editor-actions {
-    width: 100%;
-  }
-  
-  .editor-actions .ant-btn {
-    flex: 1;
-    justify-content: center;
-  }
-}
-
-@media (max-width: 768px) {
-  .document-editor-container {
-    padding: 0;
-  }
-  
-  .editor-card .ant-card-body {
-    padding: 16px;
-  }
-  
-  .editor-toolbar {
-    padding: 6px 10px;
-    gap: 4px;
-  }
-  
-  .editor-toolbar .ant-divider {
-    margin: 0 2px;
-  }
-  
-  .editor-toolbar .ant-btn {
-    font-size: 11px;
-    height: 24px;
-    padding: 0 6px;
-  }
-  
-  .document-editor .ql-editor {
-    padding: 12px;
-    font-size: 15px;
-  }
-  
-  .document-editor .ql-toolbar {
-    padding: 4px 8px;
-  }
-  
-  .document-editor .ql-toolbar .ql-formats {
-    margin-right: 4px;
-  }
-  
-  .document-editor .ql-toolbar button {
-    padding: 2px 4px;
-  }
-  
-  .editor-footer {
-    padding: 6px 12px;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 4px;
-  }
-  
-  .pdf-viewer-controls {
-    padding: 8px 12px;
-    gap: 8px;
-  }
-}
-
-@media (max-width: 576px) {
-  .document-editor-container {
-    padding: 0;
-  }
-  
-  .editor-card .ant-card-body {
-    padding: 12px;
-  }
-  
-  .editor-title {
-    flex-wrap: wrap;
-  }
-  
-  .editor-title .ant-typography {
-    font-size: 18px;
-  }
-  
-  .document-editor .ql-editor {
-    padding: 8px;
-    font-size: 14px;
-    min-height: 300px;
-  }
-  
-  .document-editor .ql-container {
-    min-height: 300px;
-  }
-  
-  .editor-actions .ant-btn {
-    font-size: 12px;
-    height: 30px;
-    padding: 0 12px;
-  }
-  
-  .pdf-viewer-container {
-    padding: 8px;
-    min-height: 300px;
-  }
-  
-  .pdf-viewer-container .react-pdf__Page {
-    max-width: 100%;
-  }
-  
-  .editor-toolbar .ant-badge .ant-badge-count {
-    font-size: 9px;
-    min-width: 14px;
-    height: 14px;
-    line-height: 14px;
-  }
-}
-
-/* ============================================================
-   ANIMATIONS
-   ============================================================ */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.document-editor-container {
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes pulse {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-.document-editor .ant-badge-status-processing {
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-/* ============================================================
-   CUSTOM SCROLLBAR
-   ============================================================ */
-.document-editor .ql-editor::-webkit-scrollbar {
-  width: 6px;
+.editor-toolbar::-webkit-scrollbar {
   height: 6px;
 }
 
-.document-editor .ql-editor::-webkit-scrollbar-track {
-  background: #f0f0f0;
-  border-radius: 4px;
-}
-
-.document-editor .ql-editor::-webkit-scrollbar-thumb {
+.editor-toolbar::-webkit-scrollbar-thumb {
   background: #d9d9d9;
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
-.document-editor .ql-editor::-webkit-scrollbar-thumb:hover {
+.editor-toolbar::-webkit-scrollbar-thumb:hover {
   background: #bfbfbf;
 }
 
-/* ============================================================
-   DARK MODE SUPPORT
-   ============================================================ */
-@media (prefers-color-scheme: dark) {
-  .document-editor-container {
-    background: #1a1a2e;
-  }
-  
-  .editor-card {
-    background: #1f1f3a;
-    border-color: #2a2a4a;
-  }
-  
-  .editor-card .ant-card-body {
-    background: #1f1f3a;
-  }
-  
-  .editor-toolbar {
-    background: #2a2a4a;
-    border-color: #3a3a5a;
-  }
-  
-  .editor-toolbar .ant-btn {
-    color: #d9d9d9;
-  }
-  
-  .editor-toolbar .ant-btn:hover {
-    background: #3a3a5a;
-  }
-  
-  .editor-container {
-    background: #1f1f3a;
-  }
-  
-  .document-editor .ql-container {
-    background: #1f1f3a;
-    color: #d9d9d9;
-  }
-  
-  .document-editor .ql-editor {
-    background: #1f1f3a;
-    color: #d9d9d9;
-  }
-  
-  .document-editor .ql-toolbar {
-    background: #2a2a4a;
-    border-color: #3a3a5a;
-  }
-  
-  .document-editor .ql-toolbar .ql-picker {
-    color: #d9d9d9;
-  }
-  
-  .document-editor .ql-toolbar .ql-picker-options {
-    background: #2a2a4a;
-    border-color: #3a3a5a;
-  }
-  
-  .document-editor .ql-editor blockquote {
-    color: #bfbfbf;
-  }
-  
-  .document-editor .ql-editor code {
-    background: #2a2a4a;
-    color: #d9d9d9;
-  }
-  
-  .document-editor .ql-editor pre {
-    background: #2a2a4a;
-    color: #d9d9d9;
-  }
-  
-  .document-editor .ql-editor table td,
-  .document-editor .ql-editor table th {
-    border-color: #3a3a5a;
-  }
-  
-  .document-editor .ql-editor table th {
-    background: #2a2a4a;
-  }
-  
-  .editor-footer {
-    background: #2a2a4a;
-    border-color: #3a3a5a;
-    color: #d9d9d9;
-  }
-  
-  .metadata-panel {
-    background: #1f1f3a;
-  }
-  
-  .metadata-panel .ant-collapse-header {
-    color: #d9d9d9;
-  }
-  
-  .metadata-panel .ant-form-item-label label {
-    color: #d9d9d9;
-  }
-  
-  .metadata-panel .ant-input,
-  .metadata-panel .ant-select-selector,
-  .metadata-panel .ant-picker {
-    background: #2a2a4a;
-    border-color: #3a3a5a;
-    color: #d9d9d9;
-  }
-  
-  .metadata-panel .ant-input:hover,
-  .metadata-panel .ant-select-selector:hover,
-  .metadata-panel .ant-picker:hover {
-    border-color: #4a4a6a;
-  }
-  
-  .editor-actions .ant-btn {
-    color: #d9d9d9;
-  }
-  
-  .editor-actions .ant-btn:hover {
-    background: #3a3a5a;
-    border-color: #4a4a6a;
-  }
-  
-  .editor-actions .ant-btn-primary {
-    background: #1890ff;
-    border-color: #1890ff;
-  }
-  
-  .editor-actions .ant-btn-primary:hover {
-    background: #40a9ff;
-    border-color: #40a9ff;
-  }
-  
-  .pdf-viewer-container {
-    background: #1a1a2e;
-  }
-  
-  .pdf-viewer-controls {
-    background: #1f1f3a;
-    border-color: #2a2a4a;
-  }
-  
-  .pdf-viewer-controls .ant-btn {
-    color: #d9d9d9;
-  }
-  
-  .pdf-viewer-controls .ant-btn:hover {
-    background: #3a3a5a;
-  }
-  
-  .ai-panel-suggestion {
-    background: #1f2a4a;
-    border-color: #2a3a5a;
-  }
-  
-  .ai-panel-suggestion .suggestion-title {
-    color: #d9d9d9;
-  }
-  
-  .ai-panel-suggestion .suggestion-description {
-    color: #bfbfbf;
-  }
-  
-  .ai-panel-suggestion .suggestion-preview {
-    background: #2a3a5a;
-    color: #bfbfbf;
-  }
+.editor-toolbar .ant-space {
+  align-items: center;
+}
+
+.editor-toolbar .ant-divider-vertical {
+  height: 22px;
+  margin: 0 4px;
+  border-color: #e6e6e6;
+}
+
+.editor-toolbar .ant-btn-group .ant-btn {
+  padding: 0 8px;
+}
+
+.editor-toolbar .ant-select-selection-item {
+  font-weight: 500;
+}
+
+/* Track changes active state */
+.editor-toolbar .tc-toggle-active,
+.tc-toggle-active {
+  background: #fff7e6 !important;
+  border-color: #faad14 !important;
+  color: #ad6800 !important;
+}
+
+.tc-toggle-active:hover {
+  background: #ffe7ba !important;
+  border-color: #d48806 !important;
+  color: #ad6800 !important;
 }
 
 /* ============================================================
-   PRINT STYLES
+   4. EDITOR WRAPPER
    ============================================================ */
-@media print {
-  .document-editor-container {
-    background: white;
-    padding: 0;
-  }
-  
-  .editor-toolbar {
-    display: none !important;
-  }
-  
-  .editor-header {
-    display: none !important;
-  }
-  
-  .editor-footer {
-    display: none !important;
-  }
-  
-  .editor-actions {
-    display: none !important;
-  }
-  
-  .metadata-panel {
-    display: none !important;
-  }
-  
-  .document-editor .ql-toolbar {
-    display: none !important;
-  }
-  
-  .document-editor .ql-container {
-    border: none !important;
-  }
-  
-  .document-editor .ql-editor {
-    padding: 20px !important;
-  }
-  
-  .editor-card .ant-card-body {
-    padding: 0 !important;
-  }
-  
-  .editor-card {
-    box-shadow: none !important;
-    border: none !important;
-  }
-  
-  .pdf-viewer-controls {
-    display: none !important;
-  }
-}
 
-/* ============================================================
-   KEYBOARD SHORTCUTS HINT
-   ============================================================ */
-.keyboard-shortcuts-hint {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 12px 16px;
+.editor-wrapper {
+  border: 1px solid #f0f0f0;
   border-radius: 8px;
-  font-size: 12px;
-  z-index: 1000;
-  max-width: 300px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  background: #ffffff;
+  min-height: 500px;
+  overflow: auto;
+  transition: border-color 0.2s ease;
+}
+
+.editor-wrapper:focus-within {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.08);
+}
+
+.document-editor-content {
+  min-height: 500px;
+}
+
+/* ============================================================
+   5. PROSEMIRROR BASE
+   ============================================================ */
+
+.document-editor-content .ProseMirror {
+  padding: 32px 40px;
+  min-height: 500px;
+  outline: none;
+  font-size: 15px;
+  line-height: 1.75;
+  color: #1f1f1f;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+               'Oxygen', 'Ubuntu', 'Cantarell', 'Helvetica Neue', sans-serif;
+  word-wrap: break-word;
+}
+
+.document-editor-content .ProseMirror:focus {
+  outline: none;
+}
+
+.document-editor-content .ProseMirror > * + * {
+  margin-top: 0.75em;
+}
+
+/* ============================================================
+   6. HEADINGS
+   ============================================================ */
+
+.document-editor-content .ProseMirror h1,
+.document-editor-content .ProseMirror h2,
+.document-editor-content .ProseMirror h3,
+.document-editor-content .ProseMirror h4,
+.document-editor-content .ProseMirror h5,
+.document-editor-content .ProseMirror h6 {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  color: #141414;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 1.2em 0 0.5em;
+}
+
+.document-editor-content .ProseMirror h1 { font-size: 30px; font-weight: 800; }
+.document-editor-content .ProseMirror h2 { font-size: 24px; }
+.document-editor-content .ProseMirror h3 { font-size: 20px; }
+.document-editor-content .ProseMirror h4 { font-size: 17px; }
+.document-editor-content .ProseMirror h5 { font-size: 15px; }
+.document-editor-content .ProseMirror h6 { font-size: 13.5px; text-transform: uppercase; letter-spacing: 0.4px; color: #595959; }
+
+.document-editor-content .ProseMirror h1:first-child,
+.document-editor-content .ProseMirror h2:first-child,
+.document-editor-content .ProseMirror h3:first-child {
+  margin-top: 0;
+}
+
+/* ============================================================
+   7. PARAGRAPHS & TEXT
+   ============================================================ */
+
+.document-editor-content .ProseMirror p {
+  margin: 0.5em 0;
+}
+
+.document-editor-content .ProseMirror strong {
+  font-weight: 700;
+  color: #141414;
+}
+
+.document-editor-content .ProseMirror em {
+  font-style: italic;
+}
+
+.document-editor-content .ProseMirror u {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.document-editor-content .ProseMirror s {
+  text-decoration: line-through;
+  color: #8c8c8c;
+}
+
+.document-editor-content .ProseMirror sub {
+  vertical-align: sub;
+  font-size: 0.75em;
+}
+
+.document-editor-content .ProseMirror sup {
+  vertical-align: super;
+  font-size: 0.75em;
+}
+
+/* ============================================================
+   8. PLACEHOLDER
+   ============================================================ */
+
+.document-editor-content .ProseMirror p.is-editor-empty:first-child::before,
+.document-editor-content .ProseMirror p.is-empty:first-child::before {
+  color: #bfbfbf;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  font-style: italic;
+}
+
+/* ============================================================
+   9. LINKS
+   ============================================================ */
+
+.document-editor-content .ProseMirror a {
+  color: #1890ff;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.document-editor-content .ProseMirror a:hover {
+  color: #40a9ff;
+  background: #f0f8ff;
+}
+
+/* ============================================================
+   10. LISTS (bullet / ordered / task)
+   ============================================================ */
+
+.document-editor-content .ProseMirror ul,
+.document-editor-content .ProseMirror ol {
+  padding-left: 28px;
+  margin: 0.6em 0;
+}
+
+.document-editor-content .ProseMirror ul li::marker {
+  color: #595959;
+}
+
+.document-editor-content .ProseMirror ol li::marker {
+  color: #595959;
+  font-weight: 500;
+}
+
+.document-editor-content .ProseMirror li p {
+  margin: 0.15em 0;
+}
+
+/* Task list */
+.document-editor-content .ProseMirror ul[data-type='taskList'] {
+  list-style: none;
+  padding-left: 0;
+}
+
+.document-editor-content .ProseMirror ul[data-type='taskList'] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0.4em 0;
+}
+
+.document-editor-content .ProseMirror ul[data-type='taskList'] li > label {
+  flex-shrink: 0;
+  margin-top: 3px;
+  user-select: none;
+}
+
+.document-editor-content .ProseMirror ul[data-type='taskList'] li > label input[type='checkbox'] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  accent-color: #1890ff;
+}
+
+.document-editor-content .ProseMirror ul[data-type='taskList'] li > div {
+  flex: 1;
+}
+
+.document-editor-content .ProseMirror ul[data-type='taskList'] li[data-checked='true'] > div {
+  color: #8c8c8c;
+  text-decoration: line-through;
+}
+
+/* ============================================================
+   11. BLOCKQUOTE
+   ============================================================ */
+
+.document-editor-content .ProseMirror blockquote {
+  border-left: 4px solid #1890ff;
+  background: #f6f9ff;
+  padding: 12px 18px;
+  margin: 1em 0;
+  border-radius: 0 6px 6px 0;
+  color: #434343;
+  font-style: italic;
+}
+
+.document-editor-content .ProseMirror blockquote p:first-child {
+  margin-top: 0;
+}
+
+.document-editor-content .ProseMirror blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* ============================================================
+   12. CODE (inline & block)
+   ============================================================ */
+
+.document-editor-content .ProseMirror code {
+  background: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas',
+               'Monaco', 'Courier New', monospace;
+  font-size: 0.88em;
+  color: #c41d7f;
+  border: 1px solid #f0f0f0;
+}
+
+.document-editor-content .ProseMirror pre {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  padding: 16px 20px;
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas',
+               'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-x: auto;
+  margin: 1em 0;
+  position: relative;
+  border: 1px solid #2d2d2d;
+}
+
+.document-editor-content .ProseMirror pre code {
+  background: none;
+  color: inherit;
+  padding: 0;
+  border: none;
+  font-size: inherit;
+}
+
+/* Lowlight syntax highlighting */
+.document-editor-content .ProseMirror pre .hljs-comment,
+.document-editor-content .ProseMirror pre .hljs-quote {
+  color: #6a9955;
+  font-style: italic;
+}
+
+.document-editor-content .ProseMirror pre .hljs-keyword,
+.document-editor-content .ProseMirror pre .hljs-selector-tag,
+.document-editor-content .ProseMirror pre .hljs-built_in {
+  color: #569cd6;
+}
+
+.document-editor-content .ProseMirror pre .hljs-string,
+.document-editor-content .ProseMirror pre .hljs-attr {
+  color: #ce9178;
+}
+
+.document-editor-content .ProseMirror pre .hljs-number,
+.document-editor-content .ProseMirror pre .hljs-literal {
+  color: #b5cea8;
+}
+
+.document-editor-content .ProseMirror pre .hljs-function,
+.document-editor-content .ProseMirror pre .hljs-title {
+  color: #dcdcaa;
+}
+
+.document-editor-content .ProseMirror pre .hljs-variable,
+.document-editor-content .ProseMirror pre .hljs-name {
+  color: #9cdcfe;
+}
+
+.document-editor-content .ProseMirror pre .hljs-tag {
+  color: #569cd6;
+}
+
+.document-editor-content .ProseMirror pre .hljs-type,
+.document-editor-content .ProseMirror pre .hljs-class {
+  color: #4ec9b0;
+}
+
+/* ============================================================
+   13. IMAGES
+   ============================================================ */
+
+.document-editor-content .ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 12px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: block;
+}
+
+.document-editor-content .ProseMirror img.ProseMirror-selectednode {
+  outline: 2px solid #1890ff;
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   14. HORIZONTAL RULE
+   ============================================================ */
+
+.document-editor-content .ProseMirror hr {
+  border: none;
+  border-top: 2px solid #f0f0f0;
+  margin: 24px 0;
+  width: 100%;
+}
+
+/* ============================================================
+   15. HIGHLIGHT
+   ============================================================ */
+
+.document-editor-content .ProseMirror mark {
+  background: #ffe58f;
+  padding: 0 3px;
+  border-radius: 2px;
+  color: inherit;
+}
+
+/* ============================================================
+   16. TABLES
+   ============================================================ */
+
+.document-editor-content .ProseMirror table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  margin: 16px 0;
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+.document-editor-content .ProseMirror table td,
+.document-editor-content .ProseMirror table th {
+  border: 1px solid #d9d9d9;
+  padding: 8px 12px;
+  vertical-align: top;
+  min-width: 40px;
+  position: relative;
+  font-size: 14px;
+}
+
+.document-editor-content .ProseMirror table th {
+  background: #fafafa;
+  font-weight: 600;
+  text-align: left;
+  color: #262626;
+}
+
+.document-editor-content .ProseMirror table td p,
+.document-editor-content .ProseMirror table th p {
+  margin: 0;
+}
+
+.document-editor-content .ProseMirror table .selectedCell {
+  background: #e6f7ff;
+}
+
+.document-editor-content .ProseMirror table .selectedCell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(24, 144, 255, 0.08);
   pointer-events: none;
 }
 
-.keyboard-shortcuts-hint.visible {
-  opacity: 1;
+.document-editor-content .ProseMirror table .column-resize-handle {
+  background: #1890ff;
+  bottom: 0;
+  position: absolute;
+  right: -2px;
+  pointer-events: none;
+  top: 0;
+  width: 4px;
+  z-index: 20;
 }
 
-.keyboard-shortcuts-hint kbd {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-family: monospace;
-  color: #fff;
-}
-
-/* ============================================================
-   PROGRESS INDICATOR
-   ============================================================ */
-.document-editor .upload-progress {
+.document-editor-content .ProseMirror .tableWrapper {
+  overflow-x: auto;
   margin: 16px 0;
 }
 
-.document-editor .upload-progress .ant-progress-text {
+.document-editor-content .ProseMirror .resize-cursor {
+  cursor: ew-resize;
+  cursor: col-resize;
+}
+
+/* ============================================================
+   17. TEXT COLOR / TEXT STYLE
+   ============================================================ */
+
+.document-editor-content .ProseMirror span[style*='color'] {
+  /* Tiptap sets inline color via TextStyle; keep visual default */
+}
+
+/* ============================================================
+   18. BUBBLE MENU (floating on selection)
+   ============================================================ */
+
+.bubble-menu {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: #ffffff;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  padding: 4px 6px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  animation: bubble-fade-in 0.12s ease-out;
+}
+
+.bubble-menu .ant-btn {
+  border: none;
+  background: transparent;
+  color: #595959;
+}
+
+.bubble-menu .ant-btn:hover {
+  background: #f5f5f5;
+  color: #1890ff;
+}
+
+.bubble-menu .ant-btn-primary {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.bubble-menu .ant-divider-vertical {
+  height: 18px;
+  margin: 0 2px;
+  border-color: #e6e6e6;
+}
+
+@keyframes bubble-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   19. FOOTER
+   ============================================================ */
+
+.editor-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 4px 0;
+  font-size: 12px;
+  color: #8c8c8c;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.editor-footer .ant-tag {
+  margin: 0;
+}
+
+/* ============================================================
+   20. READING MODE (distraction-free)
+   ============================================================ */
+
+.document-editor-content.reading-mode .ProseMirror {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 56px 32px;
+  font-size: 17px;
+  line-height: 1.9;
+  color: #262626;
+}
+
+.document-editor-content.reading-mode .ProseMirror h1 { font-size: 34px; margin-top: 1.6em; }
+.document-editor-content.reading-mode .ProseMirror h2 { font-size: 26px; }
+.document-editor-content.reading-mode .ProseMirror h3 { font-size: 21px; }
+
+.document-editor-content.reading-mode .ProseMirror blockquote {
+  font-size: 17px;
+  padding: 16px 22px;
+}
+
+.document-editor-content.reading-mode .ProseMirror img {
+  margin: 24px auto;
+}
+
+/* Reading mode hides the placeholder */
+.document-editor-content.reading-mode .ProseMirror p.is-editor-empty:first-child::before {
+  display: none;
+}
+
+/* ============================================================
+   21. FOCUS MODE (dim non-active paragraphs)
+   ============================================================ */
+
+.document-editor-content.focus-mode .ProseMirror > * {
+  opacity: 0.32;
+  transition: opacity 0.25s ease;
+}
+
+.document-editor-content.focus-mode .ProseMirror > .has-focus {
+  opacity: 1;
+}
+
+.document-editor-content.focus-mode .ProseMirror > .has-focus:not(:focus-within) {
+  opacity: 1;
+}
+
+/* Make sure placeholder stays visible in focus mode */
+.document-editor-content.focus-mode .ProseMirror p.has-focus.is-empty::before {
+  color: #bfbfbf;
+}
+
+/* ============================================================
+   22. TRACK CHANGES — inline diff preview
+   ============================================================ */
+
+.track-preview {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas',
+               'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  padding: 12px 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 320px;
+  overflow-y: auto;
+  color: #262626;
+}
+
+.track-preview::-webkit-scrollbar {
+  width: 6px;
+}
+
+.track-preview::-webkit-scrollbar-thumb {
+  background: #d9d9d9;
+  border-radius: 3px;
+}
+
+.track-preview-small {
+  max-height: 140px;
+  font-size: 12px;
+  padding: 8px 10px;
+  margin-top: 6px;
+}
+
+.tc-insert {
+  background: #d9f7be;
+  color: #135200;
+  padding: 0 3px;
+  border-radius: 3px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.tc-delete {
+  background: #ffccc7;
+  color: #a8071a;
+  text-decoration: line-through;
+  padding: 0 3px;
+  border-radius: 3px;
   font-weight: 500;
 }
 
 /* ============================================================
-   SPLIT VIEW
+   23. SLASH COMMAND MENU (optional enhancement)
    ============================================================ */
-.editor-split-view {
-  display: flex;
-  gap: 16px;
-  height: 100%;
+
+.slash-menu {
+  background: #ffffff;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  padding: 6px;
+  min-width: 240px;
+  max-height: 340px;
+  overflow-y: auto;
+  animation: bubble-fade-in 0.12s ease-out;
 }
 
-.editor-split-view .editor-pane {
-  flex: 1;
-  min-width: 0;
+.slash-menu .ant-list-item {
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
 }
 
-.editor-split-view .preview-pane {
-  flex: 1;
-  min-width: 0;
-  border-left: 1px solid #f0f0f0;
-  padding-left: 16px;
-  overflow: auto;
+.slash-menu .ant-list-item:hover {
+  background: #f5f5f5;
 }
+
+/* ============================================================
+   24. DRAWER TWEAKS
+   ============================================================ */
+
+.ant-drawer-body .track-preview {
+  margin-top: 8px;
+}
+
+.ant-drawer-body .ant-list-item-meta-description {
+  color: #595959;
+}
+
+/* ============================================================
+   25. RESPONSIVE — Tablet
+   ============================================================ */
+
+@media (max-width: 1200px) {
+  .document-editor-content .ProseMirror {
+    padding: 24px 28px;
+  }
+}
+
+/* ============================================================
+   26. RESPONSIVE — Mobile
+   ============================================================ */
 
 @media (max-width: 768px) {
-  .editor-split-view {
+  .editor-header {
     flex-direction: column;
+    align-items: stretch;
   }
-  
-  .editor-split-view .preview-pane {
-    border-left: none;
-    border-top: 1px solid #f0f0f0;
-    padding-left: 0;
-    padding-top: 16px;
+
+  .editor-header .ant-space {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
   }
+
+  .editor-toolbar {
+    padding: 6px 8px;
+    border-radius: 6px;
+  }
+
+  .editor-toolbar .ant-space {
+    gap: 4px !important;
+  }
+
+  .editor-toolbar .ant-divider-vertical {
+    display: none;
+  }
+
+  .editor-wrapper {
+    min-height: 400px;
+  }
+
+  .document-editor-content .ProseMirror {
+    padding: 16px 18px;
+    font-size: 14px;
+    min-height: 400px;
+  }
+
+  .document-editor-content .ProseMirror h1 { font-size: 22px; }
+  .document-editor-content .ProseMirror h2 { font-size: 19px; }
+  .document-editor-content .ProseMirror h3 { font-size: 17px; }
+
+  .document-editor-content.reading-mode .ProseMirror {
+    padding: 24px 16px;
+    font-size: 16px;
+  }
+
+  .document-editor-content .ProseMirror table td,
+  .document-editor-content .ProseMirror table th {
+    padding: 6px 8px;
+    font-size: 13px;
+  }
+
+  .bubble-menu {
+    padding: 3px 5px;
+  }
+
+  .bubble-menu .ant-btn {
+    padding: 0 5px;
+  }
+
+  .editor-footer {
+    font-size: 11px;
+  }
+}
+
+/* ============================================================
+   27. RESPONSIVE — Small Mobile
+   ============================================================ */
+
+@media (max-width: 480px) {
+  .document-editor-content .ProseMirror {
+    padding: 12px 14px;
+    font-size: 13.5px;
+  }
+
+  .editor-header h4.ant-typography {
+    font-size: 15px;
+  }
+
+  .editor-toolbar .ant-btn {
+    padding: 0 6px;
+    font-size: 12px;
+  }
+
+  .editor-toolbar .ant-select {
+    width: 90px !important;
+  }
+}
+
+/* ============================================================
+   28. PRINT
+   ============================================================ */
+
+@media print {
+  .editor-toolbar,
+  .bubble-menu,
+  .editor-footer,
+  .editor-header .ant-space,
+  .ant-drawer,
+  .ant-modal-mask,
+  .ant-modal-wrap,
+  .track-preview {
+    display: none !important;
+  }
+
+  .document-editor-container,
+  .editor-card,
+  .editor-wrapper {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #fff !important;
+  }
+
+  .document-editor-content .ProseMirror {
+    padding: 0 !important;
+    max-width: 100% !important;
+    color: #000 !important;
+  }
+
+  .document-editor-content .ProseMirror pre {
+    background: #f5f5f5 !important;
+    color: #000 !important;
+    border: 1px solid #ccc !important;
+  }
+}
+
+/* ============================================================
+   29. DARK MODE
+   ============================================================ */
+
+@media (prefers-color-scheme: dark) {
+  .document-editor-container {
+    background: #141414;
+    color: #e6e6e6;
+  }
+
+  .document-editor-container.fullscreen-mode {
+    background: #0f0f0f;
+  }
+
+  .editor-card {
+    background: #1f1f1f;
+  }
+
+  .editor-header h4.ant-typography {
+    color: #e6e6e6;
+  }
+
+  .editor-toolbar {
+    background: #1f1f1f;
+    border-color: #303030;
+  }
+
+  .editor-toolbar .ant-divider-vertical {
+    border-color: #303030;
+  }
+
+  .editor-toolbar::-webkit-scrollbar-thumb {
+    background: #434343;
+  }
+
+  .editor-wrapper {
+    background: #1f1f1f;
+    border-color: #303030;
+  }
+
+  .editor-wrapper:focus-within {
+    border-color: #177ddc;
+    box-shadow: 0 0 0 2px rgba(23, 125, 220, 0.15);
+  }
+
+  .document-editor-content .ProseMirror {
+    color: #e6e6e6;
+    background: #1f1f1f;
+  }
+
+  .document-editor-content .ProseMirror h1,
+  .document-editor-content .ProseMirror h2,
+  .document-editor-content .ProseMirror h3,
+  .document-editor-content .ProseMirror h4,
+  .document-editor-content .ProseMirror h5,
+  .document-editor-content .ProseMirror h6 {
+    color: #f5f5f5;
+  }
+
+  .document-editor-content .ProseMirror strong {
+    color: #f5f5f5;
+  }
+
+  .document-editor-content .ProseMirror a {
+    color: #69c0ff;
+  }
+
+  .document-editor-content .ProseMirror a:hover {
+    color: #91d5ff;
+    background: #111d2c;
+  }
+
+  .document-editor-content .ProseMirror code {
+    background: #2a2a2a;
+    border-color: #303030;
+    color: #ff85c0;
+  }
+
+  .document-editor-content .ProseMirror pre {
+    background: #0d0d0d;
+    border-color: #303030;
+  }
+
+  .document-editor-content .ProseMirror blockquote {
+    background: #111d2c;
+    border-left-color: #177ddc;
+    color: #bfbfbf;
+  }
+
+  .document-editor-content .ProseMirror table td,
+  .document-editor-content .ProseMirror table th {
+    border-color: #303030;
+  }
+
+  .document-editor-content .ProseMirror table th {
+    background: #262626;
+    color: #e6e6e6;
+  }
+
+  .document-editor-content .ProseMirror table .selectedCell {
+    background: #111d2c;
+  }
+
+  .document-editor-content .ProseMirror mark {
+    background: #614700;
+    color: #ffe58f;
+  }
+
+  .document-editor-content .ProseMirror hr {
+    border-top-color: #303030;
+  }
+
+  .bubble-menu,
+  .slash-menu {
+    background: #1f1f1f;
+    border-color: #303030;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  .bubble-menu .ant-btn {
+    color: #bfbfbf;
+  }
+
+  .bubble-menu .ant-btn:hover {
+    background: #303030;
+    color: #69c0ff;
+  }
+
+  .bubble-menu .ant-btn-primary {
+    background: #111d2c;
+    color: #69c0ff;
+  }
+
+  .bubble-menu .ant-divider-vertical {
+    border-color: #303030;
+  }
+
+  .editor-footer {
+    color: #8c8c8c;
+  }
+
+  .track-preview {
+    background: #141414;
+    border-color: #303030;
+    color: #e6e6e6;
+  }
+
+  .tc-insert {
+    background: #162312;
+    color: #b7eb8f;
+  }
+
+  .tc-delete {
+    background: #2a1215;
+    color: #ff7875;
+  }
+
+  /* Reading / focus mode in dark */
+  .document-editor-content.reading-mode .ProseMirror {
+    color: #e6e6e6;
+  }
+
+  /* Slash menu item hover */
+  .slash-menu .ant-list-item:hover {
+    background: #303030;
+  }
+}
+
+/* ============================================================
+   30. ACCESSIBILITY (focus rings)
+   ============================================================ */
+
+.editor-toolbar .ant-btn:focus-visible,
+.bubble-menu .ant-btn:focus-visible,
+.document-editor-content .ProseMirror a:focus-visible {
+  outline: 2px solid #1890ff;
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   31. ANIMATIONS
+   ============================================================ */
+
+@keyframes doc-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.document-editor-container {
+  animation: doc-fade-in 0.2s ease-out;
 }
