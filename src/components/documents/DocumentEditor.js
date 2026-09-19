@@ -163,7 +163,9 @@ const DocumentEditor = ({
   companyId = null,
   userRole = 'admin',
   currentUser = null,
-  isPdf = false
+  isPdf = false,
+  maxWords = null,
+  editingSource = 'regular'       
 }) => {
   // ============================================================
   // STATE
@@ -654,22 +656,24 @@ const DocumentEditor = ({
     
     setSaving(true);
     try {
-      const data = {
+      const payload = {
         title: title.trim(),
         description: description.trim(),
-        content: content,
+        content: html,
         document_type: documentType,
-        module: module,
-        category: category,
-        tags: tags,
-        priority: priority,
+        module,
+        category,
+        tags,
+        priority,
         is_confidential: isConfidential,
         expires_at: expiresAt,
         company_id: companyId,
         version: documentId ? version + 1 : 1,
         page_size: pageSize,
-        orientation: orientation
+        orientation,
+        editing_source: editingSource       
       };
+      
       
       let result;
       if (documentId) {
@@ -694,30 +698,21 @@ const DocumentEditor = ({
     }
   };
 
-  const handleSaveAsNew = async () => {
-    const titleError = validateTitle(title);
-    if (titleError) {
-      message.error(titleError);
-      return;
-    }
-    
-    setSaving(true);
-    try {
-      const data = {
-        title: title.trim() + ' (Copy)',
-        description: description.trim(),
-        content: content,
+  const result = await documentService.createDocument({
+        title: `${title} (Copy)`,
+        description,
+        content: html,
         document_type: documentType,
-        module: module,
-        category: category,
-        tags: tags,
-        priority: priority,
+        module,
+        category,
+        tags,
+        priority,
         is_confidential: isConfidential,
-        expires_at: expiresAt,
         company_id: companyId,
         page_size: pageSize,
-        orientation: orientation
-      };
+        orientation,
+        editing_source: editingSource       
+      });
       
       const result = await documentService.createDocument(data);
       message.success('Document saved as new');
