@@ -110,12 +110,17 @@ import {
   ExportOutlined,
   QrcodeOutlined,
   ScanOutlined,
-  FingerprintOutlined
+  FingerprintOutlined,
+  // ✅ FIX: these three were used but never imported
+  KeyOutlined,
+  FileProtectOutlined,
+  MessageOutlined
 } from '@ant-design/icons';
 import documentServiceAPI from '../services/documentService';
-import { 
-  isSuperAdmin, 
-  getUserPlan, 
+import { useAuth } from '../context/AuthContext';
+import {
+  isSuperAdmin,
+  getUserPlan,
   canAccessFeature,
   canPerformDocumentAction,
   getDocumentLimits,
@@ -213,12 +218,12 @@ const PRIORITY_LEVELS = {
 // MAIN COMPONENT
 // ============================================================
 
-const DocumentControl = ({ 
-  siteId = null, 
-  moduleFilter = null, 
+const DocumentControl = ({
+  siteId = null,
+  moduleFilter = null,
   onDocumentChange,
-  onDocumentSelect = null,        // ✅ NEW: Callback when document selected
-  onNavigateToFeature = null,     // ✅ NEW: Navigate to feature tabs
+  onDocumentSelect = null,        // ✅ Callback when document selected
+  onNavigateToFeature = null,     // ✅ Navigate to feature tabs
   showStats = true,
   showHeader = true,
   userPlan: propUserPlan = null,
@@ -228,9 +233,14 @@ const DocumentControl = ({
   canUpload: propCanUpload = null
 }) => {
   // ============================================================
+  // AUTH
+  // ============================================================
+  const { user } = useAuth();
+
+  // ============================================================
   // STATE
   // ============================================================
-  
+
   const [documents, setDocuments] = useState([]);
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -244,7 +254,7 @@ const DocumentControl = ({
     rejected: 0,
     shared: 0
   });
-  
+
   // UI State
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
   const [detailDrawerVisible, setDetailDrawerVisible] = useState(false);
@@ -269,46 +279,57 @@ const DocumentControl = ({
   const [canAudit, setCanAudit] = useState(false);
   const [canBulk, setCanBulk] = useState(false);
   const [canAI, setCanAI] = useState(false);
-  const [canShare, setCanShare] = useState(false);      // ✅ NEW
-  const [canCollaborate, setCanCollaborate] = useState(false); // ✅ NEW
+  const [canShare, setCanShare] = useState(false);
+  const [canCollaborate, setCanCollaborate] = useState(false);
 
   // Upload form
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState([]);
   const [uploading, setUploading] = useState(false);
-  
+
   // Comments
   const [comments, setComments] = useState([]);
   const [commentInput, setCommentInput] = useState('');
   const [commentLoading, setCommentLoading] = useState(false);
-  
+
   // Versions
   const [versions, setVersions] = useState([]);
-  
+
   // Editor & Signature State
   const [editorVisible, setEditorVisible] = useState(false);
   const [editingDocument, setEditingDocument] = useState(null);
   const [signatureModalVisible, setSignatureModalVisible] = useState(false);
   const [signatureDocumentId, setSignatureDocumentId] = useState(null);
-  
+
   // Auto refresh
   const [autoRefresh, setAutoRefresh] = useState(true);
   const refreshInterval = useRef(null);
 
+  // ✅ FIX: Bulk action modal state (was missing)
+  const [bulkTagModalVisible, setBulkTagModalVisible] = useState(false);
+  const [bulkStatusModalVisible, setBulkStatusModalVisible] = useState(false);
+  const [bulkTags, setBulkTags] = useState('');
+  const [bulkStatus, setBulkStatus] = useState('approved');
+
+  // ✅ FIX: Real-time collaboration state (was missing)
+  const [collaborationModalVisible, setCollaborationModalVisible] = useState(false);
+  const [collaboratingDocument, setCollaboratingDocument] = useState(null);
+  const [activeCollaborators, setActiveCollaborators] = useState({});
+
   // ============================================================
   // PERMISSION CHECKS
   // ============================================================
-  
+
   const checkPermissions = useCallback(() => {
     const isSuperAdmin = propIsSuperAdmin !== null ? propIsSuperAdmin : (window.isSuperAdmin ? window.isSuperAdmin() : false);
     const plan = propUserPlan || (window.getUserPlan ? window.getUserPlan() : 'free');
-    
+
     setIsSuperAdminUser(isSuperAdmin);
     setUserPlan(plan);
-    
+
     const limits = window.getDocumentLimits ? window.getDocumentLimits() : {};
     setDocumentLimits(limits);
-    
+
     setCanCreate(propCanCreate !== null ? propCanCreate : (isSuperAdmin || (limits?.allow_basic_create === true)));
     setCanEdit(isSuperAdmin || (limits?.allow_basic_edit === true));
     setCanDelete(isSuperAdmin || (plan === 'pro' || plan === 'enterprise'));
@@ -318,13 +339,13 @@ const DocumentControl = ({
     setCanAI(isSuperAdmin || (limits?.allow_ai === true));
     setCanShare(isSuperAdmin || ['pro', 'business', 'enterprise'].includes(plan));
     setCanCollaborate(isSuperAdmin || ['pro', 'business', 'enterprise'].includes(plan));
-    
+
   }, [propIsSuperAdmin, propUserPlan, propCanCreate]);
 
   // ============================================================
   // DATA FETCHING
   // ============================================================
-  
+
   const loadDocuments = useCallback(async () => {
     setLoading(true);
     try {
@@ -333,18 +354,18 @@ const DocumentControl = ({
         ...filters,
         site_id: siteId
       };
-      
+
       Object.keys(params).forEach(key => {
         if (params[key] === 'all' || params[key] === null || params[key] === '') {
           delete params[key];
         }
       });
-      
+
       const data = await documentServiceAPI.getDocuments(params);
-      
+
       const docs = data.documents || data.data || [];
       setDocuments(docs);
-      
+
       const statsData = data.stats || {};
       setStats({
         total: statsData.total || docs.length || 0,
@@ -367,7 +388,7 @@ const DocumentControl = ({
   const loadDocumentDetail = useCallback(async (id) => {
     try {
       const data = await documentServiceAPI.getDocument(id);
-      
+
       if (data.tags && typeof data.tags === 'string') {
         try {
           data.tags = JSON.parse(data.tags);
@@ -375,15 +396,15 @@ const DocumentControl = ({
           data.tags = data.tags.split(',').map(t => t.trim()).filter(Boolean);
         }
       }
-      
+
       setSelectedDocument(data);
-      
+
       const commentsData = await documentServiceAPI.getComments(id);
       setComments(commentsData.comments || commentsData.data || []);
-      
+
       const versionsData = await documentServiceAPI.getVersions(id);
       setVersions(versionsData.versions || versionsData.data || []);
-      
+
     } catch (error) {
       console.error('Failed to load document details:', error);
       message.error('Failed to load document details');
@@ -404,7 +425,7 @@ const DocumentControl = ({
   // ============================================================
   // HELPER: HANDLE SELECT DOCUMENT + NOTIFY PARENT
   // ============================================================
-  
+
   const handleSelectDocument = useCallback((doc) => {
     setSelectedDocument(doc);
     if (onDocumentSelect && doc?.id) {
@@ -426,7 +447,7 @@ const DocumentControl = ({
   // ============================================================
   // DOCUMENT OPERATIONS
   // ============================================================
-  
+
   const handleUpload = async (values) => {
     if (!canCreate) {
       message.error('Your plan does not allow creating documents. Please upgrade.');
@@ -436,7 +457,7 @@ const DocumentControl = ({
       });
       return;
     }
-    
+
     const maxDocs = window.getMaxDocuments ? window.getMaxDocuments() : 'Unlimited';
     if (maxDocs !== 'Unlimited' && documents.length >= maxDocs) {
       message.error(`You have reached the maximum of ${maxDocs} documents for your plan.`);
@@ -446,33 +467,32 @@ const DocumentControl = ({
       });
       return;
     }
-    
+
     if (fileList.length === 0) {
       message.warning('Please select a file to upload');
       return;
     }
-    
-    // ✅ FIXED: Safely extract file from various sources
+
     const fileItem = fileList[0];
     const file = fileItem?.originFileObj || (fileItem instanceof File ? fileItem : null);
-    
+
     if (!file) {
       message.error('Invalid file. Please re-select the file.');
       return;
     }
-    
+
     if (!(file instanceof File)) {
       message.error('Please select a valid file');
       return;
     }
-    
+
     const maxSizeMB = window.getMaxFileSizeMB ? window.getMaxFileSizeMB() : 5;
     const fileSizeMB = file.size / (1024 * 1024);
     if (maxSizeMB !== 'Unlimited' && fileSizeMB > maxSizeMB) {
       message.error(`File size exceeds the maximum of ${maxSizeMB}MB for your plan.`);
       return;
     }
-    
+
     setUploading(true);
     try {
       const formData = new FormData();
@@ -485,7 +505,7 @@ const DocumentControl = ({
       formData.append('tags', JSON.stringify(values.tags ? values.tags.split(',').map(t => t.trim()).filter(Boolean) : []));
       formData.append('site_id', siteId || '');
       formData.append('file', file);
-      
+
       await documentServiceAPI.createDocument(formData);
       message.success('Document uploaded successfully');
       setUploadModalVisible(false);
@@ -493,7 +513,7 @@ const DocumentControl = ({
       form.resetFields();
       loadDocuments();
       loadStats();
-      
+
       if (onDocumentChange) onDocumentChange();
     } catch (error) {
       console.error('Upload failed:', error);
@@ -512,7 +532,7 @@ const DocumentControl = ({
       });
       return;
     }
-    
+
     try {
       await documentServiceAPI.deleteDocument(id);
       message.success('Document deleted');
@@ -534,7 +554,7 @@ const DocumentControl = ({
       });
       return;
     }
-    
+
     try {
       await documentServiceAPI.bulkDelete(selectedRowKeys);
       message.success(`${selectedRowKeys.length} documents deleted`);
@@ -548,13 +568,13 @@ const DocumentControl = ({
     }
   };
 
-  // ✅ NEW: Bulk Archive
+  // ✅ Bulk Archive
   const handleBulkArchive = async () => {
     if (!canBulk) {
       message.error('Bulk operations require Enterprise plan.');
       return;
     }
-    
+
     try {
       await documentServiceAPI.bulkArchive(selectedRowKeys);
       message.success(`${selectedRowKeys.length} documents archived`);
@@ -567,13 +587,13 @@ const DocumentControl = ({
     }
   };
 
-  // ✅ NEW: Bulk Publish
+  // ✅ Bulk Publish
   const handleBulkPublish = async () => {
     if (!canBulk) {
       message.error('Bulk operations require Enterprise plan.');
       return;
     }
-    
+
     try {
       await documentServiceAPI.bulkPublish(selectedRowKeys);
       message.success(`${selectedRowKeys.length} documents published`);
@@ -586,19 +606,19 @@ const DocumentControl = ({
     }
   };
 
-  // ✅ NEW: Bulk Tag Assignment
+  // ✅ Bulk Tag Assignment
   const handleBulkAssignTags = async () => {
     if (!bulkTags.trim()) {
       message.warning('Please enter at least one tag');
       return;
     }
-    
+
     const tags = bulkTags.split(',').map(t => t.trim()).filter(Boolean);
     if (tags.length === 0) {
       message.warning('Please enter valid tags');
       return;
     }
-    
+
     try {
       await documentServiceAPI.bulkAssignTags(selectedRowKeys, tags);
       message.success(`Tags applied to ${selectedRowKeys.length} documents`);
@@ -613,13 +633,13 @@ const DocumentControl = ({
     }
   };
 
-  // ✅ NEW: Bulk Status Change
+  // ✅ Bulk Status Change
   const handleBulkStatusChange = async () => {
     if (!bulkStatus) {
       message.warning('Please select a status');
       return;
     }
-    
+
     try {
       await documentServiceAPI.bulkUpdateStatus(selectedRowKeys, bulkStatus);
       message.success(`${selectedRowKeys.length} documents updated to ${bulkStatus}`);
@@ -636,7 +656,7 @@ const DocumentControl = ({
   // ============================================================
   // WORKFLOW ACTIONS
   // ============================================================
-  
+
   const handleSubmitForReview = async (id) => {
     try {
       await documentServiceAPI.submitForReview(id);
@@ -708,7 +728,7 @@ const DocumentControl = ({
   };
 
   // ============================================================
-  // ✅ NEW: REAL-TIME COLLABORATION HANDLERS
+  // ✅ REAL-TIME COLLABORATION HANDLERS
   // ============================================================
 
   const handleStartCollaboration = (document) => {
@@ -720,7 +740,7 @@ const DocumentControl = ({
       });
       return;
     }
-    
+
     setCollaboratingDocument(document);
     setCollaborationModalVisible(true);
   };
@@ -747,10 +767,10 @@ const DocumentControl = ({
   // ============================================================
   // COMMENTS
   // ============================================================
-  
+
   const handleAddComment = async () => {
     if (!commentInput.trim()) return;
-    
+
     setCommentLoading(true);
     try {
       await documentServiceAPI.addComment(selectedDocument.id, commentInput);
@@ -768,7 +788,7 @@ const DocumentControl = ({
   // ============================================================
   // EFFECTS
   // ============================================================
-  
+
   useEffect(() => {
     if (propUserPlan) {
       setUserPlan(propUserPlan);
@@ -776,10 +796,10 @@ const DocumentControl = ({
     if (propIsSuperAdmin !== null) {
       setIsSuperAdminUser(propIsSuperAdmin);
     }
-    
+
     const plan = propUserPlan || 'free';
     const isSuperAdmin = propIsSuperAdmin || false;
-    
+
     setCanCreate(propCanCreate !== null ? propCanCreate : (isSuperAdmin || ['basic', 'pro', 'business', 'enterprise'].includes(plan)));
     setCanEdit(isSuperAdmin || ['pro', 'business', 'enterprise'].includes(plan));
     setCanDelete(isSuperAdmin || ['pro', 'business', 'enterprise'].includes(plan));
@@ -789,7 +809,7 @@ const DocumentControl = ({
     setCanAI(isSuperAdmin || ['pro', 'business', 'enterprise'].includes(plan));
     setCanShare(isSuperAdmin || ['pro', 'business', 'enterprise'].includes(plan));
     setCanCollaborate(isSuperAdmin || ['pro', 'business', 'enterprise'].includes(plan));
-    
+
   }, [propUserPlan, propIsSuperAdmin, propCanCreate]);
 
   useEffect(() => {
@@ -803,7 +823,7 @@ const DocumentControl = ({
         loadDocuments();
       }, 60000);
     }
-    
+
     return () => {
       if (refreshInterval.current) {
         clearInterval(refreshInterval.current);
@@ -814,20 +834,20 @@ const DocumentControl = ({
   // ============================================================
   // HELPERS
   // ============================================================
-  
+
   const getStatusColor = (status) => STATUS_COLORS[status] || '#d9d9d9';
-  
+
   const getStatusTag = (status) => {
     const config = DOCUMENT_STATUSES[status];
     if (!config) return <Tag>{status}</Tag>;
     return <Tag color={config.color} icon={config.icon}>{config.label}</Tag>;
   };
-  
+
   const getDocumentTypeIcon = (type) => {
     const config = DOCUMENT_TYPES[type];
     return config?.icon || <FileOutlined />;
   };
-  
+
   const getDocumentTypeTag = (type) => {
     const config = DOCUMENT_TYPES[type];
     if (!config) return <Tag>{type}</Tag>;
@@ -882,19 +902,38 @@ const DocumentControl = ({
     return isSuperAdminUser || window.isSuperAdmin?.() || false;
   };
 
+  const getTagsArray = (tags) => {
+    if (!tags) return [];
+    try {
+      if (typeof tags === 'string') {
+        const parsed = JSON.parse(tags);
+        return Array.isArray(parsed) ? parsed : [];
+      }
+      if (Array.isArray(tags)) {
+        return tags;
+      }
+      return [];
+    } catch (e) {
+      if (typeof tags === 'string') {
+        return tags.split(',').map(t => t.trim()).filter(Boolean);
+      }
+      return [];
+    }
+  };
+
   // ============================================================
   // RENDER FUNCTIONS
   // ============================================================
 
   const renderPlanBanner = () => {
     if (isSuperAdminUser) return null;
-    
+
     const plan = userPlan;
     const isFreePlan = plan === 'free';
     const isBasicPlan = plan === 'basic';
-    
+
     if (!isFreePlan && !isBasicPlan) return null;
-    
+
     return (
       <Alert
         message={
@@ -902,12 +941,12 @@ const DocumentControl = ({
             <InfoCircleOutlined />
             <span>
               {isFreePlan ? 'You are on the Free plan. ' : 'You are on the Basic plan. '}
-              <Button 
-                type="link" 
-                size="small" 
+              <Button
+                type="link"
+                size="small"
                 onClick={() => {
                   if (window.showUpgradeModal) {
-                    window.showUpgradeModal({ 
+                    window.showUpgradeModal({
                       requiredPlan: isFreePlan ? 'basic' : 'pro',
                       currentPlan: plan
                     });
@@ -1119,7 +1158,7 @@ const DocumentControl = ({
             <div>
               <div style={{ fontWeight: 500 }}>{title}</div>
               <div style={{ fontSize: 12, color: '#8c8c8c' }}>
-                {record.file_name || 'No file'} 
+                {record.file_name || 'No file'}
                 {record.version ? ` • v${record.version}` : ''}
                 {record.file_size ? ` • ${formatFileSize(record.file_size)}` : ''}
               </div>
@@ -1207,47 +1246,114 @@ const DocumentControl = ({
             <Dropdown
               overlay={
                 <Menu>
-                  {record.status === 'draft' && (
-                    <Menu.Item key="submit" icon={<SendOutlined />} onClick={() => handleSubmitForReview(record.id)}>
-                      Submit for Review
+                  {/* ✅ Advanced Features Group */}
+                  <Menu.ItemGroup title="Advanced Features">
+                    <Menu.Item
+                      key="access-control"
+                      icon={<KeyOutlined />}
+                      onClick={() => handleNavigateToFeature('access-control', record)}
+                    >
+                      Access Control
                     </Menu.Item>
-                  )}
-                  {record.status === 'review' && (
-                    <>
-                      <Menu.Item key="approve" icon={<CheckOutlined />} onClick={() => handleApprove(record.id)}>
-                        Approve
-                      </Menu.Item>
-                      <Menu.Item key="reject" icon={<CloseOutlined />} onClick={() => {
-                        Modal.confirm({
-                          title: 'Reject Document',
-                          content: (
-                            <Input.TextArea
-                              placeholder="Reason for rejection..."
-                              id="reject-reason"
-                              rows={3}
-                            />
-                          ),
-                          onOk: () => {
-                            const reason = document.getElementById('reject-reason')?.value || '';
-                            handleReject(record.id, reason);
-                          }
-                        });
-                      }}>
-                        Reject
-                      </Menu.Item>
-                    </>
-                  )}
-                  {record.status === 'approved' && (
-                    <Menu.Item key="publish" icon={<SafetyCertificateOutlined />} onClick={() => handlePublish(record.id)}>
-                      Publish
+                    <Menu.Item
+                      key="retention"
+                      icon={<ClockCircleOutlined />}
+                      onClick={() => handleNavigateToFeature('retention', record)}
+                    >
+                      Retention Policy
                     </Menu.Item>
-                  )}
-                  {(record.status === 'published' || record.status === 'approved') && (
-                    <Menu.Item key="archive" icon={<FolderOutlined />} onClick={() => handleArchive(record.id)}>
-                      Archive
+                    <Menu.Item
+                      key="watermark"
+                      icon={<FileProtectOutlined />}
+                      onClick={() => handleNavigateToFeature('watermarking', record)}
+                    >
+                      Watermark
                     </Menu.Item>
-                  )}
+                    <Menu.Item
+                      key="compliance-reports"
+                      icon={<AuditOutlined />}
+                      onClick={() => handleNavigateToFeature('compliance-reports', record)}
+                    >
+                      Compliance Report
+                    </Menu.Item>
+                  </Menu.ItemGroup>
+
                   <Menu.Divider />
+
+                  {/* ✅ Collaboration Group */}
+                  <Menu.ItemGroup title="Collaboration">
+                    <Menu.Item
+                      key="collaborate"
+                      icon={<TeamOutlined />}
+                      onClick={() => handleNavigateToFeature('collaborate', record)}
+                    >
+                      Real-Time Collaborate
+                    </Menu.Item>
+                    <Menu.Item
+                      key="share"
+                      icon={<ShareAltOutlined />}
+                      onClick={() => handleNavigateToFeature('share', record)}
+                    >
+                      Share Portal
+                    </Menu.Item>
+                    <Menu.Item
+                      key="ai-assistant"
+                      icon={<MessageOutlined />}
+                      onClick={() => handleNavigateToFeature('assistant', record)}
+                    >
+                      Ask AI
+                    </Menu.Item>
+                  </Menu.ItemGroup>
+
+                  <Menu.Divider />
+
+                  {/* Workflow Group */}
+                  <Menu.ItemGroup title="Workflow">
+                    {record.status === 'draft' && (
+                      <Menu.Item key="submit" icon={<SendOutlined />} onClick={() => handleSubmitForReview(record.id)}>
+                        Submit for Review
+                      </Menu.Item>
+                    )}
+                    {record.status === 'review' && (
+                      <>
+                        <Menu.Item key="approve" icon={<CheckOutlined />} onClick={() => handleApprove(record.id)}>
+                          Approve
+                        </Menu.Item>
+                        <Menu.Item key="reject" icon={<CloseOutlined />} onClick={() => {
+                          Modal.confirm({
+                            title: 'Reject Document',
+                            content: (
+                              <Input.TextArea
+                                placeholder="Reason for rejection..."
+                                id="reject-reason"
+                                rows={3}
+                              />
+                            ),
+                            onOk: () => {
+                              const reason = document.getElementById('reject-reason')?.value || '';
+                              handleReject(record.id, reason);
+                            }
+                          });
+                        }}>
+                          Reject
+                        </Menu.Item>
+                      </>
+                    )}
+                    {record.status === 'approved' && (
+                      <Menu.Item key="publish" icon={<SafetyCertificateOutlined />} onClick={() => handlePublish(record.id)}>
+                        Publish
+                      </Menu.Item>
+                    )}
+                    {(record.status === 'published' || record.status === 'approved') && (
+                      <Menu.Item key="archive" icon={<FolderOutlined />} onClick={() => handleArchive(record.id)}>
+                        Archive
+                      </Menu.Item>
+                    )}
+                  </Menu.ItemGroup>
+
+                  <Menu.Divider />
+
+                  {/* Signature */}
                   {canSign && (
                     <Menu.Item key="sign" icon={<SignatureOutlined />} onClick={() => {
                       setSignatureDocumentId(record.id);
@@ -1256,6 +1362,8 @@ const DocumentControl = ({
                       Sign Document
                     </Menu.Item>
                   )}
+
+                  {/* AI */}
                   {canAI && (
                     <Menu.Item key="ai" icon={<RobotOutlined />} onClick={() => {
                       message.info('AI analysis feature coming soon');
@@ -1263,7 +1371,10 @@ const DocumentControl = ({
                       AI Analyze
                     </Menu.Item>
                   )}
+
                   <Menu.Divider />
+
+                  {/* Delete */}
                   {canDelete && (
                     <Menu.Item key="delete" icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)}>
                       Delete
@@ -1304,7 +1415,7 @@ const DocumentControl = ({
   const renderUploadModal = () => {
     const maxSizeMB = window.getMaxFileSizeMB ? window.getMaxFileSizeMB() : 5;
     const maxDocs = window.getMaxDocuments ? window.getMaxDocuments() : 'Unlimited';
-    
+
     return (
       <Modal
         title={<Space><CloudUploadOutlined /> Upload Document</Space>}
@@ -1409,8 +1520,8 @@ const DocumentControl = ({
             <Input placeholder="e.g. compliance, 2024, q1" />
           </Form.Item>
 
-          <Form.Item 
-            label="File" 
+          <Form.Item
+            label="File"
             required
             extra={`Max file size: ${maxSizeMB === 'Unlimited' ? 'Unlimited' : `${maxSizeMB} MB`}`}
           >
@@ -1445,25 +1556,6 @@ const DocumentControl = ({
     );
   };
 
-  const getTagsArray = (tags) => {
-    if (!tags) return [];
-    try {
-      if (typeof tags === 'string') {
-        const parsed = JSON.parse(tags);
-        return Array.isArray(parsed) ? parsed : [];
-      }
-      if (Array.isArray(tags)) {
-        return tags;
-      }
-      return [];
-    } catch (e) {
-      if (typeof tags === 'string') {
-        return tags.split(',').map(t => t.trim()).filter(Boolean);
-      }
-      return [];
-    }
-  };
-
   // ✅ UPDATED: Detail Drawer with Edit and Sign buttons
   const renderDetailDrawer = () => (
     <Drawer
@@ -1479,8 +1571,8 @@ const DocumentControl = ({
       width={900}
       extra={
         <Space>
-          <Button 
-            icon={<EditOutlined />} 
+          <Button
+            icon={<EditOutlined />}
             onClick={() => {
               setDetailDrawerVisible(false);
               setEditingDocument(selectedDocument);
@@ -1489,8 +1581,8 @@ const DocumentControl = ({
           >
             Edit
           </Button>
-          <Button 
-            icon={<SignatureOutlined />} 
+          <Button
+            icon={<SignatureOutlined />}
             onClick={() => {
               setDetailDrawerVisible(false);
               setSignatureDocumentId(selectedDocument?.id);
@@ -1574,11 +1666,11 @@ const DocumentControl = ({
 
             <Divider />
 
-            {/* ✅ NEW: Advanced Features Section */}
+            {/* ✅ Advanced Features Section */}
             <div style={{ marginTop: 16 }}>
               <Title level={5}>Advanced Features</Title>
               <Space wrap>
-                <Button 
+                <Button
                   icon={<KeyOutlined />}
                   onClick={() => {
                     setDetailDrawerVisible(false);
@@ -1587,7 +1679,7 @@ const DocumentControl = ({
                 >
                   Access Control
                 </Button>
-                <Button 
+                <Button
                   icon={<ClockCircleOutlined />}
                   onClick={() => {
                     setDetailDrawerVisible(false);
@@ -1596,7 +1688,7 @@ const DocumentControl = ({
                 >
                   Retention
                 </Button>
-                <Button 
+                <Button
                   icon={<FileProtectOutlined />}
                   onClick={() => {
                     setDetailDrawerVisible(false);
@@ -1605,7 +1697,7 @@ const DocumentControl = ({
                 >
                   Watermark
                 </Button>
-                <Button 
+                <Button
                   icon={<TeamOutlined />}
                   onClick={() => {
                     setDetailDrawerVisible(false);
@@ -1614,7 +1706,7 @@ const DocumentControl = ({
                 >
                   Collaborate
                 </Button>
-                <Button 
+                <Button
                   icon={<ShareAltOutlined />}
                   onClick={() => {
                     setDetailDrawerVisible(false);
@@ -1623,7 +1715,7 @@ const DocumentControl = ({
                 >
                   Share
                 </Button>
-                <Button 
+                <Button
                   icon={<MessageOutlined />}
                   onClick={() => {
                     setDetailDrawerVisible(false);
@@ -1632,7 +1724,7 @@ const DocumentControl = ({
                 >
                   Ask AI
                 </Button>
-                <Button 
+                <Button
                   icon={<AuditOutlined />}
                   onClick={() => {
                     setDetailDrawerVisible(false);
@@ -1642,7 +1734,7 @@ const DocumentControl = ({
                   Compliance Report
                 </Button>
                 {canAI && (
-                  <Button 
+                  <Button
                     icon={<RobotOutlined />}
                     onClick={() => {
                       setDetailDrawerVisible(false);
@@ -1660,8 +1752,8 @@ const DocumentControl = ({
             <div style={{ marginTop: 16 }}>
               <Title level={5}>Workflow Actions</Title>
               <Space wrap>
-                {/* ✅ NEW: Collaborate Action */}
-                <Button 
+                {/* ✅ Collaborate Action */}
+                <Button
                   type="primary"
                   icon={<TeamOutlined />}
                   onClick={() => {
@@ -1855,7 +1947,73 @@ const DocumentControl = ({
     </Drawer>
   );
 
-  // ✅ NEW: Render Editor Modal
+  // ============================================================
+  // ✅ FIX: BULK TAG MODAL (was missing)
+  // ============================================================
+  const renderBulkTagModal = () => (
+    <Modal
+      title="Add Tags to Selected Documents"
+      open={bulkTagModalVisible}
+      onCancel={() => {
+        setBulkTagModalVisible(false);
+        setBulkTags('');
+      }}
+      onOk={handleBulkAssignTags}
+      okText={`Apply to ${selectedRowKeys.length} document(s)`}
+      okButtonProps={{ disabled: !bulkTags.trim() }}
+    >
+      <Alert
+        message={`Applying tags to ${selectedRowKeys.length} document(s)`}
+        type="info"
+        showIcon
+        style={{ marginBottom: 16 }}
+      />
+      <Input
+        placeholder="Enter tags separated by commas"
+        value={bulkTags}
+        onChange={(e) => setBulkTags(e.target.value)}
+        onPressEnter={handleBulkAssignTags}
+        autoFocus
+      />
+      <div style={{ marginTop: 8, fontSize: 12, color: '#8c8c8c' }}>
+        Example: compliance, 2024, q1, urgent
+      </div>
+    </Modal>
+  );
+
+  // ============================================================
+  // ✅ FIX: BULK STATUS MODAL (was missing)
+  // ============================================================
+  const renderBulkStatusModal = () => (
+    <Modal
+      title="Change Status for Selected Documents"
+      open={bulkStatusModalVisible}
+      onCancel={() => setBulkStatusModalVisible(false)}
+      onOk={handleBulkStatusChange}
+      okText={`Update ${selectedRowKeys.length} document(s)`}
+    >
+      <Alert
+        message={`Changing status for ${selectedRowKeys.length} document(s)`}
+        type="warning"
+        showIcon
+        style={{ marginBottom: 16 }}
+      />
+      <Select
+        value={bulkStatus}
+        onChange={setBulkStatus}
+        style={{ width: '100%' }}
+        size="large"
+      >
+        {Object.entries(DOCUMENT_STATUSES).map(([key, value]) => (
+          <Option key={key} value={key}>
+            {value.icon} {value.label}
+          </Option>
+        ))}
+      </Select>
+    </Modal>
+  );
+
+  // ✅ Render Editor Modal
   const renderEditorModal = () => (
     <Modal
       title="Edit Document"
@@ -1867,7 +2025,7 @@ const DocumentControl = ({
       footer={null}
       width="95%"
       style={{ top: 20 }}
-      bodyStyle={{ padding: '16px', maxHeight: 'calc(100vh - 120px)', overflow: 'auto' }}
+      styles={{ body: { padding: '16px', maxHeight: 'calc(100vh - 120px)', overflow: 'auto' } }}
       destroyOnClose
     >
       <DocumentEditor
@@ -1890,13 +2048,14 @@ const DocumentControl = ({
           if (onDocumentChange) onDocumentChange();
         }}
         companyId={siteId}
-        currentUser={userPlan}
+        currentUser={user}
+        userRole={userPlan}
         isPdf={editingDocument?.file_url?.endsWith('.pdf')}
       />
     </Modal>
   );
 
-  // ✅ NEW: Render Signature Modal
+  // ✅ Render Signature Modal
   const renderSignatureModal = () => (
     <Modal
       title="Document Signatures"
@@ -1908,7 +2067,7 @@ const DocumentControl = ({
       footer={null}
       width="90%"
       style={{ top: 20 }}
-      bodyStyle={{ padding: '16px', maxHeight: 'calc(100vh - 200px)', overflow: 'auto' }}
+      styles={{ body: { padding: '16px', maxHeight: 'calc(100vh - 200px)', overflow: 'auto' } }}
       destroyOnClose
     >
       <DocumentSignature
@@ -1921,13 +2080,14 @@ const DocumentControl = ({
           if (onDocumentChange) onDocumentChange();
         }}
         companyId={siteId}
-        currentUser={userPlan}
+        currentUser={user}
+        userRole={userPlan}
       />
     </Modal>
   );
 
   // ============================================================
-  // ✅ NEW: RENDER COLLABORATION MODAL
+  // ✅ RENDER COLLABORATION MODAL
   // ============================================================
 
   const renderCollaborationModal = () => {
@@ -1948,10 +2108,12 @@ const DocumentControl = ({
         footer={null}
         width="95%"
         style={{ top: 20 }}
-        bodyStyle={{ 
-          padding: '16px', 
-          maxHeight: 'calc(100vh - 120px)', 
-          overflow: 'auto' 
+        styles={{
+          body: {
+            padding: '16px',
+            maxHeight: 'calc(100vh - 120px)',
+            overflow: 'auto'
+          }
         }}
         destroyOnClose
         maskClosable={false}
@@ -1979,9 +2141,9 @@ const DocumentControl = ({
           documentId={collaboratingDocument.id}
           documentTitle={collaboratingDocument.title}
           currentUser={{
-            id: window.currentUser?.id || 'current_user',
-            name: window.currentUser?.name || window.currentUser?.email || 'You',
-            email: window.currentUser?.email
+            id: user?.id || 'current_user',
+            name: user?.name || user?.email || 'You',
+            email: user?.email
           }}
           onSave={handleCollaborationSave}
           onContentChange={(content) => {
@@ -2000,7 +2162,7 @@ const DocumentControl = ({
   // ============================================================
   // MAIN RENDER
   // ============================================================
-  
+
   return (
     <div className="document-control">
       {/* Header */}
@@ -2030,12 +2192,12 @@ const DocumentControl = ({
               <InfoCircleOutlined />
               <span>
                 You are on the {userPlan === 'free' ? 'Free' : 'Basic'} plan.
-                <Button 
-                  type="link" 
-                  size="small" 
+                <Button
+                  type="link"
+                  size="small"
                   onClick={() => {
                     if (window.showUpgradeModal) {
-                      window.showUpgradeModal({ 
+                      window.showUpgradeModal({
                         requiredPlan: userPlan === 'free' ? 'basic' : 'pro',
                         currentPlan: userPlan
                       });
@@ -2068,51 +2230,51 @@ const DocumentControl = ({
         <div style={{ marginBottom: 16, padding: '8px 16px', background: '#f6f8fa', borderRadius: 8 }}>
           <Space wrap>
             <span><strong>{selectedRowKeys.length}</strong> selected</span>
-            
+
             {/* Bulk Archive */}
             {canBulk && (
-              <Button 
-                size="small" 
+              <Button
+                size="small"
                 icon={<FolderOutlined />}
                 onClick={handleBulkArchive}
               >
                 Archive
               </Button>
             )}
-            
+
             {/* Bulk Publish */}
             {canBulk && (
-              <Button 
-                size="small" 
+              <Button
+                size="small"
                 icon={<SafetyCertificateOutlined />}
                 onClick={handleBulkPublish}
               >
                 Publish
               </Button>
             )}
-            
+
             {/* Bulk Add Tags */}
             {canBulk && (
-              <Button 
-                size="small" 
+              <Button
+                size="small"
                 icon={<TagsOutlined />}
                 onClick={() => setBulkTagModalVisible(true)}
               >
                 Add Tags
               </Button>
             )}
-            
+
             {/* Bulk Change Status */}
             {canBulk && (
-              <Button 
-                size="small" 
+              <Button
+                size="small"
                 icon={<EditOutlined />}
                 onClick={() => setBulkStatusModalVisible(true)}
               >
                 Change Status
               </Button>
             )}
-            
+
             {/* Bulk Delete */}
             {canBulk && (
               <PopconfirmAntd
@@ -2126,7 +2288,7 @@ const DocumentControl = ({
                 </Button>
               </PopconfirmAntd>
             )}
-            
+
             {/* Upgrade prompt if no bulk permission */}
             {!canBulk && (
               <Tooltip title="Bulk operations require Enterprise plan">
@@ -2135,10 +2297,10 @@ const DocumentControl = ({
                 </Button>
               </Tooltip>
             )}
-            
+
             {/* Clear selection */}
-            <Button 
-              size="small" 
+            <Button
+              size="small"
               icon={<ClearOutlined />}
               onClick={() => setSelectedRowKeys([])}
             >
@@ -2151,23 +2313,18 @@ const DocumentControl = ({
       {/* Document List */}
       {renderDocumentTable()}
 
-      {/* Modals */}
+      {/* ✅ Modals (each rendered exactly once) */}
       {renderUploadModal()}
       {renderBulkTagModal()}
       {renderBulkStatusModal()}
       {renderEditorModal()}
       {renderSignatureModal()}
+      {renderCollaborationModal()}
 
-      {/* Drawers */}
+      {/* ✅ Drawers */}
       {renderDetailDrawer()}
       {renderVersionDrawer()}
       {renderCommentDrawer()}
-
-      {/* Editor Modal */}
-      {renderEditorModal()}
-
-      {/* Signature Modal */}
-      {renderSignatureModal()}
     </div>
   );
 };
