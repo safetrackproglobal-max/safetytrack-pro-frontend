@@ -6,8 +6,8 @@ import { useHistory, useLocation } from 'react-router-dom';
 import {
   Layout, Menu, Button, Space, Typography, Badge, Tag,
   Row, Col, Card, Statistic, Tooltip, Input, Modal,
-  Form, Upload, message, Alert, Divider, Empty, Avatar, Select, 
-  Dropdown, Breadcrumb, Menu as AntMenu
+  Form, Upload, message, Alert, Divider, Empty, Avatar, Select,
+  Dropdown, Breadcrumb
 } from 'antd';
 import {
   FileTextOutlined, PlusOutlined, SearchOutlined, ReloadOutlined,
@@ -44,7 +44,7 @@ import {
   FilePdfOutlined,
   FileWordOutlined,
   BuildOutlined,
-  HomeOutlined as HomeIcon,
+  HomeOutlined as HomeIcon
 } from '@ant-design/icons';
 
 // ============================================================
@@ -87,13 +87,16 @@ import OfflineManager from '../components/documents/OfflineManager';
 import IntegrationHub from '../components/documents/IntegrationHub';
 import RealtimeCollaborativeEditor from '../components/editor/RealtimeCollaborativeEditor';
 
+// ✅ STEP 5: Import the standalone editor + drafts panel
+import DocumentEditor from '../components/documents/DocumentEditor';
+import RecentDraftsPanel from '../components/documents/RecentDraftsPanel';
+
 import documentService from '../services/documentService';
 import { useAuth } from '../context/AuthContext';
 import './DocumentManagementPage.css';
 
 const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
-const { Search } = Input;
 const { Option } = Select;
 
 // ============================================================
@@ -167,7 +170,7 @@ const PLAN_PERMISSIONS = {
 };
 
 // ============================================================
-// ✅ SIDEBAR MENU STRUCTURE — 10 GROUPS, 32 TABS
+// SIDEBAR MENU STRUCTURE
 // ============================================================
 const SIDEBAR_GROUPS = [
   {
@@ -181,6 +184,7 @@ const SIDEBAR_GROUPS = [
     ]
   },
   {
+    // ✅ STEP 5: New "Editing" group
     key: 'editing',
     label: 'Editing',
     emoji: '✍️',
@@ -298,7 +302,7 @@ const SIDEBAR_GROUPS = [
 // MAIN COMPONENT
 // ============================================================
 
-const DocumentManagementPage = ({ 
+const DocumentManagementPage = ({
   companyId = null,
   initialTab = 'documents'
 }) => {
@@ -323,7 +327,7 @@ const DocumentManagementPage = ({
   const [selectedDocumentId, setSelectedDocumentId] = useState(null);
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [form] = Form.useForm();
-  
+
   const [stats, setStats] = useState({
     total: 0, draft: 0, review: 0, approved: 0,
     published: 0, archived: 0, overdue: 0
@@ -344,14 +348,14 @@ const DocumentManagementPage = ({
   const getUserPlan = useCallback(() => {
     const isSuperAdminCheck = user?.is_super_admin || user?.user_type === 'super_admin' || user?.role === 'super_admin';
     setIsSuperAdmin(isSuperAdminCheck);
-    
+
     if (isSuperAdminCheck) return 'super_admin';
-    
+
     let plan = 'free';
     if (planData?.effective_plan) plan = planData.effective_plan;
     else if (user?.subscription_plan) plan = user.subscription_plan;
     else if (user?.plan) plan = user.plan;
-    
+
     const normalizedPlan = plan?.toLowerCase() || 'free';
     setUserPlan(normalizedPlan);
     return normalizedPlan;
@@ -371,10 +375,9 @@ const DocumentManagementPage = ({
   const canUpload = permissions.can_upload || isUserSuperAdmin();
 
   // ============================================================
-  // EFFECTS — Auto-open sidebar group for active tab + URL sync
+  // EFFECTS — Auto-open sidebar group for active tab
   // ============================================================
   useEffect(() => {
-    // Auto-expand the group containing the active tab
     const activeGroup = SIDEBAR_GROUPS.find(group =>
       group.tabs.some(tab => tab.key === activeTab)
     );
@@ -383,12 +386,20 @@ const DocumentManagementPage = ({
     }
   }, [activeTab]);
 
+  // ============================================================
+  // ✅ STEP 5: URL sync — tab + doc (deep link support)
+  // ============================================================
   useEffect(() => {
-    // Restore active tab from URL on mount
     const params = new URLSearchParams(location.search);
     const tabFromUrl = params.get('tab');
+    const docFromUrl = params.get('doc');
+
     if (tabFromUrl && tabFromUrl !== activeTab) {
       setActiveTab(tabFromUrl);
+    }
+    if (docFromUrl) {
+      const parsed = Number(docFromUrl);
+      setSelectedDocumentId(isNaN(parsed) ? docFromUrl : parsed);
     }
   }, [location.search]);
 
@@ -425,14 +436,17 @@ const DocumentManagementPage = ({
 
   const handleMenuClick = ({ key }) => {
     setActiveTab(key);
-    // Persist to URL for refresh safety
     history.push(`/document-management?tab=${key}`);
   };
 
+  // ✅ STEP 5: Include doc id in URL when navigating to features
   const handleNavigateToFeature = useCallback((featureKey, docId) => {
     if (docId) setSelectedDocumentId(docId);
     setActiveTab(featureKey);
-    history.push(`/document-management?tab=${featureKey}`);
+    const qs = docId
+      ? `/document-management?tab=${featureKey}&doc=${docId}`
+      : `/document-management?tab=${featureKey}`;
+    history.push(qs);
     message.success(`Opened ${featureKey}`);
   }, [history]);
 
@@ -443,7 +457,7 @@ const DocumentManagementPage = ({
     setLoading(true);
     try {
       const plan = getUserPlan();
-      
+
       let perms = null;
       try {
         const permsResponse = await documentService.getPermissions({ company_id: companyId });
@@ -453,7 +467,7 @@ const DocumentManagementPage = ({
       } catch (err) {
         console.error('Permissions fetch error:', err);
       }
-      
+
       if (perms) {
         setPermissions({
           can_create: perms.can_create || false,
@@ -469,17 +483,17 @@ const DocumentManagementPage = ({
       } else {
         setPermissions(getPermissionsForPlan(plan));
       }
-      
+
       const [statsData, tasksData, docsData] = await Promise.all([
         documentService.getStats({ company_id: companyId }),
         documentService.getPendingTasks({ company_id: companyId }),
         documentService.getDocuments({ company_id: companyId, limit: 100 })
       ]);
-      
+
       setStats(statsData || {});
       setPendingTasks(tasksData?.tasks || []);
       setDocuments(docsData?.documents || []);
-      
+
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
       message.error('Failed to load dashboard data');
@@ -502,7 +516,7 @@ const DocumentManagementPage = ({
       return;
     }
     try {
-      const results = await documentService.globalSearch(value, { 
+      const results = await documentService.globalSearch(value, {
         company_id: companyId,
         limit: 10
       });
@@ -522,12 +536,12 @@ const DocumentManagementPage = ({
       const f = fileList[0];
       fileToUpload = f?.originFileObj || (f instanceof File ? f : null);
     }
-    
+
     if (!fileToUpload || !(fileToUpload instanceof File)) {
       message.warning('Please select a valid file');
       return;
     }
-    
+
     const documentData = {
       title: values.title?.trim(),
       document_type: values.document_type,
@@ -537,9 +551,10 @@ const DocumentManagementPage = ({
       priority: values.priority || 'medium',
       tags: values.tags?.split(',').map(t => t.trim()).filter(Boolean) || [],
       company_id: companyId || '',
-      file: fileToUpload
+      file: fileToUpload,
+      editing_source: 'regular'      // ✅ STEP 6: uploads are regular docs
     };
-    
+
     setUploading(true);
     try {
       const response = await documentService.createDocument(documentData);
@@ -564,243 +579,227 @@ const DocumentManagementPage = ({
   // RENDER: CUSTOM HEADER
   // ============================================================
   const renderCustomHeader = () => (
-  <Header
-    className="docmgmt-header"
-    style={{
-      background: 'white',
-      padding: '0 24px',
-      height: 64,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      borderBottom: '1px solid #f0f0f0',
-      boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-      position: 'sticky',
-      top: 0,
-      zIndex: 100,
-      width: '100%',
-      overflow: 'hidden',
-      gap: 16
-    }}
-  >
-    {/* ============================================ */}
-    {/* LEFT SIDE — Flex Grow + Prevent Wrap */}
-    {/* ============================================ */}
-    <Space 
-      size="middle" 
-      align="center" 
-      style={{ 
-        flex: '1 1 auto', 
-        minWidth: 0,           // ✅ Critical for text ellipsis
+    <Header
+      className="docmgmt-header"
+      style={{
+        background: 'white',
+        padding: '0 24px',
+        height: 64,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderBottom: '1px solid #f0f0f0',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100,
+        width: '100%',
         overflow: 'hidden',
-        whiteSpace: 'nowrap'
+        gap: 16
       }}
     >
-      {/* Back Button */}
-      <Tooltip title="Back to Main Dashboard">
+      <Space
+        size="middle"
+        align="center"
+        style={{
+          flex: '1 1 auto',
+          minWidth: 0,
+          overflow: 'hidden',
+          whiteSpace: 'nowrap'
+        }}
+      >
+        <Tooltip title="Back to Main Dashboard">
+          <Button
+            type="text"
+            icon={<ArrowLeftOutlined />}
+            onClick={handleBackToMain}
+            style={{ fontSize: 16, flexShrink: 0 }}
+          >
+            Back
+          </Button>
+        </Tooltip>
+
+        <Divider type="vertical" style={{ height: 24, margin: 0 }} />
+
         <Button
           type="text"
-          icon={<ArrowLeftOutlined />}
-          onClick={handleBackToMain}
+          icon={sidebarCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
           style={{ fontSize: 16, flexShrink: 0 }}
-        >
-          Back
-        </Button>
-      </Tooltip>
-      
-      <Divider type="vertical" style={{ height: 24, margin: 0 }} />
-      
-      {/* Sidebar Toggle */}
-      <Button
-        type="text"
-        icon={sidebarCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-        onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-        style={{ fontSize: 16, flexShrink: 0 }}
-      />
-
-      <Divider type="vertical" style={{ height: 24, margin: 0 }} />
-
-      {/* Title Section — Nowrap */}
-      <Space 
-        style={{ 
-          whiteSpace: 'nowrap',
-          flexShrink: 0,
-          overflow: 'hidden'
-        }}
-      >
-        <FileTextOutlined 
-          style={{ fontSize: 22, color: '#4fc3f7', flexShrink: 0 }} 
         />
-        <Title 
-          level={4} 
-          style={{ 
-            margin: 0,
-            whiteSpace: 'nowrap',      // ✅ Prevents vertical wrap
-            overflow: 'hidden',         // ✅ Clips if too long
-            textOverflow: 'ellipsis',   // ✅ Shows "..." if too long
-            maxWidth: 400               // ✅ Caps width
+
+        <Divider type="vertical" style={{ height: 24, margin: 0 }} />
+
+        <Space
+          style={{
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+            overflow: 'hidden'
           }}
         >
-          Document Management
-        </Title>
-        <Badge 
-          status="processing" 
-          text="Live" 
-          style={{ flexShrink: 0 }} 
-        />
-      </Space>
-    </Space>
-
-    {/* ============================================ */}
-    {/* RIGHT SIDE — Fixed Width */}
-    {/* ============================================ */}
-    <Space 
-      size="middle" 
-      style={{ 
-        flexShrink: 0,        // ✅ Never shrinks
-        whiteSpace: 'nowrap'
-      }}
-    >
-      {/* Plan Badge */}
-      <Tag 
-        color={isUserSuperAdmin() ? 'gold' : 'blue'}
-        style={{ margin: 0, flexShrink: 0 }}
-      >
-        {isUserSuperAdmin() ? '👑 Super Admin' : userPlan.toUpperCase()}
-      </Tag>
-
-      {/* Notifications */}
-      <Tooltip title="Notifications">
-        <Badge count={pendingTasks.length} offset={[-5, 5]}>
-          <Button 
-            type="text" 
-            icon={<BellOutlined />} 
+          <FileTextOutlined
+            style={{ fontSize: 22, color: '#4fc3f7', flexShrink: 0 }}
+          />
+          <Title
+            level={4}
+            style={{
+              margin: 0,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              maxWidth: 400
+            }}
+          >
+            Document Management
+          </Title>
+          <Badge
+            status="processing"
+            text="Live"
             style={{ flexShrink: 0 }}
           />
-        </Badge>
-      </Tooltip>
+        </Space>
+      </Space>
 
-      {/* Refresh */}
-      <Tooltip title="Refresh">
-        <Button 
-          type="text" 
-          icon={<ReloadOutlined />} 
-          onClick={loadDashboardData}
-          loading={loading}
-          style={{ flexShrink: 0 }}
-        />
-      </Tooltip>
-
-      {/* New Document */}
-      {canCreate && canUpload && (
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => setUploadModalVisible(true)}
-          style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
-        >
-          New Document
-        </Button>
-      )}
-
-      <Divider type="vertical" style={{ height: 24, margin: 0 }} />
-
-      {/* User Menu */}
-      <Dropdown
-        menu={{
-          items: [
-            { key: 'profile', icon: <ProfileOutlined />, label: 'My Profile', onClick: () => history.push('/profile') },
-            { key: 'settings', icon: <SettingOutlined />, label: 'Settings', onClick: () => history.push('/settings') },
-            { type: 'divider' },
-            { key: 'back', icon: <HomeOutlined />, label: 'Back to Dashboard', onClick: handleBackToMain },
-            { type: 'divider' },
-            { key: 'logout', icon: <LogoutOutlined />, label: 'Logout', danger: true, onClick: () => { logout(); history.push('/login'); } }
-          ]
+      <Space
+        size="middle"
+        style={{
+          flexShrink: 0,
+          whiteSpace: 'nowrap'
         }}
-        trigger={['click']}
       >
-        <Button 
-          type="text" 
-          style={{ flexShrink: 0, padding: 0 }}
+        <Tag
+          color={isUserSuperAdmin() ? 'gold' : 'blue'}
+          style={{ margin: 0, flexShrink: 0 }}
         >
-          <Avatar 
-            size="small" 
-            icon={<UserOutlined />} 
-            src={user?.avatar} 
+          {isUserSuperAdmin() ? '👑 Super Admin' : (userPlan || 'free').toUpperCase()}
+        </Tag>
+
+        <Tooltip title="Notifications">
+          <Badge count={pendingTasks.length} offset={[-5, 5]}>
+            <Button
+              type="text"
+              icon={<BellOutlined />}
+              style={{ flexShrink: 0 }}
+            />
+          </Badge>
+        </Tooltip>
+
+        <Tooltip title="Refresh">
+          <Button
+            type="text"
+            icon={<ReloadOutlined />}
+            onClick={loadDashboardData}
+            loading={loading}
+            style={{ flexShrink: 0 }}
           />
-        </Button>
-      </Dropdown>
-    </Space>
-  </Header>
-);
+        </Tooltip>
+
+        {canCreate && canUpload && (
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setUploadModalVisible(true)}
+            style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
+          >
+            New Document
+          </Button>
+        )}
+
+        <Divider type="vertical" style={{ height: 24, margin: 0 }} />
+
+        <Dropdown
+          menu={{
+            items: [
+              { key: 'profile', icon: <ProfileOutlined />, label: 'My Profile', onClick: () => history.push('/profile') },
+              { key: 'settings', icon: <SettingOutlined />, label: 'Settings', onClick: () => history.push('/settings') },
+              { type: 'divider' },
+              { key: 'back', icon: <HomeOutlined />, label: 'Back to Dashboard', onClick: handleBackToMain },
+              { type: 'divider' },
+              { key: 'logout', icon: <LogoutOutlined />, label: 'Logout', danger: true, onClick: () => { logout(); history.push('/login'); } }
+            ]
+          }}
+          trigger={['click']}
+        >
+          <Button
+            type="text"
+            style={{ flexShrink: 0, padding: 0 }}
+          >
+            <Avatar
+              size="small"
+              icon={<UserOutlined />}
+              src={user?.avatar}
+            />
+          </Button>
+        </Dropdown>
+      </Space>
+    </Header>
+  );
 
   // ============================================================
   // RENDER: SIDEBAR
   // ============================================================
   const renderSidebar = () => (
-  <Sider
-    className="docmgmt-sider"
-    width={280}
-    collapsedWidth={64}
-    collapsed={sidebarCollapsed}
-    theme="light"
-  >
-    {/* Sidebar Header */}
-    {!sidebarCollapsed && (
-      <div className="sidebar-brand">
-        <Space>
-          <FolderOpenOutlined style={{ fontSize: 18 }} />
-          <Text strong>WORKSPACE</Text>
-        </Space>
-      </div>
-    )}
+    <Sider
+      className="docmgmt-sider"
+      width={280}
+      collapsedWidth={64}
+      collapsed={sidebarCollapsed}
+      theme="light"
+    >
+      {!sidebarCollapsed && (
+        <div className="sidebar-brand">
+          <Space>
+            <FolderOpenOutlined style={{ fontSize: 18 }} />
+            <Text strong>WORKSPACE</Text>
+          </Space>
+        </div>
+      )}
 
-    {/* Grouped Menu */}
-    <Menu
-      className="docmgmt-menu"
-      mode="inline"
-      selectedKeys={[activeTab]}
-      openKeys={sidebarCollapsed ? [] : openKeys}
-      onOpenChange={setOpenKeys}
-      onClick={handleMenuClick}
-      items={SIDEBAR_GROUPS.map(group => ({
-        key: group.key,
-        label: (
-          <span className="group-label">
-            <span className="group-emoji">{group.emoji}</span>
-            <span className="group-text">{group.label}</span>
-            <Badge
-              className="group-badge"
-              count={group.tabs.length}
-              style={{
-                backgroundColor: `${group.color}22`,
-                color: group.color
-              }}
-            />
-          </span>
-        ),
-        children: group.tabs.map(tab => ({
-          key: tab.key,
-          icon: tab.icon,
-          label: tab.label
-        }))
-      }))}
-    />
+      <Menu
+        className="docmgmt-menu"
+        mode="inline"
+        selectedKeys={[activeTab]}
+        openKeys={sidebarCollapsed ? [] : openKeys}
+        onOpenChange={setOpenKeys}
+        onClick={handleMenuClick}
+        items={SIDEBAR_GROUPS.map(group => ({
+          key: group.key,
+          label: (
+            <span className="group-label">
+              <span className="group-emoji">{group.emoji}</span>
+              <span className="group-text">{group.label}</span>
+              <Badge
+                className="group-badge"
+                count={group.tabs.length}
+                style={{
+                  backgroundColor: `${group.color}22`,
+                  color: group.color
+                }}
+              />
+            </span>
+          ),
+          children: group.tabs.map(tab => ({
+            key: tab.key,
+            icon: tab.icon,
+            label: tab.label
+          }))
+        }))}
+      />
 
-    {/* Bottom Back Button */}
-    {!sidebarCollapsed && (
-      <div className="sidebar-footer">
-        <Button
-          block
-          icon={<ArrowLeftOutlined />}
-          onClick={handleBackToMain}
-        >
-          Back to Main App
-        </Button>
-      </div>
-    )}
-  </Sider>
-);
+      {!sidebarCollapsed && (
+        <div className="sidebar-footer">
+          <Button
+            block
+            icon={<ArrowLeftOutlined />}
+            onClick={handleBackToMain}
+          >
+            Back to Main App
+          </Button>
+        </div>
+      )}
+    </Sider>
+  );
+
   // ============================================================
   // RENDER: BREADCRUMB
   // ============================================================
@@ -841,20 +840,22 @@ const DocumentManagementPage = ({
 
   // ============================================================
   // RENDER: SELECTED DOCUMENT BANNER
+  // ✅ STEP 5: includes 'editor-new' so the sidebar editor shows which doc is loaded
   // ============================================================
   const renderSelectedDocumentBanner = () => {
     const documentSpecificTabs = [
       'access-control', 'retention', 'watermarking',
       'compliance-reports', 'incidents', 'collaborate',
-      'share', 'assistant'
+      'share', 'assistant',
+      'editor-new'                       // ✅ STEP 5
     ];
-    
+
     if (!documentSpecificTabs.includes(activeTab) || !selectedDocument) return null;
-    
+
     return (
       <Alert
         message={
-          <Space>
+          <Space wrap>
             <FileTextOutlined style={{ color: '#1890ff' }} />
             <span>Working with document:</span>
             <Text strong>{selectedDocument.title}</Text>
@@ -866,6 +867,7 @@ const DocumentManagementPage = ({
               onClick={() => {
                 setSelectedDocumentId(null);
                 setSelectedDocument(null);
+                history.replace(`/document-management?tab=${activeTab}`);
               }}
             >
               Clear
@@ -881,6 +883,7 @@ const DocumentManagementPage = ({
 
   // ============================================================
   // RENDER: TAB CONTENT
+  // ✅ STEP 5: added 'editor-new' and 'editor-recent' cases
   // ============================================================
   const renderTabContent = (tabKey) => {
     switch (tabKey) {
@@ -889,7 +892,7 @@ const DocumentManagementPage = ({
         return <DocumentDashboard companyId={companyId} />;
       case 'documents':
         return (
-          <DocumentControl 
+          <DocumentControl
             companyId={companyId}
             onDocumentChange={loadDashboardData}
             onDocumentSelect={(docId) => setSelectedDocumentId(docId)}
@@ -901,6 +904,60 @@ const DocumentManagementPage = ({
             permissions={permissions}
             canCreate={canCreate}
             canUpload={canUpload}
+          />
+        );
+
+      // ========================================================
+      // ✅ STEP 5: EDITING — standalone sidebar editor
+      // ========================================================
+      case 'editor-new':
+        return (
+          <DocumentEditor
+            documentId={selectedDocumentId || null}
+            initialContent="<p></p>"
+            editingSource="sidebar"
+            onSave={(result) => {
+              const newId = result?.document?.id || result?.id;
+              message.success(
+                selectedDocumentId ? 'Draft saved' : 'Draft created'
+              );
+              if (!selectedDocumentId && newId) {
+                setSelectedDocumentId(newId);
+                history.replace(
+                  `/document-management?tab=editor-new&doc=${newId}`
+                );
+              }
+              loadDashboardData();
+            }}
+            onDocumentUpdate={() => loadDashboardData()}
+            onCancel={() => {
+              setSelectedDocumentId(null);
+              setActiveTab('editor-recent');
+              history.push('/document-management?tab=editor-recent');
+            }}
+            companyId={companyId}
+            currentUser={user}
+            userRole={userPlan}
+            embedded={true}
+          />
+        );
+
+      case 'editor-recent':
+        return (
+          <RecentDraftsPanel
+            companyId={companyId}
+            onOpenDocument={(doc) => {
+              setSelectedDocumentId(doc.id);
+              setActiveTab('editor-new');
+              history.push(
+                `/document-management?tab=editor-new&doc=${doc.id}`
+              );
+            }}
+            onCreateNew={() => {
+              setSelectedDocumentId(null);
+              setActiveTab('editor-new');
+              history.push('/document-management?tab=editor-new');
+            }}
           />
         );
 
@@ -1145,34 +1202,27 @@ const DocumentManagementPage = ({
   );
 
   // ============================================================
-  // MAIN RENDER — FULL PAGE LAYOUT
+  // MAIN RENDER
   // ============================================================
   return (
     <Layout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
-      {/* Custom Header */}
       {renderCustomHeader()}
 
       <Layout>
-        {/* Custom Sidebar */}
         {renderSidebar()}
 
-        {/* Main Content */}
         <Content style={{
           padding: 24,
           overflow: 'auto',
           height: 'calc(100vh - 64px)',
           background: '#f0f2f5'
         }}>
-          {/* Breadcrumb */}
           {renderBreadcrumb()}
 
-          {/* Stats — only on documents/dashboard */}
           {['documents', 'dashboard'].includes(activeTab) && renderStats()}
 
-          {/* Selected Document Banner */}
           {renderSelectedDocumentBanner()}
 
-          {/* Tab Content */}
           <div style={{
             background: 'white',
             padding: 24,
@@ -1182,7 +1232,6 @@ const DocumentManagementPage = ({
             {renderTabContent(activeTab)}
           </div>
 
-          {/* Upload Modal */}
           {renderUploadModal()}
         </Content>
       </Layout>
