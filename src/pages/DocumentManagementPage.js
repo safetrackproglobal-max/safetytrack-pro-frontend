@@ -181,6 +181,16 @@ const SIDEBAR_GROUPS = [
     ]
   },
   {
+    key: 'editing',
+    label: 'Editing',
+    emoji: '✍️',
+    color: '#13c2c2',
+    tabs: [
+      { key: 'editor-new', label: 'New Document', icon: <EditOutlined /> },
+      { key: 'editor-recent', label: 'Recent Drafts', icon: <HistoryOutlined /> }
+    ]
+  },
+  {
     key: 'workflow',
     label: 'Workflow',
     emoji: '⚙️',
