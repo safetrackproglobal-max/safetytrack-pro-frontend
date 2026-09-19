@@ -638,3 +638,59 @@
     min-height: auto;
   }
 }
+
+/* ============================================================
+   SIDEBAR — Final overrides for collapsed state & emoji sizing
+   ============================================================ */
+
+/* Collapsed sidebar — remove margins */
+.ant-layout-sider-collapsed .docmgmt-menu .ant-menu-submenu-title,
+.ant-layout-sider-collapsed .docmgmt-menu .ant-menu-item {
+  margin: 4px 8px !important;
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+}
+
+/* Emoji alignment in collapsed mode */
+.ant-layout-sider-collapsed .docmgmt-menu .group-emoji {
+  margin: 0 auto;
+}
+
+/* Ensure emoji renders at proper size, no font fallback issues */
+.docmgmt-menu .group-emoji {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji",
+               "Android Emoji", "EmojiSymbols", sans-serif;
+  font-size: 18px;
+  line-height: 1;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Badge dot alignment in group label */
+.docmgmt-menu .group-label .ant-badge {
+  line-height: 1;
+}
+
+.docmgmt-menu .group-label .ant-badge-count {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ---------- Selected child item — accent bar ---------- */
+.docmgmt-menu.ant-menu-light .ant-menu-item-selected {
+  position: relative;
+}
+
+.docmgmt-menu.ant-menu-light .ant-menu-item-selected::before {
+  content: '';
+  position: absolute;
+  left: -10px;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  background: var(--dm-primary);
+  border-radius: 0 3px 3px 0;
+}
