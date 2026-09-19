@@ -1534,7 +1534,7 @@ const DocumentControl = ({
   // ============================================================
   // EDITOR / SIGNATURE MODALS
   // ============================================================
-  const renderEditorModal = () => (
+    const renderEditorModal = () => (
     <Modal
       title="Edit Document"
       open={editorVisible}
@@ -1556,10 +1556,10 @@ const DocumentControl = ({
         currentUser={user}
         userRole={userPlan}
         isPdf={editingDocument?.file_url?.endsWith('.pdf')}
+        editingSource="regular"
       />
     </Modal>
   );
-
   const renderSignatureModal = () => (
     <Modal
       title="Document Signatures"
