@@ -728,98 +728,69 @@ const DocumentManagementPage = ({
   // RENDER: SIDEBAR
   // ============================================================
   const renderSidebar = () => (
-    <Sider
-      width={260}
-      collapsedWidth={64}
-      collapsed={sidebarCollapsed}
-      theme="light"
-      style={{
-        background: 'white',
-        borderRight: '1px solid #f0f0f0',
-        height: 'calc(100vh - 64px)',
-        position: 'sticky',
-        top: 64,
-        overflow: 'auto',
-        left: 0
-      }}
-    >
-      {/* Sidebar Header */}
-      {!sidebarCollapsed && (
-        <div style={{
-          padding: '16px 20px',
-          borderBottom: '1px solid #f0f0f0',
-          background: 'linear-gradient(135deg, #1890ff 0%, #36cfc9 100%)',
-          color: 'white'
-        }}>
-          <Space>
-            <FolderOpenOutlined style={{ fontSize: 18 }} />
-            <Text strong style={{ color: 'white', fontSize: 13 }}>
-              WORKSPACE
-            </Text>
-          </Space>
-        </div>
-      )}
+  <Sider
+    className="docmgmt-sider"
+    width={280}
+    collapsedWidth={64}
+    collapsed={sidebarCollapsed}
+    theme="light"
+  >
+    {/* Sidebar Header */}
+    {!sidebarCollapsed && (
+      <div className="sidebar-brand">
+        <Space>
+          <FolderOpenOutlined style={{ fontSize: 18 }} />
+          <Text strong>WORKSPACE</Text>
+        </Space>
+      </div>
+    )}
 
-      {/* Grouped Menu */}
-      <Menu
-        mode="inline"
-        selectedKeys={[activeTab]}
-        openKeys={sidebarCollapsed ? [] : openKeys}
-        onOpenChange={setOpenKeys}
-        onClick={handleMenuClick}
-        style={{ border: 'none', paddingTop: 8, paddingBottom: 60 }}
-        items={SIDEBAR_GROUPS.map(group => ({
-          key: group.key,
-          label: (
-            <span style={{ fontWeight: 600, fontSize: 13 }}>
-              {group.emoji} {group.label}
-              <Badge 
-                count={group.tabs.length} 
-                style={{ 
-                  marginLeft: 8, 
-                  backgroundColor: `${group.color}20`, 
-                  color: group.color,
-                  fontSize: 10,
-                  height: 16,
-                  lineHeight: '16px',
-                  minWidth: 20,
-                  padding: '0 4px',
-                  boxShadow: 'none'
-                }} 
-              />
-            </span>
-          ),
-          children: group.tabs.map(tab => ({
-            key: tab.key,
-            icon: tab.icon,
-            label: tab.label
-          }))
-        }))}
-      />
+    {/* Grouped Menu */}
+    <Menu
+      className="docmgmt-menu"
+      mode="inline"
+      selectedKeys={[activeTab]}
+      openKeys={sidebarCollapsed ? [] : openKeys}
+      onOpenChange={setOpenKeys}
+      onClick={handleMenuClick}
+      items={SIDEBAR_GROUPS.map(group => ({
+        key: group.key,
+        label: (
+          <span className="group-label">
+            <span className="group-emoji">{group.emoji}</span>
+            <span className="group-text">{group.label}</span>
+            <Badge
+              className="group-badge"
+              count={group.tabs.length}
+              style={{
+                backgroundColor: `${group.color}22`,
+                color: group.color
+              }}
+            />
+          </span>
+        ),
+        children: group.tabs.map(tab => ({
+          key: tab.key,
+          icon: tab.icon,
+          label: tab.label
+        }))
+      }))}
+    />
 
-      {/* Bottom Back Button */}
-      {!sidebarCollapsed && (
-        <div style={{
-          position: 'fixed',
-          bottom: 0,
-          width: 260,
-          padding: 12,
-          borderTop: '1px solid #f0f0f0',
-          background: 'white',
-          zIndex: 10
-        }}>
-          <Button
-            block
-            icon={<ArrowLeftOutlined />}
-            onClick={handleBackToMain}
-          >
-            Back to Main App
-          </Button>
-        </div>
-      )}
-    </Sider>
-  );
-
+    {/* Bottom Back Button */}
+    {!sidebarCollapsed && (
+      <div className="sidebar-footer">
+        <Button
+          block
+          icon={<ArrowLeftOutlined />}
+          onClick={handleBackToMain}
+        >
+          Back to Main App
+        </Button>
+      </div>
+    )}
+  </Sider>
+);
   // ============================================================
   // RENDER: BREADCRUMB
   // ============================================================
