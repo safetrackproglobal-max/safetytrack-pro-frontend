@@ -60,11 +60,22 @@
   gap: 16px;
   overflow: hidden;
   white-space: nowrap;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
   width: 100%;
   height: 64px;
+}
+
+/* Push the body down so it doesn't sit under the fixed header */
+.docmgmt-inner-layout {
+  margin-top: 64px;
+  min-height: calc(100vh - 64px);
+  display: flex !important;
+  flex-direction: row !important;
+  min-width: 0;
 }
 
 .docmgmt-header > .ant-space:first-child {
@@ -114,12 +125,13 @@
   background: var(--dm-bg-primary) !important;
   border-right: 1px solid var(--dm-border);
   height: calc(100vh - 64px) !important;
-  position: sticky !important;
-  top: 64px !important;
-  overflow: auto;
-  left: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  flex: 0 0 280px !important;
   width: 280px !important;
   min-width: 280px !important;
+  max-width: 280px !important;
 }
 
 .docmgmt-sider::-webkit-scrollbar {
@@ -393,10 +405,12 @@
 }
 
 /* ============================================================
-   CONTENT AREA
+   CONTENT AREA — properly flexing layout
    ============================================================ */
-.docmgmt-content,
-.ant-layout-content {
+.docmgmt-content {
+  flex: 1 1 auto !important;               /* ✅ grow and shrink */
+  min-width: 0 !important;                 /* ✅ CRITICAL: allows shrink below content width */
+  max-width: 100%;
   padding: 24px !important;
   overflow: auto;
   height: calc(100vh - 64px);
@@ -404,6 +418,20 @@
   scroll-behavior: smooth;
 }
 
+/* Only target the outer Content when it has our class — never globally */
+.ant-layout-content {
+  min-width: 0;
+}
+
+/* Inner white panel that wraps each tab */
+.docmgmt-panel {
+  background: var(--dm-bg-primary);
+  padding: 24px;
+  border-radius: 8px;
+  min-height: calc(100vh - 280px);
+  min-width: 0;
+  overflow-x: hidden;
+}
 /* ============================================================
    RESPONSIVE — Tablets (1200px)
    ============================================================ */
@@ -693,4 +721,50 @@
   width: 3px;
   background: var(--dm-primary);
   border-radius: 0 3px 3px 0;
+}
+
+/* ============================================================
+   CRITICAL FLEX LAYOUT — fixes sidebar collapse & toolbar overflow
+   ============================================================ */
+
+/* Inner layout containing Sider + Content = flex row */
+.docmgmt-inner-layout,
+.ant-layout:has(> .docmgmt-sider) {
+  display: flex !important;
+  flex-direction: row !important;
+  min-height: calc(100vh - 64px);
+  min-width: 0;
+}
+
+/* Sider must never shrink */
+.docmgmt-sider {
+  flex-shrink: 0 !important;
+  flex-grow: 0 !important;
+  width: 280px !important;
+  min-width: 280px !important;
+  max-width: 280px !important;
+}
+
+.ant-layout-sider-collapsed.docmgmt-sider {
+  width: 64px !important;
+  min-width: 64px !important;
+  max-width: 64px !important;
+}
+
+/* Ensure the tab-content-wrapper also flexes */
+.tab-content-wrapper {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Panel wrapper — no horizontal overflow pushes */
+.docmgmt-panel * {
+  max-width: 100%;
+}
+
+/* But allow the toolbar to scroll horizontally */
+.editor-toolbar {
+  max-width: 100%;
+  overflow-x: auto;
 }
