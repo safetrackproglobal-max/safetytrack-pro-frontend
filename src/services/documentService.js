@@ -2169,6 +2169,23 @@ class DocumentService {
   }
 
   /**
+   * Get documents created/edited from the standalone sidebar editor.
+   * These are stored in the same documents table but flagged editing_source='sidebar'.
+   */
+  async getEditorDrafts(params = {}) {
+    try {
+      const queryParams = new URLSearchParams(this.cleanParams(params));
+      const response = await api.get(
+        `/dm-documents/editor-drafts?${queryParams.toString()}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch editor drafts:', error);
+      return { documents: [], total: 0 };
+    }
+  }
+
+  /**
    * Update document expiration settings
    */
   async updateDocumentExpiration(documentId, data) {
@@ -4087,22 +4104,8 @@ class DocumentService {
   }
 }
 
-  /**
-   * Get documents created/edited from the standalone sidebar editor.
-   * These are stored in the same documents table but flagged editing_source='sidebar'.
-   */
-  async getEditorDrafts(params = {}) {
-    try {
-      const queryParams = new URLSearchParams(this.cleanParams(params));
-      const response = await api.get(
-        `/dm-documents/editor-drafts?${queryParams.toString()}`
-      );
-      return response.data;
-    } catch (error) {
-      console.error('Failed to fetch editor drafts:', error);
-      return { documents: [], total: 0 };
-    }
-  }
+  
+
 
 // Export singleton instance
 const documentService = new DocumentService();
