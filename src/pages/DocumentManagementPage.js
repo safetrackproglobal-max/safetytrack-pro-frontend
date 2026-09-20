@@ -1205,38 +1205,28 @@ const DocumentManagementPage = ({
   // MAIN RENDER
   // ============================================================
   return (
-    <Layout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
-      {renderCustomHeader()}
+  <Layout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
+    {renderCustomHeader()}
 
-      <Layout>
-        {renderSidebar()}
+    <Layout className="docmgmt-inner-layout">
+      {renderSidebar()}
 
-        <Content style={{
-          padding: 24,
-          overflow: 'auto',
-          height: 'calc(100vh - 64px)',
-          background: '#f0f2f5'
-        }}>
-          {renderBreadcrumb()}
+      <Content className="docmgmt-content">
+        {renderBreadcrumb()}
 
-          {['documents', 'dashboard'].includes(activeTab) && renderStats()}
+        {['documents', 'dashboard'].includes(activeTab) && renderStats()}
 
-          {renderSelectedDocumentBanner()}
+        {renderSelectedDocumentBanner()}
 
-          <div style={{
-            background: 'white',
-            padding: 24,
-            borderRadius: 8,
-            minHeight: 'calc(100vh - 280px)'
-          }}>
-            {renderTabContent(activeTab)}
-          </div>
+        <div className="docmgmt-panel">
+          {renderTabContent(activeTab)}
+        </div>
 
-          {renderUploadModal()}
-        </Content>
-      </Layout>
+        {renderUploadModal()}
+      </Content>
     </Layout>
-  );
+  </Layout>
+);
 };
 
 export default DocumentManagementPage;
