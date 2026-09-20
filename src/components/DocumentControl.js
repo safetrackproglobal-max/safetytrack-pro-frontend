@@ -308,20 +308,27 @@ const DocumentControl = ({
       });
 
       const data = await documentServiceAPI.getDocuments(params);
-      const docs = data.documents || data.data || [];
+
+      // ✅ Defensive: ensure docs is always an array
+      let docs = data?.documents ?? data?.data ?? [];
+      if (!Array.isArray(docs)) {
+        console.warn('getDocuments: response was not an array, got:', typeof docs, docs);
+        docs = [];
+      }
       setDocuments(docs);
 
-      const statsData = data.stats || {};
+      const statsData = data?.stats ?? {};
       setStats({
-        total: statsData.total || docs.length || 0,
-        draft: statsData.draft || docs.filter((d) => d.status === 'draft').length,
-        review: statsData.review || docs.filter((d) => d.status === 'review').length,
-        approved: statsData.approved || docs.filter((d) => d.status === 'approved').length,
-        published: statsData.published || docs.filter((d) => d.status === 'published').length,
-        archived: statsData.archived || docs.filter((d) => d.status === 'archived').length,
-        rejected: statsData.rejected || docs.filter((d) => d.status === 'rejected').length,
-        shared: statsData.shared || docs.filter((d) => d.is_shared).length
+        total: statsData.total ?? docs.length,
+        draft: statsData.draft ?? docs.filter(d => d.status === 'draft').length,
+        review: statsData.review ?? docs.filter(d => d.status === 'review').length,
+        approved: statsData.approved ?? docs.filter(d => d.status === 'approved').length,
+        published: statsData.published ?? docs.filter(d => d.status === 'published').length,
+        archived: statsData.archived ?? docs.filter(d => d.status === 'archived').length,
+        rejected: statsData.rejected ?? docs.filter(d => d.status === 'rejected').length,
+        shared: statsData.shared ?? docs.filter(d => d.is_shared).length
       });
+
     } catch (error) {
       console.error('Failed to load documents:', error);
       message.error('Failed to load documents');
@@ -366,8 +373,9 @@ const DocumentControl = ({
   // SORTED + FILTERED LIST
   // ============================================================
   const displayedDocuments = useMemo(() => {
-    const arr = [...documents];
-    switch (sortBy) {
+  if (!Array.isArray(documents)) return [];
+  const arr = [...documents];
+  switch (sortBy) {
       case 'updated_desc':
         return arr.sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
       case 'updated_asc':
@@ -385,13 +393,16 @@ const DocumentControl = ({
 
   // Unique tag list for filter
   const allTags = useMemo(() => {
-    const set = new Set();
-    documents.forEach((d) => {
-      const tags = getTagsArray(d.tags);
+  const set = new Set();
+  if (!Array.isArray(documents)) return [];
+  documents.forEach((d) => {
+    const tags = getTagsArray(d.tags);
+    if (Array.isArray(tags)) {
       tags.forEach((t) => set.add(t));
-    });
-    return Array.from(set).sort();
-  }, [documents]);
+    }
+  });
+  return Array.from(set).sort();
+}, [documents]);
 
   // ============================================================
   // HELPERS
@@ -1689,4 +1700,3 @@ const DocumentControl = ({
 };
 
 export default DocumentControl;
-
