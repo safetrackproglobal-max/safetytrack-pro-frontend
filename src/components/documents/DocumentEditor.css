@@ -1084,3 +1084,210 @@
 .document-editor-container {
   animation: doc-fade-in 0.2s ease-out;
 }
+
+/* ============================================================
+   HEADER — title on left, actions on right
+   ============================================================ */
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.editor-header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.editor-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   BODY — single column, no split
+   ============================================================ */
+.editor-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ============================================================
+   TOOLBAR — horizontal, wraps, never overflows the card
+   ============================================================ */
+.editor-toolbar {
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.editor-toolbar .ant-space {
+  width: 100%;
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+.editor-toolbar .ant-divider-vertical {
+  height: 22px;
+  margin: 0 4px;
+  border-color: #e6e6e6;
+}
+
+.editor-toolbar .ant-btn-sm {
+  padding: 0 8px;
+}
+
+/* ============================================================
+   EDITOR WRAPPER — page-like appearance
+   ============================================================ */
+.editor-wrapper {
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  background: #ffffff;
+  min-height: 420px;
+  overflow: auto;
+  transition: border-color 0.2s ease;
+}
+
+.editor-wrapper:focus-within {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.08);
+}
+
+.document-editor-content {
+  min-height: 420px;
+}
+
+.document-editor-content .ProseMirror {
+  padding: 24px 32px;
+  min-height: 420px;
+  outline: none;
+  font-size: 15px;
+  line-height: 1.75;
+  color: #1f1f1f;
+  max-width: 100%;
+}
+
+/* ============================================================
+   METADATA — collapsible section below editor, full width
+   ============================================================ */
+.editor-metadata-section {
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  background: #fafafa;
+  padding: 8px 16px;
+  margin-top: 4px;
+}
+
+.editor-metadata-section .ant-collapse-header {
+  padding: 8px 0 !important;
+  font-weight: 600;
+  color: #262626;
+}
+
+.editor-metadata-section .ant-collapse-content-box {
+  padding: 12px 0 16px !important;
+}
+
+/* Give the metadata form a proper multi-column layout */
+.editor-metadata-section .ant-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px 20px;
+}
+
+.editor-metadata-section .ant-form-item {
+  margin-bottom: 0;
+}
+
+/* Spanning items that should be full width */
+.editor-metadata-section .ant-form-item:has(.ant-input[data-full-width]),
+.editor-metadata-section .ant-form-item-full {
+  grid-column: 1 / -1;
+}
+
+/* The "Tags" and "Description" fields should span across */
+.editor-metadata-section .ant-form-item:nth-child(2),   /* Description */
+.editor-metadata-section .ant-form-item:nth-child(7) {  /* Tags — adjust if order differs */
+  grid-column: 1 / -1;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.editor-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 4px;
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+/* ============================================================
+   RESPONSIVE — Mobile
+   ============================================================ */
+@media (max-width: 768px) {
+  .editor-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .editor-header-actions {
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .document-editor-content .ProseMirror {
+    padding: 16px;
+    font-size: 14px;
+  }
+
+  .editor-metadata-section .ant-form {
+    grid-template-columns: 1fr;
+  }
+
+  .editor-toolbar {
+    padding: 6px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .document-editor-content .ProseMirror {
+    padding: 12px;
+  }
+
+  .editor-toolbar .ant-btn-sm {
+    padding: 0 6px;
+  }
+}
+
+/* ============================================================
+   FULLSCREEN MODE — full viewport, no dark rail on side
+   ============================================================ */
+.document-editor-container.fullscreen-mode {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  overflow: auto;
+  background: #f0f2f5;
+  padding: 16px;
+  border-radius: 0;
+}
