@@ -103,9 +103,6 @@ const { TextArea } = Input;
 const { Dragger } = Upload;
 const { RangePicker } = DatePicker;
 
-// ============================================================
-// CONSTANTS
-// ============================================================
 
 const DOCUMENT_TYPES = {
   report: { label: 'Report', icon: <FileTextOutlined />, color: '#1890ff' },
@@ -1692,3 +1689,4 @@ const DocumentControl = ({
 };
 
 export default DocumentControl;
+
