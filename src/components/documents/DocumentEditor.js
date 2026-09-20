@@ -37,24 +37,25 @@ import {
   BookOutlined, StarOutlined, StrikethroughOutlined as StrikeIcon,
   VerticalAlignBottomOutlined, OrderedListOutlined as OrderedIcon
 } from '@ant-design/icons';
-import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react';
+
+// ============================================================
+// TIPTAP IMPORTS — Tiptap v3 (named exports only)
+// ============================================================
+import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import TextAlign from '@tiptap/extension-text-align';
 import Highlight from '@tiptap/extension-highlight';
-import TextStyle from '@tiptap/extension-text-style';
+import { TextStyle } from '@tiptap/extension-text-style';
 import Color from '@tiptap/extension-color';
 import Placeholder from '@tiptap/extension-placeholder';
 import CharacterCount from '@tiptap/extension-character-count';
-import Table from '@tiptap/extension-table';
-import TableRow from '@tiptap/extension-table-row';
-import TableCell from '@tiptap/extension-table-cell';
-import TableHeader from '@tiptap/extension-table-header';
+import { Table, TableRow, TableCell, TableHeader } from '@tiptap/extension-table';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
-import Typography from '@tiptap/extension-typography';
+import TiptapTypography from '@tiptap/extension-typography';
 import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
@@ -62,13 +63,15 @@ import Focus from '@tiptap/extension-focus';
 import { createLowlight, common } from 'lowlight';
 import TurndownService from 'turndown';
 
+// ============================================================
+// LOCAL IMPORTS
+// ============================================================
 import documentService from '../../services/documentService';
 import pdfService from '../../services/pdfService';
 import DocumentSignature from './DocumentSignature';
 import { useTrackChanges } from './useTrackChanges';
 import TrackChangesPanel from './TrackChangesPanel';
 import './DocumentEditor.css';
-
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
@@ -197,7 +200,7 @@ const DocumentEditor = ({
       TableCell,
       TaskList,
       TaskItem.configure({ nested: true }),
-      Typography,
+      TiptapTypography,
       Subscript,
       Superscript,
       CodeBlockLowlight.configure({ lowlight }),
@@ -261,7 +264,7 @@ const DocumentEditor = ({
     dom.addEventListener('keydown', handleKeyDown);
     return () => dom.removeEventListener('keydown', handleKeyDown);
   }, [editor]);
-
+  const handlePickImage = () => imageInputRef.current?.click();
   const [slashMenuOpen, setSlashMenuOpen] = useState(false);
 
   const openSlashMenu = () => setSlashMenuOpen(true);
@@ -495,7 +498,7 @@ const DocumentEditor = ({
     };
     document.addEventListener('keydown', h);
     return () => document.removeEventListener('keydown', h);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [handleSave, findOpen, slashMenuOpen]);
 
   // ============================================================
@@ -517,7 +520,7 @@ const DocumentEditor = ({
   // ============================================================
   // IMAGE UPLOAD
   // ============================================================
-  const handlePickImage = () => imageInputRef.current?.click();
+  
 
   const handleImageSelected = async (e) => {
     const file = e.target.files?.[0];
@@ -622,7 +625,7 @@ const DocumentEditor = ({
       }
     });
     return headings;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [editor, editor?.state?.doc]);
 
   const jumpToHeading = (pos) => {
@@ -944,28 +947,7 @@ const DocumentEditor = ({
   // ============================================================
   // BUBBLE MENU (floating on selection)
   // ============================================================
-  const renderBubbleMenu = () => {
-    if (!editor || readOnly) return null;
-    return (
-      <BubbleMenu
-        editor={editor}
-        tippyOptions={{ duration: 100 }}
-        shouldShow={({ from, to }) => from !== to}
-      >
-        <div className="bubble-menu">
-          <Button size="small" icon={<BoldOutlined />} type={editor.isActive('bold') ? 'primary' : 'text'} onClick={() => editor.chain().focus().toggleBold().run()} />
-          <Button size="small" icon={<ItalicOutlined />} type={editor.isActive('italic') ? 'primary' : 'text'} onClick={() => editor.chain().focus().toggleItalic().run()} />
-          <Button size="small" icon={<UnderlineOutlined />} type={editor.isActive('underline') ? 'primary' : 'text'} onClick={() => editor.chain().focus().toggleUnderline().run()} />
-          <Button size="small" icon={<StrikeIcon />} type={editor.isActive('strike') ? 'primary' : 'text'} onClick={() => editor.chain().focus().toggleStrike().run()} />
-          <Button size="small" icon={<HighlightOutlined />} type={editor.isActive('highlight') ? 'primary' : 'text'} onClick={() => editor.chain().focus().toggleHighlight().run()} />
-          <Divider type="vertical" style={{ margin: '0 2px' }} />
-          <Button size="small" icon={<LinkOutlined />} onClick={() => setLinkModalVisible(true)} />
-          <Button size="small" icon={<RobotOutlined />} onClick={handleAIEnhance} />
-        </div>
-      </BubbleMenu>
-    );
-  };
-
+  const renderBubbleMenu = () => null;
   // ============================================================
   // METADATA SIDEBAR
   // ============================================================
@@ -1086,36 +1068,50 @@ const DocumentEditor = ({
     focusMode ? 'focus-mode' : ''
   ].filter(Boolean).join(' ');
 
-  return (
+    return (
     <>
       <div className={`document-editor-container ${isFullscreen ? 'fullscreen-mode' : ''}`}>
         <Card className="editor-card" bordered={false}>
-          {/* Header */}
+          {/* ============================================================ */}
+          {/* HEADER — title + actions */}
+          {/* ============================================================ */}
           <div className="editor-header">
-            <Space>
+            <div className="editor-header-title">
               <Title level={4} style={{ margin: 0 }}>
                 {documentId ? 'Edit Document' : 'New Document'}
               </Title>
               {documentId && <Tag color="blue">v{version}</Tag>}
               {readingMode && <Tag icon={<ReadOutlined />} color="purple">Reading</Tag>}
               {focusMode && <Tag icon={<EyeOutlined />} color="cyan">Focus</Tag>}
-            </Space>
-            <Space wrap>
-              {onCancel && <Button icon={<CloseOutlined />} onClick={onCancel}>Cancel</Button>}
+            </div>
+
+            <div className="editor-header-actions">
+              {onCancel && (
+                <Button icon={<CloseOutlined />} onClick={onCancel}>
+                  Cancel
+                </Button>
+              )}
               {documentId && (
                 <>
-                  <Button icon={<CopyOutlined />} onClick={handleSaveAsNew} loading={saving}>Save As</Button>
-                  <Button icon={<EyeOutlined />} onClick={() => onDocumentUpdate?.({ id: documentId })}>View</Button>
-                  <Button icon={<SignatureOutlined />} onClick={() => setSignatureModalVisible(true)}>Sign</Button>
+                  <Button icon={<CopyOutlined />} onClick={handleSaveAsNew} loading={saving}>
+                    Save As
+                  </Button>
+                  <Button icon={<EyeOutlined />} onClick={() => onDocumentUpdate?.({ id: documentId })}>
+                    View
+                  </Button>
+                  <Button icon={<SignatureOutlined />} onClick={() => setSignatureModalVisible(true)}>
+                    Sign
+                  </Button>
                 </>
               )}
 
-              {/* Import */}
               <Tooltip title="Import file (HTML, MD, TXT)">
-                <Button icon={<ImportOutlined />} onClick={() => importInputRef.current?.click()} />
+                <Button
+                  icon={<ImportOutlined />}
+                  onClick={() => importInputRef.current?.click()}
+                />
               </Tooltip>
 
-              {/* Export menu */}
               <Dropdown
                 menu={{
                   items: [
@@ -1129,40 +1125,54 @@ const DocumentEditor = ({
                 <Button icon={<ExportOutlined />}>Export</Button>
               </Dropdown>
 
-              <Button type="primary" icon={<SaveOutlined />} loading={saving} onClick={handleSave}>
+              <Button
+                type="primary"
+                icon={<SaveOutlined />}
+                loading={saving}
+                onClick={handleSave}
+              >
                 {documentId ? 'Update' : 'Create'}
               </Button>
-            </Space>
+            </div>
           </div>
 
           <Divider style={{ margin: '12px 0' }} />
 
-          <Row gutter={[16, 16]}>
+          {/* ============================================================ */}
+          {/* MAIN BODY — single column, editor on top, metadata below */}
+          {/* ============================================================ */}
+          <div className="editor-body">
+            {/* Toolbar (hidden in reading/focus mode) */}
+            {!readingMode && !focusMode && renderToolbar()}
+
+            {/* Editor content */}
+            <div className="editor-wrapper">
+              <EditorContent editor={editor} className={editorClass} />
+            </div>
+
+            {/* Footer (word count) */}
+            <div className="editor-footer">
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                {wordCount} words • {charCount} chars • {readTime} min read
+              </Text>
+              {trackChangesEnabled && (
+                <Tag color="orange" style={{ marginLeft: 8 }}>
+                  <HistoryOutlined /> Tracking changes
+                </Tag>
+              )}
+            </div>
+
+            {/* Metadata — collapsible, full width below editor */}
             {!readingMode && !focusMode && (
-              <Col xs={24} lg={6}>{renderMetadata()}</Col>
+              <div className="editor-metadata-section">
+                {renderMetadata()}
+              </div>
             )}
-            <Col xs={24} lg={readingMode || focusMode ? 24 : 18}>
-              {!readingMode && renderToolbar()}
-              <div className="editor-wrapper">
-                <EditorContent editor={editor} className={editorClass} />
-              </div>
-              <div className="editor-footer">
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                  {wordCount} words • {charCount} chars • {readTime} min read
-                </Text>
-                {trackChangesEnabled && (
-                  <Tag color="orange" style={{ marginLeft: 8 }}>
-                    <HistoryOutlined /> Tracking changes
-                  </Tag>
-                )}
-              </div>
-            </Col>
-          </Row>
+          </div>
         </Card>
       </div>
 
-      {/* Bubble menu */}
-      {renderBubbleMenu()}
+    
 
       {/* Hidden file inputs */}
       <input
@@ -1227,20 +1237,21 @@ const DocumentEditor = ({
         onClose={() => setOutlineOpen(false)}
         width={320}
       >
-        {outline.length === 0
-          ? <Empty description="No headings yet" />
-          : <List
-              dataSource={outline}
-              renderItem={(h) => (
-                <List.Item
-                  style={{ paddingLeft: (h.level - 1) * 12, cursor: 'pointer' }}
-                  onClick={() => jumpToHeading(h.pos)}
-                >
-                  <Text strong={h.level <= 2}>{h.text || '(empty heading)'}</Text>
-                </List.Item>
-              )}
-            />
-        }
+        {outline.length === 0 ? (
+          <Empty description="No headings yet" />
+        ) : (
+          <List
+            dataSource={outline}
+            renderItem={(h) => (
+              <List.Item
+                style={{ paddingLeft: (h.level - 1) * 12, cursor: 'pointer' }}
+                onClick={() => jumpToHeading(h.pos)}
+              >
+                <Text strong={h.level <= 2}>{h.text || '(empty heading)'}</Text>
+              </List.Item>
+            )}
+          />
+        )}
       </Drawer>
 
       {/* Comments Drawer */}
@@ -1278,7 +1289,13 @@ const DocumentEditor = ({
           onChange={(e) => setCommentInput(e.target.value)}
           placeholder="Add a comment…"
         />
-        <Button type="primary" block style={{ marginTop: 8 }} loading={commentLoading} onClick={handleAddComment}>
+        <Button
+          type="primary"
+          block
+          style={{ marginTop: 8 }}
+          loading={commentLoading}
+          onClick={handleAddComment}
+        >
           Post Comment
         </Button>
       </Drawer>
@@ -1291,27 +1308,28 @@ const DocumentEditor = ({
         onClose={() => setVersionsOpen(false)}
         width={420}
       >
-        {versions.length === 0
-          ? <Empty description="No versions yet" />
-          : <List
-              dataSource={versions}
-              renderItem={(v) => (
-                <List.Item>
-                  <List.Item.Meta
-                    title={<Space>v{v.version} {v.is_current && <Tag color="green">Current</Tag>}</Space>}
-                    description={
-                      <div>
-                        <div>{v.changes || 'No changes recorded'}</div>
-                        <div style={{ fontSize: 11, color: '#8c8c8c' }}>
-                          {v.created_at ? new Date(v.created_at).toLocaleString() : ''}
-                        </div>
+        {versions.length === 0 ? (
+          <Empty description="No versions yet" />
+        ) : (
+          <List
+            dataSource={versions}
+            renderItem={(v) => (
+              <List.Item>
+                <List.Item.Meta
+                  title={<Space>v{v.version} {v.is_current && <Tag color="green">Current</Tag>}</Space>}
+                  description={
+                    <div>
+                      <div>{v.changes || 'No changes recorded'}</div>
+                      <div style={{ fontSize: 11, color: '#8c8c8c' }}>
+                        {v.created_at ? new Date(v.created_at).toLocaleString() : ''}
                       </div>
-                    }
-                  />
-                </List.Item>
-              )}
-            />
-        }
+                    </div>
+                  }
+                />
+              </List.Item>
+            )}
+          />
+        )}
       </Drawer>
 
       {/* AI Suggestions Panel */}
@@ -1322,17 +1340,18 @@ const DocumentEditor = ({
         onClose={() => setShowAiPanel(false)}
         width={400}
       >
-        {aiSuggestions.length === 0
-          ? <Empty description="No suggestions" />
-          : <List
-              dataSource={aiSuggestions}
-              renderItem={(s) => (
-                <List.Item actions={[<Button type="primary" size="small" onClick={() => applyAISuggestion(s)}>Apply</Button>]}>
-                  <List.Item.Meta title={s.title} description={s.description} />
-                </List.Item>
-              )}
-            />
-        }
+        {aiSuggestions.length === 0 ? (
+          <Empty description="No suggestions" />
+        ) : (
+          <List
+            dataSource={aiSuggestions}
+            renderItem={(s) => (
+              <List.Item actions={[<Button type="primary" size="small" onClick={() => applyAISuggestion(s)}>Apply</Button>]}>
+                <List.Item.Meta title={s.title} description={s.description} />
+              </List.Item>
+            )}
+          />
+        )}
       </Drawer>
 
       {/* Track Changes Panel */}
@@ -1388,5 +1407,4 @@ const DocumentEditor = ({
     </>
   );
 };
-
 export default DocumentEditor;
