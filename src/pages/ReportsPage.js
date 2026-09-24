@@ -74,7 +74,7 @@ import { useIncidentNotifications } from '../context/NotificationContext';
 // NEW: Advanced Incident Components
 // ============================================================
 import FishboneDiagram from '../components/incident/FishboneDiagram';
-import AIInvestigationAssistant from '../component/incidents/AIInvestigationAssistant';
+import AIInvestigationAssistant from '../component/incident/AIInvestigationAssistant';
 import IncidentTimeline from '../components/incident/IncidentTimeline';
 import EditIncidentModal from '../components/incident/EditIncidentModal';
 import CorrectiveActionTracker from '../components/incident/CorrectiveActionTracker';
