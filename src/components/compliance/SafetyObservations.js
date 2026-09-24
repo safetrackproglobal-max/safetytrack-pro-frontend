@@ -1,11 +1,11 @@
 // src/components/safety/SafetyObservations.js
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Card, Row, Col, Button, Table, Tag, Space, Modal, Form, Input,
   Select, DatePicker, TimePicker, message, Badge, Statistic, Progress,
   Tabs, Divider, Alert, Avatar, Tooltip, Timeline, List, Empty,
   Upload, Switch, Radio, Checkbox, InputNumber, Drawer, Descriptions,
-  Popconfirm, notification, Slider, Segmented, Rate
+  Popconfirm, notification, Slider, Segmented, Rate, Spin, Typography,  Collapse,
 } from 'antd';
 import {
   EyeOutlined, SafetyCertificateOutlined, CheckCircleOutlined,
@@ -17,7 +17,7 @@ import {
   StarOutlined, StarFilled, LikeOutlined, DislikeOutlined,
   SendOutlined, ReloadOutlined, DownloadOutlined, EyeInvisibleOutlined,
   AlertOutlined, RiseOutlined, FallOutlined, InfoCircleOutlined,
-  CheckOutlined, CloseOutlined, InboxOutlined
+  CheckOutlined, CloseOutlined, InboxOutlined, SaveOutlined, FileTextOutlined
 } from '@ant-design/icons';
 import {
   Chart as ChartJS, CategoryScale, LinearScale, BarElement,
@@ -26,6 +26,13 @@ import {
 } from 'chart.js';
 import { Bar, Pie, Line, Doughnut, Radar } from 'react-chartjs-2';
 import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+// ✅ SERVICE IMPORTS
+import notificationService from '../../services/notificationService';
+import { useAuth } from '../../context/AuthContext';
+
+dayjs.extend(relativeTime);
 
 ChartJS.register(
   CategoryScale, LinearScale, BarElement, ArcElement,
@@ -44,59 +51,38 @@ const { Dragger } = Upload;
 
 const OBSERVATION_TYPES = {
   safe_behavior: {
-    id: 'safe_behavior',
-    label: 'Safe Behavior',
-    color: '#52c41a',
-    icon: <CheckCircleOutlined />,
-    description: 'Recognizing positive safety behaviors',
+    id: 'safe_behavior', label: 'Safe Behavior', color: '#52c41a',
+    icon: <CheckCircleOutlined />, description: 'Recognizing positive safety behaviors',
     category: 'positive'
   },
   at_risk_behavior: {
-    id: 'at_risk_behavior',
-    label: 'At-Risk Behavior',
-    color: '#faad14',
-    icon: <WarningOutlined />,
-    description: 'Observing unsafe behaviors that need correction',
+    id: 'at_risk_behavior', label: 'At-Risk Behavior', color: '#faad14',
+    icon: <WarningOutlined />, description: 'Observing unsafe behaviors',
     category: 'negative'
   },
   unsafe_condition: {
-    id: 'unsafe_condition',
-    label: 'Unsafe Condition',
-    color: '#fa541c',
-    icon: <AlertOutlined />,
-    description: 'Identifying hazardous conditions',
+    id: 'unsafe_condition', label: 'Unsafe Condition', color: '#fa541c',
+    icon: <AlertOutlined />, description: 'Identifying hazardous conditions',
     category: 'negative'
   },
   near_miss: {
-    id: 'near_miss',
-    label: 'Near Miss',
-    color: '#1890ff',
-    icon: <ThunderboltOutlined />,
-    description: 'Events that could have caused harm',
+    id: 'near_miss', label: 'Near Miss', color: '#1890ff',
+    icon: <ThunderboltOutlined />, description: 'Events that could have caused harm',
     category: 'negative'
   },
   good_practice: {
-    id: 'good_practice',
-    label: 'Good Practice',
-    color: '#722ed1',
-    icon: <StarOutlined />,
-    description: 'Best practices worth sharing',
+    id: 'good_practice', label: 'Good Practice', color: '#722ed1',
+    icon: <StarOutlined />, description: 'Best practices worth sharing',
     category: 'positive'
   },
   improvement: {
-    id: 'improvement',
-    label: 'Improvement Opportunity',
-    color: '#13c2c2',
-    icon: <BulbOutlined />,
-    description: 'Areas for safety improvement',
+    id: 'improvement', label: 'Improvement Opportunity', color: '#13c2c2',
+    icon: <BulbOutlined />, description: 'Areas for safety improvement',
     category: 'neutral'
   },
   hazard: {
-    id: 'hazard',
-    label: 'Hazard Identification',
-    color: '#f5222d',
-    icon: <FireOutlined />,
-    description: 'Identifying potential hazards',
+    id: 'hazard', label: 'Hazard Identification', color: '#f5222d',
+    icon: <FireOutlined />, description: 'Identifying potential hazards',
     category: 'negative'
   }
 };
@@ -127,11 +113,16 @@ const SafetyObservations = ({
   observations: initialObservations = [],
   onAddObservation,
   onUpdateObservation,
-  currentUser,
+  currentUser: propUser,
   readOnly = false 
 }) => {
+  // ✅ Get user from context
+  const { user: contextUser } = useAuth();
+  const currentUser = propUser || contextUser;
+
   const [observations, setObservations] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [detailsVisible, setDetailsVisible] = useState(false);
   const [selectedObservation, setSelectedObservation] = useState(null);
@@ -143,132 +134,125 @@ const SafetyObservations = ({
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterRisk, setFilterRisk] = useState('all');
   const [searchText, setSearchText] = useState('');
+  const [stats, setStats] = useState(null);
+  const [leaderboard, setLeaderboard] = useState([]);
 
-  // Load observations
-  useEffect(() => {
-    setObservations(initialObservations.length > 0 ? initialObservations : getMockObservations());
+  // ==================== FETCH OBSERVATIONS ====================
+
+  const fetchObservations = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await notificationService.getSafetyObservations({
+        page: 1,
+        per_page: 100
+      });
+
+      const data = 
+        response?.observations || 
+        response?.data?.observations || 
+        (Array.isArray(response) ? response : []) || 
+        [];
+
+      setObservations(data);
+    } catch (error) {
+      console.warn('Observations API unavailable:', error);
+      if (initialObservations.length > 0) {
+        setObservations(initialObservations);
+      }
+    } finally {
+      setLoading(false);
+    }
   }, [initialObservations]);
 
-  // Mock data for demonstration
-  const getMockObservations = () => {
-    const mockData = [
-      {
-        id: '1',
-        type: 'safe_behavior',
-        category: 'ppe_usage',
-        title: 'Proper PPE usage observed',
-        description: 'Worker was observed wearing all required PPE including hard hat, safety glasses, and steel-toed boots.',
-        location: 'Building A - Floor 3',
-        department: 'Construction',
-        observer: { id: '1', name: 'John Smith' },
-        observedPerson: 'Mike Johnson',
-        riskLevel: 'low',
-        date: dayjs().subtract(2, 'day').toISOString(),
-        status: 'closed',
-        photos: [],
-        positiveRecognition: true,
-        points: 10
-      },
-      {
-        id: '2',
-        type: 'at_risk_behavior',
-        category: 'body_position',
-        title: 'Improper lifting technique',
-        description: 'Worker was observed lifting heavy box with incorrect posture. Risk of back injury.',
-        location: 'Warehouse - Bay 5',
-        department: 'Logistics',
-        observer: { id: '1', name: 'John Smith' },
-        observedPerson: 'Sarah Williams',
-        riskLevel: 'medium',
-        date: dayjs().subtract(1, 'day').toISOString(),
-        status: 'open',
-        correctiveAction: 'Provide manual handling training',
-        photos: []
-      },
-      {
-        id: '3',
-        type: 'unsafe_condition',
-        category: 'housekeeping',
-        title: 'Blocked emergency exit',
-        description: 'Emergency exit blocked by stored materials. Immediate hazard in case of evacuation.',
-        location: 'Building B - East Wing',
-        department: 'Maintenance',
-        observer: { id: '2', name: 'Emily Davis' },
-        riskLevel: 'high',
-        date: dayjs().subtract(5, 'hour').toISOString(),
-        status: 'in_progress',
-        correctiveAction: 'Remove obstruction immediately, review storage procedures',
-        photos: []
-      },
-      {
-        id: '4',
-        type: 'near_miss',
-        category: 'equipment',
-        title: 'Forklift near miss',
-        description: 'Forklift operator almost struck pedestrian in blind corner. No injuries.',
-        location: 'Loading Dock 2',
-        department: 'Warehouse',
-        observer: { id: '3', name: 'Robert Chen' },
-        observedPerson: 'Multiple',
-        riskLevel: 'critical',
-        date: dayjs().subtract(3, 'day').toISOString(),
-        status: 'investigating',
-        photos: []
-      },
-      {
-        id: '5',
-        type: 'good_practice',
-        category: 'communication',
-        title: 'Excellent safety briefing',
-        description: 'Team lead conducted thorough pre-shift safety briefing with hazard identification.',
-        location: 'Building C - Meeting Room',
-        department: 'Production',
-        observer: { id: '1', name: 'John Smith' },
-        riskLevel: 'low',
-        date: dayjs().subtract(1, 'week').toISOString(),
-        status: 'closed',
-        positiveRecognition: true,
-        points: 15
-      }
-    ];
-    return mockData;
-  };
+  // ==================== FETCH STATS ====================
 
-  // Handle save observation
-  const handleSaveObservation = (values) => {
-    setLoading(true);
-    
-    setTimeout(() => {
-      const observationData = {
-        id: editingObservation?.id || Date.now().toString(),
-        ...values,
-        date: values.date.format('YYYY-MM-DD') + 'T' + (values.time?.format('HH:mm:ss') || '00:00:00'),
-        observer: currentUser || { id: '1', name: 'Current User' },
+  const fetchStats = useCallback(async () => {
+    try {
+      const response = await notificationService.getObservationStats();
+      const statsData = response?.stats || response?.data || response;
+      if (statsData) setStats(statsData);
+    } catch (error) {
+      console.warn('Stats API unavailable, calculating locally');
+    }
+  }, []);
+
+  // ==================== FETCH LEADERBOARD ====================
+
+  const fetchLeaderboard = useCallback(async () => {
+    try {
+      const response = await notificationService.getObservationLeaderboard();
+      const board = response?.leaderboard || response?.data || [];
+      setLeaderboard(board);
+    } catch (error) {
+      console.warn('Leaderboard API unavailable');
+    }
+  }, []);
+
+  // Load on mount
+  useEffect(() => {
+    fetchObservations();
+    fetchStats();
+    fetchLeaderboard();
+  }, [fetchObservations, fetchStats, fetchLeaderboard]);
+
+  // ==================== SAVE OBSERVATION ====================
+
+  const handleSaveObservation = async (values) => {
+    setSaving(true);
+
+    try {
+      // ✅ Map form fields to backend field names (matching SafetyObservation model)
+      const dateObserved = values.date.format('YYYY-MM-DD') + 'T' + 
+                          (values.time?.format('HH:mm:ss') || '00:00:00') + 'Z';
+
+      const payload = {
+        type: values.type,                    // backend uses 'type', not 'observation_type'
+        category: values.category,
+        title: values.title,
+        description: values.description,
+        location: values.location,
+        department: values.department,
+        observed_person: values.observedPerson,
+        risk_level: values.riskLevel,
+        immediate_action: values.correctiveAction,
+        recommendation: values.recommendation,
+        date_observed: dateObserved,
+        positive_recognition: values.positiveRecognition || false,
+        points_awarded: values.points || 0,
         photos: fileList.map(f => ({
           name: f.name,
-          url: f.url || URL.createObjectURL(f)
-        })),
-        status: 'open',
-        createdAt: editingObservation?.createdAt || new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+          url: f.url || '',
+          size: f.size,
+          type: f.type
+        }))
       };
 
+      let response;
       if (editingObservation) {
-        setObservations(prev => prev.map(o => 
-          o.id === editingObservation.id ? observationData : o
-        ));
-        if (onUpdateObservation) onUpdateObservation(observationData);
+        response = await notificationService.updateSafetyObservation(editingObservation.id, payload);
+      } else {
+        response = await notificationService.createSafetyObservation(payload);
+      }
+
+      const saved = response?.observation || response?.data?.observation || response;
+
+      // Refresh
+      await fetchObservations();
+      await fetchStats();
+
+      // Notify parent
+      if (editingObservation) {
+        if (onUpdateObservation) onUpdateObservation(saved);
         message.success('Observation updated');
       } else {
-        setObservations(prev => [observationData, ...prev]);
-        if (onAddObservation) onAddObservation(observationData);
+        if (onAddObservation) onAddObservation(saved);
         message.success('Observation recorded');
-        
-        // Show recognition notification for positive observations
-        if (observationData.type === 'safe_behavior' || observationData.type === 'good_practice') {
+
+        // Recognition notification for positive observations
+        if (values.type === 'safe_behavior' || values.type === 'good_practice') {
           notification.success({
             message: '🌟 Positive Observation Recorded!',
-            description: `${observationData.observedPerson || 'Employee'} earned ${observationData.points || 10} safety points!`,
+            description: `${values.observedPerson || 'Employee'} earned ${values.points || 10} safety points!`,
             duration: 5
           });
         }
@@ -278,32 +262,63 @@ const SafetyObservations = ({
       form.resetFields();
       setEditingObservation(null);
       setFileList([]);
-      setLoading(false);
-    }, 800);
+    } catch (error) {
+      console.error('Save failed:', error);
+      message.error(error?.message || 'Failed to save observation');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  // Handle delete
-  const handleDelete = (observationId) => {
+  // ==================== DELETE ====================
+
+  const handleDelete = async (observationId) => {
+    // Optimistic
+    const previous = [...observations];
     setObservations(prev => prev.filter(o => o.id !== observationId));
-    message.success('Observation deleted');
+
+    try {
+      await notificationService.deleteSafetyObservation(observationId);
+      await fetchStats();
+      message.success('Observation deleted');
+    } catch (error) {
+      console.error('Delete failed:', error);
+      setObservations(previous);
+      message.error('Failed to delete observation');
+    }
   };
 
-  // Handle status change
-  const handleStatusChange = (observationId, newStatus) => {
+  // ==================== STATUS CHANGE ====================
+
+  const handleStatusChange = async (observationId, newStatus) => {
+    // Optimistic
+    const previous = [...observations];
     setObservations(prev => prev.map(o => 
       o.id === observationId 
-        ? { ...o, status: newStatus, updatedAt: new Date().toISOString() }
+        ? { ...o, status: newStatus, updated_at: new Date().toISOString() }
         : o
     ));
-    message.success(`Status updated to ${newStatus}`);
+
+    try {
+      await notificationService.updateObservationStatus(observationId, newStatus);
+      message.success(`Status updated to ${newStatus}`);
+    } catch (error) {
+      console.error('Status update failed:', error);
+      setObservations(previous);
+      message.error('Failed to update status');
+    }
   };
 
-  // Filtered observations
+  // ==================== FILTERS ====================
+
   const filteredObservations = useMemo(() => {
     return observations.filter(obs => {
-      if (filterType !== 'all' && obs.type !== filterType) return false;
+      const obsType = obs.type || obs.observation_type;
+      const obsRisk = obs.risk_level || obs.riskLevel;
+      
+      if (filterType !== 'all' && obsType !== filterType) return false;
       if (filterCategory !== 'all' && obs.category !== filterCategory) return false;
-      if (filterRisk !== 'all' && obs.riskLevel !== filterRisk) return false;
+      if (filterRisk !== 'all' && obsRisk !== filterRisk) return false;
       if (searchText) {
         const search = searchText.toLowerCase();
         return (
@@ -317,55 +332,61 @@ const SafetyObservations = ({
     });
   }, [observations, filterType, filterCategory, filterRisk, searchText]);
 
-  // Statistics
-  const stats = useMemo(() => {
+  // ==================== LOCAL STATS (Fallback) ====================
+
+  const localStats = useMemo(() => {
     const total = observations.length;
     const positive = observations.filter(o => 
-      o.type === 'safe_behavior' || o.type === 'good_practice'
+      (o.type || o.observation_type) === 'safe_behavior' || 
+      (o.type || o.observation_type) === 'good_practice'
     ).length;
     const negative = observations.filter(o => 
-      o.type === 'at_risk_behavior' || o.type === 'unsafe_condition' || 
-      o.type === 'near_miss' || o.type === 'hazard'
+      ['at_risk_behavior', 'unsafe_condition', 'near_miss', 'hazard'].includes(o.type || o.observation_type)
     ).length;
     const open = observations.filter(o => o.status === 'open').length;
     const closed = observations.filter(o => o.status === 'closed').length;
     
     const byType = {};
     observations.forEach(o => {
-      byType[o.type] = (byType[o.type] || 0) + 1;
+      const t = o.type || o.observation_type;
+      if (t) byType[t] = (byType[t] || 0) + 1;
     });
 
     const byRisk = {};
     observations.forEach(o => {
-      byRisk[o.riskLevel] = (byRisk[o.riskLevel] || 0) + 1;
+      const r = o.risk_level || o.riskLevel;
+      if (r) byRisk[r] = (byRisk[r] || 0) + 1;
     });
 
     const byCategory = {};
     observations.forEach(o => {
-      byCategory[o.category] = (byCategory[o.category] || 0) + 1;
+      if (o.category) byCategory[o.category] = (byCategory[o.category] || 0) + 1;
     });
 
-    // Calculate safety score (positive / total * 100)
     const safetyScore = total > 0 ? Math.round((positive / total) * 100) : 0;
 
     return { total, positive, negative, open, closed, byType, byRisk, byCategory, safetyScore };
   }, [observations]);
 
-  // Chart data
+  // Use API stats if available, else local
+  const statsData = stats || localStats;
+
+  // ==================== CHART DATA ====================
+
   const typeChartData = {
-    labels: Object.keys(stats.byType).map(t => OBSERVATION_TYPES[t]?.label || t),
+    labels: Object.keys(statsData.byType || {}).map(t => OBSERVATION_TYPES[t]?.label || t),
     datasets: [{
-      data: Object.values(stats.byType),
-      backgroundColor: Object.keys(stats.byType).map(t => OBSERVATION_TYPES[t]?.color || '#1890ff'),
+      data: Object.values(statsData.byType || {}),
+      backgroundColor: Object.keys(statsData.byType || {}).map(t => OBSERVATION_TYPES[t]?.color || '#1890ff'),
       borderWidth: 2,
       borderColor: '#fff'
     }]
   };
 
   const categoryChartData = {
-    labels: Object.keys(stats.byCategory).map(c => BEHAVIOR_CATEGORIES[c]?.label || c),
+    labels: Object.keys(statsData.byCategory || {}).map(c => BEHAVIOR_CATEGORIES[c]?.label || c),
     datasets: [{
-      data: Object.values(stats.byCategory),
+      data: Object.values(statsData.byCategory || {}),
       backgroundColor: '#722ed1',
       borderColor: '#531dab',
       borderWidth: 1
@@ -380,9 +401,11 @@ const SafetyObservations = ({
     }
 
     observations.forEach(o => {
-      const date = dayjs(o.date).format('MM-DD');
+      const obsDate = o.date_observed || o.date;
+      const date = dayjs(obsDate).format('MM-DD');
       if (last30Days[date]) {
-        if (o.type === 'safe_behavior' || o.type === 'good_practice') {
+        const t = o.type || o.observation_type;
+        if (t === 'safe_behavior' || t === 'good_practice') {
           last30Days[date].positive++;
         } else {
           last30Days[date].negative++;
@@ -419,26 +442,23 @@ const SafetyObservations = ({
     plugins: { legend: { position: 'bottom' } }
   };
 
-  // Table columns
+  // ==================== TABLE COLUMNS ====================
+
   const columns = [
     {
       title: 'Type',
       dataIndex: 'type',
       key: 'type',
       width: 160,
-      render: (type) => {
-        const config = OBSERVATION_TYPES[type] || {};
+      render: (type, record) => {
+        const t = type || record.observation_type;
+        const config = OBSERVATION_TYPES[t] || {};
         return (
           <Tag color={config.color} icon={config.icon}>
             {config.label}
           </Tag>
         );
-      },
-      filters: Object.entries(OBSERVATION_TYPES).map(([key, config]) => ({
-        text: config.label,
-        value: key
-      })),
-      onFilter: (value, record) => record.type === value
+      }
     },
     {
       title: 'Observation',
@@ -460,45 +480,37 @@ const SafetyObservations = ({
       width: 130,
       render: (cat) => {
         const config = BEHAVIOR_CATEGORIES[cat] || {};
-        return (
-          <Tag icon={config.icon}>{config.label || cat}</Tag>
-        );
+        return <Tag icon={config.icon}>{config.label || cat}</Tag>;
       }
     },
     {
       title: 'Risk',
-      dataIndex: 'riskLevel',
-      key: 'riskLevel',
+      dataIndex: 'risk_level',
+      key: 'risk_level',
       width: 100,
-      render: (risk) => {
-        const config = RISK_LEVELS[risk] || {};
+      render: (risk, record) => {
+        const r = risk || record.riskLevel;
+        const config = RISK_LEVELS[r] || {};
         return <Tag color={config.color}>{config.label}</Tag>;
-      },
-      filters: Object.entries(RISK_LEVELS).map(([key, config]) => ({
-        text: config.label,
-        value: key
-      })),
-      onFilter: (value, record) => record.riskLevel === value
+      }
     },
     {
       title: 'Observer',
-      dataIndex: 'observer',
       key: 'observer',
       width: 130,
-      render: (observer) => (
+      render: (_, record) => (
         <Space>
           <Avatar size="small" icon={<UserOutlined />} />
-          {observer?.name || 'Unknown'}
+          {record.observer?.name || record.observer_name || 'Unknown'}
         </Space>
       )
     },
     {
       title: 'Date',
-      dataIndex: 'date',
-      key: 'date',
+      dataIndex: 'date_observed',
+      key: 'date_observed',
       width: 120,
-      render: (date) => dayjs(date).format('MMM DD, HH:mm'),
-      sorter: (a, b) => dayjs(a.date).unix() - dayjs(b.date).unix()
+      render: (date, record) => dayjs(date || record.date).format('MMM DD, HH:mm')
     },
     {
       title: 'Status',
@@ -541,10 +553,22 @@ const SafetyObservations = ({
                   icon={<EditOutlined />}
                   onClick={() => {
                     setEditingObservation(record);
+                    const obsDate = record.date_observed || record.date;
                     form.setFieldsValue({
-                      ...record,
-                      date: dayjs(record.date),
-                      time: dayjs(record.date)
+                      type: record.type || record.observation_type,
+                      category: record.category,
+                      title: record.title,
+                      description: record.description,
+                      location: record.location,
+                      department: record.department,
+                      observedPerson: record.observed_person || record.observedPerson,
+                      riskLevel: record.risk_level || record.riskLevel,
+                      correctiveAction: record.immediate_action || record.correctiveAction,
+                      recommendation: record.recommendation,
+                      date: obsDate ? dayjs(obsDate) : dayjs(),
+                      time: obsDate ? dayjs(obsDate) : dayjs(),
+                      positiveRecognition: record.positive_recognition || record.positiveRecognition,
+                      points: record.points_awarded || record.points
                     });
                     setModalVisible(true);
                   }}
@@ -568,70 +592,47 @@ const SafetyObservations = ({
     }
   ];
 
+  // ==================== RENDER ====================
+
   return (
     <div>
       {/* Statistics Cards */}
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
         <Col xs={12} sm={8} md={6} lg={4}>
           <Card size="small">
-            <Statistic
-              title="Total"
-              value={stats.total}
-              prefix={<EyeOutlined />}
-              valueStyle={{ color: '#1890ff' }}
-            />
+            <Statistic title="Total" value={statsData.total} prefix={<EyeOutlined />} valueStyle={{ color: '#1890ff' }} />
           </Card>
         </Col>
         <Col xs={12} sm={8} md={6} lg={4}>
           <Card size="small">
-            <Statistic
-              title="Positive"
-              value={stats.positive}
-              prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: '#52c41a' }}
-            />
+            <Statistic title="Positive" value={statsData.positive} prefix={<CheckCircleOutlined />} valueStyle={{ color: '#52c41a' }} />
           </Card>
         </Col>
         <Col xs={12} sm={8} md={6} lg={4}>
           <Card size="small">
-            <Statistic
-              title="At-Risk"
-              value={stats.negative}
-              prefix={<WarningOutlined />}
-              valueStyle={{ color: '#faad14' }}
-            />
+            <Statistic title="At-Risk" value={statsData.negative} prefix={<WarningOutlined />} valueStyle={{ color: '#faad14' }} />
           </Card>
         </Col>
         <Col xs={12} sm={8} md={6} lg={4}>
           <Card size="small">
-            <Statistic
-              title="Open"
-              value={stats.open}
-              prefix={<ClockCircleOutlined />}
-              valueStyle={{ color: '#fa541c' }}
-            />
+            <Statistic title="Open" value={statsData.open} prefix={<ClockCircleOutlined />} valueStyle={{ color: '#fa541c' }} />
           </Card>
         </Col>
         <Col xs={12} sm={8} md={6} lg={4}>
           <Card size="small">
-            <Statistic
-              title="Closed"
-              value={stats.closed}
-              prefix={<CheckOutlined />}
-              valueStyle={{ color: '#52c41a' }}
-            />
+            <Statistic title="Closed" value={statsData.closed} prefix={<CheckOutlined />} valueStyle={{ color: '#52c41a' }} />
           </Card>
         </Col>
         <Col xs={12} sm={8} md={6} lg={4}>
           <Card size="small">
             <Statistic
               title="Safety Score"
-              value={stats.safetyScore}
+              value={statsData.safetyScore}
               suffix="%"
               prefix={<StarFilled style={{ color: '#faad14' }} />}
               valueStyle={{ 
-                color: stats.safetyScore >= 70 ? '#52c41a' : 
-                       stats.safetyScore >= 40 ? '#faad14' : '#f5222d'
+                color: statsData.safetyScore >= 70 ? '#52c41a' : 
+                       statsData.safetyScore >= 40 ? '#faad14' : '#f5222d'
               }}
             />
           </Card>
@@ -649,28 +650,23 @@ const SafetyObservations = ({
           </Col>
           <Col span={14}>
             <Progress
-              percent={stats.safetyScore}
+              percent={statsData.safetyScore}
               strokeColor={
-                stats.safetyScore >= 70 ? '#52c41a' :
-                stats.safetyScore >= 40 ? '#faad14' : '#f5222d'
+                statsData.safetyScore >= 70 ? '#52c41a' :
+                statsData.safetyScore >= 40 ? '#faad14' : '#f5222d'
               }
-              format={(p) => `${p}% (${stats.positive} positive / ${stats.total} total)`}
+              format={(p) => `${p}% (${statsData.positive} positive / ${statsData.total} total)`}
             />
           </Col>
           <Col span={4}>
-            <Text type="secondary" style={{ fontSize: 11 }}>
-              Higher is better
-            </Text>
+            <Text type="secondary" style={{ fontSize: 11 }}>Higher is better</Text>
           </Col>
         </Row>
       </Card>
 
       {/* Main Content */}
       <Tabs activeKey={activeTab} onChange={setActiveTab}>
-        <TabPane 
-          tab={<span><EyeOutlined /> Observations</span>} 
-          key="list"
-        >
+        <TabPane tab={<span><EyeOutlined /> Observations</span>} key="list">
           {/* Filters */}
           <Card size="small" style={{ marginBottom: 16 }}>
             <Row gutter={[16, 16]}>
@@ -683,42 +679,23 @@ const SafetyObservations = ({
                 />
               </Col>
               <Col xs={24} sm={12} md={5}>
-                <Select
-                  value={filterType}
-                  onChange={setFilterType}
-                  style={{ width: '100%' }}
-                  placeholder="Type"
-                >
+                <Select value={filterType} onChange={setFilterType} style={{ width: '100%' }} placeholder="Type">
                   <Option value="all">All Types</Option>
                   {Object.entries(OBSERVATION_TYPES).map(([key, config]) => (
-                    <Option key={key} value={key}>
-                      {config.icon} {config.label}
-                    </Option>
+                    <Option key={key} value={key}>{config.icon} {config.label}</Option>
                   ))}
                 </Select>
               </Col>
               <Col xs={24} sm={12} md={5}>
-                <Select
-                  value={filterCategory}
-                  onChange={setFilterCategory}
-                  style={{ width: '100%' }}
-                  placeholder="Category"
-                >
+                <Select value={filterCategory} onChange={setFilterCategory} style={{ width: '100%' }} placeholder="Category">
                   <Option value="all">All Categories</Option>
                   {Object.entries(BEHAVIOR_CATEGORIES).map(([key, config]) => (
-                    <Option key={key} value={key}>
-                      {config.icon} {config.label}
-                    </Option>
+                    <Option key={key} value={key}>{config.icon} {config.label}</Option>
                   ))}
                 </Select>
               </Col>
               <Col xs={24} sm={12} md={4}>
-                <Select
-                  value={filterRisk}
-                  onChange={setFilterRisk}
-                  style={{ width: '100%' }}
-                  placeholder="Risk"
-                >
+                <Select value={filterRisk} onChange={setFilterRisk} style={{ width: '100%' }} placeholder="Risk">
                   <Option value="all">All Risks</Option>
                   {Object.entries(RISK_LEVELS).map(([key, config]) => (
                     <Option key={key} value={key}>{config.label}</Option>
@@ -752,21 +729,27 @@ const SafetyObservations = ({
           </Card>
 
           {/* Observations Table */}
-          <Card>
-            {filteredObservations.length > 0 ? (
+          <Card extra={
+            <Tooltip title="Refresh">
+              <Button icon={<ReloadOutlined />} onClick={fetchObservations} loading={loading} size="small" />
+            </Tooltip>
+          }>
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: 60 }}>
+                <Spin size="large" tip="Loading observations..." />
+              </div>
+            ) : filteredObservations.length > 0 ? (
               <Table
                 dataSource={filteredObservations}
                 columns={columns}
                 rowKey="id"
-                pagination={{ 
-                  pageSize: 10,
-                  showTotal: (total) => `Total ${total} observations`
-                }}
+                pagination={{ pageSize: 10, showTotal: (total) => `Total ${total} observations` }}
                 size="small"
                 scroll={{ x: 1000 }}
                 rowClassName={(record) => {
-                  if (record.riskLevel === 'critical') return 'critical-row';
-                  if (record.riskLevel === 'high') return 'high-row';
+                  const risk = record.risk_level || record.riskLevel;
+                  if (risk === 'critical') return 'critical-row';
+                  if (risk === 'high') return 'high-row';
                   return '';
                 }}
               />
@@ -776,10 +759,7 @@ const SafetyObservations = ({
           </Card>
         </TabPane>
 
-        <TabPane 
-          tab={<span><RiseOutlined /> Analytics</span>} 
-          key="analytics"
-        >
+        <TabPane tab={<span><RiseOutlined /> Analytics</span>} key="analytics">
           <Row gutter={[16, 16]}>
             <Col xs={24} lg={8}>
               <Card title="Observation Types">
@@ -813,19 +793,16 @@ const SafetyObservations = ({
                 <div style={{ height: 280 }}>
                   <Radar 
                     data={{
-                      labels: Object.keys(stats.byRisk).map(r => RISK_LEVELS[r]?.label || r),
+                      labels: Object.keys(statsData.byRisk || {}).map(r => RISK_LEVELS[r]?.label || r),
                       datasets: [{
                         label: 'Risk Levels',
-                        data: Object.values(stats.byRisk),
+                        data: Object.values(statsData.byRisk || {}),
                         backgroundColor: 'rgba(24, 144, 255, 0.2)',
                         borderColor: '#1890ff',
                         pointBackgroundColor: '#1890ff'
                       }]
                     }}
-                    options={{
-                      ...chartOptions,
-                      scales: { r: { beginAtZero: true } }
-                    }}
+                    options={{ ...chartOptions, scales: { r: { beginAtZero: true } } }}
                   />
                 </div>
               </Card>
@@ -833,10 +810,7 @@ const SafetyObservations = ({
           </Row>
         </TabPane>
 
-        <TabPane 
-          tab={<span><StarOutlined /> Recognition</span>} 
-          key="recognition"
-        >
+        <TabPane tab={<span><StarOutlined /> Recognition</span>} key="recognition">
           <Alert
             message="Safety Recognition Program"
             description="Employees earn points for positive safety observations. Top performers are recognized monthly."
@@ -849,53 +823,44 @@ const SafetyObservations = ({
           <Row gutter={[16, 16]}>
             <Col xs={24} lg={12}>
               <Card title="Top Performers This Month">
-                <List
-                  dataSource={[
-                    { name: 'Mike Johnson', points: 45, observations: 8, department: 'Construction' },
-                    { name: 'Sarah Williams', points: 35, observations: 7, department: 'Logistics' },
-                    { name: 'Robert Chen', points: 30, observations: 6, department: 'Warehouse' },
-                    { name: 'Emily Davis', points: 25, observations: 5, department: 'Maintenance' },
-                    { name: 'James Wilson', points: 20, observations: 4, department: 'Production' }
-                  ]}
-                  renderItem={(item, index) => (
-                    <List.Item>
-                      <List.Item.Meta
-                        avatar={
-                          <Avatar 
-                            style={{ 
+                {leaderboard.length > 0 ? (
+                  <List
+                    dataSource={leaderboard}
+                    renderItem={(item, index) => (
+                      <List.Item>
+                        <List.Item.Meta
+                          avatar={
+                            <Avatar style={{ 
                               backgroundColor: index === 0 ? '#faad14' :
                                               index === 1 ? '#d9d9d9' :
                                               index === 2 ? '#cd7f32' : '#1890ff'
-                            }}
-                          >
-                            {index + 1}
-                          </Avatar>
-                        }
-                        title={
-                          <Space>
-                            <Text strong>{item.name}</Text>
-                            <Tag color="blue">{item.department}</Tag>
-                          </Space>
-                        }
-                        description={
-                          <Space>
-                            <Text>{item.observations} observations</Text>
-                            <Tag color="gold" icon={<StarFilled />}>
-                              {item.points} points
-                            </Tag>
-                          </Space>
-                        }
-                      />
-                    </List.Item>
-                  )}
-                />
+                            }}>
+                              {index + 1}
+                            </Avatar>
+                          }
+                          title={<Text strong>{item.user_name || item.name}</Text>}
+                          description={
+                            <Space>
+                              <Text>{item.observation_count} observations</Text>
+                              <Tag color="gold" icon={<StarFilled />}>
+                                {item.total_points} points
+                              </Tag>
+                            </Space>
+                          }
+                        />
+                      </List.Item>
+                    )}
+                  />
+                ) : (
+                  <Empty description="No leaderboard data yet" />
+                )}
               </Card>
             </Col>
             <Col xs={24} lg={12}>
               <Card title="Recent Recognition">
                 <Timeline>
                   {observations
-                    .filter(o => o.positiveRecognition)
+                    .filter(o => o.positive_recognition || o.positiveRecognition)
                     .slice(0, 5)
                     .map(o => (
                       <Timeline.Item 
@@ -904,18 +869,21 @@ const SafetyObservations = ({
                         dot={<StarFilled style={{ color: '#faad14' }} />}
                       >
                         <Space direction="vertical" size={0}>
-                          <Text strong>{o.observedPerson || 'Team'}</Text>
+                          <Text strong>{o.observed_person || o.observedPerson || 'Team'}</Text>
                           <Text type="secondary">{o.title}</Text>
                           <Space>
-                            <Tag color="gold">+{o.points || 10} points</Tag>
+                            <Tag color="gold">+{o.points_awarded || o.points || 10} points</Tag>
                             <Text type="secondary" style={{ fontSize: 11 }}>
-                              {dayjs(o.date).fromNow()}
+                              {dayjs(o.date_observed || o.date).fromNow()}
                             </Text>
                           </Space>
                         </Space>
                       </Timeline.Item>
                     ))}
                 </Timeline>
+                {observations.filter(o => o.positive_recognition || o.positiveRecognition).length === 0 && (
+                  <Empty description="No recognition yet" />
+                )}
               </Card>
             </Col>
           </Row>
@@ -940,12 +908,7 @@ const SafetyObservations = ({
         footer={null}
         width={800}
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSaveObservation}
-        >
-          {/* Quick Type Selection */}
+        <Form form={form} layout="vertical" onFinish={handleSaveObservation}>
           <Form.Item
             name="type"
             label="Observation Type"
@@ -955,10 +918,7 @@ const SafetyObservations = ({
               <Space wrap>
                 {Object.entries(OBSERVATION_TYPES).map(([key, config]) => (
                   <Radio.Button key={key} value={key}>
-                    <Space>
-                      {config.icon}
-                      {config.label}
-                    </Space>
+                    <Space>{config.icon}{config.label}</Space>
                   </Radio.Button>
                 ))}
               </Space>
@@ -967,26 +927,16 @@ const SafetyObservations = ({
 
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item
-                name="category"
-                label="Category"
-                rules={[{ required: true }]}
-              >
+              <Form.Item name="category" label="Category" rules={[{ required: true }]}>
                 <Select placeholder="Select category">
                   {Object.entries(BEHAVIOR_CATEGORIES).map(([key, config]) => (
-                    <Option key={key} value={key}>
-                      {config.icon} {config.label}
-                    </Option>
+                    <Option key={key} value={key}>{config.icon} {config.label}</Option>
                   ))}
                 </Select>
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item
-                name="riskLevel"
-                label="Risk Level"
-                rules={[{ required: true }]}
-              >
+              <Form.Item name="riskLevel" label="Risk Level" rules={[{ required: true }]}>
                 <Select>
                   {Object.entries(RISK_LEVELS).map(([key, config]) => (
                     <Option key={key} value={key}>
@@ -998,50 +948,27 @@ const SafetyObservations = ({
             </Col>
           </Row>
 
-          <Form.Item
-            name="title"
-            label="Observation Title"
-            rules={[{ required: true, message: 'Title is required' }]}
-          >
-            <Input placeholder="Brief summary of the observation" />
+          <Form.Item name="title" label="Observation Title" rules={[{ required: true }]}>
+            <Input placeholder="Brief summary" />
           </Form.Item>
 
-          <Form.Item
-            name="description"
-            label="Description"
-            rules={[{ required: true, message: 'Description is required' }]}
-          >
-            <TextArea 
-              rows={4} 
-              placeholder="Describe what you observed in detail..."
-            />
+          <Form.Item name="description" label="Description" rules={[{ required: true }]}>
+            <TextArea rows={4} placeholder="Describe what you observed..." />
           </Form.Item>
 
           <Row gutter={16}>
             <Col span={8}>
-              <Form.Item
-                name="date"
-                label="Date"
-                rules={[{ required: true }]}
-              >
+              <Form.Item name="date" label="Date" rules={[{ required: true }]}>
                 <DatePicker style={{ width: '100%' }} />
               </Form.Item>
             </Col>
             <Col span={8}>
-              <Form.Item
-                name="time"
-                label="Time"
-                rules={[{ required: true }]}
-              >
+              <Form.Item name="time" label="Time" rules={[{ required: true }]}>
                 <TimePicker style={{ width: '100%' }} format="HH:mm" />
               </Form.Item>
             </Col>
             <Col span={8}>
-              <Form.Item
-                name="location"
-                label="Location"
-                rules={[{ required: true }]}
-              >
+              <Form.Item name="location" label="Location" rules={[{ required: true }]}>
                 <Input prefix={<EnvironmentOutlined />} placeholder="Where observed" />
               </Form.Item>
             </Col>
@@ -1060,26 +987,18 @@ const SafetyObservations = ({
             </Col>
           </Row>
 
-          {/* Corrective Action (for negative observations) */}
-          <Form.Item
-            noStyle
-            shouldUpdate={(prev, curr) => prev.type !== curr.type}
-          >
+          <Form.Item noStyle shouldUpdate={(prev, curr) => prev.type !== curr.type}>
             {({ getFieldValue }) => {
               const type = getFieldValue('type');
               const isNegative = ['at_risk_behavior', 'unsafe_condition', 'near_miss', 'hazard'].includes(type);
-              
               if (isNegative) {
                 return (
                   <Form.Item
                     name="correctiveAction"
                     label="Immediate Corrective Action"
-                    rules={[{ required: true, message: 'Please describe corrective action' }]}
+                    rules={[{ required: true }]}
                   >
-                    <TextArea 
-                      rows={3} 
-                      placeholder="What action was taken to address this observation?"
-                    />
+                    <TextArea rows={3} placeholder="What action was taken?" />
                   </Form.Item>
                 );
               }
@@ -1087,15 +1006,10 @@ const SafetyObservations = ({
             }}
           </Form.Item>
 
-          {/* Positive Recognition (for positive observations) */}
-          <Form.Item
-            noStyle
-            shouldUpdate={(prev, curr) => prev.type !== curr.type}
-          >
+          <Form.Item noStyle shouldUpdate={(prev, curr) => prev.type !== curr.type}>
             {({ getFieldValue }) => {
               const type = getFieldValue('type');
               const isPositive = ['safe_behavior', 'good_practice'].includes(type);
-              
               if (isPositive) {
                 return (
                   <>
@@ -1105,23 +1019,10 @@ const SafetyObservations = ({
                       valuePropName="checked"
                       initialValue={true}
                     >
-                      <Switch 
-                        checkedChildren="Yes" 
-                        unCheckedChildren="No"
-                      />
+                      <Switch checkedChildren="Yes" unCheckedChildren="No" />
                     </Form.Item>
-                    
-                    <Form.Item
-                      name="points"
-                      label="Recognition Points"
-                      initialValue={10}
-                    >
-                      <InputNumber 
-                        min={0} 
-                        max={100} 
-                        style={{ width: '100%' }}
-                        addonAfter="points"
-                      />
+                    <Form.Item name="points" label="Recognition Points" initialValue={10}>
+                      <InputNumber min={0} max={100} style={{ width: '100%' }} addonAfter="points" />
                     </Form.Item>
                   </>
                 );
@@ -1138,11 +1039,9 @@ const SafetyObservations = ({
               beforeUpload={() => false}
               listType="picture"
             >
-              <p className="ant-upload-drag-icon">
-                <CameraOutlined />
-              </p>
+              <p className="ant-upload-drag-icon"><CameraOutlined /></p>
               <p className="ant-upload-text">Click or drag photos to upload</p>
-              <p className="ant-upload-hint">Support for JPG, PNG (max 10MB each)</p>
+              <p className="ant-upload-hint">JPG, PNG (max 10MB each)</p>
             </Dragger>
           </Form.Item>
 
@@ -1151,7 +1050,7 @@ const SafetyObservations = ({
               <Button 
                 type="primary" 
                 htmlType="submit" 
-                loading={loading}
+                loading={saving}
                 icon={<SaveOutlined />}
               >
                 {editingObservation ? 'Update' : 'Save'} Observation
@@ -1176,8 +1075,8 @@ const SafetyObservations = ({
             <EyeOutlined />
             Observation Details
             {selectedObservation && (
-              <Tag color={OBSERVATION_TYPES[selectedObservation.type]?.color}>
-                {OBSERVATION_TYPES[selectedObservation.type]?.label}
+              <Tag color={OBSERVATION_TYPES[selectedObservation.type || selectedObservation.observation_type]?.color}>
+                {OBSERVATION_TYPES[selectedObservation.type || selectedObservation.observation_type]?.label}
               </Tag>
             )}
           </Space>
@@ -1201,10 +1100,10 @@ const SafetyObservations = ({
               </Descriptions.Item>
               <Descriptions.Item label="Type">
                 <Tag 
-                  color={OBSERVATION_TYPES[selectedObservation.type]?.color}
-                  icon={OBSERVATION_TYPES[selectedObservation.type]?.icon}
+                  color={OBSERVATION_TYPES[selectedObservation.type || selectedObservation.observation_type]?.color}
+                  icon={OBSERVATION_TYPES[selectedObservation.type || selectedObservation.observation_type]?.icon}
                 >
-                  {OBSERVATION_TYPES[selectedObservation.type]?.label}
+                  {OBSERVATION_TYPES[selectedObservation.type || selectedObservation.observation_type]?.label}
                 </Tag>
               </Descriptions.Item>
               <Descriptions.Item label="Category">
@@ -1213,24 +1112,20 @@ const SafetyObservations = ({
                 </Tag>
               </Descriptions.Item>
               <Descriptions.Item label="Risk Level">
-                <Tag color={RISK_LEVELS[selectedObservation.riskLevel]?.color}>
-                  {RISK_LEVELS[selectedObservation.riskLevel]?.label}
+                <Tag color={RISK_LEVELS[selectedObservation.risk_level || selectedObservation.riskLevel]?.color}>
+                  {RISK_LEVELS[selectedObservation.risk_level || selectedObservation.riskLevel]?.label}
                 </Tag>
               </Descriptions.Item>
-              <Descriptions.Item label="Location">
-                {selectedObservation.location}
-              </Descriptions.Item>
-              <Descriptions.Item label="Department">
-                {selectedObservation.department}
-              </Descriptions.Item>
+              <Descriptions.Item label="Location">{selectedObservation.location}</Descriptions.Item>
+              <Descriptions.Item label="Department">{selectedObservation.department}</Descriptions.Item>
               <Descriptions.Item label="Person(s) Involved">
-                {selectedObservation.observedPerson || 'N/A'}
+                {selectedObservation.observed_person || selectedObservation.observedPerson || 'N/A'}
               </Descriptions.Item>
               <Descriptions.Item label="Observer">
-                {selectedObservation.observer?.name}
+                {selectedObservation.observer?.name || selectedObservation.observer_name}
               </Descriptions.Item>
               <Descriptions.Item label="Date/Time">
-                {dayjs(selectedObservation.date).format('MMMM DD, YYYY HH:mm')}
+                {dayjs(selectedObservation.date_observed || selectedObservation.date).format('MMMM DD, YYYY HH:mm')}
               </Descriptions.Item>
               <Descriptions.Item label="Status">
                 <Tag color={
@@ -1242,19 +1137,19 @@ const SafetyObservations = ({
               </Descriptions.Item>
             </Descriptions>
 
-            {selectedObservation.correctiveAction && (
+            {(selectedObservation.immediate_action || selectedObservation.correctiveAction) && (
               <>
                 <Divider orientation="left">Corrective Action</Divider>
                 <Alert
                   message="Action Taken"
-                  description={selectedObservation.correctiveAction}
+                  description={selectedObservation.immediate_action || selectedObservation.correctiveAction}
                   type="info"
                   showIcon
                 />
               </>
             )}
 
-            {selectedObservation.positiveRecognition && (
+            {(selectedObservation.positive_recognition || selectedObservation.positiveRecognition) && (
               <>
                 <Divider orientation="left">Recognition</Divider>
                 <Alert
@@ -1264,7 +1159,7 @@ const SafetyObservations = ({
                       Positive Recognition Awarded
                     </Space>
                   }
-                  description={`${selectedObservation.points || 10} safety points awarded to ${selectedObservation.observedPerson || 'employee'}`}
+                  description={`${selectedObservation.points_awarded || selectedObservation.points || 10} safety points awarded to ${selectedObservation.observed_person || 'employee'}`}
                   type="success"
                   showIcon
                 />
@@ -1318,12 +1213,8 @@ const SafetyObservations = ({
       </Drawer>
 
       <style jsx>{`
-        .critical-row {
-          background-color: #fff1f0 !important;
-        }
-        .high-row {
-          background-color: #fff7e6 !important;
-        }
+        .critical-row { background-color: #fff1f0 !important; }
+        .high-row { background-color: #fff7e6 !important; }
       `}</style>
     </div>
   );

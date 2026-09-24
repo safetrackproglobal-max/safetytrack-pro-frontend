@@ -1,11 +1,11 @@
 // src/components/compliance/EscalationMatrix.js
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Card, Table, Button, Tag, Space, Modal, Form, Input, Select,
   InputNumber, Row, Col, message, Switch, Tooltip, Badge,
   Alert, Divider, Timeline, Statistic, Progress, List, Avatar,
   Collapse, Descriptions, Popconfirm, notification, Drawer,
-  Tabs, Radio, Checkbox, TimePicker, Empty
+  Tabs, Radio, Checkbox, TimePicker, Empty, Spin, Typography
 } from 'antd';
 import {
   WarningOutlined, ClockCircleOutlined, UserOutlined,
@@ -18,100 +18,17 @@ import {
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
+// ✅ SERVICE IMPORTS
+import notificationService from '../../services/notificationService';
+import { useAuth } from '../../context/AuthContext';
+
 const { Text, Title: AntTitle, Paragraph } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
 const { Panel } = Collapse;
 const { TabPane } = Tabs;
 
-// ==================== DEFAULT ESCALATION RULES ====================
-
-const DEFAULT_ESCALATION_RULES = [
-  {
-    id: 'rule-1',
-    name: 'Critical Incident - Immediate Escalation',
-    description: 'Escalate critical incidents to management immediately',
-    enabled: true,
-    priority: 1,
-    conditions: {
-      severity: ['critical'],
-      status: ['reported', 'under_review'],
-      timeElapsed: null
-    },
-    actions: [
-      { type: 'notify', role: 'super_admin', channel: 'email', delay: 0 },
-      { type: 'notify', role: 'company_admin', channel: 'email', delay: 0 },
-      { type: 'notify', role: 'safety_officer', channel: 'sms', delay: 0 },
-      { type: 'assign', role: 'lead_investigator', delay: 0 },
-      { type: 'status_change', to: 'investigating', delay: 0 }
-    ]
-  },
-  {
-    id: 'rule-2',
-    name: 'High Severity - 24 Hour Escalation',
-    description: 'Escalate high severity incidents after 24 hours without action',
-    enabled: true,
-    priority: 2,
-    conditions: {
-      severity: ['high'],
-      status: ['reported'],
-      timeElapsed: 24 // hours
-    },
-    actions: [
-      { type: 'notify', role: 'company_admin', channel: 'email', delay: 0 },
-      { type: 'notify', role: 'safety_officer', channel: 'email', delay: 0 }
-    ]
-  },
-  {
-    id: 'rule-3',
-    name: 'Unresolved Incident - 72 Hour Escalation',
-    description: 'Escalate any unresolved incident after 72 hours',
-    enabled: true,
-    priority: 3,
-    conditions: {
-      severity: ['high', 'critical'],
-      status: ['reported', 'under_review', 'investigating'],
-      timeElapsed: 72
-    },
-    actions: [
-      { type: 'notify', role: 'super_admin', channel: 'email', delay: 0 },
-      { type: 'notify', role: 'company_admin', channel: 'sms', delay: 0 },
-      { type: 'increase_priority', delay: 0 }
-    ]
-  },
-  {
-    id: 'rule-4',
-    name: 'Overdue Corrective Action',
-    description: 'Escalate when corrective actions are overdue',
-    enabled: true,
-    priority: 4,
-    conditions: {
-      type: 'corrective_action',
-      overdue: true
-    },
-    actions: [
-      { type: 'notify', role: 'assignee', channel: 'email', delay: 0 },
-      { type: 'notify', role: 'manager', channel: 'email', delay: 0 },
-      { type: 'notify', role: 'company_admin', channel: 'email', delay: 24 }
-    ]
-  },
-  {
-    id: 'rule-5',
-    name: 'Regulatory Reporting Deadline',
-    description: 'Escalate when regulatory reporting deadline is approaching',
-    enabled: true,
-    priority: 1,
-    conditions: {
-      type: 'regulatory',
-      deadlineApproaching: 48 // hours
-    },
-    actions: [
-      { type: 'notify', role: 'safety_officer', channel: 'email', delay: 0 },
-      { type: 'notify', role: 'company_admin', channel: 'email', delay: 0 },
-      { type: 'notify', role: 'super_admin', channel: 'email', delay: 12 }
-    ]
-  }
-];
+// ==================== CONSTANTS ====================
 
 const ESCALATION_ROLES = {
   super_admin: { label: 'Super Admin', color: 'red', icon: <SafetyCertificateOutlined /> },
@@ -133,7 +50,10 @@ const NOTIFICATION_CHANNELS = {
 // ==================== ESCALATION MATRIX COMPONENT ====================
 
 const EscalationMatrix = ({ incidents = [], onEscalate }) => {
-  const [rules, setRules] = useState(DEFAULT_ESCALATION_RULES);
+  // ✅ Get user
+  const { user: currentUser } = useAuth();
+
+  const [rules, setRules] = useState([]);
   const [selectedRule, setSelectedRule] = useState(null);
   const [ruleModalVisible, setRuleModalVisible] = useState(false);
   const [escalationLog, setEscalationLog] = useState([]);
@@ -142,9 +62,76 @@ const EscalationMatrix = ({ incidents = [], onEscalate }) => {
   const [testingRule, setTestingRule] = useState(null);
   const [testResult, setTestResult] = useState(null);
   const [testModalVisible, setTestModalVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  // Find incidents that should be escalated based on rules
-  const escalatableIncidents = useMemo(() => {
+  // ==================== FETCH RULES ====================
+
+  const fetchRules = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await notificationService.getEscalationRules();
+      const rulesData = response?.rules || response?.data?.rules || (Array.isArray(response) ? response : []) || [];
+      setRules(rulesData);
+    } catch (error) {
+      console.warn('Escalation rules API unavailable:', error);
+      setRules([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // ==================== FETCH PENDING ESCALATIONS ====================
+
+  const fetchPendingEscalations = useCallback(async () => {
+    try {
+      const response = await notificationService.getPendingEscalations();
+      const pending = response?.pending || response?.data?.pending || [];
+      
+      // Merge with rule info
+      const enriched = pending.map(item => ({
+        ...item,
+        incident: item.incident,
+        rule: item.rule,
+        reasons: item.reasons || [],
+        urgency: item.urgency || (item.rule?.priority <= 2 ? 'high' : 'medium')
+      }));
+      
+      // Store separately if needed
+    } catch (error) {
+      console.warn('Pending escalations API unavailable');
+    }
+  }, []);
+
+  // ==================== FETCH HISTORY ====================
+
+  const fetchEscalationHistory = useCallback(async () => {
+    try {
+      const response = await notificationService.getEscalationHistory();
+      const history = response?.history || response?.data || [];
+      setEscalationLog(history);
+    } catch (error) {
+      console.warn('Escalation history API unavailable');
+    }
+  }, []);
+
+  // Load rules on mount
+  useEffect(() => {
+    fetchRules();
+  }, [fetchRules]);
+
+  // Load history when tab changes to history
+  useEffect(() => {
+    if (activeTab === 'history') {
+      fetchEscalationHistory();
+    }
+  }, [activeTab, fetchEscalationHistory]);
+
+  // ==================== COMPUTE ESCALATABLE INCIDENTS ====================
+
+  const escalatableIncidents = React.useMemo(() => {
+    if (!incidents.length || !rules.length) return [];
+    
     const results = [];
 
     incidents.forEach(incident => {
@@ -153,7 +140,7 @@ const EscalationMatrix = ({ incidents = [], onEscalate }) => {
         let reasons = [];
 
         // Check severity
-        if (rule.conditions.severity && rule.conditions.severity.length > 0) {
+        if (rule.conditions?.severity && rule.conditions.severity.length > 0) {
           if (!rule.conditions.severity.includes(incident.severity)) {
             matches = false;
           } else {
@@ -162,7 +149,7 @@ const EscalationMatrix = ({ incidents = [], onEscalate }) => {
         }
 
         // Check status
-        if (matches && rule.conditions.status && rule.conditions.status.length > 0) {
+        if (matches && rule.conditions?.status && rule.conditions.status.length > 0) {
           if (!rule.conditions.status.includes(incident.status)) {
             matches = false;
           } else {
@@ -171,7 +158,7 @@ const EscalationMatrix = ({ incidents = [], onEscalate }) => {
         }
 
         // Check time elapsed
-        if (matches && rule.conditions.timeElapsed) {
+        if (matches && rule.conditions?.timeElapsed) {
           const incidentDate = dayjs(incident.date_occurred || incident.created_at);
           const hoursElapsed = dayjs().diff(incidentDate, 'hour');
           if (hoursElapsed < rule.conditions.timeElapsed) {
@@ -196,62 +183,99 @@ const EscalationMatrix = ({ incidents = [], onEscalate }) => {
     return results.sort((a, b) => a.rule.priority - b.rule.priority);
   }, [incidents, rules]);
 
-  // Handle save rule
-  const handleSaveRule = (values) => {
-    const ruleData = {
-      id: selectedRule?.id || `rule-${Date.now()}`,
-      ...values,
-      conditions: {
-        severity: values.severity || [],
-        status: values.status || [],
-        timeElapsed: values.timeElapsed || null
-      },
-      actions: values.actions || []
-    };
+  // ==================== SAVE RULE ====================
 
-    if (selectedRule) {
-      setRules(prev => prev.map(r => r.id === selectedRule.id ? ruleData : r));
-      message.success('Rule updated');
-    } else {
-      setRules(prev => [...prev, ruleData]);
-      message.success('Rule created');
+  const handleSaveRule = async (values) => {
+    setSaving(true);
+    try {
+      const ruleData = {
+        name: values.name,
+        description: values.description,
+        enabled: values.enabled !== false,
+        priority: values.priority || 3,
+        conditions: {
+          severity: values.severity || [],
+          status: values.status || [],
+          timeElapsed: values.timeElapsed || null
+        },
+        actions: values.actions || []
+      };
+
+      let response;
+      if (selectedRule) {
+        response = await notificationService.updateEscalationRule(selectedRule.id, ruleData);
+      } else {
+        response = await notificationService.createEscalationRule(ruleData);
+      }
+
+      const savedRule = response?.rule || response?.data || response;
+
+      // Refresh list
+      await fetchRules();
+
+      message.success(selectedRule ? 'Rule updated' : 'Rule created');
+      setRuleModalVisible(false);
+      form.resetFields();
+      setSelectedRule(null);
+    } catch (error) {
+      console.error('Save rule failed:', error);
+      message.error(error?.message || 'Failed to save rule');
+    } finally {
+      setSaving(false);
     }
-
-    setRuleModalVisible(false);
-    form.resetFields();
-    setSelectedRule(null);
   };
 
-  // Handle delete rule
-  const handleDeleteRule = (ruleId) => {
-    setRules(prev => prev.filter(r => r.id !== ruleId));
-    message.success('Rule deleted');
+  // ==================== DELETE RULE ====================
+
+  const handleDeleteRule = async (ruleId) => {
+    try {
+      await notificationService.deleteEscalationRule(ruleId);
+      setRules(prev => prev.filter(r => r.id !== ruleId));
+      message.success('Rule deleted');
+    } catch (error) {
+      console.error('Delete failed:', error);
+      message.error('Failed to delete rule');
+    }
   };
 
-  // Handle toggle rule
-  const handleToggleRule = (ruleId, enabled) => {
-    setRules(prev => prev.map(r => 
-      r.id === ruleId ? { ...r, enabled } : r
-    ));
-    message.success(enabled ? 'Rule enabled' : 'Rule disabled');
+  // ==================== TOGGLE RULE ====================
+
+  const handleToggleRule = async (ruleId, enabled) => {
+    // Optimistic update
+    setRules(prev => prev.map(r => r.id === ruleId ? { ...r, enabled } : r));
+
+    try {
+      await notificationService.toggleEscalationRule(ruleId, enabled);
+      message.success(enabled ? 'Rule enabled' : 'Rule disabled');
+    } catch (error) {
+      console.error('Toggle failed:', error);
+      // Revert
+      setRules(prev => prev.map(r => r.id === ruleId ? { ...r, enabled: !enabled } : r));
+      message.error('Failed to toggle rule');
+    }
   };
 
-  // Execute escalation
+  // ==================== EXECUTE ESCALATION ====================
+
   const handleExecuteEscalation = async (item) => {
     try {
-      // Simulate escalation execution
-      const logEntry = {
+      const response = await notificationService.executeEscalation(
+        item.incident.id,
+        item.rule.id
+      );
+
+      const logEntry = response?.history || response?.data || {
         id: Date.now().toString(),
-        incidentId: item.incident.id,
-        incidentNumber: item.incident.incident_number || `INC-${item.incident.id}`,
-        ruleId: item.rule.id,
-        ruleName: item.rule.name,
-        escalatedAt: new Date().toISOString(),
-        actions: item.rule.actions.map(a => ({
+        incident_id: item.incident.id,
+        incident_number: item.incident.incident_number || `INC-${item.incident.id}`,
+        rule_id: item.rule.id,
+        rule_name: item.rule.name,
+        escalated_at: new Date().toISOString(),
+        actions_executed: item.rule.actions?.map(a => ({
           ...a,
           status: 'sent',
           sentAt: new Date().toISOString()
-        })),
+        })) || [],
         status: 'completed'
       };
 
@@ -259,32 +283,51 @@ const EscalationMatrix = ({ incidents = [], onEscalate }) => {
       
       notification.success({
         message: 'Escalation Executed',
-        description: `${item.rule.name} applied to ${logEntry.incidentNumber}`,
+        description: `${item.rule.name} applied to ${logEntry.incident_number || item.incident.incident_number}`,
       });
 
       if (onEscalate) {
         onEscalate(item.incident, item.rule);
       }
     } catch (error) {
-      message.error('Failed to execute escalation');
+      console.error('Escalation failed:', error);
+      message.error(error?.message || 'Failed to execute escalation');
     }
   };
 
-  // Test rule
-  const handleTestRule = (rule) => {
+  // ==================== TEST RULE ====================
+
+  const handleTestRule = async (rule) => {
     setTestingRule(rule);
     setTestResult(null);
     setTestModalVisible(true);
 
-    // Simulate test
+    try {
+      // Try server-side test
+      const response = await notificationService.testEscalationRule(rule.id);
+      const result = response?.result || response?.data || response;
+
+      if (result) {
+        setTestResult({
+          matchCount: result.match_count || result.matchCount || 0,
+          incidents: result.incidents || [],
+          actionsCount: result.actions_count || rule.actions?.length || 0
+        });
+        return;
+      }
+    } catch (error) {
+      console.warn('Server test failed, using local test:', error);
+    }
+
+    // Local fallback test
     setTimeout(() => {
       const matchingIncidents = incidents.filter(incident => {
         let matches = true;
         
-        if (rule.conditions.severity?.length > 0) {
+        if (rule.conditions?.severity?.length > 0) {
           matches = matches && rule.conditions.severity.includes(incident.severity);
         }
-        if (rule.conditions.status?.length > 0) {
+        if (rule.conditions?.status?.length > 0) {
           matches = matches && rule.conditions.status.includes(incident.status);
         }
         
@@ -294,12 +337,13 @@ const EscalationMatrix = ({ incidents = [], onEscalate }) => {
       setTestResult({
         matchCount: matchingIncidents.length,
         incidents: matchingIncidents.slice(0, 5),
-        actionsCount: rule.actions.length
+        actionsCount: rule.actions?.length || 0
       });
-    }, 1000);
+    }, 800);
   };
 
-  // Get priority color
+  // ==================== HELPERS ====================
+
   const getPriorityColor = (priority) => {
     if (priority === 1) return 'red';
     if (priority === 2) return 'orange';
@@ -307,10 +351,11 @@ const EscalationMatrix = ({ incidents = [], onEscalate }) => {
     return 'green';
   };
 
-  // Get urgency color
   const getUrgencyColor = (urgency) => {
     return urgency === 'high' ? '#f5222d' : '#faad14';
   };
+
+  // ==================== RENDER ====================
 
   return (
     <div>
@@ -353,7 +398,7 @@ const EscalationMatrix = ({ incidents = [], onEscalate }) => {
                 <Statistic
                   title="Escalations Today"
                   value={escalationLog.filter(l => 
-                    dayjs(l.escalatedAt).isSame(dayjs(), 'day')
+                    dayjs(l.escalated_at || l.escalatedAt).isSame(dayjs(), 'day')
                   ).length}
                   prefix={<ThunderboltOutlined />}
                   valueStyle={{ color: '#1890ff' }}
@@ -403,160 +448,202 @@ const EscalationMatrix = ({ incidents = [], onEscalate }) => {
 
           {/* Rules Table */}
           <Card 
-            title={
+            title={<Space><SettingOutlined />Escalation Rules</Space>}
+            extra={
               <Space>
-                <SettingOutlined />
-                Escalation Rules
+                <Tooltip title="Refresh">
+                  <Button 
+                    icon={<ReloadOutlined />}
+                    onClick={fetchRules}
+                    loading={loading}
+                  />
+                </Tooltip>
+                <Button 
+                  type="primary" 
+                  icon={<PlusOutlined />}
+                  onClick={() => {
+                    setSelectedRule(null);
+                    form.resetFields();
+                    form.setFieldsValue({
+                      enabled: true,
+                      priority: 3,
+                      actions: [{ type: 'notify', channel: 'email' }]
+                    });
+                    setRuleModalVisible(true);
+                  }}
+                >
+                  Add Rule
+                </Button>
               </Space>
             }
-            extra={
-              <Button 
-                type="primary" 
-                icon={<PlusOutlined />}
-                onClick={() => {
-                  setSelectedRule(null);
-                  form.resetFields();
-                  setRuleModalVisible(true);
-                }}
-              >
-                Add Rule
-              </Button>
-            }
           >
-            <Table
-              dataSource={rules.sort((a, b) => a.priority - b.priority)}
-              columns={[
-                {
-                  title: 'Priority',
-                  dataIndex: 'priority',
-                  key: 'priority',
-                  width: 80,
-                  render: (priority) => (
-                    <Tag color={getPriorityColor(priority)}>P{priority}</Tag>
-                  )
-                },
-                {
-                  title: 'Rule Name',
-                  dataIndex: 'name',
-                  key: 'name',
-                  render: (text, record) => (
-                    <Space direction="vertical" size={0}>
-                      <Text strong>{text}</Text>
-                      <Text type="secondary" style={{ fontSize: 11 }}>
-                        {record.description}
-                      </Text>
-                    </Space>
-                  )
-                },
-                {
-                  title: 'Conditions',
-                  key: 'conditions',
-                  render: (_, record) => (
-                    <Space wrap>
-                      {record.conditions.severity?.map(s => (
-                        <Tag key={s} color={
-                          s === 'critical' ? 'red' : s === 'high' ? 'orange' : 'gold'
-                        }>
-                          Severity: {s}
-                        </Tag>
-                      ))}
-                      {record.conditions.status?.map(s => (
-                        <Tag key={s} color="blue">Status: {s}</Tag>
-                      ))}
-                      {record.conditions.timeElapsed && (
-                        <Tag color="purple">After {record.conditions.timeElapsed}h</Tag>
-                      )}
-                    </Space>
-                  )
-                },
-                {
-                  title: 'Actions',
-                  key: 'actions',
-                  render: (_, record) => (
-                    <Space wrap>
-                      {record.actions.slice(0, 3).map((action, i) => (
-                        <Tooltip key={i} title={`${action.type}: ${action.role || action.to}`}>
-                          <Tag 
-                            icon={
-                              action.type === 'notify' ? <BellOutlined /> :
-                              action.type === 'assign' ? <UserOutlined /> :
-                              action.type === 'status_change' ? <CheckCircleOutlined /> :
-                              <ThunderboltOutlined />
-                            }
-                            color={
-                              action.type === 'notify' ? 'blue' :
-                              action.type === 'assign' ? 'purple' : 'green'
-                            }
-                          >
-                            {action.type}
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: 40 }}>
+                <Spin tip="Loading rules..." />
+              </div>
+            ) : rules.length > 0 ? (
+              <Table
+                dataSource={rules.sort((a, b) => (a.priority || 3) - (b.priority || 3))}
+                columns={[
+                  {
+                    title: 'Priority',
+                    dataIndex: 'priority',
+                    key: 'priority',
+                    width: 80,
+                    render: (priority) => (
+                      <Tag color={getPriorityColor(priority)}>P{priority || 3}</Tag>
+                    )
+                  },
+                  {
+                    title: 'Rule Name',
+                    dataIndex: 'name',
+                    key: 'name',
+                    render: (text, record) => (
+                      <Space direction="vertical" size={0}>
+                        <Text strong>{text}</Text>
+                        <Text type="secondary" style={{ fontSize: 11 }}>
+                          {record.description}
+                        </Text>
+                      </Space>
+                    )
+                  },
+                  {
+                    title: 'Conditions',
+                    key: 'conditions',
+                    render: (_, record) => (
+                      <Space wrap>
+                        {record.conditions?.severity?.map(s => (
+                          <Tag key={s} color={
+                            s === 'critical' ? 'red' : s === 'high' ? 'orange' : 'gold'
+                          }>
+                            Severity: {s}
                           </Tag>
+                        ))}
+                        {record.conditions?.status?.map(s => (
+                          <Tag key={s} color="blue">Status: {s}</Tag>
+                        ))}
+                        {record.conditions?.timeElapsed && (
+                          <Tag color="purple">After {record.conditions.timeElapsed}h</Tag>
+                        )}
+                      </Space>
+                    )
+                  },
+                  {
+                    title: 'Actions',
+                    key: 'actions',
+                    render: (_, record) => (
+                      <Space wrap>
+                        {record.actions?.slice(0, 3).map((action, i) => (
+                          <Tooltip key={i} title={`${action.type}: ${action.role || action.to}`}>
+                            <Tag 
+                              icon={
+                                action.type === 'notify' ? <BellOutlined /> :
+                                action.type === 'assign' ? <UserOutlined /> :
+                                action.type === 'status_change' ? <CheckCircleOutlined /> :
+                                <ThunderboltOutlined />
+                              }
+                              color={
+                                action.type === 'notify' ? 'blue' :
+                                action.type === 'assign' ? 'purple' : 'green'
+                              }
+                            >
+                              {action.type}
+                            </Tag>
+                          </Tooltip>
+                        ))}
+                        {record.actions?.length > 3 && (
+                          <Tag>+{record.actions.length - 3}</Tag>
+                        )}
+                      </Space>
+                    )
+                  },
+                  {
+                    title: 'Status',
+                    dataIndex: 'enabled',
+                    key: 'enabled',
+                    width: 100,
+                    render: (enabled, record) => (
+                      <Switch
+                        checked={enabled}
+                        onChange={(checked) => handleToggleRule(record.id, checked)}
+                        checkedChildren="On"
+                        unCheckedChildren="Off"
+                      />
+                    )
+                  },
+                  {
+                    title: 'Actions',
+                    key: 'rowActions',
+                    width: 150,
+                    render: (_, record) => (
+                      <Space>
+                        <Tooltip title="Test Rule">
+                          <Button 
+                            type="link" 
+                            size="small" 
+                            icon={<PlayCircleOutlined />}
+                            onClick={() => handleTestRule(record)}
+                          />
                         </Tooltip>
-                      ))}
-                      {record.actions.length > 3 && (
-                        <Tag>+{record.actions.length - 3}</Tag>
-                      )}
-                    </Space>
-                  )
-                },
-                {
-                  title: 'Status',
-                  dataIndex: 'enabled',
-                  key: 'enabled',
-                  width: 100,
-                  render: (enabled, record) => (
-                    <Switch
-                      checked={enabled}
-                      onChange={(checked) => handleToggleRule(record.id, checked)}
-                      checkedChildren="On"
-                      unCheckedChildren="Off"
-                    />
-                  )
-                },
-                {
-                  title: 'Actions',
-                  key: 'rowActions',
-                  width: 150,
-                  render: (_, record) => (
-                    <Space>
-                      <Tooltip title="Test Rule">
-                        <Button 
-                          type="link" 
-                          size="small" 
-                          icon={<PlayCircleOutlined />}
-                          onClick={() => handleTestRule(record)}
-                        />
-                      </Tooltip>
-                      <Tooltip title="Edit">
-                        <Button 
-                          type="link" 
-                          size="small" 
-                          icon={<EditOutlined />}
-                          onClick={() => {
-                            setSelectedRule(record);
-                            form.setFieldsValue(record);
-                            setRuleModalVisible(true);
-                          }}
-                        />
-                      </Tooltip>
-                      <Popconfirm
-                        title="Delete this rule?"
-                        onConfirm={() => handleDeleteRule(record.id)}
-                      >
-                        <Button 
-                          type="link" 
-                          size="small" 
-                          danger
-                          icon={<DeleteOutlined />}
-                        />
-                      </Popconfirm>
-                    </Space>
-                  )
-                }
-              ]}
-              rowKey="id"
-              pagination={false}
-              size="small"
-            />
+                        <Tooltip title="Edit">
+                          <Button 
+                            type="link" 
+                            size="small" 
+                            icon={<EditOutlined />}
+                            onClick={() => {
+                              setSelectedRule(record);
+                              form.setFieldsValue({
+                                ...record,
+                                severity: record.conditions?.severity || [],
+                                status: record.conditions?.status || [],
+                                timeElapsed: record.conditions?.timeElapsed
+                              });
+                              setRuleModalVisible(true);
+                            }}
+                          />
+                        </Tooltip>
+                        <Popconfirm
+                          title="Delete this rule?"
+                          onConfirm={() => handleDeleteRule(record.id)}
+                        >
+                          <Button 
+                            type="link" 
+                            size="small" 
+                            danger
+                            icon={<DeleteOutlined />}
+                          />
+                        </Popconfirm>
+                      </Space>
+                    )
+                  }
+                ]}
+                rowKey="id"
+                pagination={false}
+                size="small"
+              />
+            ) : (
+              <Empty 
+                description="No escalation rules configured"
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+              >
+                <Button 
+                  type="primary" 
+                  icon={<PlusOutlined />}
+                  onClick={() => {
+                    setSelectedRule(null);
+                    form.resetFields();
+                    form.setFieldsValue({
+                      enabled: true,
+                      priority: 3,
+                      actions: [{ type: 'notify', channel: 'email' }]
+                    });
+                    setRuleModalVisible(true);
+                  }}
+                >
+                  Create First Rule
+                </Button>
+              </Empty>
+            )}
           </Card>
 
           {/* Pending Escalations List */}
@@ -581,6 +668,7 @@ const EscalationMatrix = ({ incidents = [], onEscalate }) => {
                         size="small"
                         icon={<ArrowUpOutlined />}
                         onClick={() => handleExecuteEscalation(item)}
+                        key="escalate"
                       >
                         Escalate
                       </Button>
@@ -643,23 +731,23 @@ const EscalationMatrix = ({ incidents = [], onEscalate }) => {
                       <Col>
                         <Space direction="vertical" size={0}>
                           <Space>
-                            <Text strong>{log.ruleName}</Text>
-                            <Tag color="blue">{log.incidentNumber}</Tag>
+                            <Text strong>{log.rule_name || log.ruleName}</Text>
+                            <Tag color="blue">{log.incident_number || log.incidentNumber}</Tag>
                           </Space>
                           <Text type="secondary">
-                            {log.actions.length} actions executed
+                            {(log.actions_executed || log.actions)?.length || 0} actions executed
                           </Text>
                         </Space>
                       </Col>
                       <Col>
                         <Text type="secondary">
-                          {dayjs(log.escalatedAt).format('MMM DD, YYYY HH:mm')}
+                          {dayjs(log.escalated_at || log.escalatedAt).format('MMM DD, YYYY HH:mm')}
                         </Text>
                       </Col>
                     </Row>
                     <Divider style={{ margin: '8px 0' }} />
                     <Space wrap>
-                      {log.actions.map((action, i) => (
+                      {(log.actions_executed || log.actions || []).map((action, i) => (
                         <Tag 
                           key={i}
                           color="green"
@@ -679,12 +767,7 @@ const EscalationMatrix = ({ incidents = [], onEscalate }) => {
         </TabPane>
 
         <TabPane 
-          tab={
-            <Space>
-              <InfoCircleOutlined />
-              Escalation Flow
-            </Space>
-          } 
+          tab={<Space><InfoCircleOutlined />Escalation Flow</Space>} 
           key="flow"
         >
           <Card>
@@ -757,7 +840,7 @@ const EscalationMatrix = ({ incidents = [], onEscalate }) => {
           <Form.Item
             name="name"
             label="Rule Name"
-            rules={[{ required: true }]}
+            rules={[{ required: true, message: 'Rule name is required' }]}
           >
             <Input placeholder="e.g., Critical Incident Escalation" />
           </Form.Item>
@@ -904,7 +987,7 @@ const EscalationMatrix = ({ incidents = [], onEscalate }) => {
 
           <Form.Item>
             <Space>
-              <Button type="primary" htmlType="submit">
+              <Button type="primary" htmlType="submit" loading={saving}>
                 {selectedRule ? 'Update Rule' : 'Create Rule'}
               </Button>
               <Button onClick={() => {

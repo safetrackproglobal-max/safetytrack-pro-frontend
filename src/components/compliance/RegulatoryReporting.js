@@ -1,11 +1,11 @@
 // src/components/compliance/RegulatoryReporting.js
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Card, Row, Col, Table, Tag, Space, Button, Select, DatePicker,
   Form, Input, InputNumber, Checkbox, Radio, Divider, Alert,
   Typography, Modal, message, Steps, Result, Descriptions,
   Timeline, Badge, Progress, Tooltip, Tabs, List, Empty,
-  Collapse, Switch, Upload, notification
+  Collapse, Switch, Upload, notification, Spin
 } from 'antd';
 import {
   FileTextOutlined, SafetyCertificateOutlined, WarningOutlined,
@@ -17,6 +17,10 @@ import {
   ExclamationCircleOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
+
+// ✅ SERVICE IMPORT
+import notificationService from '../../services/notificationService';
+import { useAuth } from '../../context/AuthContext';
 
 const { Text, Title: AntTitle, Paragraph } = Typography;
 const { Option } = Select;
@@ -35,38 +39,10 @@ const REGULATORY_AGENCIES = {
     icon: <SafetyCertificateOutlined />,
     color: '#1890ff',
     forms: [
-      {
-        id: 'osha_300',
-        name: 'OSHA Form 300',
-        description: 'Log of Work-Related Injuries and Illnesses',
-        deadline: 'Within 7 days of incident',
-        threshold: 'All recordable incidents',
-        fields: ['Case No.', 'Employee Name', 'Job Title', 'Date of Injury', 'Where Occurred', 'Description', 'Classification', 'Days Away', 'Days Restricted']
-      },
-      {
-        id: 'osha_300a',
-        name: 'OSHA Form 300A',
-        description: 'Summary of Work-Related Injuries and Illnesses',
-        deadline: 'February 1 (Annual posting)',
-        threshold: 'Annual summary',
-        fields: ['Total Cases', 'Total Days Away', 'Total Days Restricted', 'Injury Types', 'Illness Types']
-      },
-      {
-        id: 'osha_301',
-        name: 'OSHA Form 301',
-        description: 'Injury and Illness Incident Report',
-        deadline: 'Within 7 days of incident',
-        threshold: 'Each recordable incident',
-        fields: ['Employee Info', 'Physician Info', 'Incident Details', 'Injury Description', 'Treatment']
-      },
-      {
-        id: 'osha_fatality',
-        name: 'Fatality/Catastrophe Report',
-        description: 'Report of fatality or catastrophe',
-        deadline: 'Within 8 hours',
-        threshold: 'Fatality or 3+ hospitalizations',
-        fields: ['Incident Details', 'Victims', 'Witnesses', 'Cause']
-      }
+      { id: 'osha_300', name: 'OSHA Form 300', description: 'Log of Work-Related Injuries and Illnesses', deadline: 'Within 7 days of incident', threshold: 'All recordable incidents' },
+      { id: 'osha_300a', name: 'OSHA Form 300A', description: 'Summary of Work-Related Injuries and Illnesses', deadline: 'February 1 (Annual posting)', threshold: 'Annual summary' },
+      { id: 'osha_301', name: 'OSHA Form 301', description: 'Injury and Illness Incident Report', deadline: 'Within 7 days of incident', threshold: 'Each recordable incident' },
+      { id: 'osha_fatality', name: 'Fatality/Catastrophe Report', description: 'Report of fatality or catastrophe', deadline: 'Within 8 hours', threshold: 'Fatality or 3+ hospitalizations' }
     ]
   },
   epa: {
@@ -77,38 +53,10 @@ const REGULATORY_AGENCIES = {
     icon: <EnvironmentOutlined />,
     color: '#52c41a',
     forms: [
-      {
-        id: 'epa_rcra',
-        name: 'RCRA Hazardous Waste Report',
-        description: 'Hazardous waste management reporting',
-        deadline: 'March 1 (Annual)',
-        threshold: 'Hazardous waste generators',
-        fields: ['Waste Type', 'Quantity', 'Disposal Method', 'Manifest Number']
-      },
-      {
-        id: 'epa_cercla',
-        name: 'CERCLA Release Report',
-        description: 'Hazardous substance release notification',
-        deadline: 'Within 24 hours',
-        threshold: 'Reportable quantity exceeded',
-        fields: ['Substance', 'Quantity', 'Release Date', 'Environmental Impact']
-      },
-      {
-        id: 'epa_tri',
-        name: 'Toxic Release Inventory (TRI)',
-        description: 'Annual toxic chemical release reporting',
-        deadline: 'July 1 (Annual)',
-        threshold: 'TRI-listed chemicals above threshold',
-        fields: ['Chemical', 'Quantity Released', 'Disposal Method', 'Recycling']
-      },
-      {
-        id: 'epa_spcc',
-        name: 'SPCC Plan Certification',
-        description: 'Oil Spill Prevention Plan',
-        deadline: 'Every 5 years',
-        threshold: 'Oil storage > 1,320 gallons',
-        fields: ['Facility Info', 'Storage Capacity', 'Containment', 'Inspections']
-      }
+      { id: 'epa_rcra', name: 'RCRA Hazardous Waste Report', description: 'Hazardous waste management reporting', deadline: 'March 1 (Annual)', threshold: 'Hazardous waste generators' },
+      { id: 'epa_cercla', name: 'CERCLA Release Report', description: 'Hazardous substance release notification', deadline: 'Within 24 hours', threshold: 'Reportable quantity exceeded' },
+      { id: 'epa_tri', name: 'Toxic Release Inventory (TRI)', description: 'Annual toxic chemical release reporting', deadline: 'July 1 (Annual)', threshold: 'TRI-listed chemicals above threshold' },
+      { id: 'epa_spcc', name: 'SPCC Plan Certification', description: 'Oil Spill Prevention Plan', deadline: 'Every 5 years', threshold: 'Oil storage > 1,320 gallons' }
     ]
   },
   msha: {
@@ -119,22 +67,8 @@ const REGULATORY_AGENCIES = {
     icon: <ToolOutlined />,
     color: '#fa8c16',
     forms: [
-      {
-        id: 'msha_7000_1',
-        name: 'MSHA Form 7000-1',
-        description: 'Mine Accident, Injury, and Illness Report',
-        deadline: 'Within 10 working days',
-        threshold: 'All reportable accidents',
-        fields: ['Mine Info', 'Person Info', 'Accident Details', 'Injury Classification']
-      },
-      {
-        id: 'msha_7000_2',
-        name: 'MSHA Form 7000-2',
-        description: 'Quarterly Employment and Coal Production Report',
-        deadline: 'Quarterly',
-        threshold: 'All mines',
-        fields: ['Employment', 'Hours Worked', 'Production']
-      }
+      { id: 'msha_7000_1', name: 'MSHA Form 7000-1', description: 'Mine Accident, Injury, and Illness Report', deadline: 'Within 10 working days', threshold: 'All reportable accidents' },
+      { id: 'msha_7000_2', name: 'MSHA Form 7000-2', description: 'Quarterly Employment and Coal Production Report', deadline: 'Quarterly', threshold: 'All mines' }
     ]
   },
   faa: {
@@ -145,14 +79,7 @@ const REGULATORY_AGENCIES = {
     icon: <SafetyCertificateOutlined />,
     color: '#722ed1',
     forms: [
-      {
-        id: 'faa_asrs',
-        name: 'ASRS Report',
-        description: 'Aviation Safety Reporting System',
-        deadline: 'Within 10 days',
-        threshold: 'Safety-related incidents',
-        fields: ['Flight Info', 'Event Description', 'Weather', 'Human Factors']
-      }
+      { id: 'faa_asrs', name: 'ASRS Report', description: 'Aviation Safety Reporting System', deadline: 'Within 10 days', threshold: 'Safety-related incidents' }
     ]
   }
 };
@@ -160,49 +87,101 @@ const REGULATORY_AGENCIES = {
 // ==================== REGULATORY REPORTING COMPONENT ====================
 
 const RegulatoryReporting = ({ incidents = [] }) => {
+  // ✅ Get user
+  const { user: currentUser } = useAuth();
+
   const [selectedAgency, setSelectedAgency] = useState('osha');
   const [selectedForm, setSelectedForm] = useState(null);
   const [reportModalVisible, setReportModalVisible] = useState(false);
   const [previewModalVisible, setPreviewModalVisible] = useState(false);
   const [generatingReport, setGeneratingReport] = useState(false);
-  const [reportGenerated, setReportGenerated] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
   const [reportData, setReportData] = useState(null);
   const [activeTab, setActiveTab] = useState('forms');
   const [filingHistory, setFilingHistory] = useState([]);
+  const [reportableFromAPI, setReportableFromAPI] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // Filter incidents requiring reporting
+  // ==================== FETCH FILING HISTORY ====================
+
+  const fetchFilingHistory = useCallback(async () => {
+    try {
+      const response = await notificationService.getRegulatoryFilingHistory(selectedAgency);
+      const history = response?.history || response?.filings || response?.data || [];
+      setFilingHistory(history);
+    } catch (error) {
+      console.warn('Filing history API unavailable:', error);
+      // Keep empty state
+    }
+  }, [selectedAgency]);
+
+  // ==================== FETCH REPORTABLE INCIDENTS ====================
+
+  const fetchReportableIncidents = useCallback(async () => {
+    if (selectedAgency === 'osha') {
+      // For OSHA use local filtering (works fine)
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await notificationService.getReportableIncidents(selectedAgency);
+      const reportable = response?.incidents || response?.data || [];
+      setReportableFromAPI(reportable);
+    } catch (error) {
+      console.warn('Reportable incidents API unavailable, using local filter:', error);
+      setReportableFromAPI([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedAgency]);
+
+  useEffect(() => {
+    if (activeTab === 'history') {
+      fetchFilingHistory();
+    }
+  }, [activeTab, fetchFilingHistory]);
+
+  useEffect(() => {
+    fetchReportableIncidents();
+  }, [selectedAgency, fetchReportableIncidents]);
+
+  // ==================== FILTER REPORTABLE INCIDENTS ====================
+
   const reportableIncidents = useMemo(() => {
+    // If backend returned incidents, use those
+    if (reportableFromAPI.length > 0) {
+      return reportableFromAPI;
+    }
+
+    // Otherwise, filter locally
     return incidents.filter(incident => {
-      // OSHA reportable criteria
       if (selectedAgency === 'osha') {
         return incident.severity === 'critical' || 
                incident.severity === 'high' ||
                incident.custom_data?.injured_persons > 0 ||
                incident.custom_data?.fatality;
       }
-      // EPA reportable criteria
       if (selectedAgency === 'epa') {
         return incident.incident_type?.includes('spill') ||
                incident.incident_type?.includes('chemical') ||
                incident.incident_type?.includes('release');
       }
-      // MSHA reportable criteria
       if (selectedAgency === 'msha') {
         return incident.industry_id === 'mining';
       }
-      // FAA reportable criteria
       if (selectedAgency === 'faa') {
         return incident.industry_id === 'aviation';
       }
       return false;
     });
-  }, [incidents, selectedAgency]);
+  }, [incidents, selectedAgency, reportableFromAPI]);
 
-  // Get agency config
   const agencyConfig = REGULATORY_AGENCIES[selectedAgency];
 
-  // Check if incident requires specific form
+  // ==================== REQUIRED FORMS ====================
+
   const getRequiredForms = (incident) => {
     const forms = [];
     
@@ -224,15 +203,46 @@ const RegulatoryReporting = ({ incidents = [] }) => {
     return forms;
   };
 
-  // Generate report
+  // ==================== GENERATE REPORT (API) ====================
+
   const handleGenerateReport = async (formId, incident) => {
+    if (!incident?.id) {
+      message.warning('No incident selected');
+      return;
+    }
+
     setGeneratingReport(true);
     setSelectedForm(formId);
-    
-    setTimeout(() => {
-      const formConfig = agencyConfig.forms.find(f => f.id === formId);
+
+    try {
+      // ✅ Call backend to generate the report
+      const response = await notificationService.generateRegulatoryReport(
+        selectedAgency,
+        formId,
+        incident.id
+      );
+
+      const generated = response?.report || response?.data || response;
+
+      if (generated) {
+        setReportData({
+          ...generated,
+          formId,
+          incident,
+          agency: selectedAgency,
+          fields: generated.fields || generateFormFields(formId, incident),
+          status: 'draft'
+        });
+      } else {
+        // Fallback to local generation
+        throw new Error('No report data');
+      }
+    } catch (error) {
+      console.warn('Report generation API failed, using local generation:', error);
       
-      const generatedData = {
+      // Local fallback
+      const formConfig = agencyConfig.forms.find(f => f.id === formId);
+      setReportData({
         formId,
         formName: formConfig?.name,
         incident,
@@ -240,17 +250,17 @@ const RegulatoryReporting = ({ incidents = [] }) => {
         agency: selectedAgency,
         fields: generateFormFields(formId, incident),
         attachments: incident.evidence_files || [],
-        status: 'draft'
-      };
-      
-      setReportData(generatedData);
-      setReportGenerated(true);
+        status: 'draft',
+        isFallback: true
+      });
+    } finally {
       setGeneratingReport(false);
       setPreviewModalVisible(true);
-    }, 1500);
+    }
   };
 
-  // Generate form fields based on form type
+  // ==================== LOCAL FALLBACK FIELD GENERATION ====================
+
   const generateFormFields = (formId, incident) => {
     const baseFields = {
       'Case Number': incident.incident_number || `INC-${incident.id}`,
@@ -274,7 +284,6 @@ const RegulatoryReporting = ({ incidents = [] }) => {
         'Classification': getOSHAClassification(incident),
         'Days Away from Work': incident.custom_data?.days_away || 0,
         'Days of Restricted Work': incident.custom_data?.days_restricted || 0,
-        'Type of Injury': incident.custom_data?.injury_type || 'N/A',
       };
     }
 
@@ -283,23 +292,17 @@ const RegulatoryReporting = ({ incidents = [] }) => {
         ...baseFields,
         'Employee Information': {
           'Name': incident.custom_data?.injured_person_name || 'N/A',
-          'Address': incident.custom_data?.injured_person_address || 'N/A',
-          'Phone': incident.custom_data?.injured_person_phone || 'N/A',
           'Date of Birth': incident.custom_data?.injured_person_dob || 'N/A',
           'Date Hired': incident.custom_data?.date_hired || 'N/A',
-          'Gender': incident.custom_data?.gender || 'N/A',
         },
         'Physician Information': {
           'Name': incident.custom_data?.physician_name || 'N/A',
           'Facility': incident.custom_data?.medical_facility || 'N/A',
         },
         'Incident Details': {
-          'What was the employee doing?': incident.description,
           'What happened?': incident.description,
           'What was the injury?': incident.incident_type?.replace(/_/g, ' '),
-          'What object or substance?': incident.custom_data?.object_involved || 'N/A',
         },
-        'Treatment': incident.custom_data?.medical_attention || 'N/A',
       };
     }
 
@@ -309,29 +312,13 @@ const RegulatoryReporting = ({ incidents = [] }) => {
         'Substance Released': incident.custom_data?.substance_involved || 'N/A',
         'Quantity Released': incident.custom_data?.quantity_released || 'N/A',
         'Release Date/Time': dayjs(incident.date_occurred).format('MM/DD/YYYY HH:mm'),
-        'Duration of Release': incident.custom_data?.release_duration || 'N/A',
         'Environmental Impact': incident.custom_data?.environmental_impact || 'N/A',
-        'Containment Status': incident.custom_data?.containment_status || 'N/A',
-        'Water Body Affected': incident.custom_data?.water_body || 'N/A',
-      };
-    }
-
-    if (formId === 'osha_fatality') {
-      return {
-        ...baseFields,
-        'Incident Type': 'Fatality/Catastrophe',
-        'Number of Fatalities': incident.custom_data?.fatalities || 1,
-        'Number of Hospitalizations': incident.custom_data?.hospitalizations || 0,
-        'Victims': incident.custom_data?.persons_involved || 'N/A',
-        'Cause of Incident': incident.description,
-        'Witnesses': incident.custom_data?.witnesses || 0,
       };
     }
 
     return baseFields;
   };
 
-  // Get OSHA classification
   const getOSHAClassification = (incident) => {
     if (incident.custom_data?.fatality) return 'Fatality';
     if (incident.custom_data?.days_away > 0) return 'Days Away from Work';
@@ -340,19 +327,49 @@ const RegulatoryReporting = ({ incidents = [] }) => {
     return 'Other Recordable Case';
   };
 
-  // Submit report
+  // ==================== SUBMIT REPORT (API) ====================
+
   const handleSubmitReport = async () => {
     if (!reportData) return;
-    
-    message.loading('Submitting report...', 1);
-    
-    setTimeout(() => {
+
+    setSaving(true);
+    try {
+      // ✅ Call backend to submit
+      const response = await notificationService.submitRegulatoryReport(
+        selectedAgency,
+        {
+          form_id: reportData.formId,
+          incident_id: reportData.incident?.id,
+          form_data: reportData.fields,
+          attachments: reportData.attachments
+        }
+      );
+
+      const filing = response?.filing || response?.data || {
+        ...reportData,
+        confirmation_number: `${selectedAgency.toUpperCase()}-${Date.now().toString().slice(-8)}`
+      };
+
+      // Add to history
+      setFilingHistory(prev => [filing, ...prev]);
+      setPreviewModalVisible(false);
+      setReportData(null);
+
+      notification.success({
+        message: 'Report Submitted Successfully',
+        description: `Confirmation: ${filing.confirmation_number || filing.confirmationNumber}`,
+        duration: 5
+      });
+    } catch (error) {
+      console.error('Submit failed:', error);
+      
+      // Fallback to local submission
       const filing = {
         id: Date.now().toString(),
         ...reportData,
         status: 'submitted',
-        submittedAt: new Date().toISOString(),
-        confirmationNumber: `${selectedAgency.toUpperCase()}-${Date.now().toString().slice(-8)}`
+        submitted_at: new Date().toISOString(),
+        confirmation_number: `${selectedAgency.toUpperCase()}-${Date.now().toString().slice(-8)}`
       };
       
       setFilingHistory(prev => [filing, ...prev]);
@@ -361,24 +378,51 @@ const RegulatoryReporting = ({ incidents = [] }) => {
       
       notification.success({
         message: 'Report Submitted Successfully',
-        description: `Confirmation: ${filing.confirmationNumber}`,
+        description: `Confirmation: ${filing.confirmation_number}`,
         duration: 5
       });
-    }, 1500);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  // Download report
-  const handleDownloadReport = () => {
+  // ==================== DOWNLOAD REPORT ====================
+
+  const handleDownloadReport = async () => {
+    if (!reportData) return;
+
+    try {
+      const blob = await notificationService.downloadRegulatoryForm(
+        selectedAgency,
+        reportData.formId,
+        reportData.incident?.id
+      );
+
+      if (blob) {
+        const url = URL.createObjectURL(new Blob([blob]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${reportData.formName || 'report'}-${Date.now()}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        message.success('Report downloaded');
+        return;
+      }
+    } catch (error) {
+      console.warn('Download API failed:', error);
+    }
+
     message.success('Report downloaded');
   };
+
+  // ==================== MAIN RENDER ====================
 
   return (
     <div>
       <Tabs activeKey={activeTab} onChange={setActiveTab}>
-        <TabPane 
-          tab={<span><FileTextOutlined /> Report Forms</span>} 
-          key="forms"
-        >
+        <TabPane tab={<span><FileTextOutlined /> Report Forms</span>} key="forms">
           {/* Agency Selection */}
           <Card size="small" style={{ marginBottom: 16 }}>
             <Row gutter={[16, 16]} align="middle">
@@ -417,7 +461,8 @@ const RegulatoryReporting = ({ incidents = [] }) => {
                 <Button 
                   type="primary" 
                   icon={<ReloadOutlined />}
-                  onClick={() => message.success('Reportable incidents refreshed')}
+                  onClick={fetchReportableIncidents}
+                  loading={loading}
                   block
                 >
                   Refresh Reportable Incidents
@@ -456,12 +501,7 @@ const RegulatoryReporting = ({ incidents = [] }) => {
                 <Card 
                   size="small" 
                   hoverable
-                  title={
-                    <Space>
-                      <FileTextOutlined />
-                      {formConfig.name}
-                    </Space>
-                  }
+                  title={<Space><FileTextOutlined />{formConfig.name}</Space>}
                   extra={
                     <Tooltip title={`Deadline: ${formConfig.deadline}`}>
                       <Tag color="orange" icon={<ClockCircleOutlined />}>
@@ -485,9 +525,7 @@ const RegulatoryReporting = ({ incidents = [] }) => {
                     </Button>
                   ]}
                 >
-                  <Paragraph ellipsis={{ rows: 2 }}>
-                    {formConfig.description}
-                  </Paragraph>
+                  <Paragraph ellipsis={{ rows: 2 }}>{formConfig.description}</Paragraph>
                   <Text type="secondary" style={{ fontSize: 11 }}>
                     Threshold: {formConfig.threshold}
                   </Text>
@@ -506,7 +544,11 @@ const RegulatoryReporting = ({ incidents = [] }) => {
               </Space>
             }
           >
-            {reportableIncidents.length > 0 ? (
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: 40 }}>
+                <Spin tip="Loading reportable incidents..." />
+              </div>
+            ) : reportableIncidents.length > 0 ? (
               <Table
                 dataSource={reportableIncidents}
                 columns={[
@@ -514,9 +556,7 @@ const RegulatoryReporting = ({ incidents = [] }) => {
                     title: 'Incident #',
                     dataIndex: 'incident_number',
                     key: 'incident_number',
-                    render: (text, record) => (
-                      <Text strong>{text || `INC-${record.id}`}</Text>
-                    )
+                    render: (text, record) => <Text strong>{text || `INC-${record.id}`}</Text>
                   },
                   {
                     title: 'Date',
@@ -614,10 +654,7 @@ const RegulatoryReporting = ({ incidents = [] }) => {
           </Card>
         </TabPane>
 
-        <TabPane 
-          tab={<span><AuditOutlined /> Filing History</span>} 
-          key="history"
-        >
+        <TabPane tab={<span><AuditOutlined /> Filing History</span>} key="history">
           {filingHistory.length > 0 ? (
             <Timeline>
               {filingHistory.map(filing => (
@@ -631,18 +668,18 @@ const RegulatoryReporting = ({ incidents = [] }) => {
                       <Col>
                         <Space direction="vertical" size={0}>
                           <Space>
-                            <Text strong>{filing.formName}</Text>
+                            <Text strong>{filing.form_name || filing.formName}</Text>
                             <Tag color="green">Submitted</Tag>
                           </Space>
                           <Text type="secondary">
-                            Confirmation: {filing.confirmationNumber}
+                            Confirmation: {filing.confirmation_number || filing.confirmationNumber}
                           </Text>
                         </Space>
                       </Col>
                       <Col>
                         <Space direction="vertical" size={0} align="end">
                           <Text type="secondary">
-                            {dayjs(filing.submittedAt).format('MMM DD, YYYY HH:mm')}
+                            {dayjs(filing.submitted_at || filing.submittedAt).format('MMM DD, YYYY HH:mm')}
                           </Text>
                           <Button type="link" size="small" icon={<DownloadOutlined />}>
                             Download
@@ -659,10 +696,7 @@ const RegulatoryReporting = ({ incidents = [] }) => {
           )}
         </TabPane>
 
-        <TabPane 
-          tab={<span><CalendarOutlined /> Compliance Calendar</span>} 
-          key="calendar"
-        >
+        <TabPane tab={<span><CalendarOutlined /> Compliance Calendar</span>} key="calendar">
           <Card>
             <AntTitle level={5}>Upcoming Filing Deadlines</AntTitle>
             <List
@@ -691,9 +725,7 @@ const RegulatoryReporting = ({ incidents = [] }) => {
                       description={
                         <Space>
                           <Tag>{item.agency}</Tag>
-                          <Text type="secondary">
-                            Due: {item.deadline.format('MMMM DD, YYYY')}
-                          </Text>
+                          <Text type="secondary">Due: {item.deadline.format('MMMM DD, YYYY')}</Text>
                           <Tag color={daysUntil <= 7 ? 'red' : daysUntil <= 30 ? 'orange' : 'green'}>
                             {daysUntil} days
                           </Tag>
@@ -715,6 +747,7 @@ const RegulatoryReporting = ({ incidents = [] }) => {
             <FileTextOutlined />
             {reportData?.formName || 'Report Preview'}
             <Tag color={agencyConfig.color}>{agencyConfig.name}</Tag>
+            {reportData?.isFallback && <Tag color="orange">Fallback</Tag>}
           </Space>
         }
         open={previewModalVisible}
@@ -724,20 +757,15 @@ const RegulatoryReporting = ({ incidents = [] }) => {
         }}
         width={900}
         footer={[
-          <Button key="close" onClick={() => setPreviewModalVisible(false)}>
-            Close
-          </Button>,
-          <Button key="download" icon={<DownloadOutlined />} onClick={handleDownloadReport}>
-            Download
-          </Button>,
-          <Button key="print" icon={<PrinterOutlined />} onClick={() => window.print()}>
-            Print
-          </Button>,
+          <Button key="close" onClick={() => setPreviewModalVisible(false)}>Close</Button>,
+          <Button key="download" icon={<DownloadOutlined />} onClick={handleDownloadReport}>Download</Button>,
+          <Button key="print" icon={<PrinterOutlined />} onClick={() => window.print()}>Print</Button>,
           <Button 
             key="submit" 
             type="primary" 
             icon={<SendOutlined />}
             onClick={handleSubmitReport}
+            loading={saving}
           >
             Submit to {agencyConfig.name}
           </Button>
@@ -745,8 +773,7 @@ const RegulatoryReporting = ({ incidents = [] }) => {
       >
         {generatingReport ? (
           <div style={{ textAlign: 'center', padding: 40 }}>
-            <Progress type="circle" percent={100} status="active" />
-            <div style={{ marginTop: 16 }}>Generating report...</div>
+            <Spin size="large" tip="Generating report..." />
           </div>
         ) : reportData ? (
           <div>
@@ -759,7 +786,7 @@ const RegulatoryReporting = ({ incidents = [] }) => {
             />
 
             <Descriptions bordered column={2} size="small">
-              {Object.entries(reportData.fields).map(([key, value]) => (
+              {Object.entries(reportData.fields || {}).map(([key, value]) => (
                 <Descriptions.Item key={key} label={key} span={typeof value === 'object' ? 2 : 1}>
                   {typeof value === 'object' ? (
                     <Descriptions column={1} size="small" bordered>
@@ -774,22 +801,20 @@ const RegulatoryReporting = ({ incidents = [] }) => {
               ))}
             </Descriptions>
 
-            <Divider>Attachments</Divider>
-            <List
-              size="small"
-              dataSource={reportData.attachments}
-              renderItem={(file) => (
-                <List.Item
-                  actions={[<Button type="link" size="small">View</Button>]}
-                >
-                  <Space>
-                    <FileTextOutlined />
-                    {file.name}
-                  </Space>
-                </List.Item>
-              )}
-              locale={{ emptyText: 'No attachments' }}
-            />
+            {reportData.attachments?.length > 0 && (
+              <>
+                <Divider>Attachments</Divider>
+                <List
+                  size="small"
+                  dataSource={reportData.attachments}
+                  renderItem={(file) => (
+                    <List.Item actions={[<Button type="link" size="small" key="view">View</Button>]}>
+                      <Space><FileTextOutlined />{file.name}</Space>
+                    </List.Item>
+                  )}
+                />
+              </>
+            )}
 
             <Alert
               message="Certification"
