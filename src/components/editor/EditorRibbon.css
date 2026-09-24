@@ -1,0 +1,708 @@
+/* src/components/documents/editor/EditorRibbon.css */
+
+/* ============================================================
+   RIBBON CONTAINER
+   ============================================================ */
+.editor-ribbon {
+  background: #fafafa;
+  border-bottom: 1px solid #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  user-select: none;
+}
+
+/* ============================================================
+   MENU BAR
+   ============================================================ */
+.editor-menubar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  background: #ffffff;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 13px;
+}
+
+.editor-menubar-item {
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #262626;
+  transition: background 0.15s;
+}
+
+.editor-menubar-item:hover {
+  background: #f0f0f0;
+}
+
+.editor-menubar-help {
+  margin-left: auto;
+  color: #8c8c8c;
+  font-size: 12px;
+}
+
+/* ============================================================
+   RIBBON TABS
+   ============================================================ */
+.editor-ribbon-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 4px 8px 0;
+  background: #ffffff;
+}
+
+.editor-ribbon-tab {
+  padding: 6px 14px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #595959;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+  position: relative;
+}
+
+.editor-ribbon-tab:hover {
+  background: #f0f0f0;
+  color: #262626;
+}
+
+.editor-ribbon-tab.active {
+  background: #fafafa;
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.editor-ribbon-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #1890ff;
+}
+
+/* ============================================================
+   RIBBON BODY
+   ============================================================ */
+.editor-ribbon-body {
+  min-height: 82px;
+  padding: 6px 12px;
+  background: #fafafa;
+  border-top: 1px solid #e0e0e0;
+  overflow-x: auto;
+}
+
+.editor-ribbon-content {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  height: 70px;
+}
+
+/* ============================================================
+   GROUPS
+   ============================================================ */
+.editor-ribbon-group {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2px 8px;
+  border-right: 1px solid #e0e0e0;
+  min-width: 60px;
+}
+
+.editor-ribbon-group:last-child {
+  border-right: none;
+}
+
+.editor-ribbon-group-content {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+
+.editor-ribbon-group-label {
+  font-size: 10px;
+  text-align: center;
+  color: #8c8c8c;
+  letter-spacing: 0.3px;
+  padding-top: 2px;
+}
+
+/* ============================================================
+   BUTTONS — BIG (icon + label)
+   ============================================================ */
+.editor-ribbon-btn-big {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 54px;
+  min-height: 58px;
+  padding: 4px 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #262626;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.editor-ribbon-btn-big:hover {
+  background: #e6f4ff;
+  border-color: #91caff;
+}
+
+.editor-ribbon-btn-big:active {
+  background: #bae0ff;
+}
+
+.editor-ribbon-btn-big.active {
+  background: #bae0ff;
+  border-color: #1890ff;
+}
+
+.editor-ribbon-btn-big:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: transparent;
+  border-color: transparent;
+}
+
+.editor-ribbon-btn-big.danger:hover {
+  background: #fff1f0;
+  border-color: #ffa39e;
+  color: #cf1322;
+}
+
+.editor-ribbon-btn-icon {
+  font-size: 20px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+}
+
+.editor-ribbon-btn-label {
+  font-size: 11px;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ============================================================
+   BUTTONS — SMALL (icon only)
+   ============================================================ */
+.editor-ribbon-btn-small {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 26px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #262626;
+  font-size: 14px;
+  transition: all 0.15s;
+}
+
+.editor-ribbon-btn-small:hover {
+  background: #e6f4ff;
+  border-color: #91caff;
+}
+
+.editor-ribbon-btn-small.active {
+  background: #bae0ff;
+  border-color: #1890ff;
+  color: #0050b3;
+}
+
+.editor-ribbon-btn-small:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   LAYOUT HELPERS
+   ============================================================ */
+.editor-ribbon-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.editor-ribbon-row {
+  display: flex;
+  gap: 2px;
+}
+
+/* Fake circle icon (for ellipse) */
+.editor-ribbon-shape-circle {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+
+/* ============================================================
+   DARK MODE
+   ============================================================ */
+@media (prefers-color-scheme: dark) {
+  .editor-ribbon {
+    background: #1e1e1e;
+    border-bottom-color: #303030;
+  }
+  .editor-menubar {
+    background: #252526;
+    border-bottom-color: #303030;
+  }
+  .editor-menubar-item {
+    color: #e0e0e0;
+  }
+  .editor-menubar-item:hover {
+    background: #303030;
+  }
+  .editor-ribbon-tabs {
+    background: #252526;
+  }
+  .editor-ribbon-tab {
+    color: #a0a0a0;
+  }
+  .editor-ribbon-tab:hover {
+    background: #303030;
+    color: #ffffff;
+  }
+  .editor-ribbon-tab.active {
+    background: #1e1e1e;
+    color: #4fa8f5;
+  }
+  .editor-ribbon-body {
+    background: #1e1e1e;
+    border-top-color: #303030;
+  }
+  .editor-ribbon-group {
+    border-right-color: #303030;
+  }
+  .editor-ribbon-group-label {
+    color: #808080;
+  }
+  .editor-ribbon-btn-big,
+  .editor-ribbon-btn-small {
+    color: #e0e0e0;
+  }
+  .editor-ribbon-btn-big:hover,
+  .editor-ribbon-btn-small:hover {
+    background: #0a2a4a;
+    border-color: #4fa8f5;
+  }
+  .editor-ribbon-btn-big.active,
+  .editor-ribbon-btn-small.active {
+    background: #0a3a6a;
+    border-color: #4fa8f5;
+    color: #4fa8f5;
+  }
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .editor-ribbon-body {
+    min-height: auto;
+    padding: 4px 6px;
+  }
+  .editor-ribbon-content {
+    height: auto;
+    flex-wrap: wrap;
+  }
+  .editor-ribbon-btn-big {
+    min-width: 44px;
+    min-height: 48px;
+  }
+  .editor-ribbon-btn-label {
+    font-size: 10px;
+  }
+  .editor-menubar-item {
+    padding: 4px 6px;
+    font-size: 12px;
+  }
+  .editor-ribbon-tab {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}
+
+/* ============================================================
+   PDF TOOL PALETTE (left rail)
+   ============================================================ */
+.editor-body {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 12px;
+  min-height: 500px;
+  min-width: 0;
+}
+
+.pdf-tool-palette {
+  flex-shrink: 0;
+  width: 48px;
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  padding: 6px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+
+.pdf-tool-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #595959;
+  font-size: 16px;
+  transition: all 0.15s;
+}
+
+.pdf-tool-btn:hover {
+  background: #e6f4ff;
+  border-color: #91caff;
+  color: #1890ff;
+}
+
+.pdf-tool-btn.active {
+  background: #bae0ff;
+  border-color: #1890ff;
+  color: #0050b3;
+}
+
+.pdf-tool-circle {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+
+.pdf-editor-host {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 500px;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #525659;
+}
+
+.pdf-form-panel {
+  flex-shrink: 0;
+  width: 240px;
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  padding: 12px;
+  overflow-y: auto;
+  max-height: 640px;
+}
+
+/* When switching to PDF mode, the editor-body is row-aligned
+   (palette on left, PDF in center, form panel on right).
+   In HTML mode, the editor-body stays a single column. */
+.editor-body:has(.pdf-editor-host) {
+  /* no-op — this is a marker */
+}
+
+
+.editor-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.editor-body.pdf-mode {
+  flex-direction: row;
+}
+
+/* ============================================================
+   FORM PANEL
+   ============================================================ */
+.pdf-form-panel-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.pdf-form-panel-header {
+  padding: 8px 4px;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #262626;
+}
+
+.pdf-form-fields {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.pdf-field-overlay {
+  transition: box-shadow 0.15s;
+}
+
+.pdf-field-overlay:focus-within {
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.25);
+  background: rgba(24, 144, 255, 0.12);
+}
+
+/* ============================================================
+   SIGNATURE PLACER
+   ============================================================ */
+.pdf-signature-overlay {
+  position: absolute;
+  border: 2px dashed #1890ff;
+  background: rgba(24, 144, 255, 0.06);
+  cursor: move;
+}
+
+/* ============================================================
+   PDF EDITOR LAYOUT — thumbs + canvas + form panel
+   ============================================================ */
+.pdf-editor-main {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.pdf-editor-thumbs {
+  width: 200px;
+  flex-shrink: 0;
+  border-right: 1px solid #e0e0e0;
+  background: #f5f5f5;
+  overflow-y: auto;
+}
+
+.pdf-editor-canvas-area {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: auto;
+  background: #525659;
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+/* ============================================================
+   PAGE THUMBNAIL PANEL
+   ============================================================ */
+.page-thumb-panel {
+  padding: 8px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.page-thumb-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 8px;
+}
+
+.page-thumb-count {
+  font-size: 11px;
+  color: #595959;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.page-thumb-sel-count {
+  color: #1890ff;
+}
+
+.page-thumb-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.page-thumb-sel-bar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.page-thumb-reorder-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: #fff7e6;
+  border: 1px solid #ffd591;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  font-size: 11px;
+  color: #ad6800;
+}
+
+.page-thumb-grid {
+  flex: 1;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.page-thumb-item {
+  background: #fff;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.page-thumb-item:hover {
+  border-color: #91caff;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.15);
+}
+
+.page-thumb-item.selected {
+  border-color: #1890ff;
+  background: #e6f4ff;
+}
+
+.page-thumb-item.drag-over {
+  border-color: #52c41a;
+  border-style: dashed;
+}
+
+.page-thumb-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 10px;
+}
+
+.page-thumb-num {
+  flex: 1;
+  text-align: right;
+  color: #8c8c8c;
+  font-weight: 600;
+}
+
+.page-thumb-image {
+  padding: 4px;
+  display: flex;
+  justify-content: center;
+  background: #fff;
+}
+
+.page-thumb-image img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================================
+   DARK MODE
+   ============================================================ */
+@media (prefers-color-scheme: dark) {
+  .pdf-editor-thumbs {
+    background: #1a1a1a;
+    border-right-color: #303030;
+  }
+  .page-thumb-toolbar {
+    border-bottom-color: #303030;
+  }
+  .page-thumb-count {
+    color: #a0a0a0;
+  }
+  .page-thumb-item {
+    background: #262626;
+  }
+  .page-thumb-item.selected {
+    background: #0a2a4a;
+    border-color: #4fa8f5;
+  }
+  .page-thumb-header {
+    background: #1f1f1f;
+    border-bottom-color: #303030;
+  }
+  .page-thumb-num {
+    color: #808080;
+  }
+}
+
+/* ============================================================
+   PDF TEXT LAYER (invisible, selectable)
+   ============================================================ */
+.pdf-text-layer {
+  position: absolute;
+  top: 0; left: 0;
+  overflow: hidden;
+  opacity: 1;
+  line-height: 1;
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.pdf-text-layer > span {
+  position: absolute;
+  white-space: pre;
+  color: transparent;             /* invisible but selectable */
+  transform-origin: 0% 0%;
+  cursor: text;
+}
+
+.pdf-text-layer > span::selection {
+  background: rgba(24, 144, 255, 0.35);
+}
+
+.pdf-text-layer > span:hover {
+  background: rgba(24, 144, 255, 0.15);
+  outline: 1px dashed #1890ff;
+}
+
+/* Text edit popover */
+.pdf-text-edit-popover {
+  font-size: 13px;
+}
+
+/* Pending text edit highlight */
+.pdf-text-layer > span.pending-edit {
+  background: rgba(250, 173, 20, 0.35);
+  border-bottom: 2px solid #faad14;
+}
