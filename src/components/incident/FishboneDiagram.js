@@ -1,9 +1,9 @@
 // src/components/incidents/FishboneDiagram.js
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Card, Button, Input, Select, Space, Tag, Modal, Form, message,
   Row, Col, Tooltip, Popconfirm, Empty, Divider, Badge, Alert,
-  List, Avatar, Typography, Drawer, Tabs, Progress, Statistic
+  List, Avatar, Typography, Drawer, Tabs, Progress, Statistic, Spin
 } from 'antd';
 import {
   PlusOutlined, DeleteOutlined, EditOutlined, SaveOutlined,
@@ -13,6 +13,10 @@ import {
   CheckCircleOutlined, WarningOutlined, InfoCircleOutlined
 } from '@ant-design/icons';
 
+// ✅ SERVICE IMPORT
+import notificationService from '../../services/notificationService';
+import { useAuth } from '../../context/AuthContext';
+
 const { TextArea } = Input;
 const { Text, Title } = Typography;
 const { Option } = Select;
@@ -21,54 +25,12 @@ const { TabPane } = Tabs;
 // ==================== FISHBONE CONSTANTS ====================
 
 const DEFAULT_CATEGORIES = [
-  {
-    id: 'man',
-    name: 'Man / People',
-    color: '#1890ff',
-    icon: '👤',
-    description: 'Human factors, training, experience, fatigue, communication',
-    causes: []
-  },
-  {
-    id: 'machine',
-    name: 'Machine / Equipment',
-    color: '#52c41a',
-    icon: '⚙️',
-    description: 'Equipment failure, maintenance, design, calibration',
-    causes: []
-  },
-  {
-    id: 'method',
-    name: 'Method / Process',
-    color: '#faad14',
-    icon: '📋',
-    description: 'Procedures, work instructions, supervision, planning',
-    causes: []
-  },
-  {
-    id: 'material',
-    name: 'Material',
-    color: '#722ed1',
-    icon: '📦',
-    description: 'Raw materials, components, specifications, quality',
-    causes: []
-  },
-  {
-    id: 'measurement',
-    name: 'Measurement',
-    color: '#13c2c2',
-    icon: '📊',
-    description: 'Inspection, testing, calibration, data accuracy',
-    causes: []
-  },
-  {
-    id: 'environment',
-    name: 'Environment',
-    color: '#eb2f96',
-    icon: '🌍',
-    description: 'Lighting, noise, temperature, layout, weather',
-    causes: []
-  }
+  { id: 'man', name: 'Man / People', color: '#1890ff', icon: '👤', description: 'Human factors, training, experience, fatigue, communication', causes: [] },
+  { id: 'machine', name: 'Machine / Equipment', color: '#52c41a', icon: '⚙️', description: 'Equipment failure, maintenance, design, calibration', causes: [] },
+  { id: 'method', name: 'Method / Process', color: '#faad14', icon: '📋', description: 'Procedures, work instructions, supervision, planning', causes: [] },
+  { id: 'material', name: 'Material', color: '#722ed1', icon: '📦', description: 'Raw materials, components, specifications, quality', causes: [] },
+  { id: 'measurement', name: 'Measurement', color: '#13c2c2', icon: '📊', description: 'Inspection, testing, calibration, data accuracy', causes: [] },
+  { id: 'environment', name: 'Environment', color: '#eb2f96', icon: '🌍', description: 'Lighting, noise, temperature, layout, weather', causes: [] }
 ];
 
 const INDUSTRY_SPECIFIC_CATEGORIES = {
@@ -107,6 +69,9 @@ const FishboneDiagram = ({
   onSave,
   readOnly = false 
 }) => {
+  // ✅ Get user from auth context
+  const { user: currentUser } = useAuth();
+
   const [categories, setCategories] = useState([]);
   const [problemStatement, setProblemStatement] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -114,28 +79,81 @@ const FishboneDiagram = ({
   const [editingCause, setEditingCause] = useState(null);
   const [causeForm] = Form.useForm();
   const [expandedView, setExpandedView] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [versions, setVersions] = useState([]);
   const svgRef = useRef(null);
 
-  // Initialize categories based on incident industry
-  useEffect(() => {
-    if (incident) {
-      const industry = incident.industry_id || incident.industry;
-      const baseCategories = INDUSTRY_SPECIFIC_CATEGORIES[industry] || DEFAULT_CATEGORIES;
+  // ==================== LOAD FISHBONE FROM API ====================
+
+  const loadFishboneAnalysis = useCallback(async () => {
+    if (!incident || !visible) return;
+    
+    setLoading(true);
+    try {
+      const response = await notificationService.getFishboneAnalysis(incident.id);
       
-      // Check if there's saved fishbone data
-      const savedData = incident.custom_data?.fishbone_analysis;
-      
-      if (savedData) {
-        setCategories(savedData.categories || baseCategories);
-        setProblemStatement(savedData.problemStatement || incident.title || '');
+      // Handle different response shapes
+      const analysis = response?.analysis || response?.data?.analysis || response;
+
+      if (analysis && analysis.categories) {
+        // Saved analysis exists — use it
+        setCategories(
+          typeof analysis.categories === 'string' 
+            ? JSON.parse(analysis.categories) 
+            : analysis.categories
+        );
+        setProblemStatement(analysis.problem_statement || incident.title || '');
       } else {
-        setCategories(baseCategories.map(cat => ({ ...cat, causes: [] })));
-        setProblemStatement(incident.title || '');
+        // No saved analysis — initialize with industry defaults
+        initializeDefaultCategories();
       }
+    } catch (error) {
+      // If API fails, initialize with defaults (fresh start)
+      console.warn('Failed to load fishbone analysis, using defaults:', error);
+      initializeDefaultCategories();
+    } finally {
+      setLoading(false);
+    }
+  }, [incident, visible]);
+
+  // Initialize categories based on incident industry
+  const initializeDefaultCategories = () => {
+    if (!incident) return;
+    
+    const industry = incident.industry_id || incident.industry;
+    const baseCategories = INDUSTRY_SPECIFIC_CATEGORIES[industry] || DEFAULT_CATEGORIES;
+    
+    setCategories(baseCategories.map(cat => ({ ...cat, causes: [] })));
+    setProblemStatement(incident.title || '');
+  };
+
+  // ✅ Load on mount / when incident changes
+  useEffect(() => {
+    loadFishboneAnalysis();
+  }, [loadFishboneAnalysis]);
+
+  // ==================== LOAD VERSIONS (Optional) ====================
+
+  const loadVersions = useCallback(async () => {
+    if (!incident) return;
+    try {
+      const response = await notificationService.getFishboneVersions(incident.id);
+      setVersions(response?.versions || []);
+    } catch (error) {
+      // Silently fail — versions are optional
+      console.warn('Failed to load versions:', error);
     }
   }, [incident]);
 
-  // Add cause to category
+  useEffect(() => {
+    if (visible && incident) {
+      loadVersions();
+    }
+  }, [visible, incident, loadVersions]);
+
+  // ==================== CAUSE MANAGEMENT ====================
+
   const handleAddCause = (categoryId) => {
     setSelectedCategory(categoryId);
     setEditingCause(null);
@@ -143,7 +161,6 @@ const FishboneDiagram = ({
     setCauseModalVisible(true);
   };
 
-  // Edit existing cause
   const handleEditCause = (categoryId, cause) => {
     setSelectedCategory(categoryId);
     setEditingCause(cause);
@@ -151,7 +168,7 @@ const FishboneDiagram = ({
     setCauseModalVisible(true);
   };
 
-  // Save cause
+  // ✅ Save cause (local only — saved to server when clicking "Save Analysis")
   const handleSaveCause = (values) => {
     setCategories(prev => prev.map(cat => {
       if (cat.id === selectedCategory) {
@@ -177,10 +194,10 @@ const FishboneDiagram = ({
     }));
     setCauseModalVisible(false);
     causeForm.resetFields();
+    setEditingCause(null);
     message.success(editingCause ? 'Cause updated' : 'Cause added');
   };
 
-  // Delete cause
   const handleDeleteCause = (categoryId, causeId) => {
     setCategories(prev => prev.map(cat => {
       if (cat.id === categoryId) {
@@ -191,39 +208,83 @@ const FishboneDiagram = ({
     message.success('Cause removed');
   };
 
-  // Save entire fishbone analysis
-  const handleSave = () => {
-    const fishboneData = {
-      problemStatement,
-      categories,
-      lastUpdated: new Date().toISOString()
-    };
-    
-    if (onSave) {
-      onSave(fishboneData);
+  // ==================== SAVE FULL ANALYSIS TO SERVER ====================
+
+  const handleSave = async () => {
+    if (!incident) {
+      message.warning('No incident selected');
+      return;
     }
-    message.success('Fishbone analysis saved');
+
+    setSaving(true);
+    try {
+      const fishboneData = {
+        problem_statement: problemStatement,
+        categories: categories,
+        // Stats — backend can recalculate, but sending is fine
+        total_causes: categories.reduce((sum, cat) => sum + cat.causes.length, 0),
+        root_causes_count: categories.reduce(
+          (sum, cat) => sum + cat.causes.filter(c => c.isRootCause).length, 
+          0
+        ),
+        categories_used: categories.filter(cat => cat.causes.length > 0).length
+      };
+
+      const response = await notificationService.saveFishboneAnalysis(
+        incident.id, 
+        fishboneData
+      );
+
+      if (response?.success || response?.analysis) {
+        message.success('Fishbone analysis saved successfully');
+        if (onSave) onSave(response?.analysis || response);
+      } else {
+        throw new Error(response?.error || 'Failed to save');
+      }
+    } catch (error) {
+      console.error('Save fishbone error:', error);
+      message.error(error?.message || 'Failed to save fishbone analysis');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  // Export as SVG
+  // ==================== EXPORT SVG ====================
+
   const handleExportSVG = () => {
-    if (!svgRef.current) return;
+    if (!svgRef.current) {
+      message.warning('Nothing to export');
+      return;
+    }
     
-    const svgData = new XMLSerializer().serializeToString(svgRef.current);
-    const blob = new Blob([svgData], { type: 'image/svg+xml' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `fishbone-${incident?.incident_number || 'analysis'}.svg`;
-    link.click();
-    URL.revokeObjectURL(url);
-    message.success('Diagram exported as SVG');
+    try {
+      const svgData = new XMLSerializer().serializeToString(svgRef.current);
+      const blob = new Blob([svgData], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `fishbone-${incident?.incident_number || 'analysis'}-${Date.now()}.svg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      message.success('Diagram exported as SVG');
+    } catch (error) {
+      console.error('Export failed:', error);
+      message.error('Failed to export diagram');
+    }
   };
 
-  // Get total causes count
-  const totalCauses = categories.reduce((sum, cat) => sum + cat.causes.length, 0);
+  // ==================== STATS ====================
 
-  // Render fishbone SVG
+  const totalCauses = categories.reduce((sum, cat) => sum + cat.causes.length, 0);
+  const rootCausesCount = categories.reduce(
+    (sum, cat) => sum + cat.causes.filter(c => c.isRootCause).length, 
+    0
+  );
+
+  // ==================== RENDER FISHBONE SVG ====================
+
   const renderFishboneSVG = () => {
     const width = 1200;
     const height = 600;
@@ -287,7 +348,6 @@ const FishboneDiagram = ({
           markerEnd="url(#arrowhead)"
         />
 
-        {/* Arrow marker */}
         <defs>
           <marker
             id="arrowhead"
@@ -312,7 +372,6 @@ const FishboneDiagram = ({
 
           return (
             <g key={category.id}>
-              {/* Main bone line */}
               <line
                 x1={boneX}
                 y1={spineY}
@@ -330,7 +389,6 @@ const FishboneDiagram = ({
                 strokeWidth={2}
               />
 
-              {/* Category label */}
               <rect
                 x={boneX + 30}
                 y={isTop ? boneY - 25 : boneY + 5}
@@ -350,7 +408,6 @@ const FishboneDiagram = ({
                 {category.icon} {category.name.substring(0, 12)}
               </text>
 
-              {/* Causes (Sub-bones) */}
               {category.causes.slice(0, 4).map((cause, causeIndex) => {
                 const causeX = boneX + 50 + (causeIndex * 40);
                 const causeLength = isTop ? -60 : 60;
@@ -389,7 +446,6 @@ const FishboneDiagram = ({
                 );
               })}
 
-              {/* More causes indicator */}
               {category.causes.length > 4 && (
                 <text
                   x={boneX + boneSpacing - 30}
@@ -406,6 +462,8 @@ const FishboneDiagram = ({
       </svg>
     );
   };
+
+  // ==================== MAIN RENDER ====================
 
   return (
     <Drawer
@@ -425,6 +483,13 @@ const FishboneDiagram = ({
       onClose={onClose}
       extra={
         <Space>
+          <Tooltip title="Reload from server">
+            <Button 
+              icon={<ReloadOutlined />} 
+              onClick={loadFishboneAnalysis}
+              loading={loading}
+            />
+          </Tooltip>
           <Tooltip title={expandedView ? 'Collapse' : 'Expand'}>
             <Button 
               icon={expandedView ? <CompressOutlined /> : <ExpandOutlined />}
@@ -435,205 +500,237 @@ const FishboneDiagram = ({
             <Button icon={<FileImageOutlined />} onClick={handleExportSVG} />
           </Tooltip>
           {!readOnly && (
-            <Button type="primary" icon={<SaveOutlined />} onClick={handleSave}>
+            <Button 
+              type="primary" 
+              icon={<SaveOutlined />} 
+              onClick={handleSave}
+              loading={saving}
+            >
               Save Analysis
             </Button>
           )}
         </Space>
       }
     >
-      <Alert
-        message="Root Cause Analysis"
-        description="Use the Fishbone diagram to systematically identify potential causes of the incident. Add causes to each category to build your analysis."
-        type="info"
-        showIcon
-        style={{ marginBottom: 16 }}
-      />
-
-      {/* Problem Statement */}
-      <Card size="small" style={{ marginBottom: 16 }}>
-        <Row gutter={16} align="middle">
-          <Col span={4}>
-            <Text strong>Problem Statement:</Text>
-          </Col>
-          <Col span={20}>
-            <Input
-              value={problemStatement}
-              onChange={(e) => setProblemStatement(e.target.value)}
-              placeholder="Describe the problem or effect being analyzed..."
-              disabled={readOnly}
-            />
-          </Col>
-        </Row>
-      </Card>
-
-      <Tabs defaultActiveKey="diagram">
-        <TabPane tab="Diagram View" key="diagram">
-          <Card 
-            bodyStyle={{ padding: 16, overflow: 'auto' }}
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: 60 }}>
+          <Spin size="large" tip="Loading fishbone analysis..." />
+        </div>
+      ) : (
+        <>
+          <Alert
+            message="Root Cause Analysis"
+            description="Use the Fishbone diagram to systematically identify potential causes of the incident. Add causes to each category to build your analysis."
+            type="info"
+            showIcon
             style={{ marginBottom: 16 }}
-          >
-            {categories.length > 0 ? renderFishboneSVG() : (
-              <Empty description="No categories defined" />
-            )}
-          </Card>
-        </TabPane>
-
-        <TabPane tab="Manage Causes" key="manage">
-          <Row gutter={[16, 16]}>
-            {categories.map(category => (
-              <Col xs={24} md={12} key={category.id}>
-                <Card
-                  size="small"
-                  title={
-                    <Space>
-                      <span style={{ fontSize: 18 }}>{category.icon}</span>
-                      <span style={{ color: category.color }}>{category.name}</span>
-                      <Badge count={category.causes.length} style={{ backgroundColor: category.color }} />
-                    </Space>
-                  }
-                  extra={
-                    !readOnly && (
-                      <Button 
-                        type="link" 
-                        size="small" 
-                        icon={<PlusOutlined />}
-                        onClick={() => handleAddCause(category.id)}
-                      >
-                        Add Cause
-                      </Button>
-                    )
-                  }
-                  style={{ borderTop: `3px solid ${category.color}` }}
-                >
-                  <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
-                    {category.description}
-                  </Text>
-                  
-                  {category.causes.length > 0 ? (
-                    <List
-                      size="small"
-                      dataSource={category.causes}
-                      renderItem={(cause) => (
-                        <List.Item
-                          actions={!readOnly ? [
-                            <Tooltip title="Edit">
-                              <Button 
-                                type="link" 
-                                size="small" 
-                                icon={<EditOutlined />}
-                                onClick={() => handleEditCause(category.id, cause)}
-                              />
-                            </Tooltip>,
-                            <Popconfirm
-                              title="Remove this cause?"
-                              onConfirm={() => handleDeleteCause(category.id, cause.id)}
-                            >
-                              <Button 
-                                type="link" 
-                                size="small" 
-                                danger
-                                icon={<DeleteOutlined />}
-                              />
-                            </Popconfirm>
-                          ] : []}
-                        >
-                          <List.Item.Meta
-                            avatar={
-                              <Tag color={cause.likelihood === 'high' ? 'red' : cause.likelihood === 'medium' ? 'orange' : 'green'}>
-                                {cause.likelihood?.charAt(0).toUpperCase() || 'M'}
-                              </Tag>
-                            }
-                            title={cause.description || cause.text}
-                            description={
-                              <Space size="small">
-                                {cause.evidence && (
-                                  <Tooltip title={cause.evidence}>
-                                    <Tag icon={<FileImageOutlined />} color="blue">Evidence</Tag>
-                                  </Tooltip>
-                                )}
-                                {cause.isRootCause && (
-                                  <Tag color="red" icon={<WarningOutlined />}>Root Cause</Tag>
-                                )}
-                              </Space>
-                            }
-                          />
-                        </List.Item>
-                      )}
-                    />
-                  ) : (
-                    <Empty 
-                      image={Empty.PRESENTED_IMAGE_SIMPLE} 
-                      description="No causes identified"
-                      style={{ margin: '8px 0' }}
-                    />
-                  )}
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        </TabPane>
-
-        <TabPane tab="Root Cause Summary" key="summary">
-          <Row gutter={[16, 16]}>
-            <Col span={8}>
-              <Card>
-                <Statistic 
-                  title="Total Causes" 
-                  value={totalCauses}
-                  prefix={<BulbOutlined />}
-                />
-              </Card>
-            </Col>
-            <Col span={8}>
-              <Card>
-                <Statistic 
-                  title="Root Causes Identified" 
-                  value={categories.reduce((sum, cat) => 
-                    sum + cat.causes.filter(c => c.isRootCause).length, 0
-                  )}
-                  prefix={<CheckCircleOutlined />}
-                  valueStyle={{ color: '#52c41a' }}
-                />
-              </Card>
-            </Col>
-            <Col span={8}>
-              <Card>
-                <Statistic 
-                  title="Categories Used" 
-                  value={categories.filter(cat => cat.causes.length > 0).length}
-                  suffix={`/ ${categories.length}`}
-                />
-              </Card>
-            </Col>
-          </Row>
-
-          <Divider orientation="left">Identified Root Causes</Divider>
-          
-          <List
-            dataSource={categories.flatMap(cat => 
-              cat.causes
-                .filter(c => c.isRootCause)
-                .map(c => ({ ...c, category: cat.name, categoryColor: cat.color }))
-            )}
-            renderItem={(cause) => (
-              <List.Item>
-                <List.Item.Meta
-                  avatar={<Avatar style={{ backgroundColor: cause.categoryColor }}>{cause.category?.charAt(0)}</Avatar>}
-                  title={cause.description || cause.text}
-                  description={
-                    <Space direction="vertical" size={0}>
-                      <Text type="secondary">Category: {cause.category}</Text>
-                      {cause.evidence && <Text type="secondary">Evidence: {cause.evidence}</Text>}
-                    </Space>
-                  }
-                />
-              </List.Item>
-            )}
-            locale={{ emptyText: 'No root causes marked yet. Edit causes to mark them as root causes.' }}
           />
-        </TabPane>
-      </Tabs>
+
+          {/* Problem Statement */}
+          <Card size="small" style={{ marginBottom: 16 }}>
+            <Row gutter={16} align="middle">
+              <Col span={4}>
+                <Text strong>Problem Statement:</Text>
+              </Col>
+              <Col span={20}>
+                <Input
+                  value={problemStatement}
+                  onChange={(e) => setProblemStatement(e.target.value)}
+                  placeholder="Describe the problem or effect being analyzed..."
+                  disabled={readOnly}
+                />
+              </Col>
+            </Row>
+          </Card>
+
+          <Tabs defaultActiveKey="diagram">
+            <TabPane tab="Diagram View" key="diagram">
+              <Card 
+                bodyStyle={{ padding: 16, overflow: 'auto' }}
+                style={{ marginBottom: 16 }}
+              >
+                {categories.length > 0 ? renderFishboneSVG() : (
+                  <Empty description="No categories defined" />
+                )}
+              </Card>
+            </TabPane>
+
+            <TabPane tab="Manage Causes" key="manage">
+              <Row gutter={[16, 16]}>
+                {categories.map(category => (
+                  <Col xs={24} md={12} key={category.id}>
+                    <Card
+                      size="small"
+                      title={
+                        <Space>
+                          <span style={{ fontSize: 18 }}>{category.icon}</span>
+                          <span style={{ color: category.color }}>{category.name}</span>
+                          <Badge count={category.causes.length} style={{ backgroundColor: category.color }} />
+                        </Space>
+                      }
+                      extra={
+                        !readOnly && (
+                          <Button 
+                            type="link" 
+                            size="small" 
+                            icon={<PlusOutlined />}
+                            onClick={() => handleAddCause(category.id)}
+                          >
+                            Add Cause
+                          </Button>
+                        )
+                      }
+                      style={{ borderTop: `3px solid ${category.color}` }}
+                    >
+                      <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
+                        {category.description}
+                      </Text>
+                      
+                      {category.causes.length > 0 ? (
+                        <List
+                          size="small"
+                          dataSource={category.causes}
+                          renderItem={(cause) => (
+                            <List.Item
+                              actions={!readOnly ? [
+                                <Tooltip title="Edit" key="edit">
+                                  <Button 
+                                    type="link" 
+                                    size="small" 
+                                    icon={<EditOutlined />}
+                                    onClick={() => handleEditCause(category.id, cause)}
+                                  />
+                                </Tooltip>,
+                                <Popconfirm
+                                  key="delete"
+                                  title="Remove this cause?"
+                                  onConfirm={() => handleDeleteCause(category.id, cause.id)}
+                                >
+                                  <Button 
+                                    type="link" 
+                                    size="small" 
+                                    danger
+                                    icon={<DeleteOutlined />}
+                                  />
+                                </Popconfirm>
+                              ] : []}
+                            >
+                              <List.Item.Meta
+                                avatar={
+                                  <Tag color={cause.likelihood === 'high' ? 'red' : cause.likelihood === 'medium' ? 'orange' : 'green'}>
+                                    {cause.likelihood?.charAt(0).toUpperCase() || 'M'}
+                                  </Tag>
+                                }
+                                title={cause.description || cause.text}
+                                description={
+                                  <Space size="small">
+                                    {cause.evidence && (
+                                      <Tooltip title={cause.evidence}>
+                                        <Tag icon={<FileImageOutlined />} color="blue">Evidence</Tag>
+                                      </Tooltip>
+                                    )}
+                                    {cause.isRootCause && (
+                                      <Tag color="red" icon={<WarningOutlined />}>Root Cause</Tag>
+                                    )}
+                                  </Space>
+                                }
+                              />
+                            </List.Item>
+                          )}
+                        />
+                      ) : (
+                        <Empty 
+                          image={Empty.PRESENTED_IMAGE_SIMPLE} 
+                          description="No causes identified"
+                          style={{ margin: '8px 0' }}
+                        />
+                      )}
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+            </TabPane>
+
+            <TabPane tab="Root Cause Summary" key="summary">
+              <Row gutter={[16, 16]}>
+                <Col span={8}>
+                  <Card>
+                    <Statistic 
+                      title="Total Causes" 
+                      value={totalCauses}
+                      prefix={<BulbOutlined />}
+                    />
+                  </Card>
+                </Col>
+                <Col span={8}>
+                  <Card>
+                    <Statistic 
+                      title="Root Causes Identified" 
+                      value={rootCausesCount}
+                      prefix={<CheckCircleOutlined />}
+                      valueStyle={{ color: '#52c41a' }}
+                    />
+                  </Card>
+                </Col>
+                <Col span={8}>
+                  <Card>
+                    <Statistic 
+                      title="Categories Used" 
+                      value={categories.filter(cat => cat.causes.length > 0).length}
+                      suffix={`/ ${categories.length}`}
+                    />
+                  </Card>
+                </Col>
+              </Row>
+
+              <Divider orientation="left">Identified Root Causes</Divider>
+              
+              <List
+                dataSource={categories.flatMap(cat => 
+                  cat.causes
+                    .filter(c => c.isRootCause)
+                    .map(c => ({ ...c, category: cat.name, categoryColor: cat.color }))
+                )}
+                renderItem={(cause) => (
+                  <List.Item>
+                    <List.Item.Meta
+                      avatar={<Avatar style={{ backgroundColor: cause.categoryColor }}>{cause.category?.charAt(0)}</Avatar>}
+                      title={cause.description || cause.text}
+                      description={
+                        <Space direction="vertical" size={0}>
+                          <Text type="secondary">Category: {cause.category}</Text>
+                          {cause.evidence && <Text type="secondary">Evidence: {cause.evidence}</Text>}
+                        </Space>
+                      }
+                    />
+                  </List.Item>
+                )}
+                locale={{ emptyText: 'No root causes marked yet. Edit causes to mark them as root causes.' }}
+              />
+            </TabPane>
+
+            {/* Versions (optional) */}
+            {versions.length > 0 && (
+              <TabPane tab={`Versions (${versions.length})`} key="versions">
+                <List
+                  dataSource={versions}
+                  renderItem={(v) => (
+                    <List.Item>
+                      <List.Item.Meta
+                        title={`Version ${v.version}`}
+                        description={`By ${v.created_by_name || 'Unknown'} • ${new Date(v.created_at).toLocaleString()}`}
+                      />
+                      <Tag color={v.is_current ? 'green' : 'default'}>
+                        {v.is_current ? 'Current' : 'Archived'}
+                      </Tag>
+                    </List.Item>
+                  )}
+                />
+              </TabPane>
+            )}
+          </Tabs>
+        </>
+      )}
 
       {/* Add/Edit Cause Modal */}
       <Modal
@@ -670,15 +767,9 @@ const FishboneDiagram = ({
                 initialValue="medium"
               >
                 <Select>
-                  <Option value="high">
-                    <Tag color="red">High</Tag>
-                  </Option>
-                  <Option value="medium">
-                    <Tag color="orange">Medium</Tag>
-                  </Option>
-                  <Option value="low">
-                    <Tag color="green">Low</Tag>
-                  </Option>
+                  <Option value="high"><Tag color="red">High</Tag></Option>
+                  <Option value="medium"><Tag color="orange">Medium</Tag></Option>
+                  <Option value="low"><Tag color="green">Low</Tag></Option>
                 </Select>
               </Form.Item>
             </Col>
@@ -686,7 +777,7 @@ const FishboneDiagram = ({
               <Form.Item
                 name="isRootCause"
                 label="Mark as Root Cause"
-                valuePropName="checked"
+                initialValue={false}
               >
                 <Select>
                   <Option value={true}>Yes</Option>

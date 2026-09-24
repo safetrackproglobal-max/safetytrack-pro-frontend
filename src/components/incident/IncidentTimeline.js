@@ -1,18 +1,25 @@
 // src/components/incidents/IncidentTimeline.js
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Card, Timeline, Tag, Space, Button, Input, Select, DatePicker,
   TimePicker, Modal, Form, message, Avatar, Tooltip, Badge,
-  Empty, Divider, Typography, Row, Col, List
+  Empty, Divider, Typography, Row, Col, List, Spin
 } from 'antd';
 import {
   ClockCircleOutlined, UserOutlined, MessageOutlined,
   CheckCircleOutlined, WarningOutlined, EditOutlined,
   DeleteOutlined, PlusOutlined, FileTextOutlined,
   PaperClipOutlined, TeamOutlined, ToolOutlined,
-  SafetyCertificateOutlined, EnvironmentOutlined
+  SafetyCertificateOutlined, EnvironmentOutlined, ReloadOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+// ✅ SERVICE IMPORTS
+import notificationService from '../../services/notificationService';
+import { useAuth } from '../../context/AuthContext';
+
+dayjs.extend(relativeTime);
 
 const { TextArea } = Input;
 const { Text, Title } = Typography;
@@ -33,7 +40,16 @@ const EVENT_TYPES = {
   comment: { color: 'default', icon: <MessageOutlined />, label: 'Comment Added' },
   attachment: { color: 'blue', icon: <PaperClipOutlined />, label: 'File Attached' },
   resolution: { color: 'green', icon: <CheckCircleOutlined />, label: 'Resolved' },
-  closure: { color: 'default', icon: <CheckCircleOutlined />, label: 'Closed' }
+  closure: { color: 'default', icon: <CheckCircleOutlined />, label: 'Closed' },
+  fishbone_updated: { color: 'purple', icon: <ToolOutlined />, label: 'Fishbone Updated' },
+  corrective_action_created: { color: 'green', icon: <CheckCircleOutlined />, label: 'Corrective Action Created' },
+  corrective_action_updated: { color: 'green', icon: <EditOutlined />, label: 'Corrective Action Updated' },
+  witness_statement_added: { color: 'cyan', icon: <FileTextOutlined />, label: 'Witness Statement Added' },
+  team_member_added: { color: 'blue', icon: <TeamOutlined />, label: 'Team Member Added' },
+  team_member_removed: { color: 'red', icon: <TeamOutlined />, label: 'Team Member Removed' },
+  escalated: { color: 'red', icon: <WarningOutlined />, label: 'Escalated' },
+  comment_added: { color: 'default', icon: <MessageOutlined />, label: 'Comment Added' },
+  updated: { color: 'gold', icon: <EditOutlined />, label: 'Updated' }
 };
 
 // ==================== INCIDENT TIMELINE COMPONENT ====================
@@ -44,17 +60,56 @@ const IncidentTimeline = ({
   onAddEvent,
   readOnly = false 
 }) => {
+  // ✅ Get current user
+  const { user: currentUser } = useAuth();
+
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [editingEvent, setEditingEvent] = useState(null);
   const [filterType, setFilterType] = useState('all');
+  const [serverEvents, setServerEvents] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  // Combine incident data into timeline events
+  // ==================== FETCH TIMELINE FROM API ====================
+
+  const fetchTimeline = useCallback(async () => {
+    if (!incident?.id) return;
+
+    setLoading(true);
+    try {
+      const response = await notificationService.getIncidentTimeline(incident.id);
+      
+      const events = 
+        response?.timeline || 
+        response?.events || 
+        response?.data?.timeline || 
+        (Array.isArray(response) ? response : []) || 
+        [];
+
+      setServerEvents(events);
+    } catch (error) {
+      console.error('Failed to fetch timeline:', error);
+      // Fall back to prop-supplied events
+      setServerEvents(timelineEvents);
+    } finally {
+      setLoading(false);
+    }
+  }, [incident?.id, timelineEvents]);
+
+  useEffect(() => {
+    if (incident?.id) {
+      fetchTimeline();
+    }
+  }, [incident?.id, fetchTimeline]);
+
+  // ==================== COMBINE EVENTS ====================
+
   const getTimelineEvents = () => {
-    const events = [...timelineEvents];
+    const events = [...serverEvents];
 
     // Add incident creation if not present
-    if (incident && !events.find(e => e.type === 'incident')) {
+    if (incident && !events.find(e => e.type === 'incident' || e.action === 'created')) {
       events.push({
         id: 'incident-created',
         type: 'incident',
@@ -78,30 +133,88 @@ const IncidentTimeline = ({
       });
     }
 
-    // Sort by timestamp
-    return events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    // Sort by timestamp (newest first)
+    return events.sort((a, b) => 
+      new Date(b.timestamp || b.created_at) - new Date(a.timestamp || a.created_at)
+    );
   };
 
-  const handleAddEvent = (values) => {
-    const newEvent = {
-      id: Date.now().toString(),
-      ...values,
-      timestamp: values.date.format('YYYY-MM-DD') + 'T' + values.time.format('HH:mm:ss'),
-      user: values.user || 'Current User'
-    };
+  // ==================== ADD EVENT ====================
 
-    if (onAddEvent) {
-      onAddEvent(newEvent);
+  const handleAddEvent = async (values) => {
+    if (!incident?.id) {
+      message.warning('No incident selected');
+      return;
     }
-    
-    setAddModalVisible(false);
-    form.resetFields();
-    message.success('Timeline event added');
+
+    setSaving(true);
+    try {
+      const timestamp = values.date.format('YYYY-MM-DD') + 'T' + 
+                        values.time.format('HH:mm:ss') + 'Z';
+
+      const eventPayload = {
+        type: values.type,
+        title: values.title,
+        description: values.description,
+        timestamp: timestamp,
+        user: values.user || currentUser?.name || currentUser?.email || 'Current User',
+        data: values.data || {}
+      };
+
+      const response = await notificationService.addTimelineEvent(
+        incident.id, 
+        eventPayload
+      );
+
+      if (response?.success || response?.event) {
+        message.success('Timeline event added');
+        
+        // Update local state
+        const newEvent = response?.event || {
+          id: Date.now().toString(),
+          ...eventPayload
+        };
+        setServerEvents(prev => [newEvent, ...prev]);
+        
+        // Also notify parent
+        if (onAddEvent) onAddEvent(newEvent);
+      } else {
+        throw new Error(response?.error || 'Failed to add event');
+      }
+
+      setAddModalVisible(false);
+      form.resetFields();
+    } catch (error) {
+      console.error('Failed to add timeline event:', error);
+      message.error(error?.message || 'Failed to add timeline event');
+    } finally {
+      setSaving(false);
+    }
   };
 
+  // ==================== DELETE EVENT ====================
+
+  const handleDeleteEvent = async (eventId) => {
+    if (!incident?.id) return;
+    
+    try {
+      await notificationService.deleteTimelineEvent(incident.id, eventId);
+      setServerEvents(prev => prev.filter(e => e.id !== eventId));
+      message.success('Event deleted');
+    } catch (error) {
+      console.error('Delete failed:', error);
+      message.error('Failed to delete event');
+    }
+  };
+
+  // ==================== FILTER ====================
+
+  const allEvents = getTimelineEvents();
   const filteredEvents = filterType === 'all' 
-    ? getTimelineEvents() 
-    : getTimelineEvents().filter(e => e.type === filterType);
+    ? allEvents 
+    : allEvents.filter(e => (e.type || e.action) === filterType);
+
+  // ==================== RENDER ====================
 
   return (
     <Card
@@ -117,7 +230,7 @@ const IncidentTimeline = ({
           <Select 
             value={filterType} 
             onChange={setFilterType}
-            style={{ width: 150 }}
+            style={{ width: 180 }}
             size="small"
           >
             <Option value="all">All Events</Option>
@@ -127,11 +240,26 @@ const IncidentTimeline = ({
               </Option>
             ))}
           </Select>
+          <Tooltip title="Refresh">
+            <Button 
+              icon={<ReloadOutlined />} 
+              onClick={fetchTimeline}
+              loading={loading}
+              size="small"
+            />
+          </Tooltip>
           {!readOnly && (
             <Button 
               type="primary" 
               icon={<PlusOutlined />}
-              onClick={() => setAddModalVisible(true)}
+              onClick={() => {
+                form.resetFields();
+                form.setFieldsValue({
+                  date: dayjs(),
+                  time: dayjs()
+                });
+                setAddModalVisible(true);
+              }}
               size="small"
             >
               Add Event
@@ -140,10 +268,17 @@ const IncidentTimeline = ({
         </Space>
       }
     >
-      {filteredEvents.length > 0 ? (
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: 40 }}>
+          <Spin tip="Loading timeline..." />
+        </div>
+      ) : filteredEvents.length > 0 ? (
         <Timeline mode="left">
           {filteredEvents.map((event, index) => {
-            const config = EVENT_TYPES[event.type] || EVENT_TYPES.comment;
+            const eventType = event.type || event.action || 'comment';
+            const config = EVENT_TYPES[eventType] || EVENT_TYPES.comment;
+            const timestamp = event.timestamp || event.created_at;
+            const eventUser = event.user || event.user_name || 'System';
             
             return (
               <Timeline.Item
@@ -174,8 +309,8 @@ const IncidentTimeline = ({
                             </Tag>
                           )}
                         </Space>
-                        <Text strong>{event.title}</Text>
-                        {event.description && (
+                        <Text strong>{event.title || event.description}</Text>
+                        {event.description && event.title && (
                           <Text type="secondary">{event.description}</Text>
                         )}
                       </Space>
@@ -183,15 +318,13 @@ const IncidentTimeline = ({
                     {!readOnly && (
                       <Col>
                         <Space>
-                          <Tooltip title="Edit">
+                          <Tooltip title="Delete">
                             <Button 
                               type="link" 
-                              size="small" 
-                              icon={<EditOutlined />}
-                              onClick={() => {
-                                setEditingEvent(event);
-                                // Open edit modal
-                              }}
+                              size="small"
+                              danger
+                              icon={<DeleteOutlined />}
+                              onClick={() => handleDeleteEvent(event.id)}
                             />
                           </Tooltip>
                         </Space>
@@ -202,13 +335,13 @@ const IncidentTimeline = ({
                   <Divider style={{ margin: '8px 0' }} />
                   
                   <Space size="large">
-                    <Tooltip title={dayjs(event.timestamp).format('YYYY-MM-DD HH:mm:ss')}>
+                    <Tooltip title={dayjs(timestamp).format('YYYY-MM-DD HH:mm:ss')}>
                       <Text type="secondary" style={{ fontSize: 12 }}>
-                        <ClockCircleOutlined /> {dayjs(event.timestamp).fromNow()}
+                        <ClockCircleOutlined /> {dayjs(timestamp).fromNow()}
                       </Text>
                     </Tooltip>
                     <Text type="secondary" style={{ fontSize: 12 }}>
-                      <UserOutlined /> {event.user || 'System'}
+                      <UserOutlined /> {eventUser}
                     </Text>
                     {event.attachments?.length > 0 && (
                       <Text type="secondary" style={{ fontSize: 12 }}>
@@ -248,28 +381,27 @@ const IncidentTimeline = ({
             label="Event Type"
             rules={[{ required: true }]}
           >
-            <Select>
-              {Object.entries(EVENT_TYPES).map(([key, config]) => (
-                <Option key={key} value={key}>
-                  {config.icon} {config.label}
-                </Option>
-              ))}
+            <Select placeholder="Select event type">
+              {Object.entries(EVENT_TYPES)
+                .filter(([key]) => !['incident', 'report', 'corrective_action_created', 'corrective_action_updated'].includes(key))
+                .map(([key, config]) => (
+                  <Option key={key} value={key}>
+                    {config.icon} {config.label}
+                  </Option>
+                ))}
             </Select>
           </Form.Item>
 
           <Form.Item
             name="title"
             label="Title"
-            rules={[{ required: true }]}
+            rules={[{ required: true, message: 'Title is required' }]}
           >
-            <Input placeholder="Event title" />
+            <Input placeholder="Event title" maxLength={200} />
           </Form.Item>
 
-          <Form.Item
-            name="description"
-            label="Description"
-          >
-            <TextArea rows={3} placeholder="Event details..." />
+          <Form.Item name="description" label="Description">
+            <TextArea rows={3} placeholder="Event details..." maxLength={1000} />
           </Form.Item>
 
           <Row gutter={16}>
@@ -293,19 +425,26 @@ const IncidentTimeline = ({
             </Col>
           </Row>
 
-          <Form.Item
-            name="user"
-            label="Performed By"
-          >
-            <Input prefix={<UserOutlined />} placeholder="Name" />
+          <Form.Item name="user" label="Performed By">
+            <Input 
+              prefix={<UserOutlined />} 
+              placeholder={currentUser?.name || 'Current User'}
+            />
           </Form.Item>
 
           <Form.Item>
             <Space>
-              <Button type="primary" htmlType="submit">
+              <Button 
+                type="primary" 
+                htmlType="submit"
+                loading={saving}
+              >
                 Add Event
               </Button>
-              <Button onClick={() => setAddModalVisible(false)}>
+              <Button onClick={() => {
+                setAddModalVisible(false);
+                form.resetFields();
+              }}>
                 Cancel
               </Button>
             </Space>

@@ -1,19 +1,23 @@
 // src/components/incidents/IncidentComments.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Card, List, Avatar, Input, Button, Space, Tag, message,
-  Typography, Divider, Tooltip, Badge, Dropdown, Menu,
+  Typography, Divider, Tooltip, Badge, Dropdown,
   Modal, Form, Select, Alert, Empty, Spin, Popconfirm
 } from 'antd';
 import {
   UserOutlined, SendOutlined, DeleteOutlined, EditOutlined,
-  MoreOutlined, PaperClipOutlined, AtOutlined, LockOutlined,
+  MoreOutlined, PaperClipOutlined,  LockOutlined,
   EyeOutlined, EyeInvisibleOutlined, CommentOutlined,
   TeamOutlined, ClockCircleOutlined, PushpinOutlined,
-  BellOutlined, FileImageOutlined, CloseOutlined
+  BellOutlined, FileImageOutlined, CloseOutlined, ReloadOutlined, AlertOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+
+// ✅ SERVICE IMPORTS
+import notificationService from '../../services/notificationService';
+import { useAuth } from '../../context/AuthContext';
 
 dayjs.extend(relativeTime);
 
@@ -26,7 +30,7 @@ const { Option } = Select;
 const COMMENT_TYPES = {
   comment: { label: 'Comment', color: 'blue', icon: <CommentOutlined /> },
   update: { label: 'Update', color: 'green', icon: <BellOutlined /> },
-  question: { label: 'Question', color: 'orange', icon: <AtOutlined /> },
+  question: { label: 'Question', color: 'orange', icon: <AlertOutlined /> },
   decision: { label: 'Decision', color: 'purple', icon: <PushpinOutlined /> },
   note: { label: 'Internal Note', color: 'default', icon: <LockOutlined /> }
 };
@@ -35,10 +39,14 @@ const COMMENT_TYPES = {
 
 const IncidentComments = ({ 
   incident, 
-  currentUser,
+  currentUser: propUser,
   onAddComment,
   readOnly = false 
 }) => {
+  // ✅ Get current user from context (fallback to prop)
+  const { user: contextUser } = useAuth();
+  const currentUser = propUser || contextUser;
+
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [commentType, setCommentType] = useState('comment');
@@ -48,101 +56,199 @@ const IncidentComments = ({
   const [editingComment, setEditingComment] = useState(null);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editForm] = Form.useForm();
-  const [mentions, setMentions] = useState([]);
 
-  // Load comments from incident
-  useEffect(() => {
-    if (incident) {
+  // ==================== FETCH COMMENTS ====================
+
+  const fetchComments = useCallback(async () => {
+    if (!incident?.id) return;
+
+    setLoading(true);
+    try {
+      const response = await notificationService.getIncidentComments(incident.id);
+
+      const commentsData = 
+        response?.comments || 
+        response?.data?.comments || 
+        (Array.isArray(response) ? response : []) || 
+        [];
+
+      setComments(commentsData);
+    } catch (error) {
+      console.error('Failed to fetch comments:', error);
+      // Fall back to incident data if available
       const savedComments = incident.custom_data?.comments || [];
       setComments(savedComments);
+    } finally {
+      setLoading(false);
     }
-  }, [incident]);
+  }, [incident?.id, incident?.custom_data?.comments]);
 
-  // Handle adding comment
+  useEffect(() => {
+    if (incident?.id) {
+      fetchComments();
+    }
+  }, [incident?.id, fetchComments]);
+
+  // ==================== ADD COMMENT ====================
+
   const handleAddComment = async () => {
     if (!newComment.trim()) {
       message.warning('Please enter a comment');
       return;
     }
 
+    if (!incident?.id) {
+      message.warning('No incident selected');
+      return;
+    }
+
     setSubmitting(true);
     try {
-      const comment = {
-        id: Date.now().toString(),
+      const mentions = extractMentions(newComment);
+
+      const payload = {
         content: newComment.trim(),
-        type: commentType,
-        isInternal,
-        author: {
-          id: currentUser?.id,
-          name: currentUser?.name || currentUser?.email || 'Unknown',
-          avatar: currentUser?.avatar
-        },
-        createdAt: new Date().toISOString(),
-        mentions: extractMentions(newComment)
+        comment_type: commentType,
+        is_internal: isInternal,
+        mentions: mentions
       };
 
-      setComments(prev => [comment, ...prev]);
-      setNewComment('');
-      setMentions([]);
-      
-      if (onAddComment) {
-        onAddComment(comment);
+      const response = await notificationService.addIncidentComment(incident.id, payload);
+      const savedComment = response?.comment || response?.data?.comment || response;
+
+      if (savedComment) {
+        setComments(prev => [savedComment, ...prev]);
+        setNewComment('');
+        setIsInternal(false);
+        
+        if (onAddComment) onAddComment(savedComment);
+        
+        message.success('Comment added');
+      } else {
+        // Optimistic fallback
+        const fallback = {
+          id: Date.now().toString(),
+          content: newComment.trim(),
+          comment_type: commentType,
+          is_internal: isInternal,
+          author: {
+            id: currentUser?.id,
+            name: currentUser?.name || currentUser?.email || 'Unknown',
+            email: currentUser?.email,
+            role: currentUser?.user_type
+          },
+          mentions: mentions,
+          created_at: new Date().toISOString()
+        };
+        setComments(prev => [fallback, ...prev]);
+        setNewComment('');
+        setIsInternal(false);
+        message.success('Comment added');
       }
-      
-      message.success('Comment added');
     } catch (error) {
-      console.error('Error adding comment:', error);
-      message.error('Failed to add comment');
+      console.error('Failed to add comment:', error);
+      message.error(error?.message || 'Failed to add comment');
     } finally {
       setSubmitting(false);
     }
   };
 
-  // Extract @mentions from text
+  // ==================== EDIT COMMENT ====================
+
+  const handleEditComment = async (values) => {
+    if (!editingComment?.id || !incident?.id) return;
+
+    try {
+      const response = await notificationService.updateIncidentComment(
+        incident.id,
+        editingComment.id,
+        { content: values.content }
+      );
+
+      const updated = response?.comment || response?.data?.comment || {
+        ...editingComment,
+        content: values.content,
+        is_edited: true,
+        edited_at: new Date().toISOString()
+      };
+
+      setComments(prev => prev.map(c => 
+        c.id === editingComment.id ? updated : c
+      ));
+
+      setEditModalVisible(false);
+      setEditingComment(null);
+      editForm.resetFields();
+      message.success('Comment updated');
+    } catch (error) {
+      console.error('Failed to update comment:', error);
+      message.error(error?.message || 'Failed to update comment');
+    }
+  };
+
+  // ==================== DELETE COMMENT ====================
+
+  const handleDeleteComment = async (commentId) => {
+    if (!incident?.id) return;
+
+    // Optimistic
+    const previous = [...comments];
+    setComments(prev => prev.filter(c => c.id !== commentId));
+
+    try {
+      await notificationService.deleteIncidentComment(incident.id, commentId);
+      message.success('Comment deleted');
+    } catch (error) {
+      console.error('Failed to delete comment:', error);
+      setComments(previous);
+      message.error('Failed to delete comment');
+    }
+  };
+
+  // ==================== HELPERS ====================
+
   const extractMentions = (text) => {
     const mentionRegex = /@(\w+)/g;
     const matches = text.match(mentionRegex) || [];
     return matches.map(m => m.substring(1));
   };
 
-  // Handle edit comment
-  const handleEditComment = (values) => {
-    setComments(prev => prev.map(c => 
-      c.id === editingComment.id 
-        ? { 
-            ...c, 
-            content: values.content, 
-            editedAt: new Date().toISOString(),
-            edited: true
-          }
-        : c
-    ));
-    setEditModalVisible(false);
-    setEditingComment(null);
-    editForm.resetFields();
-    message.success('Comment updated');
-  };
-
-  // Handle delete comment
-  const handleDeleteComment = (commentId) => {
-    setComments(prev => prev.filter(c => c.id !== commentId));
-    message.success('Comment deleted');
-  };
-
-  // Check if user can edit/delete comment
   const canModifyComment = (comment) => {
-    return comment.author?.id === currentUser?.id;
+    const commentAuthorId = comment.author?.id || comment.author_id;
+    return commentAuthorId === currentUser?.id;
   };
 
-  // Render comment item
+  const renderContentWithMentions = (content) => {
+    if (!content) return null;
+    const parts = content.split(/(@\w+)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('@')) {
+        return (
+          <Tag key={index} color="blue" style={{ margin: '0 2px' }}>
+            {part}
+          </Tag>
+        );
+      }
+      return part;
+    });
+  };
+
+  // ==================== RENDER COMMENT ====================
+
   const renderComment = (comment) => {
-    const typeConfig = COMMENT_TYPES[comment.type] || COMMENT_TYPES.comment;
-    
+    const typeConfig = COMMENT_TYPES[comment.comment_type || comment.type] || COMMENT_TYPES.comment;
+    const authorName = comment.author?.name || comment.author_name || 'Unknown';
+    const authorAvatar = comment.author?.avatar;
+    const createdAt = comment.created_at || comment.createdAt;
+    const isInternal = comment.is_internal || comment.isInternal;
+    const isEdited = comment.is_edited || comment.edited;
+    const mentions = comment.mentions || [];
+
     return (
       <List.Item
         key={comment.id}
         style={{
-          background: comment.isInternal ? '#fffbe6' : 'transparent',
+          background: isInternal ? '#fffbe6' : 'transparent',
           borderRadius: 8,
           padding: 12,
           marginBottom: 8
@@ -151,21 +257,21 @@ const IncidentComments = ({
         <List.Item.Meta
           avatar={
             <Avatar 
-              src={comment.author?.avatar}
+              src={authorAvatar}
               icon={<UserOutlined />}
               style={{ backgroundColor: '#1890ff' }}
             />
           }
           title={
             <Space>
-              <Text strong>{comment.author?.name || 'Unknown'}</Text>
+              <Text strong>{authorName}</Text>
               <Tag color={typeConfig.color} icon={typeConfig.icon}>
                 {typeConfig.label}
               </Tag>
-              {comment.isInternal && (
+              {isInternal && (
                 <Tag color="gold" icon={<LockOutlined />}>Internal</Tag>
               )}
-              {comment.edited && (
+              {isEdited && (
                 <Text type="secondary" style={{ fontSize: 11 }}>(edited)</Text>
               )}
             </Space>
@@ -176,14 +282,14 @@ const IncidentComments = ({
                 {renderContentWithMentions(comment.content)}
               </Paragraph>
               <Space>
-                <Tooltip title={dayjs(comment.createdAt).format('YYYY-MM-DD HH:mm:ss')}>
+                <Tooltip title={dayjs(createdAt).format('YYYY-MM-DD HH:mm:ss')}>
                   <Text type="secondary" style={{ fontSize: 12 }}>
-                    <ClockCircleOutlined /> {dayjs(comment.createdAt).fromNow()}
+                    <ClockCircleOutlined /> {dayjs(createdAt).fromNow()}
                   </Text>
                 </Tooltip>
-                {comment.mentions?.length > 0 && (
+                {mentions.length > 0 && (
                   <Text type="secondary" style={{ fontSize: 12 }}>
-                    <AtOutlined /> {comment.mentions.join(', ')}
+                    <AtOutlined /> {mentions.join(', ')}
                   </Text>
                 )}
               </Space>
@@ -231,20 +337,7 @@ const IncidentComments = ({
     );
   };
 
-  // Render content with highlighted mentions
-  const renderContentWithMentions = (content) => {
-    const parts = content.split(/(@\w+)/g);
-    return parts.map((part, index) => {
-      if (part.startsWith('@')) {
-        return (
-          <Tag key={index} color="blue" style={{ margin: '0 2px' }}>
-            {part}
-          </Tag>
-        );
-      }
-      return part;
-    });
-  };
+  // ==================== MAIN RENDER ====================
 
   return (
     <Card
@@ -256,6 +349,16 @@ const IncidentComments = ({
         </Space>
       }
       size="small"
+      extra={
+        <Tooltip title="Refresh comments">
+          <Button 
+            icon={<ReloadOutlined />} 
+            onClick={fetchComments}
+            loading={loading}
+            size="small"
+          />
+        </Tooltip>
+      }
     >
       {/* Add Comment Section */}
       {!readOnly && (
@@ -317,7 +420,11 @@ const IncidentComments = ({
       <Divider style={{ margin: '12px 0' }} />
 
       {/* Comments List */}
-      {comments.length > 0 ? (
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: 40 }}>
+          <Spin tip="Loading comments..." />
+        </div>
+      ) : comments.length > 0 ? (
         <List
           dataSource={comments}
           renderItem={renderComment}

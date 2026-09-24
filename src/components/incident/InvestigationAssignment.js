@@ -1,21 +1,38 @@
 // src/components/incidents/InvestigationAssignment.js
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Card, Form, Select, Button, Space, message, Avatar, Tag,
   Row, Col, DatePicker, Input, Alert, List, Tooltip, Badge,
   Divider, Modal, Descriptions, Timeline, Empty, Statistic,
-  Progress, Switch, InputNumber, Radio
+  Progress, Switch, InputNumber, Radio, Spin
 } from 'antd';
 import {
   UserOutlined, TeamOutlined, CalendarOutlined, ClockCircleOutlined,
   CheckCircleOutlined, WarningOutlined, PlusOutlined, DeleteOutlined,
   EditOutlined, MailOutlined, PhoneOutlined, SafetyCertificateOutlined,
-  ToolOutlined, FileTextOutlined, BellOutlined
+  ToolOutlined, FileTextOutlined, BellOutlined, ReloadOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+// ✅ SERVICE IMPORTS
+import notificationService from '../../services/notificationService';
+import { useAuth } from '../../context/AuthContext';
+
+dayjs.extend(relativeTime);
 
 const { TextArea } = Input;
 const { Option } = Select;
+
+// ==================== ROLE CONFIG ====================
+
+const ROLE_CONFIG = {
+  lead: { label: 'Lead Investigator', color: 'red', icon: <SafetyCertificateOutlined /> },
+  investigator: { label: 'Investigator', color: 'blue', icon: <UserOutlined /> },
+  witness: { label: 'Witness Coordinator', color: 'orange', icon: <TeamOutlined /> },
+  expert: { label: 'Subject Matter Expert', color: 'purple', icon: <ToolOutlined /> },
+  observer: { label: 'Observer', color: 'default', icon: <UserOutlined /> }
+};
 
 // ==================== INVESTIGATION ASSIGNMENT COMPONENT ====================
 
@@ -25,66 +42,131 @@ const InvestigationAssignment = ({
   onAssign,
   readOnly = false 
 }) => {
+  // ✅ Get current user from context
+  const { user: currentUser } = useAuth();
+
   const [form] = Form.useForm();
   const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState(null);
 
-  // Initialize assignments from incident
-  React.useEffect(() => {
-    if (incident) {
+  // ==================== FETCH TEAM ====================
+
+  const fetchTeam = useCallback(async () => {
+    if (!incident?.id) return;
+
+    setLoading(true);
+    try {
+      const response = await notificationService.getInvestigationTeam(incident.id);
+
+      const members = 
+        response?.members || 
+        response?.team || 
+        response?.data?.members || 
+        (Array.isArray(response) ? response : []) || 
+        [];
+
+      setAssignments(members);
+    } catch (error) {
+      console.error('Failed to fetch investigation team:', error);
+      // Fallback to incident data
       const saved = incident.custom_data?.investigation_team || [];
       setAssignments(saved);
+    } finally {
+      setLoading(false);
     }
-  }, [incident]);
+  }, [incident?.id, incident?.custom_data?.investigation_team]);
 
-  // Handle assignment
-  const handleAssign = (values) => {
-    const assignment = {
-      id: editingAssignment?.id || Date.now().toString(),
-      userId: values.userId,
-      userName: users.find(u => u.id === values.userId)?.name || values.userId,
-      role: values.role,
-      responsibilities: values.responsibilities,
-      assignedAt: new Date().toISOString(),
-      dueDate: values.dueDate?.toISOString(),
-      status: 'active',
-      notifications: values.notifications
-    };
+  useEffect(() => {
+    if (incident?.id) {
+      fetchTeam();
+    }
+  }, [incident?.id, fetchTeam]);
 
-    if (editingAssignment) {
-      setAssignments(prev => prev.map(a => 
-        a.id === editingAssignment.id ? assignment : a
-      ));
-      message.success('Assignment updated');
-    } else {
-      setAssignments(prev => [...prev, assignment]);
-      message.success('Investigator assigned');
+  // ==================== ASSIGN ====================
+
+  const handleAssign = async (values) => {
+    if (!incident?.id) {
+      message.warning('No incident selected');
+      return;
     }
 
-    setModalVisible(false);
-    form.resetFields();
-    setEditingAssignment(null);
+    setSaving(true);
+    try {
+      const payload = {
+        user_id: values.userId,
+        role: values.role,
+        responsibilities: values.responsibilities,
+        due_date: values.dueDate?.toISOString(),
+        notifications: values.notifications
+      };
+
+      const response = await notificationService.addInvestigationTeamMember(
+        incident.id, 
+        payload
+      );
+
+      const savedMember = response?.member || response?.data?.member || response;
+
+      if (savedMember) {
+        setAssignments(prev => [...prev, savedMember]);
+        message.success('Investigator assigned');
+        
+        if (onAssign) onAssign(savedMember);
+      } else {
+        // Optimistic fallback
+        const fallback = {
+          id: Date.now().toString(),
+          user_id: values.userId,
+          user_name: users.find(u => u.id === values.userId)?.name || 'Unknown',
+          user_email: users.find(u => u.id === values.userId)?.email,
+          role: values.role,
+          responsibilities: values.responsibilities,
+          assigned_at: new Date().toISOString(),
+          due_date: values.dueDate?.toISOString(),
+          status: 'active'
+        };
+        setAssignments(prev => [...prev, fallback]);
+        message.success('Investigator assigned');
+      }
+
+      setModalVisible(false);
+      form.resetFields();
+      setEditingAssignment(null);
+    } catch (error) {
+      console.error('Failed to assign investigator:', error);
+      message.error(error?.message || 'Failed to assign investigator');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  // Handle remove
-  const handleRemove = (assignmentId) => {
+  // ==================== REMOVE ====================
+
+  const handleRemove = async (assignmentId) => {
+    if (!incident?.id) return;
+
+    // Optimistic
+    const previous = [...assignments];
     setAssignments(prev => prev.filter(a => a.id !== assignmentId));
-    message.success('Assignment removed');
+
+    try {
+      await notificationService.removeInvestigationTeamMember(incident.id, assignmentId);
+      message.success('Assignment removed');
+    } catch (error) {
+      console.error('Failed to remove:', error);
+      setAssignments(previous);
+      message.error('Failed to remove assignment');
+    }
   };
 
-  // Get role configuration
-  const getRoleConfig = (role) => {
-    const roles = {
-      lead: { label: 'Lead Investigator', color: 'red', icon: <SafetyCertificateOutlined /> },
-      investigator: { label: 'Investigator', color: 'blue', icon: <UserOutlined /> },
-      witness: { label: 'Witness Coordinator', color: 'orange', icon: <TeamOutlined /> },
-      expert: { label: 'Subject Matter Expert', color: 'purple', icon: <ToolOutlined /> },
-      observer: { label: 'Observer', color: 'default', icon: <UserOutlined /> }
-    };
-    return roles[role] || roles.investigator;
-  };
+  // ==================== HELPERS ====================
+
+  const getRoleConfig = (role) => ROLE_CONFIG[role] || ROLE_CONFIG.investigator;
+
+  // ==================== RENDER ====================
 
   return (
     <Card
@@ -96,51 +178,57 @@ const InvestigationAssignment = ({
         </Space>
       }
       extra={
-        !readOnly && (
-          <Button 
-            type="primary" 
-            size="small"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              setEditingAssignment(null);
-              form.resetFields();
-              setModalVisible(true);
-            }}
-          >
-            Assign Investigator
-          </Button>
-        )
+        <Space>
+          <Tooltip title="Refresh">
+            <Button 
+              icon={<ReloadOutlined />} 
+              onClick={fetchTeam}
+              loading={loading}
+              size="small"
+            />
+          </Tooltip>
+          {!readOnly && (
+            <Button 
+              type="primary" 
+              size="small"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                setEditingAssignment(null);
+                form.resetFields();
+                form.setFieldsValue({
+                  role: 'investigator',
+                  notifications: true
+                });
+                setModalVisible(true);
+              }}
+            >
+              Assign Investigator
+            </Button>
+          )}
+        </Space>
       }
       size="small"
     >
-      {assignments.length > 0 ? (
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: 40 }}>
+          <Spin tip="Loading team..." />
+        </div>
+      ) : assignments.length > 0 ? (
         <List
           dataSource={assignments}
           renderItem={(assignment) => {
             const roleConfig = getRoleConfig(assignment.role);
-            const isOverdue = assignment.dueDate && 
-              dayjs(assignment.dueDate).isBefore(dayjs()) && 
+            const dueDate = assignment.due_date || assignment.dueDate;
+            const assignedAt = assignment.assigned_at || assignment.assignedAt;
+            const userName = assignment.user_name || assignment.userName;
+            const isOverdue = dueDate && 
+              dayjs(dueDate).isBefore(dayjs()) && 
               assignment.status === 'active';
 
             return (
               <List.Item
                 actions={!readOnly ? [
-                  <Tooltip title="Edit">
-                    <Button 
-                      type="link" 
-                      size="small" 
-                      icon={<EditOutlined />}
-                      onClick={() => {
-                        setEditingAssignment(assignment);
-                        form.setFieldsValue({
-                          ...assignment,
-                          dueDate: assignment.dueDate ? dayjs(assignment.dueDate) : null
-                        });
-                        setModalVisible(true);
-                      }}
-                    />
-                  </Tooltip>,
-                  <Tooltip title="Remove">
+                  <Tooltip title="Remove" key="remove">
                     <Button 
                       type="link" 
                       size="small" 
@@ -154,13 +242,13 @@ const InvestigationAssignment = ({
                 <List.Item.Meta
                   avatar={
                     <Avatar 
-                      style={{ backgroundColor: roleConfig.color }}
+                      style={{ backgroundColor: roleConfig.color === 'default' ? '#8c8c8c' : undefined }}
                       icon={roleConfig.icon}
                     />
                   }
                   title={
                     <Space>
-                      <Text strong>{assignment.userName}</Text>
+                      <Text strong>{userName}</Text>
                       <Tag color={roleConfig.color}>
                         {roleConfig.icon} {roleConfig.label}
                       </Tag>
@@ -175,10 +263,12 @@ const InvestigationAssignment = ({
                         <Text type="secondary">{assignment.responsibilities}</Text>
                       )}
                       <Space size="large">
-                        <Text type="secondary" style={{ fontSize: 12 }}>
-                          <ClockCircleOutlined /> Assigned {dayjs(assignment.assignedAt).fromNow()}
-                        </Text>
-                        {assignment.dueDate && (
+                        {assignedAt && (
+                          <Text type="secondary" style={{ fontSize: 12 }}>
+                            <ClockCircleOutlined /> Assigned {dayjs(assignedAt).fromNow()}
+                          </Text>
+                        )}
+                        {dueDate && (
                           <Text 
                             type="secondary" 
                             style={{ 
@@ -186,7 +276,7 @@ const InvestigationAssignment = ({
                               color: isOverdue ? '#f5222d' : undefined
                             }}
                           >
-                            <CalendarOutlined /> Due {dayjs(assignment.dueDate).format('MMM DD, YYYY')}
+                            <CalendarOutlined /> Due {dayjs(dueDate).format('MMM DD, YYYY')}
                           </Text>
                         )}
                       </Space>
@@ -209,6 +299,7 @@ const InvestigationAssignment = ({
               onClick={() => {
                 setEditingAssignment(null);
                 form.resetFields();
+                form.setFieldsValue({ role: 'investigator', notifications: true });
                 setModalVisible(true);
               }}
             >
@@ -265,21 +356,13 @@ const InvestigationAssignment = ({
             rules={[{ required: true }]}
           >
             <Select>
-              <Option value="lead">
-                <Tag color="red" icon={<SafetyCertificateOutlined />}>Lead Investigator</Tag>
-              </Option>
-              <Option value="investigator">
-                <Tag color="blue" icon={<UserOutlined />}>Investigator</Tag>
-              </Option>
-              <Option value="witness">
-                <Tag color="orange" icon={<TeamOutlined />}>Witness Coordinator</Tag>
-              </Option>
-              <Option value="expert">
-                <Tag color="purple" icon={<ToolOutlined />}>Subject Matter Expert</Tag>
-              </Option>
-              <Option value="observer">
-                <Tag icon={<UserOutlined />}>Observer</Tag>
-              </Option>
+              {Object.entries(ROLE_CONFIG).map(([key, config]) => (
+                <Option key={key} value={key}>
+                  <Tag color={config.color} icon={config.icon}>
+                    {config.label}
+                  </Tag>
+                </Option>
+              ))}
             </Select>
           </Form.Item>
 
@@ -290,6 +373,8 @@ const InvestigationAssignment = ({
             <TextArea 
               rows={2} 
               placeholder="Specific responsibilities for this investigation..."
+              maxLength={500}
+              showCount
             />
           </Form.Item>
 
@@ -315,7 +400,11 @@ const InvestigationAssignment = ({
 
           <Form.Item>
             <Space>
-              <Button type="primary" htmlType="submit">
+              <Button 
+                type="primary" 
+                htmlType="submit"
+                loading={saving}
+              >
                 {editingAssignment ? 'Update Assignment' : 'Assign'}
               </Button>
               <Button onClick={() => {

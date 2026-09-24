@@ -1,10 +1,10 @@
 // src/components/incidents/CorrectiveActionTracker.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Card, Table, Button, Tag, Space, Modal, Form, Input, Select,
   DatePicker, Row, Col, message, Progress, Tooltip, Badge,
   Statistic, Alert, Divider, Timeline, Avatar, List, Empty,
-  Popconfirm, Drawer, Descriptions, InputNumber, Switch
+  Popconfirm, Drawer, Descriptions, InputNumber, Switch, Spin
 } from 'antd';
 import {
   PlusOutlined, CheckCircleOutlined, ClockCircleOutlined,
@@ -12,9 +12,13 @@ import {
   CalendarOutlined, PaperClipOutlined, CommentOutlined,
   SafetyCertificateOutlined, ToolOutlined, TeamOutlined,
   ExclamationCircleOutlined, SyncOutlined, StopOutlined,
-  EyeOutlined, FileTextOutlined
+  EyeOutlined, FileTextOutlined, ReloadOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
+
+// ✅ SERVICE IMPORTS
+import notificationService from '../../services/notificationService';
+import { useAuth } from '../../context/AuthContext';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -30,7 +34,7 @@ const ACTION_TYPES = {
 
 const ACTION_STATUS = {
   pending: { label: 'Pending', color: 'default', icon: <ClockCircleOutlined /> },
-  in_progress: { label: 'In Progress', color: 'processing', icon: <SyncOutlined spin /> },
+  in_progress: { label: 'In Progress', color: 'processing', icon: <SyncOutlined /> },
   completed: { label: 'Completed', color: 'success', icon: <CheckCircleOutlined /> },
   verified: { label: 'Verified', color: 'green', icon: <SafetyCertificateOutlined /> },
   overdue: { label: 'Overdue', color: 'error', icon: <WarningOutlined /> },
@@ -52,87 +56,192 @@ const CorrectiveActionTracker = ({
   onClose,
   readOnly = false 
 }) => {
+  // ✅ Get current user
+  const { user: currentUser } = useAuth();
+
   const [actions, setActions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingAction, setEditingAction] = useState(null);
   const [form] = Form.useForm();
-  const [viewMode, setViewMode] = useState('table');
   const [filterStatus, setFilterStatus] = useState('all');
 
-  // Load actions from incident data
-  useEffect(() => {
-    if (incident) {
+  // ==================== FETCH ACTIONS FROM API ====================
+
+  const fetchActions = useCallback(async () => {
+    if (!incident?.id) return;
+
+    setLoading(true);
+    try {
+      const response = await notificationService.getCorrectiveActions(incident.id);
+      
+      const actionsData = 
+        response?.actions || 
+        response?.data?.actions || 
+        (Array.isArray(response) ? response : []) || 
+        [];
+
+      setActions(actionsData);
+    } catch (error) {
+      console.error('Failed to fetch corrective actions:', error);
+      // Fall back to incident data if available
       const savedActions = incident.custom_data?.corrective_actions || [];
       setActions(savedActions);
+    } finally {
+      setLoading(false);
     }
-  }, [incident]);
+  }, [incident?.id, incident?.custom_data?.corrective_actions]);
 
-  // Calculate statistics
+  useEffect(() => {
+    if (incident?.id && visible) {
+      fetchActions();
+    }
+  }, [incident?.id, visible, fetchActions]);
+
+  // ==================== STATS ====================
+
   const stats = {
     total: actions.length,
     completed: actions.filter(a => a.status === 'completed' || a.status === 'verified').length,
     inProgress: actions.filter(a => a.status === 'in_progress').length,
-    pending: actions.filter(a => a.status === 'pending').length,
-    overdue: actions.filter(a => a.dueDate && dayjs(a.dueDate).isBefore(dayjs()) && 
-      !['completed', 'verified', 'cancelled'].includes(a.status)).length
+    pending: actions.filter(a => a.status === 'pending' || a.status === 'open').length,
+    overdue: actions.filter(a => 
+      a.due_date && 
+      dayjs(a.due_date).isBefore(dayjs()) && 
+      !['completed', 'verified', 'cancelled'].includes(a.status)
+    ).length
   };
 
   const completionRate = stats.total > 0 
-    ? Math.round(((stats.completed) / stats.total) * 100) 
+    ? Math.round((stats.completed / stats.total) * 100) 
     : 0;
 
-  // Handle add/edit action
-  const handleSaveAction = (values) => {
-    const actionData = {
-      id: editingAction?.id || Date.now().toString(),
-      ...values,
-      dueDate: values.dueDate?.toISOString(),
-      createdAt: editingAction?.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+  // ==================== SAVE ACTION ====================
 
-    if (editingAction) {
-      setActions(prev => prev.map(a => a.id === editingAction.id ? actionData : a));
-      message.success('Action updated');
-    } else {
-      setActions(prev => [...prev, actionData]);
-      message.success('Action added');
+  const handleSaveAction = async (values) => {
+    if (!incident?.id) {
+      message.warning('No incident selected');
+      return;
     }
 
-    setModalVisible(false);
-    form.resetFields();
-    setEditingAction(null);
+    setSaving(true);
+    try {
+      // ✅ Map form fields to backend field names (matches your existing model)
+      const payload = {
+        title: values.description?.substring(0, 200) || 'Corrective Action',
+        description: values.description,
+        action_type: values.type || 'corrective',
+        priority: values.priority || 'medium',
+        status: values.status || 'open',  // ← Your model uses 'open', not 'pending'
+        assigned_to: values.assigned_to || currentUser?.id,
+        due_date: values.dueDate?.toISOString(),
+        estimated_cost: values.estimatedCost,
+        notes: values.notes,
+        department_id: values.department_id || incident.department_id
+      };
+
+      let response;
+      if (editingAction) {
+        // ✅ Update existing
+        response = await notificationService.updateCorrectiveAction(
+          editingAction.id, 
+          payload
+        );
+      } else {
+        // ✅ Create new
+        response = await notificationService.createCorrectiveAction(
+          incident.id, 
+          payload
+        );
+      }
+
+      const savedAction = response?.action || response?.data?.action || response;
+
+      if (savedAction) {
+        if (editingAction) {
+          setActions(prev => prev.map(a => 
+            a.id === editingAction.id ? { ...a, ...savedAction } : a
+          ));
+          message.success('Action updated');
+        } else {
+          setActions(prev => [...prev, savedAction]);
+          message.success('Action added');
+        }
+      } else {
+        // Optimistic fallback
+        const fallbackAction = {
+          id: editingAction?.id || Date.now().toString(),
+          action_number: `CA-${Date.now()}`,
+          ...payload,
+          due_date: values.dueDate?.toISOString(),
+          created_at: editingAction?.created_at || new Date().toISOString()
+        };
+
+        if (editingAction) {
+          setActions(prev => prev.map(a => 
+            a.id === editingAction.id ? fallbackAction : a
+          ));
+        } else {
+          setActions(prev => [...prev, fallbackAction]);
+        }
+        message.success(editingAction ? 'Action updated' : 'Action added');
+      }
+
+      setModalVisible(false);
+      form.resetFields();
+      setEditingAction(null);
+    } catch (error) {
+      console.error('Failed to save action:', error);
+      message.error(error?.message || 'Failed to save corrective action');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  // Handle delete
-  const handleDelete = (actionId) => {
-    setActions(prev => prev.filter(a => a.id !== actionId));
-    message.success('Action deleted');
+  // ==================== DELETE ACTION ====================
+
+  const handleDelete = async (actionId) => {
+    try {
+      await notificationService.deleteCorrectiveAction(actionId);
+      setActions(prev => prev.filter(a => a.id !== actionId));
+      message.success('Action deleted');
+    } catch (error) {
+      console.error('Delete failed:', error);
+      message.error('Failed to delete action');
+    }
   };
 
-  // Handle status change
-  const handleStatusChange = (actionId, newStatus) => {
+  // ==================== UPDATE STATUS ====================
+
+  const handleStatusChange = async (actionId, newStatus) => {
+    // Optimistic update
+    const oldActions = [...actions];
     setActions(prev => prev.map(a => 
       a.id === actionId 
-        ? { ...a, status: newStatus, updatedAt: new Date().toISOString() }
+        ? { ...a, status: newStatus, updated_at: new Date().toISOString() }
         : a
     ));
-    message.success(`Status updated to ${ACTION_STATUS[newStatus]?.label}`);
+
+    try {
+      await notificationService.updateCorrectiveActionStatus(actionId, newStatus);
+      message.success(`Status updated to ${ACTION_STATUS[newStatus]?.label || newStatus}`);
+    } catch (error) {
+      console.error('Status update failed:', error);
+      // Revert
+      setActions(oldActions);
+      message.error('Failed to update status');
+    }
   };
 
-  // Save all actions to incident
-  const handleSaveAll = () => {
-    // This would call your API to save
-    message.success('Corrective actions saved');
-  };
+  // ==================== FILTERED ACTIONS ====================
 
-  // Get filtered actions
   const filteredActions = filterStatus === 'all' 
     ? actions 
     : actions.filter(a => a.status === filterStatus);
 
-  // Table columns
+  // ==================== TABLE COLUMNS ====================
+
   const columns = [
     {
       title: 'Action',
@@ -141,12 +250,17 @@ const CorrectiveActionTracker = ({
       render: (text, record) => (
         <Space direction="vertical" size={0}>
           <Space>
-            <Tag color={ACTION_TYPES[record.type]?.color}>
-              {ACTION_TYPES[record.type]?.icon} {ACTION_TYPES[record.type]?.label}
+            <Tag color={ACTION_TYPES[record.action_type]?.color}>
+              {ACTION_TYPES[record.action_type]?.icon} {ACTION_TYPES[record.action_type]?.label}
             </Tag>
             <Tag color={PRIORITY_LEVELS[record.priority]?.color}>
               {PRIORITY_LEVELS[record.priority]?.label}
             </Tag>
+            {record.action_number && (
+              <Text type="secondary" style={{ fontSize: 11 }}>
+                {record.action_number}
+              </Text>
+            )}
           </Space>
           <span>{text}</span>
         </Space>
@@ -154,19 +268,19 @@ const CorrectiveActionTracker = ({
     },
     {
       title: 'Assigned To',
-      dataIndex: 'assignedTo',
-      key: 'assignedTo',
-      render: (text) => text ? (
+      dataIndex: 'assigned_to_name',
+      key: 'assigned_to_name',
+      render: (text, record) => (text || record.assignee?.name) ? (
         <Space>
           <Avatar size="small" icon={<UserOutlined />} />
-          {text}
+          {text || record.assignee?.name}
         </Space>
       ) : <Tag>Unassigned</Tag>
     },
     {
       title: 'Due Date',
-      dataIndex: 'dueDate',
-      key: 'dueDate',
+      dataIndex: 'due_date',
+      key: 'due_date',
       render: (date, record) => {
         if (!date) return 'N/A';
         const isOverdue = dayjs(date).isBefore(dayjs()) && 
@@ -181,7 +295,7 @@ const CorrectiveActionTracker = ({
           </Space>
         );
       },
-      sorter: (a, b) => dayjs(a.dueDate).unix() - dayjs(b.dueDate).unix()
+      sorter: (a, b) => dayjs(a.due_date).unix() - dayjs(b.due_date).unix()
     },
     {
       title: 'Status',
@@ -192,7 +306,7 @@ const CorrectiveActionTracker = ({
           value={status}
           onChange={(value) => handleStatusChange(record.id, value)}
           size="small"
-          style={{ width: 130 }}
+          style={{ width: 140 }}
           disabled={readOnly}
         >
           {Object.entries(ACTION_STATUS).map(([key, config]) => (
@@ -213,6 +327,7 @@ const CorrectiveActionTracker = ({
       key: 'progress',
       render: (_, record) => {
         const progressMap = {
+          open: 0,
           pending: 0,
           in_progress: 50,
           completed: 100,
@@ -222,7 +337,7 @@ const CorrectiveActionTracker = ({
         };
         return (
           <Progress 
-            percent={progressMap[record.status] || 0} 
+            percent={record.progress_percentage || progressMap[record.status] || 0} 
             size="small" 
             status={record.status === 'overdue' ? 'exception' : 
               record.status === 'completed' || record.status === 'verified' ? 'success' : 'active'}
@@ -232,10 +347,10 @@ const CorrectiveActionTracker = ({
     },
     {
       title: 'Actions',
-      key: 'actions',
+      key: 'rowActions',
       render: (_, record) => (
         <Space>
-          <Tooltip title="View Details">
+          <Tooltip title="View/Edit">
             <Button 
               type="link" 
               size="small" 
@@ -243,47 +358,38 @@ const CorrectiveActionTracker = ({
               onClick={() => {
                 setEditingAction(record);
                 form.setFieldsValue({
-                  ...record,
-                  dueDate: record.dueDate ? dayjs(record.dueDate) : null
+                  description: record.description || record.title,
+                  type: record.action_type,
+                  priority: record.priority,
+                  status: record.status,
+                  assigned_to: record.assigned_to,
+                  dueDate: record.due_date ? dayjs(record.due_date) : null,
+                  estimatedCost: record.estimated_cost,
+                  notes: record.notes
                 });
                 setModalVisible(true);
               }}
             />
           </Tooltip>
           {!readOnly && (
-            <>
-              <Tooltip title="Edit">
-                <Button 
-                  type="link" 
-                  size="small" 
-                  icon={<EditOutlined />}
-                  onClick={() => {
-                    setEditingAction(record);
-                    form.setFieldsValue({
-                      ...record,
-                      dueDate: record.dueDate ? dayjs(record.dueDate) : null
-                    });
-                    setModalVisible(true);
-                  }}
-                />
-              </Tooltip>
-              <Popconfirm
-                title="Delete this action?"
-                onConfirm={() => handleDelete(record.id)}
-              >
-                <Button 
-                  type="link" 
-                  size="small" 
-                  danger 
-                  icon={<DeleteOutlined />}
-                />
-              </Popconfirm>
-            </>
+            <Popconfirm
+              title="Delete this action?"
+              onConfirm={() => handleDelete(record.id)}
+            >
+              <Button 
+                type="link" 
+                size="small" 
+                danger 
+                icon={<DeleteOutlined />}
+              />
+            </Popconfirm>
           )}
         </Space>
       )
     }
   ];
+
+  // ==================== RENDER ====================
 
   return (
     <Drawer
@@ -303,6 +409,14 @@ const CorrectiveActionTracker = ({
       onClose={onClose}
       extra={
         <Space>
+          <Tooltip title="Refresh">
+            <Button 
+              icon={<ReloadOutlined />} 
+              onClick={fetchActions}
+              loading={loading}
+              size="small"
+            />
+          </Tooltip>
           <Select 
             value={filterStatus} 
             onChange={setFilterStatus}
@@ -321,6 +435,12 @@ const CorrectiveActionTracker = ({
               onClick={() => {
                 setEditingAction(null);
                 form.resetFields();
+                form.setFieldsValue({
+                  type: 'corrective',
+                  priority: 'medium',
+                  status: 'open',
+                  dueDate: dayjs().add(7, 'day')
+                });
                 setModalVisible(true);
               }}
             >
@@ -330,128 +450,143 @@ const CorrectiveActionTracker = ({
         </Space>
       }
     >
-      {/* Statistics */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col span={6}>
-          <Card size="small">
-            <Statistic 
-              title="Total Actions" 
-              value={stats.total}
-              prefix={<ToolOutlined />}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card size="small">
-            <Statistic 
-              title="Completed" 
-              value={stats.completed}
-              prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card size="small">
-            <Statistic 
-              title="In Progress" 
-              value={stats.inProgress}
-              prefix={<SyncOutlined />}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card size="small">
-            <Statistic 
-              title="Overdue" 
-              value={stats.overdue}
-              prefix={<WarningOutlined />}
-              valueStyle={{ color: '#f5222d' }}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      {/* Progress Overview */}
-      <Card size="small" style={{ marginBottom: 16 }}>
-        <Row gutter={16} align="middle">
-          <Col span={4}>
-            <Text strong>Overall Progress</Text>
-          </Col>
-          <Col span={16}>
-            <Progress 
-              percent={completionRate} 
-              status={completionRate === 100 ? 'success' : 'active'}
-              strokeColor={{
-                '0%': '#108ee9',
-                '100%': '#87d068',
-              }}
-            />
-          </Col>
-          <Col span={4}>
-            <Text>{stats.completed}/{stats.total} completed</Text>
-          </Col>
-        </Row>
-      </Card>
-
-      {/* Alert for overdue actions */}
-      {stats.overdue > 0 && (
-        <Alert
-          message={`${stats.overdue} Overdue Action${stats.overdue > 1 ? 's' : ''}`}
-          description="Some corrective actions are past their due date. Please review and update."
-          type="warning"
-          showIcon
-          style={{ marginBottom: 16 }}
-          action={
-            <Button 
-              size="small" 
-              type="primary" 
-              danger
-              onClick={() => setFilterStatus('overdue')}
-            >
-              View Overdue
-            </Button>
-          }
-        />
-      )}
-
-      {/* Actions Table */}
-      {filteredActions.length > 0 ? (
-        <Table
-          columns={columns}
-          dataSource={filteredActions}
-          rowKey="id"
-          pagination={{ pageSize: 10 }}
-          size="small"
-          rowClassName={(record) => {
-            const isOverdue = record.dueDate && dayjs(record.dueDate).isBefore(dayjs()) && 
-              !['completed', 'verified', 'cancelled'].includes(record.status);
-            return isOverdue ? 'overdue-row' : '';
-          }}
-        />
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: 60 }}>
+          <Spin size="large" tip="Loading corrective actions..." />
+        </div>
       ) : (
-        <Empty 
-          description="No corrective actions yet"
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-        >
-          {!readOnly && (
-            <Button 
-              type="primary" 
-              icon={<PlusOutlined />}
-              onClick={() => {
-                setEditingAction(null);
-                form.resetFields();
-                setModalVisible(true);
-              }}
-            >
-              Add First Action
-            </Button>
+        <>
+          {/* Statistics */}
+          <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+            <Col span={6}>
+              <Card size="small">
+                <Statistic 
+                  title="Total Actions" 
+                  value={stats.total}
+                  prefix={<ToolOutlined />}
+                />
+              </Card>
+            </Col>
+            <Col span={6}>
+              <Card size="small">
+                <Statistic 
+                  title="Completed" 
+                  value={stats.completed}
+                  prefix={<CheckCircleOutlined />}
+                  valueStyle={{ color: '#52c41a' }}
+                />
+              </Card>
+            </Col>
+            <Col span={6}>
+              <Card size="small">
+                <Statistic 
+                  title="In Progress" 
+                  value={stats.inProgress}
+                  prefix={<SyncOutlined />}
+                  valueStyle={{ color: '#1890ff' }}
+                />
+              </Card>
+            </Col>
+            <Col span={6}>
+              <Card size="small">
+                <Statistic 
+                  title="Overdue" 
+                  value={stats.overdue}
+                  prefix={<WarningOutlined />}
+                  valueStyle={{ color: '#f5222d' }}
+                />
+              </Card>
+            </Col>
+          </Row>
+
+          {/* Progress Overview */}
+          <Card size="small" style={{ marginBottom: 16 }}>
+            <Row gutter={16} align="middle">
+              <Col span={4}>
+                <Text strong>Overall Progress</Text>
+              </Col>
+              <Col span={16}>
+                <Progress 
+                  percent={completionRate} 
+                  status={completionRate === 100 ? 'success' : 'active'}
+                  strokeColor={{
+                    '0%': '#108ee9',
+                    '100%': '#87d068',
+                  }}
+                />
+              </Col>
+              <Col span={4}>
+                <Text>{stats.completed}/{stats.total} completed</Text>
+              </Col>
+            </Row>
+          </Card>
+
+          {/* Overdue Alert */}
+          {stats.overdue > 0 && (
+            <Alert
+              message={`${stats.overdue} Overdue Action${stats.overdue > 1 ? 's' : ''}`}
+              description="Some corrective actions are past their due date. Please review and update."
+              type="warning"
+              showIcon
+              style={{ marginBottom: 16 }}
+              action={
+                <Button 
+                  size="small" 
+                  type="primary" 
+                  danger
+                  onClick={() => setFilterStatus('overdue')}
+                >
+                  View Overdue
+                </Button>
+              }
+            />
           )}
-        </Empty>
+
+          {/* Table */}
+          {filteredActions.length > 0 ? (
+            <Table
+              columns={columns}
+              dataSource={filteredActions}
+              rowKey="id"
+              pagination={{ pageSize: 10 }}
+              size="small"
+              rowClassName={(record) => {
+                const isOverdue = record.due_date && 
+                  dayjs(record.due_date).isBefore(dayjs()) && 
+                  !['completed', 'verified', 'cancelled'].includes(record.status);
+                return isOverdue ? 'overdue-row' : '';
+              }}
+            />
+          ) : (
+            <Empty 
+              description="No corrective actions yet"
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+            >
+              {!readOnly && (
+                <Button 
+                  type="primary" 
+                  icon={<PlusOutlined />}
+                  onClick={() => {
+                    setEditingAction(null);
+                    form.resetFields();
+                    form.setFieldsValue({
+                      type: 'corrective',
+                      priority: 'medium',
+                      status: 'open',
+                      dueDate: dayjs().add(7, 'day')
+                    });
+                    setModalVisible(true);
+                  }}
+                >
+                  Add First Action
+                </Button>
+              )}
+            </Empty>
+          )}
+        </>
       )}
 
-      {/* Add/Edit Action Modal */}
+      {/* Add/Edit Modal */}
       <Modal
         title={editingAction ? 'Edit Corrective Action' : 'Add Corrective Action'}
         open={modalVisible}
@@ -470,7 +605,7 @@ const CorrectiveActionTracker = ({
           initialValues={{
             type: 'corrective',
             priority: 'medium',
-            status: 'pending'
+            status: 'open'
           }}
         >
           <Form.Item
@@ -481,6 +616,8 @@ const CorrectiveActionTracker = ({
             <TextArea 
               rows={3} 
               placeholder="Describe the corrective action to be taken..."
+              maxLength={5000}
+              showCount
             />
           </Form.Item>
 
@@ -520,12 +657,14 @@ const CorrectiveActionTracker = ({
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                name="assignedTo"
-                label="Assigned To"
+                name="assigned_to"
+                label="Assigned To (User ID)"
+                extra="Optional — leave blank to assign to yourself"
               >
-                <Input 
-                  prefix={<UserOutlined />} 
-                  placeholder="Person responsible"
+                <InputNumber 
+                  style={{ width: '100%' }}
+                  placeholder="User ID"
+                  prefix={<UserOutlined />}
                 />
               </Form.Item>
             </Col>
@@ -533,6 +672,7 @@ const CorrectiveActionTracker = ({
               <Form.Item
                 name="dueDate"
                 label="Due Date"
+                rules={[{ required: true, message: 'Due date is required' }]}
               >
                 <DatePicker style={{ width: '100%' }} />
               </Form.Item>
@@ -541,10 +681,7 @@ const CorrectiveActionTracker = ({
 
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item
-                name="status"
-                label="Status"
-              >
+              <Form.Item name="status" label="Status">
                 <Select>
                   {Object.entries(ACTION_STATUS).map(([key, config]) => (
                     <Option key={key} value={key}>
@@ -555,29 +692,28 @@ const CorrectiveActionTracker = ({
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item
-                name="estimatedCost"
-                label="Estimated Cost"
-              >
+              <Form.Item name="estimatedCost" label="Estimated Cost">
                 <InputNumber 
                   style={{ width: '100%' }} 
                   prefix="$"
                   placeholder="0.00"
+                  min={0}
                 />
               </Form.Item>
             </Col>
           </Row>
 
-          <Form.Item
-            name="notes"
-            label="Notes"
-          >
-            <TextArea rows={2} placeholder="Additional notes..." />
+          <Form.Item name="notes" label="Notes">
+            <TextArea rows={2} placeholder="Additional notes..." maxLength={1000} />
           </Form.Item>
 
           <Form.Item>
             <Space>
-              <Button type="primary" htmlType="submit">
+              <Button 
+                type="primary" 
+                htmlType="submit"
+                loading={saving}
+              >
                 {editingAction ? 'Update Action' : 'Add Action'}
               </Button>
               <Button onClick={() => {

@@ -1,19 +1,26 @@
 // src/components/incidents/WitnessStatementForm.js
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Card, Form, Input, Button, Space, message, Row, Col, Select,
   DatePicker, TimePicker, Tag, Divider, Alert, List, Avatar,
   Modal, Descriptions, Tooltip, Badge, Empty, Upload, Radio,
-  Checkbox, InputNumber, Steps, Result, Typography
+  Checkbox, InputNumber, Steps, Result, Typography, Spin
 } from 'antd';
 import {
   UserOutlined, PlusOutlined, DeleteOutlined, EditOutlined,
   FileTextOutlined, PaperClipOutlined, CheckCircleOutlined,
   ClockCircleOutlined, EnvironmentOutlined, PhoneOutlined,
   MailOutlined, SafetyCertificateOutlined, SignatureOutlined,
-  FileImageOutlined, InboxOutlined, EyeOutlined
+  FileImageOutlined, InboxOutlined, EyeOutlined, ReloadOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+// ✅ SERVICE IMPORTS
+import notificationService from '../../services/notificationService';
+import { useAuth } from '../../context/AuthContext';
+
+dayjs.extend(relativeTime);
 
 const { TextArea } = Input;
 const { Text, Paragraph } = Typography;
@@ -27,6 +34,9 @@ const WitnessStatementForm = ({
   onSave,
   readOnly = false 
 }) => {
+  // ✅ Get user from auth context
+  const { user: currentUser } = useAuth();
+
   const [statements, setStatements] = useState([]);
   const [form] = Form.useForm();
   const [modalVisible, setModalVisible] = useState(false);
@@ -34,58 +44,157 @@ const WitnessStatementForm = ({
   const [selectedStatement, setSelectedStatement] = useState(null);
   const [viewModalVisible, setViewModalVisible] = useState(false);
   const [fileList, setFileList] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  // Load statements from incident
-  React.useEffect(() => {
-    if (incident) {
+  // ==================== FETCH STATEMENTS ====================
+
+  const fetchStatements = useCallback(async () => {
+    if (!incident?.id) return;
+
+    setLoading(true);
+    try {
+      const response = await notificationService.getWitnessStatements(incident.id);
+
+      const data = 
+        response?.statements || 
+        response?.data?.statements || 
+        (Array.isArray(response) ? response : []) || 
+        [];
+
+      setStatements(data);
+    } catch (error) {
+      console.error('Failed to fetch witness statements:', error);
+      // Fallback to incident data
       const saved = incident.custom_data?.witness_statements || [];
       setStatements(saved);
+    } finally {
+      setLoading(false);
     }
-  }, [incident]);
+  }, [incident?.id, incident?.custom_data?.witness_statements]);
 
-  // Handle save statement
-  const handleSaveStatement = (values) => {
-    const statement = {
-      id: editingStatement?.id || Date.now().toString(),
-      ...values,
-      dateOfStatement: values.dateOfStatement?.toISOString(),
-      timeOfStatement: values.timeOfStatement?.format('HH:mm'),
-      createdAt: editingStatement?.createdAt || new Date().toISOString(),
-      attachments: fileList.map(f => ({
-        name: f.name,
-        size: f.size,
-        type: f.type,
-        url: f.url || URL.createObjectURL(f)
-      }))
-    };
+  useEffect(() => {
+    if (incident?.id) {
+      fetchStatements();
+    }
+  }, [incident?.id, fetchStatements]);
 
-    if (editingStatement) {
-      setStatements(prev => prev.map(s => 
-        s.id === editingStatement.id ? statement : s
-      ));
-      message.success('Statement updated');
-    } else {
-      setStatements(prev => [...prev, statement]);
-      message.success('Statement recorded');
+  // ==================== SAVE STATEMENT ====================
+
+  const handleSaveStatement = async (values) => {
+    if (!incident?.id) {
+      message.warning('No incident selected');
+      return;
     }
 
-    setModalVisible(false);
-    form.resetFields();
-    setEditingStatement(null);
-    setFileList([]);
+    setSaving(true);
+    try {
+      // ✅ Map frontend form fields to backend expected names
+      const payload = {
+        witness_name: values.witnessName,
+        witness_type: values.witnessType,
+        witness_email: values.email,
+        witness_phone: values.contactNumber,
+        witness_department: values.department,
+        statement_text: values.statementText,
+        witness_location: values.witnessLocation,
+        date_of_statement: values.dateOfStatement?.toISOString(),
+        time_of_statement: values.timeOfStatement?.format('HH:mm'),
+        statement_taken_by: values.statementTakenBy,
+        witness_acknowledged: values.witnessSignature || false,
+        additional_notes: values.additionalNotes,
+        attachments: fileList.map(f => ({
+          name: f.name,
+          size: f.size,
+          type: f.type,
+          url: f.url || ''
+        }))
+      };
+
+      let response;
+      if (editingStatement) {
+        response = await notificationService.updateWitnessStatement(
+          editingStatement.id,
+          payload
+        );
+      } else {
+        response = await notificationService.createWitnessStatement(
+          incident.id,
+          payload
+        );
+      }
+
+      const saved = response?.statement || response?.data?.statement || response;
+
+      if (saved) {
+        if (editingStatement) {
+          setStatements(prev => prev.map(s => 
+            s.id === editingStatement.id ? { ...s, ...saved } : s
+          ));
+          message.success('Statement updated');
+        } else {
+          setStatements(prev => [saved, ...prev]);
+          message.success('Statement recorded');
+          if (onSave) onSave(saved);
+        }
+      } else {
+        // Optimistic fallback
+        const fallback = {
+          id: editingStatement?.id || Date.now().toString(),
+          statement_number: `WS-${Date.now()}`,
+          ...payload,
+          created_at: editingStatement?.created_at || new Date().toISOString(),
+          recorded_by_name: currentUser?.name || currentUser?.email
+        };
+
+        if (editingStatement) {
+          setStatements(prev => prev.map(s => 
+            s.id === editingStatement.id ? fallback : s
+          ));
+          message.success('Statement updated');
+        } else {
+          setStatements(prev => [fallback, ...prev]);
+          message.success('Statement recorded');
+        }
+      }
+
+      setModalVisible(false);
+      form.resetFields();
+      setEditingStatement(null);
+      setFileList([]);
+    } catch (error) {
+      console.error('Failed to save statement:', error);
+      message.error(error?.message || 'Failed to save witness statement');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  // Handle delete
-  const handleDelete = (statementId) => {
+  // ==================== DELETE ====================
+
+  const handleDelete = async (statementId) => {
+    // Optimistic
+    const previous = [...statements];
     setStatements(prev => prev.filter(s => s.id !== statementId));
-    message.success('Statement deleted');
+
+    try {
+      await notificationService.deleteWitnessStatement(statementId);
+      message.success('Statement deleted');
+    } catch (error) {
+      console.error('Delete failed:', error);
+      setStatements(previous);
+      message.error('Failed to delete statement');
+    }
   };
 
-  // View statement details
+  // ==================== VIEW ====================
+
   const handleViewStatement = (statement) => {
     setSelectedStatement(statement);
     setViewModalVisible(true);
   };
+
+  // ==================== RENDER ====================
 
   return (
     <Card
@@ -97,21 +206,37 @@ const WitnessStatementForm = ({
         </Space>
       }
       extra={
-        !readOnly && (
-          <Button 
-            type="primary" 
-            size="small"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              setEditingStatement(null);
-              form.resetFields();
-              setFileList([]);
-              setModalVisible(true);
-            }}
-          >
-            Add Statement
-          </Button>
-        )
+        <Space>
+          <Tooltip title="Refresh">
+            <Button 
+              icon={<ReloadOutlined />} 
+              onClick={fetchStatements}
+              loading={loading}
+              size="small"
+            />
+          </Tooltip>
+          {!readOnly && (
+            <Button 
+              type="primary" 
+              size="small"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                setEditingStatement(null);
+                form.resetFields();
+                form.setFieldsValue({
+                  witnessType: 'eyewitness',
+                  dateOfStatement: dayjs(),
+                  timeOfStatement: dayjs(),
+                  statementTakenBy: currentUser?.name || ''
+                });
+                setFileList([]);
+                setModalVisible(true);
+              }}
+            >
+              Add Statement
+            </Button>
+          )}
+        </Space>
       }
       size="small"
     >
@@ -123,90 +248,117 @@ const WitnessStatementForm = ({
         style={{ marginBottom: 16 }}
       />
 
-      {statements.length > 0 ? (
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: 40 }}>
+          <Spin tip="Loading statements..." />
+        </div>
+      ) : statements.length > 0 ? (
         <List
           dataSource={statements}
-          renderItem={(statement) => (
-            <List.Item
-              actions={[
-                <Tooltip title="View">
-                  <Button 
-                    type="link" 
-                    size="small" 
-                    icon={<EyeOutlined />}
-                    onClick={() => handleViewStatement(statement)}
-                  />
-                </Tooltip>,
-                ...(!readOnly ? [
-                  <Tooltip title="Edit">
+          renderItem={(statement) => {
+            // Handle both field naming conventions
+            const witnessName = statement.witness_name || statement.witnessName;
+            const witnessType = statement.witness_type || statement.witnessType;
+            const statementText = statement.statement_text || statement.statementText;
+            const createdAt = statement.created_at || statement.createdAt;
+            const contactNumber = statement.witness_phone || statement.contactNumber;
+            const attachments = statement.attachments || [];
+
+            return (
+              <List.Item
+                actions={[
+                  <Tooltip title="View" key="view">
                     <Button 
                       type="link" 
                       size="small" 
-                      icon={<EditOutlined />}
-                      onClick={() => {
-                        setEditingStatement(statement);
-                        form.setFieldsValue({
-                          ...statement,
-                          dateOfStatement: statement.dateOfStatement ? dayjs(statement.dateOfStatement) : null,
-                          timeOfStatement: statement.timeOfStatement ? dayjs(statement.timeOfStatement, 'HH:mm') : null
-                        });
-                        setModalVisible(true);
-                      }}
+                      icon={<EyeOutlined />}
+                      onClick={() => handleViewStatement(statement)}
                     />
                   </Tooltip>,
-                  <Tooltip title="Delete">
-                    <Button 
-                      type="link" 
-                      size="small" 
-                      danger
-                      icon={<DeleteOutlined />}
-                      onClick={() => handleDelete(statement.id)}
+                  ...(!readOnly ? [
+                    <Tooltip title="Edit" key="edit">
+                      <Button 
+                        type="link" 
+                        size="small" 
+                        icon={<EditOutlined />}
+                        onClick={() => {
+                          setEditingStatement(statement);
+                          form.setFieldsValue({
+                            witnessName: witnessName,
+                            witnessType: witnessType,
+                            email: statement.witness_email || statement.email,
+                            contactNumber: contactNumber,
+                            department: statement.witness_department || statement.department,
+                            statementText: statementText,
+                            witnessLocation: statement.witness_location || statement.witnessLocation,
+                            dateOfStatement: statement.date_of_statement 
+                              ? dayjs(statement.date_of_statement) 
+                              : null,
+                            timeOfStatement: statement.time_of_statement 
+                              ? dayjs(statement.time_of_statement, 'HH:mm') 
+                              : null,
+                            statementTakenBy: statement.statement_taken_by || statement.statementTakenBy,
+                            witnessSignature: statement.witness_acknowledged || statement.witnessSignature,
+                            additionalNotes: statement.additional_notes || statement.additionalNotes
+                          });
+                          setModalVisible(true);
+                        }}
+                      />
+                    </Tooltip>,
+                    <Tooltip title="Delete" key="delete">
+                      <Button 
+                        type="link" 
+                        size="small" 
+                        danger
+                        icon={<DeleteOutlined />}
+                        onClick={() => handleDelete(statement.id)}
+                      />
+                    </Tooltip>
+                  ] : [])
+                ]}
+              >
+                <List.Item.Meta
+                  avatar={
+                    <Avatar 
+                      icon={<UserOutlined />} 
+                      style={{ backgroundColor: '#1890ff' }}
                     />
-                  </Tooltip>
-                ] : [])
-              ]}
-            >
-              <List.Item.Meta
-                avatar={
-                  <Avatar 
-                    icon={<UserOutlined />} 
-                    style={{ backgroundColor: '#1890ff' }}
-                  />
-                }
-                title={
-                  <Space>
-                    <Text strong>{statement.witnessName}</Text>
-                    <Tag color="blue">{statement.witnessType}</Tag>
-                    {statement.attachments?.length > 0 && (
-                      <Tag icon={<PaperClipOutlined />}>
-                        {statement.attachments.length} files
-                      </Tag>
-                    )}
-                  </Space>
-                }
-                description={
-                  <Space direction="vertical" size={2}>
-                    <Paragraph 
-                      ellipsis={{ rows: 2, expandable: false }} 
-                      style={{ margin: 0 }}
-                    >
-                      {statement.statementText}
-                    </Paragraph>
-                    <Space size="large">
-                      <Text type="secondary" style={{ fontSize: 12 }}>
-                        <ClockCircleOutlined /> {dayjs(statement.createdAt).fromNow()}
-                      </Text>
-                      {statement.contactNumber && (
-                        <Text type="secondary" style={{ fontSize: 12 }}>
-                          <PhoneOutlined /> {statement.contactNumber}
-                        </Text>
+                  }
+                  title={
+                    <Space>
+                      <Text strong>{witnessName}</Text>
+                      <Tag color="blue">{witnessType}</Tag>
+                      {attachments.length > 0 && (
+                        <Tag icon={<PaperClipOutlined />}>
+                          {attachments.length} files
+                        </Tag>
                       )}
                     </Space>
-                  </Space>
-                }
-              />
-            </List.Item>
-          )}
+                  }
+                  description={
+                    <Space direction="vertical" size={2}>
+                      <Paragraph 
+                        ellipsis={{ rows: 2, expandable: false }} 
+                        style={{ margin: 0 }}
+                      >
+                        {statementText}
+                      </Paragraph>
+                      <Space size="large">
+                        <Text type="secondary" style={{ fontSize: 12 }}>
+                          <ClockCircleOutlined /> {dayjs(createdAt).fromNow()}
+                        </Text>
+                        {contactNumber && (
+                          <Text type="secondary" style={{ fontSize: 12 }}>
+                            <PhoneOutlined /> {contactNumber}
+                          </Text>
+                        )}
+                      </Space>
+                    </Space>
+                  }
+                />
+              </List.Item>
+            );
+          }}
         />
       ) : (
         <Empty 
@@ -220,6 +372,12 @@ const WitnessStatementForm = ({
               onClick={() => {
                 setEditingStatement(null);
                 form.resetFields();
+                form.setFieldsValue({
+                  witnessType: 'eyewitness',
+                  dateOfStatement: dayjs(),
+                  timeOfStatement: dayjs(),
+                  statementTakenBy: currentUser?.name || ''
+                });
                 setFileList([]);
                 setModalVisible(true);
               }}
@@ -249,7 +407,7 @@ const WitnessStatementForm = ({
           onFinish={handleSaveStatement}
           initialValues={{
             witnessType: 'eyewitness',
-            statementTakenBy: 'investigator'
+            statementTakenBy: currentUser?.name || 'investigator'
           }}
         >
           <Divider orientation="left">Witness Information</Divider>
@@ -313,10 +471,7 @@ const WitnessStatementForm = ({
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item
-                name="timeOfStatement"
-                label="Time of Statement"
-              >
+              <Form.Item name="timeOfStatement" label="Time of Statement">
                 <TimePicker style={{ width: '100%' }} format="HH:mm" />
               </Form.Item>
             </Col>
@@ -331,6 +486,8 @@ const WitnessStatementForm = ({
             <TextArea 
               rows={6} 
               placeholder="What did the witness see, hear, or experience?"
+              maxLength={10000}
+              showCount
             />
           </Form.Item>
 
@@ -346,10 +503,7 @@ const WitnessStatementForm = ({
 
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item
-                name="statementTakenBy"
-                label="Statement Taken By"
-              >
+              <Form.Item name="statementTakenBy" label="Statement Taken By">
                 <Input placeholder="Investigator name" />
               </Form.Item>
             </Col>
@@ -391,7 +545,11 @@ const WitnessStatementForm = ({
 
           <Form.Item>
             <Space>
-              <Button type="primary" htmlType="submit">
+              <Button 
+                type="primary" 
+                htmlType="submit"
+                loading={saving}
+              >
                 {editingStatement ? 'Update Statement' : 'Save Statement'}
               </Button>
               <Button onClick={() => {
@@ -419,7 +577,7 @@ const WitnessStatementForm = ({
           <Button key="close" onClick={() => setViewModalVisible(false)}>
             Close
           </Button>,
-          <Button key="print" icon={<FileTextOutlined />}>
+          <Button key="print" icon={<FileTextOutlined />} onClick={() => window.print()}>
             Print
           </Button>
         ]}
@@ -429,25 +587,29 @@ const WitnessStatementForm = ({
           <div>
             <Descriptions bordered column={2} size="small">
               <Descriptions.Item label="Witness Name" span={2}>
-                <Text strong>{selectedStatement.witnessName}</Text>
+                <Text strong>
+                  {selectedStatement.witness_name || selectedStatement.witnessName}
+                </Text>
               </Descriptions.Item>
               <Descriptions.Item label="Type">
-                <Tag color="blue">{selectedStatement.witnessType}</Tag>
+                <Tag color="blue">
+                  {selectedStatement.witness_type || selectedStatement.witnessType}
+                </Tag>
               </Descriptions.Item>
               <Descriptions.Item label="Department">
-                {selectedStatement.department || 'N/A'}
+                {selectedStatement.witness_department || selectedStatement.department || 'N/A'}
               </Descriptions.Item>
               <Descriptions.Item label="Contact">
-                {selectedStatement.contactNumber || 'N/A'}
+                {selectedStatement.witness_phone || selectedStatement.contactNumber || 'N/A'}
               </Descriptions.Item>
               <Descriptions.Item label="Email">
-                {selectedStatement.email || 'N/A'}
+                {selectedStatement.witness_email || selectedStatement.email || 'N/A'}
               </Descriptions.Item>
               <Descriptions.Item label="Date" span={2}>
-                {selectedStatement.dateOfStatement 
-                  ? dayjs(selectedStatement.dateOfStatement).format('MMMM DD, YYYY')
-                  : 'N/A'}
-                {selectedStatement.timeOfStatement && ` at ${selectedStatement.timeOfStatement}`}
+                {dayjs(selectedStatement.date_of_statement || selectedStatement.dateOfStatement)
+                  .format('MMMM DD, YYYY')}
+                {(selectedStatement.time_of_statement || selectedStatement.timeOfStatement) && 
+                  ` at ${selectedStatement.time_of_statement || selectedStatement.timeOfStatement}`}
               </Descriptions.Item>
             </Descriptions>
 
@@ -458,13 +620,15 @@ const WitnessStatementForm = ({
               borderRadius: 8,
               whiteSpace: 'pre-wrap'
             }}>
-              {selectedStatement.statementText}
+              {selectedStatement.statement_text || selectedStatement.statementText}
             </Paragraph>
 
-            {selectedStatement.witnessLocation && (
+            {(selectedStatement.witness_location || selectedStatement.witnessLocation) && (
               <>
                 <Divider orientation="left">Witness Location</Divider>
-                <Text>{selectedStatement.witnessLocation}</Text>
+                <Text>
+                  {selectedStatement.witness_location || selectedStatement.witnessLocation}
+                </Text>
               </>
             )}
 
@@ -477,7 +641,13 @@ const WitnessStatementForm = ({
                   renderItem={(file) => (
                     <List.Item
                       actions={[
-                        <Button type="link" size="small" icon={<EyeOutlined />}>
+                        <Button 
+                          type="link" 
+                          size="small" 
+                          icon={<EyeOutlined />}
+                          onClick={() => file.url && window.open(file.url, '_blank')}
+                          key="view"
+                        >
                           View
                         </Button>
                       ]}
@@ -492,7 +662,7 @@ const WitnessStatementForm = ({
               </>
             )}
 
-            {selectedStatement.witnessSignature && (
+            {(selectedStatement.witness_acknowledged || selectedStatement.witnessSignature) && (
               <Alert
                 message="Witness Acknowledgment"
                 description="Witness has confirmed this statement is accurate."

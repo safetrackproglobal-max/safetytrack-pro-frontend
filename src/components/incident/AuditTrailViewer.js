@@ -1,5 +1,5 @@
 // src/components/incidents/AuditTrailViewer.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Card, Timeline, Tag, Space, Button, Select, DatePicker, Input,
   Row, Col, message, Empty, Avatar, Tooltip, Badge, Typography,
@@ -15,6 +15,9 @@ import {
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+
+// ✅ SERVICE IMPORT
+import notificationService from '../../services/notificationService';
 
 dayjs.extend(relativeTime);
 
@@ -32,12 +35,23 @@ const AUDIT_ACTIONS = {
   status_changed: { label: 'Status Changed', color: 'purple', icon: <CheckCircleOutlined /> },
   assigned: { label: 'Assigned', color: 'cyan', icon: <UserOutlined /> },
   commented: { label: 'Commented', color: 'geekblue', icon: <CommentOutlined /> },
+  comment_added: { label: 'Comment Added', color: 'geekblue', icon: <CommentOutlined /> },
   file_uploaded: { label: 'File Uploaded', color: 'orange', icon: <PaperClipOutlined /> },
   notification_sent: { label: 'Notification Sent', color: 'gold', icon: <BellOutlined /> },
   exported: { label: 'Exported', color: 'magenta', icon: <DownloadOutlined /> },
   login: { label: 'Login', color: 'default', icon: <LoginOutlined /> },
   logout: { label: 'Logout', color: 'default', icon: <LogoutOutlined /> },
-  settings_changed: { label: 'Settings Changed', color: 'orange', icon: <SettingOutlined /> }
+  settings_changed: { label: 'Settings Changed', color: 'orange', icon: <SettingOutlined /> },
+  fishbone_updated: { label: 'Fishbone Updated', color: 'purple', icon: <EditOutlined /> },
+  corrective_action_created: { label: 'Corrective Action Created', color: 'green', icon: <PlusOutlined /> },
+  corrective_action_updated: { label: 'Corrective Action Updated', color: 'blue', icon: <EditOutlined /> },
+  corrective_action_deleted: { label: 'Corrective Action Deleted', color: 'red', icon: <DeleteOutlined /> },
+  witness_statement_added: { label: 'Witness Statement Added', color: 'cyan', icon: <FileTextOutlined /> },
+  witness_statement_updated: { label: 'Witness Statement Updated', color: 'blue', icon: <EditOutlined /> },
+  witness_statement_deleted: { label: 'Witness Statement Deleted', color: 'red', icon: <DeleteOutlined /> },
+  team_member_added: { label: 'Team Member Added', color: 'blue', icon: <UserOutlined /> },
+  team_member_removed: { label: 'Team Member Removed', color: 'red', icon: <UserOutlined /> },
+  escalated: { label: 'Escalated', color: 'red', icon: <WarningOutlined /> }
 };
 
 // ==================== AUDIT TRAIL VIEWER COMPONENT ====================
@@ -56,99 +70,69 @@ const AuditTrailViewer = ({
   const [searchText, setSearchText] = useState('');
   const [selectedLog, setSelectedLog] = useState(null);
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
-  const [viewMode, setViewMode] = useState('timeline');
 
-  // Load audit logs
-  useEffect(() => {
-    if (incident) {
-      setLoading(true);
-      // In real implementation, fetch from API
-      const incidentLogs = auditLogs.filter(log => log.incidentId === incident.id);
+  // ==================== FETCH AUDIT LOGS ====================
+
+  const fetchAuditLogs = useCallback(async () => {
+    if (!incident?.id || !visible) return;
+
+    setLoading(true);
+    try {
+      // Build filters for API
+      const filters = {};
+      if (filterAction !== 'all') filters.action = filterAction;
+      if (filterUser !== 'all') filters.user_id = filterUser;
+      if (dateRange && dateRange.length === 2) {
+        filters.start_date = dateRange[0].toISOString();
+        filters.end_date = dateRange[1].toISOString();
+      }
+
+      const response = await notificationService.getAuditTrail(incident.id, filters);
+
+      const logsData = 
+        response?.audit_logs || 
+        response?.logs || 
+        response?.data?.audit_logs || 
+        (Array.isArray(response) ? response : []) || 
+        [];
+
+      setLogs(logsData);
+    } catch (error) {
+      console.error('Failed to fetch audit trail:', error);
       
-      // Add mock data if no logs
-      const mockLogs = incidentLogs.length > 0 ? incidentLogs : generateMockLogs(incident);
-      setLogs(mockLogs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
+      // Fall back to prop-supplied logs
+      const incidentLogs = auditLogs.filter(log => 
+        log.incidentId === incident.id || log.incident_id === incident.id
+      );
+      setLogs(incidentLogs);
+    } finally {
       setLoading(false);
     }
-  }, [incident, auditLogs]);
+  }, [incident?.id, visible, filterAction, filterUser, dateRange, auditLogs]);
 
-  // Generate mock logs for demonstration
-  const generateMockLogs = (incident) => {
-    const mockLogs = [
-      {
-        id: '1',
-        incidentId: incident.id,
-        action: 'created',
-        user: { id: '1', name: incident.reported_by_name || 'Reporter', email: 'reporter@example.com' },
-        timestamp: incident.created_at || new Date().toISOString(),
-        details: {
-          description: 'Incident report created',
-          fields: { title: incident.title, severity: incident.severity }
-        }
-      },
-      {
-        id: '2',
-        incidentId: incident.id,
-        action: 'status_changed',
-        user: { id: '2', name: 'Manager', email: 'manager@example.com' },
-        timestamp: dayjs(incident.created_at).add(1, 'hour').toISOString(),
-        details: {
-          description: 'Status changed from Draft to Reported',
-          oldValue: 'draft',
-          newValue: 'reported'
-        }
-      },
-      {
-        id: '3',
-        incidentId: incident.id,
-        action: 'assigned',
-        user: { id: '2', name: 'Manager', email: 'manager@example.com' },
-        timestamp: dayjs(incident.created_at).add(2, 'hours').toISOString(),
-        details: {
-          description: 'Assigned to investigator',
-          assignedTo: 'John Investigator'
-        }
-      },
-      {
-        id: '4',
-        incidentId: incident.id,
-        action: 'commented',
-        user: { id: '3', name: 'Investigator', email: 'investigator@example.com' },
-        timestamp: dayjs(incident.created_at).add(3, 'hours').toISOString(),
-        details: {
-          description: 'Added comment',
-          comment: 'Initial investigation started. Reviewing witness statements.'
-        }
-      },
-      {
-        id: '5',
-        incidentId: incident.id,
-        action: 'file_uploaded',
-        user: { id: '3', name: 'Investigator', email: 'investigator@example.com' },
-        timestamp: dayjs(incident.created_at).add(4, 'hours').toISOString(),
-        details: {
-          description: 'Uploaded evidence file',
-          fileName: 'incident_photo_001.jpg',
-          fileSize: '2.4 MB'
-        }
-      }
-    ];
+  useEffect(() => {
+    if (visible && incident?.id) {
+      fetchAuditLogs();
+    }
+  }, [visible, incident?.id, fetchAuditLogs]);
 
-    return mockLogs;
-  };
+  // ==================== FILTERS ====================
 
-  // Filter logs
   const filteredLogs = logs.filter(log => {
-    if (filterAction !== 'all' && log.action !== filterAction) return false;
-    if (filterUser !== 'all' && log.user?.id !== filterUser) return false;
+    // If filters already applied on server, these client filters act as a second layer
+    if (filterAction !== 'all' && (log.action !== filterAction)) return false;
+    if (filterUser !== 'all' && (log.user_id !== filterUser && log.user?.id !== filterUser)) return false;
+    
     if (dateRange && dateRange.length === 2) {
-      const logDate = dayjs(log.timestamp);
+      const logDate = dayjs(log.created_at || log.timestamp);
       if (logDate.isBefore(dateRange[0]) || logDate.isAfter(dateRange[1])) return false;
     }
+    
     if (searchText) {
       const searchLower = searchText.toLowerCase();
       return (
-        log.details?.description?.toLowerCase().includes(searchLower) ||
+        log.description?.toLowerCase().includes(searchLower) ||
+        log.user_name?.toLowerCase().includes(searchLower) ||
         log.user?.name?.toLowerCase().includes(searchLower) ||
         log.action?.toLowerCase().includes(searchLower)
       );
@@ -157,20 +141,52 @@ const AuditTrailViewer = ({
   });
 
   // Get unique users for filter
-  const uniqueUsers = [...new Map(logs.map(log => [log.user?.id, log.user])).values()].filter(Boolean);
+  const uniqueUsers = [...new Map(
+    logs.map(log => [
+      log.user_id || log.user?.id, 
+      {
+        id: log.user_id || log.user?.id,
+        name: log.user_name || log.user?.name || 'System',
+        email: log.user_email || log.user?.email
+      }
+    ])
+  ).values()].filter(u => u.id);
 
-  // Export audit trail
-  const handleExport = () => {
+  // ==================== EXPORT ====================
+
+  const handleExport = async () => {
+    if (!incident?.id) return;
+
+    try {
+      // Try server-side export first
+      const blob = await notificationService.exportAuditTrail(incident.id, 'csv');
+      
+      if (blob) {
+        const url = URL.createObjectURL(new Blob([blob], { type: 'text/csv' }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `audit-trail-${incident.incident_number || 'incident'}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        message.success('Audit trail exported');
+        return;
+      }
+    } catch (error) {
+      console.warn('Server export failed, falling back to client-side export:', error);
+    }
+
+    // Fallback to client-side export
     const csvData = filteredLogs.map(log => ({
-      'Timestamp': dayjs(log.timestamp).format('YYYY-MM-DD HH:mm:ss'),
+      'Timestamp': dayjs(log.created_at || log.timestamp).format('YYYY-MM-DD HH:mm:ss'),
       'Action': log.action,
-      'User': log.user?.name,
-      'Email': log.user?.email,
-      'Description': log.details?.description
+      'User': log.user_name || log.user?.name,
+      'Email': log.user_email || log.user?.email,
+      'Description': log.description
     }));
 
-    // Convert to CSV and download
-    const headers = Object.keys(csvData[0] || {});
+    const headers = Object.keys(csvData[0] || { Timestamp: '', Action: '', User: '', Email: '', Description: '' });
     const csvContent = [
       headers.join(','),
       ...csvData.map(row => headers.map(h => `"${row[h] || ''}"`).join(','))
@@ -181,15 +197,27 @@ const AuditTrailViewer = ({
     const link = document.createElement('a');
     link.href = url;
     link.download = `audit-trail-${incident?.incident_number || 'incident'}.csv`;
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
     URL.revokeObjectURL(url);
     message.success('Audit trail exported');
   };
 
-  // Render timeline item
+  // ==================== RENDER TIMELINE ITEM ====================
+
   const renderTimelineItem = (log) => {
     const actionConfig = AUDIT_ACTIONS[log.action] || AUDIT_ACTIONS.viewed;
+    const timestamp = log.created_at || log.timestamp;
+    const userName = log.user_name || log.user?.name || 'System';
+    const userEmail = log.user_email || log.user?.email;
+    const description = log.description;
     
+    // Extract change info
+    const oldValues = log.old_values || {};
+    const newValues = log.new_values || {};
+    const hasChanges = Object.keys(oldValues).length > 0;
+
     return (
       <Timeline.Item
         key={log.id}
@@ -219,22 +247,26 @@ const AuditTrailViewer = ({
                   <Tag color={actionConfig.color} icon={actionConfig.icon}>
                     {actionConfig.label}
                   </Tag>
-                  <Text strong>{log.user?.name || 'System'}</Text>
+                  <Text strong>{userName}</Text>
+                  {userEmail && <Text type="secondary">({userEmail})</Text>}
                 </Space>
-                <Text>{log.details?.description}</Text>
-                {log.details?.oldValue && log.details?.newValue && (
-                  <Space>
-                    <Tag color="red">{log.details.oldValue}</Tag>
-                    <span>→</span>
-                    <Tag color="green">{log.details.newValue}</Tag>
+                {description && <Text>{description}</Text>}
+                
+                {hasChanges && (
+                  <Space wrap>
+                    {Object.entries(newValues).slice(0, 3).map(([key, value]) => (
+                      <Tag key={key} color="blue">
+                        {key}: {String(value).substring(0, 30)}
+                      </Tag>
+                    ))}
                   </Space>
                 )}
               </Space>
             </Col>
             <Col>
-              <Tooltip title={dayjs(log.timestamp).format('YYYY-MM-DD HH:mm:ss')}>
+              <Tooltip title={dayjs(timestamp).format('YYYY-MM-DD HH:mm:ss')}>
                 <Text type="secondary" style={{ fontSize: 12 }}>
-                  <ClockCircleOutlined /> {dayjs(log.timestamp).fromNow()}
+                  <ClockCircleOutlined /> {dayjs(timestamp).fromNow()}
                 </Text>
               </Tooltip>
             </Col>
@@ -243,6 +275,8 @@ const AuditTrailViewer = ({
       </Timeline.Item>
     );
   };
+
+  // ==================== MAIN RENDER ====================
 
   return (
     <Drawer
@@ -266,7 +300,11 @@ const AuditTrailViewer = ({
             <Button icon={<DownloadOutlined />} onClick={handleExport} />
           </Tooltip>
           <Tooltip title="Refresh">
-            <Button icon={<ReloadOutlined />} onClick={() => setLoading(true)} />
+            <Button 
+              icon={<ReloadOutlined />} 
+              onClick={fetchAuditLogs}
+              loading={loading}
+            />
           </Tooltip>
         </Space>
       }
@@ -295,6 +333,7 @@ const AuditTrailViewer = ({
               onChange={setFilterUser}
               style={{ width: '100%' }}
               placeholder="Filter by user"
+              allowClear
             >
               <Option value="all">All Users</Option>
               {uniqueUsers.map(user => (
@@ -342,7 +381,10 @@ const AuditTrailViewer = ({
           <Card size="small">
             <Text type="secondary">Last Activity</Text>
             <div style={{ fontSize: 14 }}>
-              {logs[0] ? dayjs(logs[0].timestamp).fromNow() : 'N/A'}
+              {logs[0] 
+                ? dayjs(logs[0].created_at || logs[0].timestamp).fromNow() 
+                : 'N/A'
+              }
             </div>
           </Card>
         </Col>
@@ -357,7 +399,7 @@ const AuditTrailViewer = ({
       {/* Timeline */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: 40 }}>
-          <Spin size="large" />
+          <Spin size="large" tip="Loading audit trail..." />
         </div>
       ) : filteredLogs.length > 0 ? (
         <Timeline mode="left">
@@ -388,7 +430,7 @@ const AuditTrailViewer = ({
             Close
           </Button>
         ]}
-        width={600}
+        width={700}
       >
         {selectedLog && (
           <div>
@@ -404,54 +446,83 @@ const AuditTrailViewer = ({
               <Descriptions.Item label="User">
                 <Space>
                   <Avatar size="small" icon={<UserOutlined />} />
-                  {selectedLog.user?.name}
-                  <Text type="secondary">({selectedLog.user?.email})</Text>
+                  {selectedLog.user_name || selectedLog.user?.name || 'System'}
+                  {(selectedLog.user_email || selectedLog.user?.email) && (
+                    <Text type="secondary">
+                      ({selectedLog.user_email || selectedLog.user?.email})
+                    </Text>
+                  )}
                 </Space>
               </Descriptions.Item>
+              {selectedLog.user_role && (
+                <Descriptions.Item label="Role">
+                  <Tag>{selectedLog.user_role}</Tag>
+                </Descriptions.Item>
+              )}
               <Descriptions.Item label="Timestamp">
-                {dayjs(selectedLog.timestamp).format('YYYY-MM-DD HH:mm:ss')}
+                {dayjs(selectedLog.created_at || selectedLog.timestamp)
+                  .format('YYYY-MM-DD HH:mm:ss')}
               </Descriptions.Item>
-              <Descriptions.Item label="Description">
-                {selectedLog.details?.description}
-              </Descriptions.Item>
-              {selectedLog.details?.oldValue && (
-                <Descriptions.Item label="Change">
-                  <Space>
-                    <Tag color="red">{selectedLog.details.oldValue}</Tag>
-                    <span>→</span>
-                    <Tag color="green">{selectedLog.details.newValue}</Tag>
-                  </Space>
+              {selectedLog.description && (
+                <Descriptions.Item label="Description">
+                  {selectedLog.description}
                 </Descriptions.Item>
               )}
-              {selectedLog.details?.comment && (
-                <Descriptions.Item label="Comment">
-                  <Paragraph>{selectedLog.details.comment}</Paragraph>
-                </Descriptions.Item>
-              )}
-              {selectedLog.details?.fileName && (
-                <Descriptions.Item label="File">
-                  <Space>
-                    <PaperClipOutlined />
-                    {selectedLog.details.fileName}
-                    {selectedLog.details.fileSize && (
-                      <Text type="secondary">({selectedLog.details.fileSize})</Text>
-                    )}
-                  </Space>
+              {selectedLog.ip_address && (
+                <Descriptions.Item label="IP Address">
+                  <Text code>{selectedLog.ip_address}</Text>
                 </Descriptions.Item>
               )}
             </Descriptions>
 
-            {selectedLog.details?.fields && (
+            {/* Changes */}
+            {selectedLog.old_values && Object.keys(selectedLog.old_values).length > 0 && (
               <>
-                <Divider orientation="left">Changed Fields</Divider>
+                <Divider orientation="left">Changes</Divider>
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Text strong>Before:</Text>
+                    <pre style={{ 
+                      background: '#fff1f0', 
+                      padding: 12, 
+                      borderRadius: 4,
+                      fontSize: 12,
+                      overflow: 'auto',
+                      maxHeight: 300
+                    }}>
+                      {JSON.stringify(selectedLog.old_values, null, 2)}
+                    </pre>
+                  </Col>
+                  <Col span={12}>
+                    <Text strong>After:</Text>
+                    <pre style={{ 
+                      background: '#f6ffed', 
+                      padding: 12, 
+                      borderRadius: 4,
+                      fontSize: 12,
+                      overflow: 'auto',
+                      maxHeight: 300
+                    }}>
+                      {JSON.stringify(selectedLog.new_values, null, 2)}
+                    </pre>
+                  </Col>
+                </Row>
+              </>
+            )}
+
+            {/* Extra data */}
+            {selectedLog.extra_data && Object.keys(selectedLog.extra_data).length > 0 && (
+              <>
+                <Divider orientation="left">Additional Data</Divider>
                 <pre style={{ 
                   background: '#f5f5f5', 
                   padding: 12, 
                   borderRadius: 4,
                   fontSize: 12,
-                  overflow: 'auto'
+                  overflow: 'auto',
+                  maxHeight: 300
                 }}>
-                  {JSON.stringify(selectedLog.details.fields, null, 2)}
+                  {JSON.stringify(selectedLog.extra_data, null, 2)}
                 </pre>
               </>
             )}
