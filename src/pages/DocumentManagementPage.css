@@ -1,8 +1,8 @@
 /* src/pages/DocumentManagementPage.css */
-/* Full-page Document Management — Improved Readability + Responsive + Dark Mode */
+/* Full-page Document Management — Clean, deterministic layout */
 
 /* ============================================================
-   CSS VARIABLES — Light Mode
+   CSS VARIABLES
    ============================================================ */
 .document-management-page {
   --dm-bg-primary: #ffffff;
@@ -10,21 +10,13 @@
   --dm-bg-tertiary: #fafafa;
   --dm-bg-hover: #f0f8ff;
   --dm-bg-selected: #e6f7ff;
-  
   --dm-text-primary: #1f1f1f;
   --dm-text-secondary: #434343;
   --dm-text-tertiary: #8c8c8c;
-  
   --dm-border: #f0f0f0;
   --dm-primary: #1890ff;
-  
-  min-height: 100vh;
-  background: var(--dm-bg-secondary);
 }
 
-/* ============================================================
-   DARK MODE VARIABLES
-   ============================================================ */
 @media (prefers-color-scheme: dark) {
   .document-management-page {
     --dm-bg-primary: #1f1f1f;
@@ -32,85 +24,63 @@
     --dm-bg-tertiary: #262626;
     --dm-bg-hover: #111a2c;
     --dm-bg-selected: #111a2c;
-    
     --dm-text-primary: #e6e6e6;
     --dm-text-secondary: #b0b0b0;
     --dm-text-tertiary: #8c8c8c;
-    
     --dm-border: #303030;
     --dm-primary: #69c0ff;
-  }
-  
-  .document-management-page {
-    background: var(--dm-bg-secondary);
   }
 }
 
 /* ============================================================
-   CUSTOM HEADER — Prevent Title Wrap
+   ROOT LAYOUT — outer Layout wrapper
+   ============================================================ */
+.docmgmt-outer-layout {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 100vh;
+  background: var(--dm-bg-secondary);
+}
+
+/* ============================================================
+   HEADER — fixed top bar
    ============================================================ */
 .docmgmt-header {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  height: 64px;
+  padding: 0 24px;
   background: var(--dm-bg-primary) !important;
   border-bottom: 1px solid var(--dm-border);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-  padding: 0 24px;
   display: flex !important;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   overflow: hidden;
   white-space: nowrap;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  width: 100%;
-  height: 64px;
-}
-
-/* Push the body down so it doesn't sit under the fixed header */
-.docmgmt-inner-layout {
-  margin-top: 64px;
-  min-height: calc(100vh - 64px);
-  display: flex !important;
-  flex-direction: row !important;
-  min-width: 0;
-}
-
-.docmgmt-header > .ant-space:first-child {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.docmgmt-header > .ant-space:last-child {
-  flex-shrink: 0;
 }
 
 .docmgmt-header h4.ant-typography,
-.docmgmt-header .ant-typography h4,
 .docmgmt-header h4 {
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
-  word-break: keep-all !important;
   max-width: 400px;
-  display: inline-block;
-  vertical-align: middle;
   color: var(--dm-text-primary);
+  margin: 0;
 }
 
-.docmgmt-header .ant-badge {
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-
+.docmgmt-header .ant-badge,
 .docmgmt-header .ant-tag {
   flex-shrink: 0;
   white-space: nowrap;
-  margin: 0;
 }
+
+.docmgmt-header .ant-tag { margin: 0; }
 
 .docmgmt-header .ant-divider-vertical {
   margin: 0 4px;
@@ -119,32 +89,74 @@
 }
 
 /* ============================================================
-   SIDEBAR — Container
+   INNER LAYOUT — flex row containing Sider + Content
+   Single canonical definition. No duplicates.
+   ============================================================ */
+.docmgmt-inner-layout {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  min-width: 0;
+  margin-top: 64px;                                /* clears fixed header */
+  min-height: calc(100vh - 64px);
+  width: 100%;
+  flex: 1 1 auto;
+}
+
+/* ============================================================
+   SIDEBAR — fixed width, never shrinks
+   Single canonical definition.
    ============================================================ */
 .docmgmt-sider {
+  flex: 0 0 280px !important;
+  width: 280px !important;
+  min-width: 280px !important;
+  max-width: 280px !important;
   background: var(--dm-bg-primary) !important;
   border-right: 1px solid var(--dm-border);
   height: calc(100vh - 64px) !important;
   overflow-y: auto;
   overflow-x: hidden;
   position: relative;
-  flex: 0 0 280px !important;
-  width: 280px !important;
-  min-width: 280px !important;
-  max-width: 280px !important;
+  z-index: 1;
 }
 
-.docmgmt-sider::-webkit-scrollbar {
-  width: 6px;
+.docmgmt-sider.ant-layout-sider-collapsed {
+  flex: 0 0 64px !important;
+  width: 64px !important;
+  min-width: 64px !important;
+  max-width: 64px !important;
 }
 
+.docmgmt-sider::-webkit-scrollbar { width: 6px; }
 .docmgmt-sider::-webkit-scrollbar-thumb {
   background: #d9d9d9;
   border-radius: 3px;
 }
+.docmgmt-sider::-webkit-scrollbar-thumb:hover { background: #bfbfbf; }
 
-.docmgmt-sider::-webkit-scrollbar-thumb:hover {
-  background: #bfbfbf;
+/* ============================================================
+   CONTENT — grows to fill remaining space, shrinks when needed
+   Single canonical definition.
+   ============================================================ */
+.docmgmt-content {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  max-width: 100%;
+  padding: 24px !important;
+  overflow: auto;
+  height: calc(100vh - 64px);
+  background: var(--dm-bg-secondary) !important;
+  scroll-behavior: smooth;
+}
+
+.docmgmt-panel {
+  background: var(--dm-bg-primary);
+  padding: 24px;
+  border-radius: 8px;
+  min-height: calc(100vh - 128px);
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 /* ============================================================
@@ -173,9 +185,6 @@
   background: transparent;
 }
 
-/* ============================================================
-   GROUP TITLES — Bigger, Bolder
-   ============================================================ */
 .docmgmt-menu .ant-menu-submenu-title {
   border-radius: 8px !important;
   margin: 6px 10px !important;
@@ -204,9 +213,6 @@
   font-weight: 800 !important;
 }
 
-/* ============================================================
-   GROUP LABEL INTERNALS
-   ============================================================ */
 .docmgmt-menu .group-label {
   display: flex;
   align-items: center;
@@ -215,11 +221,16 @@
 }
 
 .docmgmt-menu .group-emoji {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji",
+               "Android Emoji", "EmojiSymbols", sans-serif;
   font-size: 18px !important;
-  flex-shrink: 0;
   line-height: 1;
+  width: 22px;
+  height: 22px;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .docmgmt-menu .group-text {
@@ -233,11 +244,7 @@
   text-overflow: ellipsis;
 }
 
-/* Badge in group title */
-.docmgmt-menu .group-badge {
-  margin-left: auto;
-  flex-shrink: 0;
-}
+.docmgmt-menu .group-badge { margin-left: auto; flex-shrink: 0; }
 
 .docmgmt-menu .group-badge .ant-badge-count {
   box-shadow: none !important;
@@ -250,9 +257,6 @@
   font-weight: 700 !important;
 }
 
-/* ============================================================
-   CHILD MENU ITEMS — Bigger
-   ============================================================ */
 .docmgmt-menu .ant-menu-item {
   border-radius: 6px !important;
   margin: 3px 10px 3px 32px !important;
@@ -274,28 +278,47 @@
   color: var(--dm-primary) !important;
   font-weight: 600 !important;
   border-right: 3px solid var(--dm-primary);
+  position: relative;
 }
 
-/* Child item icons */
+.docmgmt-menu.ant-menu-light .ant-menu-item-selected::before {
+  content: '';
+  position: absolute;
+  left: -10px;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  background: var(--dm-primary);
+  border-radius: 0 3px 3px 0;
+}
+
 .docmgmt-menu .ant-menu-item .anticon {
   font-size: 16px !important;
   margin-right: 12px;
   vertical-align: middle;
 }
 
-/* Submenu arrow */
 .docmgmt-menu .ant-menu-submenu-arrow {
   font-size: 12px;
   color: var(--dm-text-tertiary);
 }
 
+.ant-layout-sider-collapsed .docmgmt-menu .ant-menu-submenu-title,
+.ant-layout-sider-collapsed .docmgmt-menu .ant-menu-item {
+  margin: 4px 8px !important;
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+}
+
+.ant-layout-sider-collapsed .docmgmt-menu .group-emoji { margin: 0 auto; }
+
 /* ============================================================
-   SIDEBAR FOOTER
+   SIDEBAR FOOTER — sticky inside the sider
    ============================================================ */
 .sidebar-footer {
-  position: fixed;
+  position: sticky;
   bottom: 0;
-  width: 280px !important;
+  width: 100%;
   padding: 12px;
   border-top: 1px solid var(--dm-border);
   background: var(--dm-bg-primary);
@@ -319,7 +342,6 @@
 }
 
 .ant-breadcrumb a,
-.ant-breadcrumb .breadcrumb-link,
 .ant-breadcrumb span[role="link"] {
   color: var(--dm-text-tertiary);
   cursor: pointer;
@@ -327,10 +349,8 @@
 }
 
 .ant-breadcrumb a:hover,
-.ant-breadcrumb .breadcrumb-link:hover,
 .ant-breadcrumb span[role="link"]:hover {
   color: var(--dm-primary);
-  background: transparent;
 }
 
 /* ============================================================
@@ -369,71 +389,44 @@
   text-overflow: ellipsis;
 }
 
-.stats-row {
-  margin-bottom: 16px;
-}
-
 /* ============================================================
-   SELECTED DOCUMENT BANNER
+   EDITOR TOOLBAR — force single row (safety net)
    ============================================================ */
-.selected-doc-banner {
-  margin-bottom: 16px;
-  border-radius: 8px;
-  border-left: 4px solid var(--dm-primary);
-}
-
-/* ============================================================
-   TAB CONTENT WRAPPER
-   ============================================================ */
-.tab-content-wrapper {
-  background: var(--dm-bg-primary);
-  padding: 24px;
-  border-radius: 8px;
-  min-height: calc(100vh - 280px);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-}
-
-/* ============================================================
-   SELECTED FILE PREVIEW (Upload Modal)
-   ============================================================ */
-.selected-file-preview {
-  margin-top: 8px;
-  padding: 8px;
-  background: #f6ffed;
-  border: 1px solid #b7eb8f;
-  border-radius: 4px;
-}
-
-/* ============================================================
-   CONTENT AREA — properly flexing layout
-   ============================================================ */
-.docmgmt-content {
-  flex: 1 1 auto !important;               /* ✅ grow and shrink */
-  min-width: 0 !important;                 /* ✅ CRITICAL: allows shrink below content width */
+.editor-toolbar {
   max-width: 100%;
-  padding: 24px !important;
-  overflow: auto;
-  height: calc(100vh - 64px);
-  background: var(--dm-bg-secondary) !important;
-  scroll-behavior: smooth;
+  overflow-x: auto;
+  flex-wrap: nowrap !important;
 }
 
-/* Only target the outer Content when it has our class — never globally */
-.ant-layout-content {
-  min-width: 0;
-}
-
-/* Inner white panel that wraps each tab */
-.docmgmt-panel {
-  background: var(--dm-bg-primary);
-  padding: 24px;
-  border-radius: 8px;
-  min-height: calc(100vh - 280px);
-  min-width: 0;
-  overflow-x: hidden;
-}
 /* ============================================================
-   RESPONSIVE — Tablets (1200px)
+   DARK MODE OVERRIDES
+   ============================================================ */
+@media (prefers-color-scheme: dark) {
+  .docmgmt-header {
+    background: #1f1f1f !important;
+    border-bottom-color: #303030;
+  }
+  .docmgmt-sider {
+    background: #1f1f1f !important;
+    border-right-color: #303030 !important;
+  }
+  .sidebar-brand {
+    background: linear-gradient(135deg, #15395b 0%, #0c3d3d 100%);
+  }
+  .sidebar-footer {
+    background: #1f1f1f;
+    border-top-color: #303030;
+  }
+  .stat-card {
+    background: #1f1f1f;
+    border-color: #303030;
+  }
+  .docmgmt-sider::-webkit-scrollbar-thumb { background: #434343; }
+  .docmgmt-sider::-webkit-scrollbar-thumb:hover { background: #595959; }
+}
+
+/* ============================================================
+   RESPONSIVE — Tablet
    ============================================================ */
 @media (max-width: 1200px) {
   .docmgmt-menu .ant-menu-submenu-title {
@@ -441,330 +434,73 @@
     height: 44px !important;
     line-height: 44px !important;
   }
-  
-  .docmgmt-menu .group-text {
-    font-size: 14px !important;
-  }
-  
-  .docmgmt-menu .group-emoji {
-    font-size: 16px !important;
-  }
-  
+  .docmgmt-menu .group-text { font-size: 14px !important; }
+  .docmgmt-menu .group-emoji { font-size: 16px !important; }
   .docmgmt-menu .ant-menu-item {
     font-size: 13px !important;
     height: 40px !important;
     line-height: 40px !important;
   }
-  
-  .docmgmt-header h4 {
-    max-width: 300px;
-  }
+  .docmgmt-header h4 { max-width: 300px; }
 }
 
 /* ============================================================
-   RESPONSIVE — Tablets (992px)
-   ============================================================ */
-@media (max-width: 992px) {
-  .docmgmt-header h4 {
-    max-width: 200px;
-    font-size: 16px !important;
-  }
-  
-  /* Hide "Live" badge text */
-  .docmgmt-header .ant-badge-status-text {
-    display: none;
-  }
-  
-  /* Hide "Back" text, keep icon */
-  .docmgmt-header .back-btn span:not(.anticon) {
-    display: none;
-  }
-}
-
-/* ============================================================
-   RESPONSIVE — Mobile (768px)
+   RESPONSIVE — Mobile (sidebar becomes an overlay drawer)
    ============================================================ */
 @media (max-width: 768px) {
+  /* Sidebar becomes an overlay on mobile — the ONLY place where
+     position: fixed is allowed. */
   .docmgmt-sider {
     position: fixed !important;
-    z-index: 1000;
-    height: 100vh !important;
     top: 0 !important;
+    left: 0 !important;
+    height: 100vh !important;
+    z-index: 1000;
     box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
-    left: 0;
     width: 260px !important;
     min-width: 260px !important;
+    max-width: 260px !important;
+    flex: 0 0 260px !important;
   }
-  
   .docmgmt-sider.ant-layout-sider-collapsed {
     width: 0 !important;
     min-width: 0 !important;
     max-width: 0 !important;
+    flex: 0 0 0 !important;
     overflow: hidden;
   }
-  
-  .sidebar-footer {
-    width: 260px !important;
-  }
-  
-  .docmgmt-header {
-    padding: 0 12px !important;
-    gap: 8px;
-  }
-  
-  .docmgmt-header h4 {
-    display: none;
-  }
-  
-  .docmgmt-header .ant-tag {
-    display: none;
-  }
-  
-  .docmgmt-header .new-doc-btn span:not(.anticon) {
-    display: none;
-  }
-  
-  .docmgmt-header .new-doc-btn {
-    padding: 0 12px;
-    min-width: 40px;
-  }
-  
   .docmgmt-content {
     padding: 12px !important;
   }
-  
-  .tab-content-wrapper {
+  .docmgmt-panel {
     padding: 12px;
-    min-height: calc(100vh - 200px);
   }
-  
-  /* Stats adjust */
-  .stat-card .ant-statistic-content {
-    font-size: 18px !important;
-  }
-  
-  /* Breadcrumb — hide middle items */
-  .ant-breadcrumb li:not(:first-child):not(:last-child) {
-    display: none;
-  }
-  
-  /* Sidebar menu adjustments */
-  .docmgmt-menu .ant-menu-submenu-title {
-    font-size: 14px !important;
-  }
-  
-  .docmgmt-menu .ant-menu-item {
-    font-size: 13px !important;
-  }
+  .docmgmt-header { padding: 0 12px !important; gap: 8px; }
+  .docmgmt-header h4 { display: none; }
+  .docmgmt-header .ant-tag { display: none; }
+  .ant-breadcrumb li:not(:first-child):not(:last-child) { display: none; }
+  .docmgmt-menu .ant-menu-submenu-title { font-size: 14px !important; }
+  .docmgmt-menu .ant-menu-item { font-size: 13px !important; }
 }
 
 /* ============================================================
-   RESPONSIVE — Small Mobile (480px)
-   ============================================================ */
-@media (max-width: 480px) {
-  .docmgmt-content {
-    padding: 8px !important;
-  }
-  
-  .tab-content-wrapper {
-    padding: 8px;
-  }
-  
-  .stat-card .ant-statistic-content {
-    font-size: 16px !important;
-  }
-  
-  .stat-card .ant-statistic-title {
-    font-size: 10px !important;
-  }
-}
-
-/* ============================================================
-   DARK MODE — Additional Overrides
-   ============================================================ */
-@media (prefers-color-scheme: dark) {
-  .docmgmt-header {
-    background: #1f1f1f !important;
-    border-bottom-color: #303030;
-  }
-  
-  .docmgmt-sider {
-    background: #1f1f1f !important;
-    border-right-color: #303030 !important;
-  }
-  
-  .sidebar-brand {
-    background: linear-gradient(135deg, #15395b 0%, #0c3d3d 100%);
-  }
-  
-  .sidebar-footer {
-    background: #1f1f1f;
-    border-top-color: #303030;
-  }
-  
-  .tab-content-wrapper {
-    background: #1f1f1f;
-  }
-  
-  .stat-card {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-  
-  .selected-file-preview {
-    background: #162312;
-    border-color: #274916;
-  }
-  
-  .docmgmt-sider::-webkit-scrollbar-thumb {
-    background: #434343;
-  }
-  
-  .docmgmt-sider::-webkit-scrollbar-thumb:hover {
-    background: #595959;
-  }
-}
-
-/* ============================================================
-   ANIMATIONS
-   ============================================================ */
-@keyframes docmgmt-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.tab-content-wrapper > * {
-  animation: docmgmt-fade-in 0.2s ease-out;
-}
-
-/* ============================================================
-   PRINT STYLES
+   PRINT
    ============================================================ */
 @media print {
   .docmgmt-header,
   .docmgmt-sider,
   .docmgmt-breadcrumb,
-  .stats-row,
   .sidebar-footer {
     display: none !important;
   }
-  
   .docmgmt-content {
     padding: 0 !important;
     height: auto !important;
+    margin-top: 0 !important;
   }
-  
-  .tab-content-wrapper {
+  .docmgmt-panel {
     box-shadow: none;
     padding: 0;
     min-height: auto;
   }
-}
-
-/* ============================================================
-   SIDEBAR — Final overrides for collapsed state & emoji sizing
-   ============================================================ */
-
-/* Collapsed sidebar — remove margins */
-.ant-layout-sider-collapsed .docmgmt-menu .ant-menu-submenu-title,
-.ant-layout-sider-collapsed .docmgmt-menu .ant-menu-item {
-  margin: 4px 8px !important;
-  padding-left: 12px !important;
-  padding-right: 12px !important;
-}
-
-/* Emoji alignment in collapsed mode */
-.ant-layout-sider-collapsed .docmgmt-menu .group-emoji {
-  margin: 0 auto;
-}
-
-/* Ensure emoji renders at proper size, no font fallback issues */
-.docmgmt-menu .group-emoji {
-  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji",
-               "Android Emoji", "EmojiSymbols", sans-serif;
-  font-size: 18px;
-  line-height: 1;
-  width: 22px;
-  height: 22px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-/* Badge dot alignment in group label */
-.docmgmt-menu .group-label .ant-badge {
-  line-height: 1;
-}
-
-.docmgmt-menu .group-label .ant-badge-count {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
-/* ---------- Selected child item — accent bar ---------- */
-.docmgmt-menu.ant-menu-light .ant-menu-item-selected {
-  position: relative;
-}
-
-.docmgmt-menu.ant-menu-light .ant-menu-item-selected::before {
-  content: '';
-  position: absolute;
-  left: -10px;
-  top: 8px;
-  bottom: 8px;
-  width: 3px;
-  background: var(--dm-primary);
-  border-radius: 0 3px 3px 0;
-}
-
-/* ============================================================
-   CRITICAL FLEX LAYOUT — fixes sidebar collapse & toolbar overflow
-   ============================================================ */
-
-/* Inner layout containing Sider + Content = flex row */
-.docmgmt-inner-layout,
-.ant-layout:has(> .docmgmt-sider) {
-  display: flex !important;
-  flex-direction: row !important;
-  min-height: calc(100vh - 64px);
-  min-width: 0;
-}
-
-/* Sider must never shrink */
-.docmgmt-sider {
-  flex-shrink: 0 !important;
-  flex-grow: 0 !important;
-  width: 280px !important;
-  min-width: 280px !important;
-  max-width: 280px !important;
-}
-
-.ant-layout-sider-collapsed.docmgmt-sider {
-  width: 64px !important;
-  min-width: 64px !important;
-  max-width: 64px !important;
-}
-
-/* Ensure the tab-content-wrapper also flexes */
-.tab-content-wrapper {
-  min-width: 0;
-  max-width: 100%;
-  overflow-x: hidden;
-}
-
-/* Panel wrapper — no horizontal overflow pushes */
-.docmgmt-panel * {
-  max-width: 100%;
-}
-
-/* But allow the toolbar to scroll horizontally */
-.editor-toolbar {
-  max-width: 100%;
-  overflow-x: auto;
 }
