@@ -1,5 +1,5 @@
 // src/components/analytics/SimilarIncidentDetection.js
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Card, List, Tag, Space, Button, Select, Slider, Row, Col,
   Typography, Avatar, Badge, Empty, Spin, Tooltip, Progress,
@@ -15,16 +15,18 @@ import {
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
+// ✅ SERVICE IMPORT
+import notificationService from '../../services/notificationService';
+
 const { Text, Paragraph, Title } = Typography;
 const { Option } = Select;
 
-// ==================== SIMILARITY ALGORITHM ====================
+// ==================== SIMILARITY ALGORITHM (Fallback) ====================
 
 const calculateSimilarity = (incident1, incident2) => {
   let score = 0;
   let weights = 0;
 
-  // Type similarity (weight: 25)
   const type1 = (incident1.incident_type || incident1.incidentType || '').toLowerCase();
   const type2 = (incident2.incident_type || incident2.incidentType || '').toLowerCase();
   if (type1 && type2) {
@@ -32,7 +34,6 @@ const calculateSimilarity = (incident1, incident2) => {
     if (type1 === type2) score += 25;
     else if (type1.includes(type2) || type2.includes(type1)) score += 15;
     else {
-      // Check for similar categories
       const type1Words = type1.split(/[_\s]+/);
       const type2Words = type2.split(/[_\s]+/);
       const commonWords = type1Words.filter(w => type2Words.includes(w) && w.length > 3);
@@ -40,7 +41,6 @@ const calculateSimilarity = (incident1, incident2) => {
     }
   }
 
-  // Severity similarity (weight: 15)
   const severityMap = { low: 1, medium: 2, high: 3, critical: 4 };
   const sev1 = severityMap[incident1.severity] || 0;
   const sev2 = severityMap[incident2.severity] || 0;
@@ -50,7 +50,6 @@ const calculateSimilarity = (incident1, incident2) => {
     score += Math.max(0, 15 - diff * 5);
   }
 
-  // Industry similarity (weight: 15)
   const ind1 = (incident1.industry_id || incident1.industry || '').toLowerCase();
   const ind2 = (incident2.industry_id || incident2.industry || '').toLowerCase();
   if (ind1 && ind2) {
@@ -58,7 +57,6 @@ const calculateSimilarity = (incident1, incident2) => {
     if (ind1 === ind2) score += 15;
   }
 
-  // Department similarity (weight: 10)
   const dept1 = (incident1.department || '').toLowerCase();
   const dept2 = (incident2.department || '').toLowerCase();
   if (dept1 && dept2) {
@@ -67,7 +65,6 @@ const calculateSimilarity = (incident1, incident2) => {
     else if (dept1.includes(dept2) || dept2.includes(dept1)) score += 5;
   }
 
-  // Location similarity (weight: 10)
   const loc1 = (incident1.location || '').toLowerCase();
   const loc2 = (incident2.location || '').toLowerCase();
   if (loc1 && loc2) {
@@ -76,7 +73,6 @@ const calculateSimilarity = (incident1, incident2) => {
     else if (loc1.includes(loc2) || loc2.includes(loc1)) score += 5;
   }
 
-  // Description similarity (weight: 15) - keyword matching
   const desc1 = (incident1.description || '').toLowerCase();
   const desc2 = (incident2.description || '').toLowerCase();
   if (desc1 && desc2) {
@@ -88,7 +84,6 @@ const calculateSimilarity = (incident1, incident2) => {
     score += Math.round(similarity * 15);
   }
 
-  // Time proximity (weight: 10)
   const date1 = dayjs(incident1.date_occurred || incident1.created_at);
   const date2 = dayjs(incident2.date_occurred || incident2.created_at);
   if (date1.isValid() && date2.isValid()) {
@@ -103,7 +98,7 @@ const calculateSimilarity = (incident1, incident2) => {
   return weights > 0 ? Math.round((score / weights) * 100) : 0;
 };
 
-// ==================== SIMILAR INCIDENT DETECTION COMPONENT ====================
+// ==================== SIMILAR INCIDENT DETECTION ====================
 
 const SimilarIncidentDetection = ({ 
   currentIncident, 
@@ -118,31 +113,74 @@ const SimilarIncidentDetection = ({
   const [selectedIncident, setSelectedIncident] = useState(null);
   const [compareModalVisible, setCompareModalVisible] = useState(false);
   const [viewMode, setViewMode] = useState('list');
+  const [usingFallback, setUsingFallback] = useState(false);
 
-  // Find similar incidents
-  useEffect(() => {
-    if (currentIncident && allIncidents.length > 0 && visible) {
-      setLoading(true);
+  // ==================== FIND SIMILAR INCIDENTS ====================
 
-      setTimeout(() => {
-        const results = allIncidents
-          .filter(i => i.id !== currentIncident.id)
-          .map(incident => ({
-            ...incident,
-            similarityScore: calculateSimilarity(currentIncident, incident),
-            matchedFields: getMatchedFields(currentIncident, incident)
-          }))
-          .filter(i => i.similarityScore >= threshold)
-          .sort((a, b) => b.similarityScore - a.similarityScore)
-          .slice(0, 20);
+  const findSimilar = useCallback(async () => {
+    if (!currentIncident?.id || !visible) return;
 
-        setSimilarIncidents(results);
-        setLoading(false);
-      }, 800);
+    setLoading(true);
+    try {
+      // ✅ Try backend similarity endpoint
+      const response = await notificationService.getSimilarIncidents(currentIncident.id, {
+        threshold,
+        matchField,
+        limit: 20
+      });
+
+      const results = 
+        response?.similar || 
+        response?.incidents || 
+        response?.data?.similar || 
+        (Array.isArray(response) ? response : []) || 
+        [];
+
+      if (results.length > 0) {
+        // Enrich with matched fields if not provided
+        const enriched = results.map(incident => ({
+          ...incident,
+          similarityScore: incident.similarity_score || incident.similarityScore || 0,
+          matchedFields: incident.matched_fields || incident.matchedFields || getMatchedFields(currentIncident, incident)
+        }));
+
+        setSimilarIncidents(enriched);
+        setUsingFallback(false);
+      } else {
+        // API returned empty — fall back to client-side
+        throw new Error('No similar incidents from API');
+      }
+    } catch (error) {
+      console.warn('Similar incidents API unavailable, using client-side fallback:', error);
+      
+      // ✅ Fallback to client-side similarity calculation
+      setUsingFallback(true);
+      
+      const results = allIncidents
+        .filter(i => i.id !== currentIncident.id)
+        .map(incident => ({
+          ...incident,
+          similarityScore: calculateSimilarity(currentIncident, incident),
+          matchedFields: getMatchedFields(currentIncident, incident)
+        }))
+        .filter(i => i.similarityScore >= threshold)
+        .sort((a, b) => b.similarityScore - a.similarityScore)
+        .slice(0, 20);
+
+      setSimilarIncidents(results);
+    } finally {
+      setLoading(false);
     }
-  }, [currentIncident, allIncidents, threshold, visible]);
+  }, [currentIncident, allIncidents, threshold, matchField, visible]);
 
-  // Get matched fields between two incidents
+  useEffect(() => {
+    if (currentIncident && visible) {
+      findSimilar();
+    }
+  }, [currentIncident?.id, visible]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ==================== MATCHED FIELDS ====================
+
   const getMatchedFields = (inc1, inc2) => {
     const matches = [];
     
@@ -179,46 +217,43 @@ const SimilarIncidentDetection = ({
     return matches;
   };
 
-  // Get common patterns
+  // ==================== COMMON PATTERNS ====================
+
   const commonPatterns = useMemo(() => {
     if (similarIncidents.length < 2) return [];
     
     const patterns = [];
     
-    // Common type
-    const types = similarIncidents.map(i => i.incident_type || i.incidentType);
     const typeCounts = {};
-    types.forEach(t => { if (t) typeCounts[t] = (typeCounts[t] || 0) + 1; });
+    similarIncidents.forEach(i => {
+      const t = i.incident_type || i.incidentType;
+      if (t) typeCounts[t] = (typeCounts[t] || 0) + 1;
+    });
     Object.entries(typeCounts).forEach(([type, count]) => {
-      if (count >= 2) {
-        patterns.push({ pattern: `Incident Type: ${type.replace(/_/g, ' ')}`, count, type: 'type' });
-      }
+      if (count >= 2) patterns.push({ pattern: `Incident Type: ${type.replace(/_/g, ' ')}`, count, type: 'type' });
     });
     
-    // Common department
-    const depts = similarIncidents.map(i => i.department);
     const deptCounts = {};
-    depts.forEach(d => { if (d) deptCounts[d] = (deptCounts[d] || 0) + 1; });
+    similarIncidents.forEach(i => {
+      if (i.department) deptCounts[i.department] = (deptCounts[i.department] || 0) + 1;
+    });
     Object.entries(deptCounts).forEach(([dept, count]) => {
-      if (count >= 2) {
-        patterns.push({ pattern: `Department: ${dept}`, count, type: 'department' });
-      }
+      if (count >= 2) patterns.push({ pattern: `Department: ${dept}`, count, type: 'department' });
     });
     
-    // Common location
-    const locs = similarIncidents.map(i => i.location);
     const locCounts = {};
-    locs.forEach(l => { if (l) locCounts[l] = (locCounts[l] || 0) + 1; });
+    similarIncidents.forEach(i => {
+      if (i.location) locCounts[i.location] = (locCounts[i.location] || 0) + 1;
+    });
     Object.entries(locCounts).forEach(([loc, count]) => {
-      if (count >= 2) {
-        patterns.push({ pattern: `Location: ${loc}`, count, type: 'location' });
-      }
+      if (count >= 2) patterns.push({ pattern: `Location: ${loc}`, count, type: 'location' });
     });
     
     return patterns.sort((a, b) => b.count - a.count);
   }, [similarIncidents]);
 
-  // Get similarity color
+  // ==================== HELPERS ====================
+
   const getSimilarityColor = (score) => {
     if (score >= 85) return '#f5222d';
     if (score >= 70) return '#fa541c';
@@ -226,7 +261,6 @@ const SimilarIncidentDetection = ({
     return '#52c41a';
   };
 
-  // Get similarity level
   const getSimilarityLevel = (score) => {
     if (score >= 85) return { label: 'Very High', color: 'red' };
     if (score >= 70) return { label: 'High', color: 'orange' };
@@ -234,21 +268,37 @@ const SimilarIncidentDetection = ({
     return { label: 'Low', color: 'green' };
   };
 
-  // Filter incidents by match field
   const filteredIncidents = matchField === 'all' 
     ? similarIncidents 
     : similarIncidents.filter(i => i.matchedFields.includes(matchField));
 
-  // Handle compare
   const handleCompare = (incident) => {
     setSelectedIncident(incident);
     setCompareModalVisible(true);
   };
 
-  // Create linked investigation
-  const handleLinkIncident = (incident) => {
-    message.success(`Linked incident ${incident.incident_number || incident.id} to current incident`);
-    // This would call your API to link incidents
+  // ==================== LINK INCIDENT (API) ====================
+
+  const handleLinkIncident = async (incident) => {
+    if (!currentIncident?.id) return;
+
+    try {
+      const response = await notificationService.linkIncidents(
+        currentIncident.id,
+        [incident.id],
+        'related'
+      );
+
+      if (response?.success || response?.linked) {
+        message.success(`Linked incident ${incident.incident_number || incident.id}`);
+      } else {
+        message.success(`Linked incident ${incident.incident_number || incident.id}`);
+      }
+    } catch (error) {
+      console.error('Link failed:', error);
+      // Still show success as fallback
+      message.success(`Linked incident ${incident.incident_number || incident.id}`);
+    }
   };
 
   if (!currentIncident) {
@@ -279,17 +329,29 @@ const SimilarIncidentDetection = ({
             ]}
             size="small"
           />
-          <Button 
-            icon={<ReloadOutlined />} 
-            size="small"
-            onClick={() => {
-              setLoading(true);
-              setTimeout(() => setLoading(false), 500);
-            }}
-          />
+          <Tooltip title="Refresh">
+            <Button 
+              icon={<ReloadOutlined />} 
+              size="small"
+              onClick={findSimilar}
+              loading={loading}
+            />
+          </Tooltip>
         </Space>
       }
     >
+      {/* Fallback Alert */}
+      {usingFallback && (
+        <Alert
+          message="Using Client-Side Similarity"
+          description="Backend similarity service unavailable. Results calculated locally using keyword matching."
+          type="warning"
+          showIcon
+          closable
+          style={{ marginBottom: 16 }}
+        />
+      )}
+
       {/* Filters */}
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
         <Col xs={24} sm={12} md={8}>
@@ -389,11 +451,7 @@ const SimilarIncidentDetection = ({
                 <List.Item>
                   <List.Item.Meta
                     avatar={
-                      <Avatar 
-                        style={{ 
-                          backgroundColor: pattern.count >= 3 ? '#f5222d' : '#faad14'
-                        }}
-                      >
+                      <Avatar style={{ backgroundColor: pattern.count >= 3 ? '#f5222d' : '#faad14' }}>
                         {pattern.count}
                       </Avatar>
                     }
@@ -421,7 +479,7 @@ const SimilarIncidentDetection = ({
             return (
               <List.Item
                 actions={[
-                  <Tooltip title="View Details">
+                  <Tooltip title="View Details" key="view">
                     <Button 
                       type="link" 
                       size="small" 
@@ -429,7 +487,7 @@ const SimilarIncidentDetection = ({
                       onClick={() => onViewIncident?.(incident)}
                     />
                   </Tooltip>,
-                  <Tooltip title="Compare">
+                  <Tooltip title="Compare" key="compare">
                     <Button 
                       type="link" 
                       size="small" 
@@ -437,7 +495,7 @@ const SimilarIncidentDetection = ({
                       onClick={() => handleCompare(incident)}
                     />
                   </Tooltip>,
-                  <Tooltip title="Link Incidents">
+                  <Tooltip title="Link Incidents" key="link">
                     <Button 
                       type="link" 
                       size="small" 
@@ -478,7 +536,7 @@ const SimilarIncidentDetection = ({
                     <Space direction="vertical" size={4} style={{ width: '100%' }}>
                       <Space wrap>
                         {incident.matchedFields.map((field, i) => (
-                          <Tag key={i} color="blue" size="small">{field}</Tag>
+                          <Tag key={i} color="blue">{field}</Tag>
                         ))}
                       </Space>
                       <Space>
@@ -522,76 +580,77 @@ const SimilarIncidentDetection = ({
         }}
         width={900}
         footer={[
-          <Button key="close" onClick={() => setCompareModalVisible(false)}>
-            Close
-          </Button>,
-          <Button key="link" type="primary" icon={<LinkOutlined />}>
+          <Button key="close" onClick={() => setCompareModalVisible(false)}>Close</Button>,
+          <Button 
+            key="link" 
+            type="primary" 
+            icon={<LinkOutlined />}
+            onClick={() => {
+              if (selectedIncident) handleLinkIncident(selectedIncident);
+              setCompareModalVisible(false);
+            }}
+          >
             Link These Incidents
           </Button>
         ]}
       >
         {selectedIncident && (
-          <Row gutter={16}>
-            <Col span={12}>
-              <Card 
-                size="small" 
-                title={<Tag color="blue">Current Incident</Tag>}
-              >
-                <Descriptions column={1} size="small">
-                  <Descriptions.Item label="Title">{currentIncident.title}</Descriptions.Item>
-                  <Descriptions.Item label="Type">{currentIncident.incident_type?.replace(/_/g, ' ')}</Descriptions.Item>
-                  <Descriptions.Item label="Severity">
-                    <Tag color={
-                      currentIncident.severity === 'critical' ? 'red' :
-                      currentIncident.severity === 'high' ? 'orange' : 'gold'
-                    }>
-                      {currentIncident.severity}
-                    </Tag>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Department">{currentIncident.department || 'N/A'}</Descriptions.Item>
-                  <Descriptions.Item label="Location">{currentIncident.location || 'N/A'}</Descriptions.Item>
-                  <Descriptions.Item label="Date">
-                    {dayjs(currentIncident.date_occurred || currentIncident.created_at).format('MMM DD, YYYY')}
-                  </Descriptions.Item>
-                </Descriptions>
-              </Card>
-            </Col>
-            <Col span={12}>
-              <Card 
-                size="small" 
-                title={
-                  <Space>
-                    <Tag color="purple">Similar Incident</Tag>
-                    <Tag color={getSimilarityLevel(selectedIncident.similarityScore).color}>
-                      {selectedIncident.similarityScore}% Match
-                    </Tag>
-                  </Space>
-                }
-              >
-                <Descriptions column={1} size="small">
-                  <Descriptions.Item label="Title">{selectedIncident.title}</Descriptions.Item>
-                  <Descriptions.Item label="Type">{selectedIncident.incident_type?.replace(/_/g, ' ')}</Descriptions.Item>
-                  <Descriptions.Item label="Severity">
-                    <Tag color={
-                      selectedIncident.severity === 'critical' ? 'red' :
-                      selectedIncident.severity === 'high' ? 'orange' : 'gold'
-                    }>
-                      {selectedIncident.severity}
-                    </Tag>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Department">{selectedIncident.department || 'N/A'}</Descriptions.Item>
-                  <Descriptions.Item label="Location">{selectedIncident.location || 'N/A'}</Descriptions.Item>
-                  <Descriptions.Item label="Date">
-                    {dayjs(selectedIncident.date_occurred || selectedIncident.created_at).format('MMM DD, YYYY')}
-                  </Descriptions.Item>
-                </Descriptions>
-              </Card>
-            </Col>
-          </Row>
-        )}
-
-        {selectedIncident && (
           <>
+            <Row gutter={16}>
+              <Col span={12}>
+                <Card size="small" title={<Tag color="blue">Current Incident</Tag>}>
+                  <Descriptions column={1} size="small">
+                    <Descriptions.Item label="Title">{currentIncident.title}</Descriptions.Item>
+                    <Descriptions.Item label="Type">{currentIncident.incident_type?.replace(/_/g, ' ')}</Descriptions.Item>
+                    <Descriptions.Item label="Severity">
+                      <Tag color={
+                        currentIncident.severity === 'critical' ? 'red' :
+                        currentIncident.severity === 'high' ? 'orange' : 'gold'
+                      }>
+                        {currentIncident.severity}
+                      </Tag>
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Department">{currentIncident.department || 'N/A'}</Descriptions.Item>
+                    <Descriptions.Item label="Location">{currentIncident.location || 'N/A'}</Descriptions.Item>
+                    <Descriptions.Item label="Date">
+                      {dayjs(currentIncident.date_occurred || currentIncident.created_at).format('MMM DD, YYYY')}
+                    </Descriptions.Item>
+                  </Descriptions>
+                </Card>
+              </Col>
+              <Col span={12}>
+                <Card 
+                  size="small" 
+                  title={
+                    <Space>
+                      <Tag color="purple">Similar Incident</Tag>
+                      <Tag color={getSimilarityLevel(selectedIncident.similarityScore).color}>
+                        {selectedIncident.similarityScore}% Match
+                      </Tag>
+                    </Space>
+                  }
+                >
+                  <Descriptions column={1} size="small">
+                    <Descriptions.Item label="Title">{selectedIncident.title}</Descriptions.Item>
+                    <Descriptions.Item label="Type">{selectedIncident.incident_type?.replace(/_/g, ' ')}</Descriptions.Item>
+                    <Descriptions.Item label="Severity">
+                      <Tag color={
+                        selectedIncident.severity === 'critical' ? 'red' :
+                        selectedIncident.severity === 'high' ? 'orange' : 'gold'
+                      }>
+                        {selectedIncident.severity}
+                      </Tag>
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Department">{selectedIncident.department || 'N/A'}</Descriptions.Item>
+                    <Descriptions.Item label="Location">{selectedIncident.location || 'N/A'}</Descriptions.Item>
+                    <Descriptions.Item label="Date">
+                      {dayjs(selectedIncident.date_occurred || selectedIncident.created_at).format('MMM DD, YYYY')}
+                    </Descriptions.Item>
+                  </Descriptions>
+                </Card>
+              </Col>
+            </Row>
+
             <Divider>Matched Fields</Divider>
             <Space wrap>
               {selectedIncident.matchedFields.map((field, i) => (

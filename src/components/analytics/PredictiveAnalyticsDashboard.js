@@ -1,5 +1,5 @@
 // src/components/analytics/PredictiveAnalyticsDashboard.js
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Card, Row, Col, Statistic, Progress, Tag, Space, Button,
   Select, DatePicker, Tooltip, Alert, Divider, Table, Badge,
@@ -32,6 +32,9 @@ import {
 import { Line, Bar, Radar, Scatter, Doughnut } from 'react-chartjs-2';
 import dayjs from 'dayjs';
 
+// ✅ SERVICE IMPORT
+import notificationService from '../../services/notificationService';
+
 ChartJS.register(
   CategoryScale, LinearScale, PointElement, LineElement,
   BarElement, ArcElement, RadialLinearScale, Title,
@@ -45,36 +48,11 @@ const { RangePicker } = DatePicker;
 // ==================== PREDICTION MODELS ====================
 
 const PREDICTION_MODELS = {
-  linear_regression: {
-    name: 'Linear Regression',
-    description: 'Simple trend-based prediction',
-    accuracy: 0.72,
-    icon: <LineChartOutlined />
-  },
-  arima: {
-    name: 'ARIMA',
-    description: 'Time-series forecasting with seasonality',
-    accuracy: 0.81,
-    icon: <AreaChartOutlined />
-  },
-  prophet: {
-    name: 'Prophet',
-    description: 'Facebook\'s forecasting for business metrics',
-    accuracy: 0.85,
-    icon: <RiseOutlined />
-  },
-  lstm: {
-    name: 'LSTM Neural Network',
-    description: 'Deep learning for complex patterns',
-    accuracy: 0.89,
-    icon: <ExperimentOutlined />
-  },
-  ensemble: {
-    name: 'Ensemble (Recommended)',
-    description: 'Combines multiple models for best accuracy',
-    accuracy: 0.92,
-    icon: <SafetyCertificateOutlined />
-  }
+  linear_regression: { name: 'Linear Regression', description: 'Simple trend-based prediction', accuracy: 0.72, icon: <LineChartOutlined /> },
+  arima: { name: 'ARIMA', description: 'Time-series forecasting with seasonality', accuracy: 0.81, icon: <AreaChartOutlined /> },
+  prophet: { name: 'Prophet', description: 'Facebook\'s forecasting for business metrics', accuracy: 0.85, icon: <RiseOutlined /> },
+  lstm: { name: 'LSTM Neural Network', description: 'Deep learning for complex patterns', accuracy: 0.89, icon: <ExperimentOutlined /> },
+  ensemble: { name: 'Ensemble (Recommended)', description: 'Combines multiple models for best accuracy', accuracy: 0.92, icon: <SafetyCertificateOutlined /> }
 };
 
 // ==================== PREDICTIVE ANALYTICS DASHBOARD ====================
@@ -82,7 +60,7 @@ const PREDICTION_MODELS = {
 const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
   const [loading, setLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState('ensemble');
-  const [forecastPeriod, setForecastPeriod] = useState(3); // months
+  const [forecastPeriod, setForecastPeriod] = useState(3);
   const [confidenceLevel, setConfidenceLevel] = useState(95);
   const [selectedIndustry, setSelectedIndustry] = useState('all');
   const [selectedSeverity, setSelectedSeverity] = useState('all');
@@ -90,123 +68,140 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
   const [insights, setInsights] = useState([]);
   const [riskFactors, setRiskFactors] = useState([]);
   const [modelDetailsVisible, setModelDetailsVisible] = useState(false);
+  const [usingFallback, setUsingFallback] = useState(false);
 
-  // ==================== PREDICTION ENGINE ====================
+  // ==================== FETCH PREDICTIONS FROM API ====================
 
-  const generatePredictions = useMemo(() => {
-    return () => {
-      setLoading(true);
+  const generatePredictions = useCallback(async () => {
+    setLoading(true);
 
-      setTimeout(() => {
-        // Filter incidents based on selection
-        let filtered = [...incidents];
-        if (selectedIndustry !== 'all') {
-          filtered = filtered.filter(i => 
-            (i.industry_id || i.industry) === selectedIndustry
-          );
-        }
-        if (selectedSeverity !== 'all') {
-          filtered = filtered.filter(i => i.severity === selectedSeverity);
-        }
+    try {
+      // ✅ Try backend AI prediction endpoint first
+      const response = await notificationService.getPredictiveAnalytics({
+        model: selectedModel,
+        forecast_period: forecastPeriod,
+        confidence_level: confidenceLevel,
+        industry: selectedIndustry !== 'all' ? selectedIndustry : undefined,
+        severity: selectedSeverity !== 'all' ? selectedSeverity : undefined
+      });
 
-        // Generate monthly data for past 12 months
-        const monthlyData = {};
-        const now = dayjs();
-        
-        for (let i = 11; i >= 0; i--) {
-          const month = now.subtract(i, 'month').format('YYYY-MM');
-          monthlyData[month] = 0;
-        }
+      const data = response?.predictions || response?.data || response;
 
-        filtered.forEach(incident => {
-          const date = dayjs(incident.date_occurred || incident.created_at);
-          const month = date.format('YYYY-MM');
-          if (monthlyData[month] !== undefined) {
-            monthlyData[month]++;
-          }
-        });
-
-        const historicalMonths = Object.keys(monthlyData);
-        const historicalValues = Object.values(monthlyData);
-
-        // Calculate trend using linear regression
-        const n = historicalValues.length;
-        const sumX = (n * (n - 1)) / 2;
-        const sumY = historicalValues.reduce((a, b) => a + b, 0);
-        const sumXY = historicalValues.reduce((sum, y, x) => sum + x * y, 0);
-        const sumX2 = (n * (n - 1) * (2 * n - 1)) / 6;
-
-        const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-        const intercept = (sumY - slope * sumX) / n;
-
-        // Generate predictions
-        const forecastMonths = [];
-        const forecastValues = [];
-        const upperBound = [];
-        const lowerBound = [];
-
-        for (let i = 1; i <= forecastPeriod; i++) {
-          const futureMonth = now.add(i, 'month').format('YYYY-MM');
-          const predictedValue = Math.max(0, intercept + slope * (n + i - 1));
-          const stdDev = Math.sqrt(
-            historicalValues.reduce((sum, y, x) => 
-              sum + Math.pow(y - (intercept + slope * x), 2), 0
-            ) / n
-          );
-          const margin = stdDev * (confidenceLevel / 100) * 1.96;
-
-          forecastMonths.push(futureMonth);
-          forecastValues.push(Math.round(predictedValue));
-          upperBound.push(Math.round(predictedValue + margin));
-          lowerBound.push(Math.max(0, Math.round(predictedValue - margin)));
-        }
-
-        // Calculate risk score
-        const avgHistorical = sumY / n;
-        const avgForecast = forecastValues.reduce((a, b) => a + b, 0) / forecastValues.length;
-        const riskScore = Math.min(100, Math.round((avgForecast / Math.max(1, avgHistorical)) * 50));
-
-        // Generate insights
-        const generatedInsights = generateInsights(
-          historicalValues, forecastValues, slope, riskScore, filtered
-        );
-
-        // Generate risk factors
-        const generatedRiskFactors = generateRiskFactors(filtered, forecastValues);
-
+      if (data && data.forecast) {
+        // ✅ Use backend predictions
         setPredictions({
-          historical: {
-            labels: historicalMonths,
-            values: historicalValues
-          },
-          forecast: {
-            labels: forecastMonths,
-            values: forecastValues,
-            upperBound,
-            lowerBound
-          },
-          riskScore,
-          trend: slope > 0.1 ? 'increasing' : slope < -0.1 ? 'decreasing' : 'stable',
-          trendPercentage: Math.round((slope / Math.max(1, avgHistorical)) * 100),
-          averageMonthly: Math.round(avgHistorical),
-          predictedTotal: forecastValues.reduce((a, b) => a + b, 0),
-          modelAccuracy: PREDICTION_MODELS[selectedModel].accuracy * 100
+          historical: data.historical || { labels: [], values: [] },
+          forecast: data.forecast || { labels: [], values: [], upperBound: [], lowerBound: [] },
+          riskScore: data.risk_score || 50,
+          trend: data.trend || 'stable',
+          trendPercentage: data.trend_percentage || 0,
+          averageMonthly: data.average_monthly || 0,
+          predictedTotal: data.predicted_total || 0,
+          modelAccuracy: data.model_accuracy || PREDICTION_MODELS[selectedModel].accuracy * 100
         });
 
-        setInsights(generatedInsights);
-        setRiskFactors(generatedRiskFactors);
-        setLoading(false);
-      }, 1500);
-    };
+        setInsights(data.insights || []);
+        setRiskFactors(data.risk_factors || []);
+        setUsingFallback(false);
+      } else {
+        throw new Error('No prediction data received');
+      }
+    } catch (error) {
+      console.warn('AI prediction API unavailable, using client-side fallback:', error);
+      
+      // ✅ Fallback to client-side calculation
+      setUsingFallback(true);
+      calculateClientSidePredictions();
+    } finally {
+      setLoading(false);
+    }
   }, [incidents, selectedModel, forecastPeriod, confidenceLevel, selectedIndustry, selectedSeverity]);
+
+  // ==================== CLIENT-SIDE FALLBACK ====================
+
+  const calculateClientSidePredictions = () => {
+    // Filter incidents
+    let filtered = [...incidents];
+    if (selectedIndustry !== 'all') {
+      filtered = filtered.filter(i => (i.industry_id || i.industry) === selectedIndustry);
+    }
+    if (selectedSeverity !== 'all') {
+      filtered = filtered.filter(i => i.severity === selectedSeverity);
+    }
+
+    // Monthly data for past 12 months
+    const monthlyData = {};
+    const now = dayjs();
+    for (let i = 11; i >= 0; i--) {
+      const month = now.subtract(i, 'month').format('YYYY-MM');
+      monthlyData[month] = 0;
+    }
+
+    filtered.forEach(incident => {
+      const date = dayjs(incident.date_occurred || incident.created_at);
+      const month = date.format('YYYY-MM');
+      if (monthlyData[month] !== undefined) monthlyData[month]++;
+    });
+
+    const historicalMonths = Object.keys(monthlyData);
+    const historicalValues = Object.values(monthlyData);
+
+    // Linear regression
+    const n = historicalValues.length;
+    const sumX = (n * (n - 1)) / 2;
+    const sumY = historicalValues.reduce((a, b) => a + b, 0);
+    const sumXY = historicalValues.reduce((sum, y, x) => sum + x * y, 0);
+    const sumX2 = (n * (n - 1) * (2 * n - 1)) / 6;
+
+    const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / n;
+
+    const forecastMonths = [];
+    const forecastValues = [];
+    const upperBound = [];
+    const lowerBound = [];
+
+    for (let i = 1; i <= forecastPeriod; i++) {
+      const futureMonth = now.add(i, 'month').format('YYYY-MM');
+      const predictedValue = Math.max(0, intercept + slope * (n + i - 1));
+      const stdDev = Math.sqrt(
+        historicalValues.reduce((sum, y, x) => sum + Math.pow(y - (intercept + slope * x), 2), 0) / n
+      );
+      const margin = stdDev * (confidenceLevel / 100) * 1.96;
+
+      forecastMonths.push(futureMonth);
+      forecastValues.push(Math.round(predictedValue));
+      upperBound.push(Math.round(predictedValue + margin));
+      lowerBound.push(Math.max(0, Math.round(predictedValue - margin)));
+    }
+
+    const avgHistorical = sumY / n;
+    const avgForecast = forecastValues.reduce((a, b) => a + b, 0) / Math.max(1, forecastValues.length);
+    const riskScore = Math.min(100, Math.round((avgForecast / Math.max(1, avgHistorical)) * 50));
+
+    setPredictions({
+      historical: { labels: historicalMonths, values: historicalValues },
+      forecast: { labels: forecastMonths, values: forecastValues, upperBound, lowerBound },
+      riskScore,
+      trend: slope > 0.1 ? 'increasing' : slope < -0.1 ? 'decreasing' : 'stable',
+      trendPercentage: Math.round((slope / Math.max(1, avgHistorical)) * 100),
+      averageMonthly: Math.round(avgHistorical),
+      predictedTotal: forecastValues.reduce((a, b) => a + b, 0),
+      modelAccuracy: PREDICTION_MODELS[selectedModel].accuracy * 100
+    });
+
+    setInsights(generateInsights(historicalValues, forecastValues, slope, riskScore, filtered));
+    setRiskFactors(generateRiskFactors(filtered, forecastValues));
+  };
 
   useEffect(() => {
     if (incidents.length > 0) {
       generatePredictions();
     }
-  }, [generatePredictions, incidents.length]);
+  }, [incidents.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Generate insights from data
+  // ==================== INSIGHTS GENERATOR ====================
+
   const generateInsights = (historical, forecast, slope, riskScore, data) => {
     const insights = [];
 
@@ -222,7 +217,7 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
       insights.push({
         type: 'success',
         title: 'Decreasing Incident Trend',
-        description: `Incident rate is decreasing. Current safety measures appear effective.`,
+        description: 'Incident rate is decreasing. Current safety measures appear effective.',
         priority: 'low',
         icon: <FallOutlined />
       });
@@ -232,13 +227,12 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
       insights.push({
         type: 'error',
         title: 'High Risk Period Detected',
-        description: `Risk score is ${riskScore}/100. Recommend increasing safety measures and inspections.`,
+        description: `Risk score is ${riskScore}/100. Recommend increasing safety measures.`,
         priority: 'critical',
         icon: <WarningOutlined />
       });
     }
 
-    // Analyze severity distribution
     const criticalCount = data.filter(i => i.severity === 'critical').length;
     if (criticalCount > 0) {
       insights.push({
@@ -250,19 +244,17 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
       });
     }
 
-    // Check for repeat incidents
     const typeCount = {};
     data.forEach(i => {
       const type = i.incident_type || i.incidentType;
       if (type) typeCount[type] = (typeCount[type] || 0) + 1;
     });
 
-    const repeatTypes = Object.entries(typeCount).filter(([_, count]) => count >= 3);
-    repeatTypes.forEach(([type, count]) => {
+    Object.entries(typeCount).filter(([_, count]) => count >= 3).forEach(([type, count]) => {
       insights.push({
         type: 'info',
         title: `Repeat Incident Pattern: ${type.replace(/_/g, ' ')}`,
-        description: `${count} incidents of this type detected. Consider systemic corrective actions.`,
+        description: `${count} incidents of this type detected.`,
         priority: 'medium',
         icon: <ReloadOutlined />
       });
@@ -271,14 +263,13 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
     return insights;
   };
 
-  // Generate risk factors
+  // ==================== RISK FACTORS ====================
+
   const generateRiskFactors = (data, forecast) => {
     const factors = [];
-
-    // Time-based analysis
     const hourCounts = {};
     const dayCounts = {};
-    
+
     data.forEach(i => {
       const date = new Date(i.date_occurred || i.created_at);
       if (!isNaN(date)) {
@@ -289,7 +280,6 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
       }
     });
 
-    // Find peak hour
     const peakHour = Object.entries(hourCounts).sort((a, b) => b[1] - a[1])[0];
     if (peakHour) {
       factors.push({
@@ -297,11 +287,10 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
         value: `${peakHour[0]}:00`,
         impact: peakHour[1],
         risk: peakHour[1] >= 5 ? 'high' : 'medium',
-        recommendation: 'Increase staffing and supervision during this hour'
+        recommendation: 'Increase staffing during this hour'
       });
     }
 
-    // Find peak day
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const peakDay = Object.entries(dayCounts).sort((a, b) => b[1] - a[1])[0];
     if (peakDay) {
@@ -310,11 +299,10 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
         value: days[peakDay[0]],
         impact: peakDay[1],
         risk: peakDay[1] >= 10 ? 'high' : 'medium',
-        recommendation: 'Schedule additional safety briefings'
+        recommendation: 'Schedule additional briefings'
       });
     }
 
-    // Department analysis
     const deptCounts = {};
     data.forEach(i => {
       if (i.department) deptCounts[i.department] = (deptCounts[i.department] || 0) + 1;
@@ -330,8 +318,7 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
       });
     }
 
-    // Forecast-based factors
-    const forecastAvg = forecast.reduce((a, b) => a + b, 0) / forecast.length;
+    const forecastAvg = forecast.reduce((a, b) => a + b, 0) / Math.max(1, forecast.length);
     if (forecastAvg > 5) {
       factors.push({
         factor: 'Predicted Incident Volume',
@@ -345,16 +332,14 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
     return factors;
   };
 
-  // Chart data
+  // ==================== CHART DATA ====================
+
   const forecastChartData = predictions ? {
     labels: [...predictions.historical.labels, ...predictions.forecast.labels],
     datasets: [
       {
         label: 'Historical',
-        data: [
-          ...predictions.historical.values,
-          ...new Array(predictions.forecast.labels.length).fill(null)
-        ],
+        data: [...predictions.historical.values, ...new Array(predictions.forecast.labels.length).fill(null)],
         borderColor: '#1890ff',
         backgroundColor: 'rgba(24, 144, 255, 0.1)',
         fill: true,
@@ -364,7 +349,7 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
       {
         label: 'Forecast',
         data: [
-          ...new Array(predictions.historical.values.length - 1).fill(null),
+          ...new Array(Math.max(0, predictions.historical.values.length - 1)).fill(null),
           predictions.historical.values[predictions.historical.values.length - 1],
           ...predictions.forecast.values
         ],
@@ -377,10 +362,7 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
       },
       {
         label: 'Upper Bound',
-        data: [
-          ...new Array(predictions.historical.values.length).fill(null),
-          ...predictions.forecast.upperBound
-        ],
+        data: [...new Array(predictions.historical.values.length).fill(null), ...predictions.forecast.upperBound],
         borderColor: 'rgba(114, 46, 209, 0.3)',
         borderDash: [2, 2],
         fill: false,
@@ -388,10 +370,7 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
       },
       {
         label: 'Lower Bound',
-        data: [
-          ...new Array(predictions.historical.values.length).fill(null),
-          ...predictions.forecast.lowerBound
-        ],
+        data: [...new Array(predictions.historical.values.length).fill(null), ...predictions.forecast.lowerBound],
         borderColor: 'rgba(114, 46, 209, 0.3)',
         borderDash: [2, 2],
         fill: '-1',
@@ -425,40 +404,26 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
     maintainAspectRatio: false,
     plugins: {
       legend: { position: 'bottom' },
-      tooltip: {
-        mode: 'index',
-        intersect: false
-      }
+      tooltip: { mode: 'index', intersect: false }
     },
     scales: {
-      y: {
-        beginAtZero: true,
-        title: { display: true, text: 'Number of Incidents' }
-      }
+      y: { beginAtZero: true, title: { display: true, text: 'Number of Incidents' } }
     }
   };
 
   const radarOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    scales: {
-      r: {
-        beginAtZero: true,
-        max: 100,
-        ticks: { stepSize: 20 }
-      }
-    },
+    scales: { r: { beginAtZero: true, max: 100, ticks: { stepSize: 20 } } },
     plugins: { legend: { position: 'bottom' } }
   };
 
-  // Get trend icon
   const getTrendIcon = (trend) => {
     if (trend === 'increasing') return <ArrowUpOutlined style={{ color: '#f5222d' }} />;
     if (trend === 'decreasing') return <ArrowDownOutlined style={{ color: '#52c41a' }} />;
     return <MinusOutlined style={{ color: '#faad14' }} />;
   };
 
-  // Get risk color
   const getRiskColor = (score) => {
     if (score >= 70) return '#f5222d';
     if (score >= 40) return '#faad14';
@@ -478,6 +443,18 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
 
   return (
     <div>
+      {/* Fallback Alert */}
+      {usingFallback && (
+        <Alert
+          message="Using Client-Side Predictions"
+          description="AI prediction service is unavailable. Predictions shown are calculated locally using linear regression."
+          type="warning"
+          showIcon
+          closable
+          style={{ marginBottom: 16 }}
+        />
+      )}
+
       {/* Controls */}
       <Card size="small" style={{ marginBottom: 16 }}>
         <Row gutter={[16, 16]} align="middle">
@@ -599,12 +576,7 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
             <Col xs={24} sm={12} md={6}>
               <Card size="small">
                 <Statistic
-                  title={
-                    <Space>
-                      <AimOutlined />
-                      Predicted Total
-                    </Space>
-                  }
+                  title={<Space><AimOutlined />Predicted Total</Space>}
                   value={predictions.predictedTotal}
                   suffix={`in ${forecastPeriod}mo`}
                   valueStyle={{ color: '#722ed1', fontSize: 24 }}
@@ -618,18 +590,10 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
             <Col xs={24} sm={12} md={6}>
               <Card size="small">
                 <Statistic
-                  title={
-                    <Space>
-                      <WarningOutlined />
-                      Risk Score
-                    </Space>
-                  }
+                  title={<Space><WarningOutlined />Risk Score</Space>}
                   value={predictions.riskScore}
                   suffix="/100"
-                  valueStyle={{ 
-                    color: getRiskColor(predictions.riskScore),
-                    fontSize: 24 
-                  }}
+                  valueStyle={{ color: getRiskColor(predictions.riskScore), fontSize: 24 }}
                 />
                 <Progress 
                   percent={predictions.riskScore} 
@@ -643,12 +607,7 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
             <Col xs={24} sm={12} md={6}>
               <Card size="small">
                 <Statistic
-                  title={
-                    <Space>
-                      {getTrendIcon(predictions.trend)}
-                      Trend
-                    </Space>
-                  }
+                  title={<Space>{getTrendIcon(predictions.trend)}Trend</Space>}
                   value={predictions.trend.charAt(0).toUpperCase() + predictions.trend.slice(1)}
                   valueStyle={{ 
                     color: predictions.trend === 'increasing' ? '#f5222d' : 
@@ -665,12 +624,7 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
             <Col xs={24} sm={12} md={6}>
               <Card size="small">
                 <Statistic
-                  title={
-                    <Space>
-                      <SafetyCertificateOutlined />
-                      Model Accuracy
-                    </Space>
-                  }
+                  title={<Space><SafetyCertificateOutlined />Model Accuracy</Space>}
                   value={Math.round(predictions.modelAccuracy)}
                   suffix="%"
                   valueStyle={{ color: '#52c41a', fontSize: 24 }}
@@ -701,14 +655,7 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
           <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
             {/* Risk Radar */}
             <Col xs={24} lg={12}>
-              <Card 
-                title={
-                  <Space>
-                    <RadarChartOutlined />
-                    Risk Profile
-                  </Space>
-                }
-              >
+              <Card title={<Space><RadarChartOutlined />Risk Profile</Space>}>
                 <div style={{ height: 300 }}>
                   <Radar data={riskRadarData} options={radarOptions} />
                 </div>
@@ -782,30 +729,15 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
             <Table
               dataSource={riskFactors}
               columns={[
-                {
-                  title: 'Risk Factor',
-                  dataIndex: 'factor',
-                  key: 'factor',
-                  render: (text) => <Text strong>{text}</Text>
-                },
-                {
-                  title: 'Value',
-                  dataIndex: 'value',
-                  key: 'value',
-                  render: (text) => <Tag color="blue">{text}</Tag>
-                },
+                { title: 'Risk Factor', dataIndex: 'factor', key: 'factor', render: (text) => <Text strong>{text}</Text> },
+                { title: 'Value', dataIndex: 'value', key: 'value', render: (text) => <Tag color="blue">{text}</Tag> },
                 {
                   title: 'Impact',
                   dataIndex: 'impact',
                   key: 'impact',
                   render: (impact) => (
                     <Space>
-                      <Progress 
-                        percent={Math.min(100, impact * 5)} 
-                        size="small" 
-                        style={{ width: 60 }}
-                        showInfo={false}
-                      />
+                      <Progress percent={Math.min(100, impact * 5)} size="small" style={{ width: 60 }} showInfo={false} />
                       <Text>{Math.round(impact)}</Text>
                     </Space>
                   ),
@@ -816,20 +748,12 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
                   dataIndex: 'risk',
                   key: 'risk',
                   render: (risk) => (
-                    <Tag color={
-                      risk === 'high' ? 'red' :
-                      risk === 'medium' ? 'orange' : 'green'
-                    }>
+                    <Tag color={risk === 'high' ? 'red' : risk === 'medium' ? 'orange' : 'green'}>
                       {risk?.toUpperCase()}
                     </Tag>
                   )
                 },
-                {
-                  title: 'Recommendation',
-                  dataIndex: 'recommendation',
-                  key: 'recommendation',
-                  render: (text) => <Text type="secondary">{text}</Text>
-                }
+                { title: 'Recommendation', dataIndex: 'recommendation', key: 'recommendation', render: (text) => <Text type="secondary">{text}</Text> }
               ]}
               rowKey="factor"
               pagination={false}
@@ -845,33 +769,18 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
         open={modelDetailsVisible}
         onCancel={() => setModelDetailsVisible(false)}
         footer={[
-          <Button key="close" onClick={() => setModelDetailsVisible(false)}>
-            Close
-          </Button>
+          <Button key="close" onClick={() => setModelDetailsVisible(false)}>Close</Button>
         ]}
       >
         <Descriptions column={1} bordered size="small">
-          <Descriptions.Item label="Model">
-            {PREDICTION_MODELS[selectedModel].name}
-          </Descriptions.Item>
-          <Descriptions.Item label="Description">
-            {PREDICTION_MODELS[selectedModel].description}
-          </Descriptions.Item>
+          <Descriptions.Item label="Model">{PREDICTION_MODELS[selectedModel].name}</Descriptions.Item>
+          <Descriptions.Item label="Description">{PREDICTION_MODELS[selectedModel].description}</Descriptions.Item>
           <Descriptions.Item label="Accuracy">
-            <Progress 
-              percent={Math.round(PREDICTION_MODELS[selectedModel].accuracy * 100)} 
-              strokeColor="#52c41a"
-            />
+            <Progress percent={Math.round(PREDICTION_MODELS[selectedModel].accuracy * 100)} strokeColor="#52c41a" />
           </Descriptions.Item>
-          <Descriptions.Item label="Data Points">
-            {incidents.length} incidents
-          </Descriptions.Item>
-          <Descriptions.Item label="Forecast Period">
-            {forecastPeriod} months
-          </Descriptions.Item>
-          <Descriptions.Item label="Confidence Level">
-            {confidenceLevel}%
-          </Descriptions.Item>
+          <Descriptions.Item label="Data Points">{incidents.length} incidents</Descriptions.Item>
+          <Descriptions.Item label="Forecast Period">{forecastPeriod} months</Descriptions.Item>
+          <Descriptions.Item label="Confidence Level">{confidenceLevel}%</Descriptions.Item>
         </Descriptions>
 
         <Divider>Model Comparison</Divider>
@@ -890,7 +799,7 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
               key: 'name',
               render: (text, record) => (
                 <Space>
-                  {record.selected && <CheckCircleOutlined style={{ color: '#52c41a' }} />}
+                  {record.selected && <SafetyCertificateOutlined style={{ color: '#52c41a' }} />}
                   {text}
                 </Space>
               )
