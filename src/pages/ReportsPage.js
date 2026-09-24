@@ -1,7 +1,7 @@
 // src/pages/ReportsPage.js - Complete with Enhanced Media Upload & Incident Details
 import React, { useState, useContext, useEffect } from 'react';
-import { 
-  Card, Row, Col, Button, Modal, Form, Input, Select, DatePicker, 
+import {
+  Card, Row, Col, Button, Modal, Form, Input, Select, DatePicker,
   Upload, message, Alert, Tabs, TimePicker, InputNumber,
   Divider, Radio, Tag, Table, Spin, Empty, Tooltip, Statistic, Progress,
   Space, Badge, Descriptions, Typography, Collapse,
@@ -10,10 +10,10 @@ import {
   Menu, Dropdown, Pagination, Breadcrumb, Affix,
   Result, Checkbox
 } from 'antd';
-import { 
-  AlertOutlined, 
-  ExportOutlined, 
-  FileTextOutlined, 
+import {
+  AlertOutlined,
+  ExportOutlined,
+  FileTextOutlined,
   EnvironmentOutlined,
   UserOutlined,
   SafetyCertificateOutlined,
@@ -52,7 +52,16 @@ import {
   ReconciliationOutlined,
   SearchOutlined,
   SortAscendingOutlined,
-  SortDescendingOutlined
+  SortDescendingOutlined,
+  // NEW icons for advanced features
+  BranchesOutlined,
+  RobotOutlined,
+  CommentOutlined,
+  HistoryOutlined,
+  DollarOutlined,
+  AuditOutlined,
+  ThunderboltOutlined,
+  BulbOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../context/AuthContext';
 import notificationService from '../services/notificationService';
@@ -60,6 +69,34 @@ import NotificationContext from '../context/NotificationContext';
 import ExportPanel from '../components/reports/ExportPanel';
 import CustomReportBuilder from '../components/reports/CustomReportBuilder';
 import { useIncidentNotifications } from '../context/NotificationContext';
+
+// ============================================================
+// NEW: Advanced Incident Components
+// ============================================================
+import FishboneDiagram from '../components/incidents/FishboneDiagram';
+import AIInvestigationAssistant from '../components/incidents/AIInvestigationAssistant';
+import IncidentTimeline from '../components/incidents/IncidentTimeline';
+import EditIncidentModal from '../components/incidents/EditIncidentModal';
+import CorrectiveActionTracker from '../components/incidents/CorrectiveActionTracker';
+import IncidentComments from '../components/incidents/IncidentComments';
+import InvestigationAssignment from '../components/incidents/InvestigationAssignment';
+import WitnessStatementForm from '../components/incidents/WitnessStatementForm';
+import AuditTrailViewer from '../components/incidents/AuditTrailViewer';
+
+// ============================================================
+// NEW: Analytics & Compliance Components
+// ============================================================
+import PredictiveAnalyticsDashboard from '../components/analytics/PredictiveAnalyticsDashboard';
+import SimilarIncidentDetection from '../components/analytics/SimilarIncidentDetection';
+import CostAnalysisModule from '../components/analytics/CostAnalysisModule';
+import RegulatoryReporting from '../components/compliance/RegulatoryReporting';
+import EscalationMatrix from '../components/compliance/EscalationMatrix';
+
+// ============================================================
+// NEW: Safety Components
+// ============================================================
+import SafetyObservations from '../components/compliance/SafetyObservations';
+import LessonsLearned from '../components/compliance/LessonsLearned';
 
 // Chart.js imports
 import {
@@ -94,7 +131,7 @@ const { TextArea } = Input;
 const { Option } = Select;
 const { TabPane } = Tabs;
 const { Panel } = Collapse;
-const { Text, Paragraph } = Typography;
+const { Text, Paragraph, Title: AntTitle } = Typography;
 const { Dragger } = Upload;
 
 // ==================== CONSTANTS ====================
@@ -534,10 +571,10 @@ const getStatusTag = (status) => {
 
 // ==================== MEDIA UPLOAD COMPONENT ====================
 
-const MediaUploadSection = ({ 
-  fileList, 
-  setFileList, 
-  uploading, 
+const MediaUploadSection = ({
+  fileList,
+  setFileList,
+  uploading,
   setUploading,
   maxFiles = 10,
   maxSizeMB = 50
@@ -784,7 +821,34 @@ const MediaUploadSection = ({
 
 // ==================== INCIDENT DETAILS MODAL ====================
 
-const IncidentDetailsModal = ({ visible, incident, onClose, onEdit, onStatusUpdate, canEdit, canUpdateStatus }) => {
+/**
+ * Enhanced Incident Details Modal with tabs for:
+ *  - Details (existing Descriptions)
+ *  - Advanced Tools (Fishbone, AI, Timeline)
+ *  - Corrective Actions
+ *  - Discussion (Comments)
+ *  - Team (Investigation Assignment)
+ *  - Witness Statements
+ */
+const IncidentDetailsModal = ({
+  visible,
+  incident,
+  onClose,
+  onEdit,
+  onStatusUpdate,
+  onOpenFishbone,
+  onOpenAI,
+  onOpenTimeline,
+  onCorrectiveActions,
+  onComments,
+  onAssignment,
+  onWitnessStatements,
+  onAuditTrail,
+  canEdit,
+  canUpdateStatus,
+  currentUser
+}) => {
+  const [activeTab, setActiveTab] = useState('details');
   if (!incident) return null;
 
   const statusConfig = STATUS_CONFIG[incident.status] || { color: 'default', label: incident.status };
@@ -801,139 +865,224 @@ const IncidentDetailsModal = ({ visible, incident, onClose, onEdit, onStatusUpda
       }
       open={visible}
       onCancel={onClose}
-      width={900}
+      width={1000}
       footer={[
         <Button key="close" onClick={onClose}>Close</Button>,
+        <Button
+          key="audit"
+          icon={<HistoryOutlined />}
+          onClick={() => onAuditTrail && onAuditTrail(incident)}
+        >
+          Audit Trail
+        </Button>,
         canUpdateStatus && (
-          <Button key="status" type="primary" icon={<CheckCircleOutlined />} onClick={() => { onClose(); onStatusUpdate(incident); }}>
+          <Button key="status" icon={<CheckCircleOutlined />} onClick={() => { onClose(); onStatusUpdate(incident); }}>
             Update Status
           </Button>
         ),
         canEdit && (
           <Button key="edit" type="primary" icon={<EditOutlined />} onClick={() => { onClose(); onEdit(incident); }}>
-            Edit Incident
+            Edit
           </Button>
         )
       ]}
     >
-      <Descriptions bordered column={2} size="small">
-        <Descriptions.Item label="Incident #" span={2}>
-          <Text strong>{incident.incident_number || `INC-${incident.id}`}</Text>
-        </Descriptions.Item>
-        <Descriptions.Item label="Title" span={2}>{incident.title}</Descriptions.Item>
-        <Descriptions.Item label="Description" span={2}>{incident.description}</Descriptions.Item>
-        <Descriptions.Item label="Type"><Tag>{incident.incident_type?.replace(/_/g, ' ')}</Tag></Descriptions.Item>
-        <Descriptions.Item label="Category"><Tag>{incident.incident_category || 'N/A'}</Tag></Descriptions.Item>
-        <Descriptions.Item label="Severity">{getSeverityTag(incident.severity)}</Descriptions.Item>
-        <Descriptions.Item label="Status"><Tag color={statusConfig.color}>{statusConfig.icon} {statusConfig.label}</Tag></Descriptions.Item>
-        <Descriptions.Item label="Department">{incident.department || 'N/A'}</Descriptions.Item>
-        <Descriptions.Item label="Industry">{incident.industryName || incident.industry_id || 'N/A'}</Descriptions.Item>
-        <Descriptions.Item label="Location">{incident.location || 'N/A'}</Descriptions.Item>
-        <Descriptions.Item label="Date Occurred">{formatDate(incident.date_occurred)}</Descriptions.Item>
-        <Descriptions.Item label="Reported By">{incident.reported_by_name || incident.reported_by || 'Unknown'}</Descriptions.Item>
-        <Descriptions.Item label="Reported At">{formatDate(incident.created_at || incident.reported_at)}</Descriptions.Item>
-      </Descriptions>
-
-      <Divider orientation="left">People Information</Divider>
-      <Descriptions bordered column={2} size="small">
-        <Descriptions.Item label="Injured Persons">{incident.custom_data?.injured_persons || '0'}</Descriptions.Item>
-        <Descriptions.Item label="Witnesses">{incident.custom_data?.witnesses || '0'}</Descriptions.Item>
-        <Descriptions.Item label="Persons Involved" span={2}>{incident.custom_data?.persons_involved || 'N/A'}</Descriptions.Item>
-        <Descriptions.Item label="Immediate Actions" span={2}>{incident.custom_data?.immediate_actions || 'N/A'}</Descriptions.Item>
-      </Descriptions>
-
-      {incident.custom_data && Object.keys(incident.custom_data).filter(key => !['reporter_name', 'injured_persons', 'witnesses', 'persons_involved', 'immediate_actions', 'additional_notes', 'evidence_description'].includes(key)).length > 0 && (
-        <>
-          <Divider orientation="left">Additional Details</Divider>
+      <Tabs activeKey={activeTab} onChange={setActiveTab}>
+        {/* ---------- DETAILS TAB ---------- */}
+        <TabPane tab={<span><FileTextOutlined /> Details</span>} key="details">
           <Descriptions bordered column={2} size="small">
-            {Object.entries(incident.custom_data)
-              .filter(([key]) => !['reporter_name', 'injured_persons', 'witnesses', 'persons_involved', 'immediate_actions', 'additional_notes', 'evidence_description'].includes(key))
-              .map(([key, value]) => (
-                <Descriptions.Item key={key} label={key.replace(/_/g, ' ').toUpperCase()}>
-                  {typeof value === 'object' ? JSON.stringify(value) : value || 'N/A'}
-                </Descriptions.Item>
-              ))}
+            <Descriptions.Item label="Incident #" span={2}>
+              <Text strong>{incident.incident_number || `INC-${incident.id}`}</Text>
+            </Descriptions.Item>
+            <Descriptions.Item label="Title" span={2}>{incident.title}</Descriptions.Item>
+            <Descriptions.Item label="Description" span={2}>{incident.description}</Descriptions.Item>
+            <Descriptions.Item label="Type"><Tag>{incident.incident_type?.replace(/_/g, ' ')}</Tag></Descriptions.Item>
+            <Descriptions.Item label="Category"><Tag>{incident.incident_category || 'N/A'}</Tag></Descriptions.Item>
+            <Descriptions.Item label="Severity">{getSeverityTag(incident.severity)}</Descriptions.Item>
+            <Descriptions.Item label="Status"><Tag color={statusConfig.color}>{statusConfig.icon} {statusConfig.label}</Tag></Descriptions.Item>
+            <Descriptions.Item label="Department">{incident.department || 'N/A'}</Descriptions.Item>
+            <Descriptions.Item label="Industry">{incident.industryName || incident.industry_id || 'N/A'}</Descriptions.Item>
+            <Descriptions.Item label="Location">{incident.location || 'N/A'}</Descriptions.Item>
+            <Descriptions.Item label="Date Occurred">{formatDate(incident.date_occurred)}</Descriptions.Item>
+            <Descriptions.Item label="Reported By">{incident.reported_by_name || incident.reported_by || 'Unknown'}</Descriptions.Item>
+            <Descriptions.Item label="Reported At">{formatDate(incident.created_at || incident.reported_at)}</Descriptions.Item>
           </Descriptions>
-        </>
-      )}
 
-      <Divider orientation="left">
-        <Space>
-          <PaperClipOutlined />
-          Evidence Files
-          {evidenceFiles.length > 0 && <Badge count={evidenceFiles.length} style={{ backgroundColor: '#1890ff' }} />}
-        </Space>
-      </Divider>
+          <Divider orientation="left">People Information</Divider>
+          <Descriptions bordered column={2} size="small">
+            <Descriptions.Item label="Injured Persons">{incident.custom_data?.injured_persons || '0'}</Descriptions.Item>
+            <Descriptions.Item label="Witnesses">{incident.custom_data?.witnesses || '0'}</Descriptions.Item>
+            <Descriptions.Item label="Persons Involved" span={2}>{incident.custom_data?.persons_involved || 'N/A'}</Descriptions.Item>
+            <Descriptions.Item label="Immediate Actions" span={2}>{incident.custom_data?.immediate_actions || 'N/A'}</Descriptions.Item>
+          </Descriptions>
 
-      {evidenceFiles.length > 0 ? (
-        <>
-          <Row gutter={[12, 12]}>
-            {evidenceFiles.map((file, index) => (
-              <Col xs={24} sm={12} md={8} lg={6} key={index}>
-                <Card
-                  size="small"
-                  cover={
-                    file.type?.startsWith('image/') ? (
-                      <div style={{ height: '150px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f5f5', cursor: 'pointer' }} onClick={() => file.url && window.open(file.url, '_blank')}>
-                        <img src={file.url} alt={file.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
-                      </div>
-                    ) : (
-                      <div style={{ height: '150px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fafafa', flexDirection: 'column' }}>
-                        {file.type?.startsWith('video/') ? <FileImageOutlined style={{ fontSize: '48px', color: '#722ed1' }} /> :
-                         file.type === 'application/pdf' ? <FilePdfOutlined style={{ fontSize: '48px', color: '#f5222d' }} /> :
-                         file.name?.endsWith('.doc') || file.name?.endsWith('.docx') ? <FileWordOutlined style={{ fontSize: '48px', color: '#1890ff' }} /> :
-                         file.name?.endsWith('.xls') || file.name?.endsWith('.xlsx') ? <FileExcelOutlined style={{ fontSize: '48px', color: '#52c41a' }} /> :
-                         <FileUnknownOutlined style={{ fontSize: '48px', color: '#d9d9d9' }} />}
-                        <Tag color="blue" style={{ marginTop: '8px' }}>{file.type?.split('/')[0] || 'File'}</Tag>
-                      </div>
-                    )
-                  }
-                  actions={[
-                    <Tooltip title="View">
-                      <EyeOutlined onClick={() => file.url && window.open(file.url, '_blank')} />
-                    </Tooltip>,
-                    <Tooltip title="Download">
-                      <DownloadOutlined onClick={() => file.url && window.open(file.url, '_blank')} />
-                    </Tooltip>
-                  ]}
-                >
-                  <Card.Meta
-                    title={
-                      <Tooltip title={file.name}>
-                        <span style={{ fontSize: '12px' }}>
-                          {file.name && file.name.length > 20 ? `${file.name.substring(0, 20)}...` : file.name || `File ${index + 1}`}
-                        </span>
-                      </Tooltip>
-                    }
-                    description={
-                      <Space direction="vertical" size={0}>
-                        <Text type="secondary" style={{ fontSize: '11px' }}>
-                          {file.size ? `${(file.size / 1024).toFixed(1)} KB` : 'Unknown size'}
-                        </Text>
-                        {file.type && <Tag size="small" style={{ fontSize: '10px' }}>{file.type.split('/')[0]}</Tag>}
-                      </Space>
-                    }
-                  />
-                </Card>
-              </Col>
-            ))}
-          </Row>
-          {incident.evidence_description && (
-            <div style={{ marginTop: '12px' }}>
-              <Text type="secondary"><strong>Evidence Description:</strong> {incident.evidence_description}</Text>
-            </div>
+          {incident.custom_data && Object.keys(incident.custom_data).filter(key => !['reporter_name', 'injured_persons', 'witnesses', 'persons_involved', 'immediate_actions', 'additional_notes', 'evidence_description'].includes(key)).length > 0 && (
+            <>
+              <Divider orientation="left">Additional Details</Divider>
+              <Descriptions bordered column={2} size="small">
+                {Object.entries(incident.custom_data)
+                  .filter(([key]) => !['reporter_name', 'injured_persons', 'witnesses', 'persons_involved', 'immediate_actions', 'additional_notes', 'evidence_description'].includes(key))
+                  .map(([key, value]) => (
+                    <Descriptions.Item key={key} label={key.replace(/_/g, ' ').toUpperCase()}>
+                      {typeof value === 'object' ? JSON.stringify(value) : value || 'N/A'}
+                    </Descriptions.Item>
+                  ))}
+              </Descriptions>
+            </>
           )}
-        </>
-      ) : (
-        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No evidence files attached to this incident" />
-      )}
 
-      {incident.custom_data?.additional_notes && (
-        <>
-          <Divider orientation="left">Additional Notes</Divider>
-          <Paragraph>{incident.custom_data.additional_notes}</Paragraph>
-        </>
-      )}
+          <Divider orientation="left">
+            <Space>
+              <PaperClipOutlined />
+              Evidence Files
+              {evidenceFiles.length > 0 && <Badge count={evidenceFiles.length} style={{ backgroundColor: '#1890ff' }} />}
+            </Space>
+          </Divider>
+
+          {evidenceFiles.length > 0 ? (
+            <>
+              <Row gutter={[12, 12]}>
+                {evidenceFiles.map((file, index) => (
+                  <Col xs={24} sm={12} md={8} lg={6} key={index}>
+                    <Card
+                      size="small"
+                      cover={
+                        file.type?.startsWith('image/') ? (
+                          <div style={{ height: '150px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f5f5', cursor: 'pointer' }} onClick={() => file.url && window.open(file.url, '_blank')}>
+                            <img src={file.url} alt={file.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                          </div>
+                        ) : (
+                          <div style={{ height: '150px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fafafa', flexDirection: 'column' }}>
+                            {file.type?.startsWith('video/') ? <FileImageOutlined style={{ fontSize: '48px', color: '#722ed1' }} /> :
+                             file.type === 'application/pdf' ? <FilePdfOutlined style={{ fontSize: '48px', color: '#f5222d' }} /> :
+                             file.name?.endsWith('.doc') || file.name?.endsWith('.docx') ? <FileWordOutlined style={{ fontSize: '48px', color: '#1890ff' }} /> :
+                             file.name?.endsWith('.xls') || file.name?.endsWith('.xlsx') ? <FileExcelOutlined style={{ fontSize: '48px', color: '#52c41a' }} /> :
+                             <FileUnknownOutlined style={{ fontSize: '48px', color: '#d9d9d9' }} />}
+                            <Tag color="blue" style={{ marginTop: '8px' }}>{file.type?.split('/')[0] || 'File'}</Tag>
+                          </div>
+                        )
+                      }
+                      actions={[
+                        <Tooltip title="View">
+                          <EyeOutlined onClick={() => file.url && window.open(file.url, '_blank')} />
+                        </Tooltip>,
+                        <Tooltip title="Download">
+                          <DownloadOutlined onClick={() => file.url && window.open(file.url, '_blank')} />
+                        </Tooltip>
+                      ]}
+                    >
+                      <Card.Meta
+                        title={
+                          <Tooltip title={file.name}>
+                            <span style={{ fontSize: '12px' }}>
+                              {file.name && file.name.length > 20 ? `${file.name.substring(0, 20)}...` : file.name || `File ${index + 1}`}
+                            </span>
+                          </Tooltip>
+                        }
+                        description={
+                          <Space direction="vertical" size={0}>
+                            <Text type="secondary" style={{ fontSize: '11px' }}>
+                              {file.size ? `${(file.size / 1024).toFixed(1)} KB` : 'Unknown size'}
+                            </Text>
+                            {file.type && <Tag size="small" style={{ fontSize: '10px' }}>{file.type.split('/')[0]}</Tag>}
+                          </Space>
+                        }
+                      />
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+              {incident.evidence_description && (
+                <div style={{ marginTop: '12px' }}>
+                  <Text type="secondary"><strong>Evidence Description:</strong> {incident.evidence_description}</Text>
+                </div>
+              )}
+            </>
+          ) : (
+            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No evidence files attached to this incident" />
+          )}
+
+          {incident.custom_data?.additional_notes && (
+            <>
+              <Divider orientation="left">Additional Notes</Divider>
+              <Paragraph>{incident.custom_data.additional_notes}</Paragraph>
+            </>
+          )}
+
+          {/* ---------- ADVANCED TOOLS (quick actions) ---------- */}
+          <Divider orientation="left">Advanced Tools</Divider>
+          <Row gutter={[16, 16]}>
+            <Col span={8}>
+              <Card
+                hoverable
+                size="small"
+                onClick={() => onOpenFishbone && onOpenFishbone(incident)}
+                style={{ textAlign: 'center', cursor: 'pointer' }}
+              >
+                <BranchesOutlined style={{ fontSize: 32, color: '#722ed1' }} />
+                <AntTitle level={5} style={{ marginTop: 8 }}>Fishbone Analysis</AntTitle>
+                <Text type="secondary">Root cause diagram</Text>
+              </Card>
+            </Col>
+            <Col span={8}>
+              <Card
+                hoverable
+                size="small"
+                onClick={() => onOpenAI && onOpenAI(incident)}
+                style={{ textAlign: 'center', cursor: 'pointer' }}
+              >
+                <RobotOutlined style={{ fontSize: 32, color: '#722ed1' }} />
+                <AntTitle level={5} style={{ marginTop: 8 }}>AI Assistant</AntTitle>
+                <Text type="secondary">Smart investigation</Text>
+              </Card>
+            </Col>
+            <Col span={8}>
+              <Card
+                hoverable
+                size="small"
+                onClick={() => onOpenTimeline && onOpenTimeline(incident)}
+                style={{ textAlign: 'center', cursor: 'pointer' }}
+              >
+                <ClockCircleOutlined style={{ fontSize: 32, color: '#1890ff' }} />
+                <AntTitle level={5} style={{ marginTop: 8 }}>Timeline</AntTitle>
+                <Text type="secondary">Event history</Text>
+              </Card>
+            </Col>
+          </Row>
+        </TabPane>
+
+        {/* ---------- CORRECTIVE ACTIONS TAB ---------- */}
+        <TabPane tab={<span><ToolOutlined /> Corrective Actions</span>} key="actions">
+          <CorrectiveActionTracker
+            incident={incident}
+            visible={true}
+            onClose={() => {}}
+          />
+        </TabPane>
+
+        {/* ---------- DISCUSSION TAB ---------- */}
+        <TabPane tab={<span><CommentOutlined /> Discussion</span>} key="comments">
+          <IncidentComments
+            incident={incident}
+            currentUser={currentUser || { id: '1', name: 'Current User' }}
+          />
+        </TabPane>
+
+        {/* ---------- TEAM TAB ---------- */}
+        <TabPane tab={<span><TeamOutlined /> Team</span>} key="team">
+          <InvestigationAssignment
+            incident={incident}
+            users={[]}
+          />
+        </TabPane>
+
+        {/* ---------- WITNESS STATEMENTS TAB ---------- */}
+        <TabPane tab={<span><FileTextOutlined /> Witness Statements</span>} key="witnesses">
+          <WitnessStatementForm
+            incident={incident}
+          />
+        </TabPane>
+      </Tabs>
     </Modal>
   );
 };
@@ -1078,6 +1227,21 @@ const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
   });
   const [chartView, setChartView] = useState('severity');
 
+  // ============================================================
+  // NEW: Advanced Incident Modal States
+  // ============================================================
+  const [fishboneVisible, setFishboneVisible] = useState(false);
+  const [aiAssistantVisible, setAiAssistantVisible] = useState(false);
+  const [timelineVisible, setTimelineVisible] = useState(false);
+  const [timelineEvents, setTimelineEvents] = useState([]);
+
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [correctiveActionsVisible, setCorrectiveActionsVisible] = useState(false);
+  const [commentsVisible, setCommentsVisible] = useState(false);
+  const [assignmentVisible, setAssignmentVisible] = useState(false);
+  const [witnessStatementsVisible, setWitnessStatementsVisible] = useState(false);
+  const [auditTrailVisible, setAuditTrailVisible] = useState(false);
+
   const isAdmin = isAnyAdmin();
   const isCompanyAdmin = isRegularAdmin();
   const isSuperAdminUser = isSuperAdmin();
@@ -1187,8 +1351,7 @@ const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
 
   const handleEditIncident = (incident) => {
     setEditingIncident(incident);
-    // You can add edit modal logic here
-    message.info('Edit functionality coming soon');
+    setEditModalVisible(true);
   };
 
   const handleDeleteIncident = (incident) => {
@@ -1224,6 +1387,29 @@ const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
       console.error('Status update error:', error);
       message.error('Failed to update incident status');
     }
+  };
+
+  // ============================================================
+  // NEW: Handlers for advanced tools
+  // ============================================================
+  const handleOpenFishbone = (incident) => {
+    setSelectedIncident(incident);
+    setFishboneVisible(true);
+  };
+
+  const handleOpenAI = (incident) => {
+    setSelectedIncident(incident);
+    setAiAssistantVisible(true);
+  };
+
+  const handleOpenTimeline = (incident) => {
+    setSelectedIncident(incident);
+    setTimelineVisible(true);
+  };
+
+  const handleOpenAuditTrail = (incident) => {
+    setSelectedIncident(incident);
+    setAuditTrailVisible(true);
   };
 
   const columns = [
@@ -1286,8 +1472,6 @@ const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
 
   return (
     <div>
-      
-
       <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
         <Col xs={24} sm={12} md={6}>
           <Card hoverable onClick={() => applyFilter('all')} style={{ cursor: 'pointer', border: selectedFilter === 'all' ? '3px solid #1890ff' : '1px solid #f0f0f0' }}>
@@ -1378,9 +1562,61 @@ const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
         <Table columns={columns} dataSource={displayIncidents} rowKey="id" pagination={{ pageSize: 10, showTotal: (total) => `Total ${total} incidents`, showSizeChanger: true, showQuickJumper: true }} scroll={{ x: 1200 }} rowClassName={(record) => { if (record.severity === 'critical') return 'critical-row'; if (record.severity === 'high') return 'high-row'; return ''; }} />
       </Card>
 
+      {/* ============================================================ */}
+      {/* MODALS */}
+      {/* ============================================================ */}
       <StatusUpdateModal visible={statusModalVisible} incident={editingIncident} onClose={() => { setStatusModalVisible(false); setEditingIncident(null); }} onUpdate={updateIncidentStatus} isSuperAdmin={isSuperAdminUser} isCompanyAdmin={isCompanyAdmin} />
       <StatusDetailsModal visible={statusDetailsModalVisible} status={selectedStatus} incidents={statusIncidents} onClose={() => { setStatusDetailsModalVisible(false); setSelectedStatus(null); setStatusIncidents([]); }} onViewIncident={viewIncidentDetails} />
-      <IncidentDetailsModal visible={detailsModalVisible} incident={selectedIncident} onClose={() => { setDetailsModalVisible(false); setSelectedIncident(null); }} onEdit={handleEditIncident} onStatusUpdate={(incident) => { setEditingIncident(incident); setStatusModalVisible(true); }} canEdit={selectedIncident ? canEditIncident(selectedIncident) : false} canUpdateStatus={selectedIncident ? canUpdateStatus(selectedIncident) : false} />
+      <IncidentDetailsModal
+        visible={detailsModalVisible}
+        incident={selectedIncident}
+        onClose={() => { setDetailsModalVisible(false); setSelectedIncident(null); }}
+        onEdit={handleEditIncident}
+        onStatusUpdate={(incident) => { setEditingIncident(incident); setStatusModalVisible(true); }}
+        onOpenFishbone={handleOpenFishbone}
+        onOpenAI={handleOpenAI}
+        onOpenTimeline={handleOpenTimeline}
+        onAuditTrail={handleOpenAuditTrail}
+        canEdit={selectedIncident ? canEditIncident(selectedIncident) : false}
+        canUpdateStatus={selectedIncident ? canUpdateStatus(selectedIncident) : false}
+        currentUser={{ id: user?.id, name: user?.name, role: user?.role }}
+      />
+
+      {/* ---------- Advanced Incident Modals ---------- */}
+      <FishboneDiagram
+        visible={fishboneVisible}
+        incident={selectedIncident}
+        onClose={() => setFishboneVisible(false)}
+      />
+      <AIInvestigationAssistant
+        visible={aiAssistantVisible}
+        incident={selectedIncident}
+        onClose={() => setAiAssistantVisible(false)}
+      />
+      <IncidentTimeline
+        visible={timelineVisible}
+        incident={selectedIncident}
+        events={timelineEvents}
+        onClose={() => setTimelineVisible(false)}
+      />
+      <AuditTrailViewer
+        visible={auditTrailVisible}
+        incident={selectedIncident}
+        onClose={() => setAuditTrailVisible(false)}
+      />
+
+      {/* ---------- Edit Incident Modal ---------- */}
+      <EditIncidentModal
+        visible={editModalVisible}
+        incident={editingIncident}
+        onClose={() => { setEditModalVisible(false); setEditingIncident(null); }}
+        onSave={(updated) => {
+          message.success('Incident updated');
+          setEditModalVisible(false);
+          setEditingIncident(null);
+          fetchIncidents();
+        }}
+      />
 
       <style jsx>{`
         .critical-row { background-color: #fff1f0 !important; }
@@ -1547,15 +1783,78 @@ function ReportsPage() {
   return (
     <div style={{ padding: '24px' }}>
       <Tabs defaultActiveKey="incidents">
+        {/* ---------- REPORTS TAB ---------- */}
         <TabPane tab={<span><FileTextOutlined /> Safety Reports</span>} key="reports">
           <Row gutter={[24, 24]}><Col span={24}><Card><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}><h2 style={{ margin: 0 }}>Safety Reports & Incident Management</h2><Button type="primary" danger icon={<AlertOutlined />} onClick={showIncidentModal} size="large">Report Safety Incident</Button></div><Alert message="Multi-Industry Incident Reporting" description="Report safety incidents across all industries. Industry-specific forms ensure accurate data collection for proper investigation and compliance." type="info" showIcon style={{ marginBottom: '24px' }} /></Card></Col></Row>
           <ExportPanel />
           <CustomReportBuilder />
         </TabPane>
+
+        {/* ---------- INCIDENT DASHBOARD TAB ---------- */}
         <TabPane tab={<span><AlertOutlined /> Incident Dashboard</span>} key="incidents">
           <IncidentDashboard showIncidentModal={showIncidentModal} filterKey={filterKey} setFilterKey={setFilterKey} />
         </TabPane>
+
+        {/* ---------- PREDICTIVE ANALYTICS TAB ---------- */}
+        <TabPane tab={<span><LineChartOutlined /> Predictive Analytics</span>} key="predictive">
+          <PredictiveAnalyticsDashboard incidents={[]} />
+        </TabPane>
+
+        {/* ---------- COST ANALYSIS TAB ---------- */}
+        <TabPane tab={<span><DollarOutlined /> Cost Analysis</span>} key="costs">
+          <CostAnalysisModule incidents={[]} />
+        </TabPane>
+
+        {/* ---------- REGULATORY COMPLIANCE TAB ---------- */}
+        <TabPane tab={<span><AuditOutlined /> Regulatory Compliance</span>} key="compliance">
+          <RegulatoryReporting incidents={[]} />
+        </TabPane>
+
+        {/* ---------- ESCALATION MATRIX TAB ---------- */}
+        <TabPane tab={<span><ThunderboltOutlined /> Escalation Matrix</span>} key="escalation">
+          <EscalationMatrix incidents={[]} onEscalate={(incident, rule) => {
+            console.log('Escalating:', incident, rule);
+          }} />
+        </TabPane>
+
+        {/* ---------- SAFETY OBSERVATIONS TAB ---------- */}
+        <TabPane
+          tab={<span><EyeOutlined /> Safety Observations</span>}
+          key="observations"
+        >
+          <SafetyObservations
+            observations={[]}
+            currentUser={{ id: user?.id, name: user?.name, role: user?.role }}
+            onAddObservation={(obs) => {
+              console.log('New observation:', obs);
+              pushNotification({
+                id: `obs-${Date.now()}`,
+                title: '📋 Safety Observation Recorded',
+                message: `New ${obs.type} observation at ${obs.location}`,
+                type: 'info',
+                read: false,
+                date: new Date().toISOString()
+              });
+            }}
+          />
+        </TabPane>
+
+        {/* ---------- LESSONS LEARNED TAB ---------- */}
+        <TabPane
+          tab={<span><BulbOutlined /> Lessons Learned</span>}
+          key="lessons"
+        >
+          <LessonsLearned
+            lessons={[]}
+            incidents={[]}
+            currentUser={{ id: user?.id, name: user?.name, role: user?.role }}
+            onAddLesson={(lesson) => {
+              console.log('New lesson:', lesson);
+            }}
+          />
+        </TabPane>
       </Tabs>
+
       <Modal title={<span><AlertOutlined /> Report Safety Incident {selectedIndustry && <Tag color={selectedIndustry.color} style={{ marginLeft: '8px' }}>{selectedIndustry.name}</Tag>}</span>} open={incidentModalVisible} onCancel={() => { setIncidentModalVisible(false); setSelectedIndustry(null); setCurrentStep(0); form.resetFields(); setFileList([]); }} footer={null} width={800} style={{ top: 20 }} destroyOnClose>
         {renderIncidentModalContent()}
       </Modal>
