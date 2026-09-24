@@ -73,15 +73,15 @@ import { useIncidentNotifications } from '../context/NotificationContext';
 // ============================================================
 // NEW: Advanced Incident Components
 // ============================================================
-import FishboneDiagram from '../components/incidents/FishboneDiagram';
-import AIInvestigationAssistant from '../components/incidents/AIInvestigationAssistant';
-import IncidentTimeline from '../components/incidents/IncidentTimeline';
-import EditIncidentModal from '../components/incidents/EditIncidentModal';
-import CorrectiveActionTracker from '../components/incidents/CorrectiveActionTracker';
-import IncidentComments from '../components/incidents/IncidentComments';
-import InvestigationAssignment from '../components/incidents/InvestigationAssignment';
-import WitnessStatementForm from '../components/incidents/WitnessStatementForm';
-import AuditTrailViewer from '../components/incidents/AuditTrailViewer';
+import FishboneDiagram from '../components/incident/FishboneDiagram';
+import AIInvestigationAssistant from '../component/incidents/AIInvestigationAssistant';
+import IncidentTimeline from '../components/incident/IncidentTimeline';
+import EditIncidentModal from '../components/incident/EditIncidentModal';
+import CorrectiveActionTracker from '../components/incident/CorrectiveActionTracker';
+import IncidentComments from '../components/incident/IncidentComments';
+import InvestigationAssignment from '../components/incident/InvestigationAssignment';
+import WitnessStatementForm from '../components/incident/WitnessStatementForm';
+import AuditTrailViewer from '../components/incident/AuditTrailViewer';
 
 // ============================================================
 // NEW: Analytics & Compliance Components
