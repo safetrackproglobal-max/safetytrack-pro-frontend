@@ -198,8 +198,7 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
     if (incidents.length > 0) {
       generatePredictions();
     }
-  }, [incidents.length]); // eslint-disable-line react-hooks/exhaustive-deps
-
+  }, [incidents.length]);
   // ==================== INSIGHTS GENERATOR ====================
 
   const generateInsights = (historical, forecast, slope, riskScore, data) => {
