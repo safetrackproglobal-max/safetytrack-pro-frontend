@@ -1291,3 +1291,118 @@
   padding: 16px;
   border-radius: 0;
 }
+
+/* ============================================================
+   EDITOR STATUS BAR
+   ============================================================ */
+.editor-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 4px 12px;
+  margin-top: 4px;
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #595959;
+  min-height: 32px;
+}
+
+.editor-status-bar .ant-divider-vertical {
+  height: 16px;
+  margin: 0 2px;
+  border-color: #e6e6e6;
+}
+
+@media (prefers-color-scheme: dark) {
+  .editor-status-bar {
+    background: #1f1f1f;
+    border-color: #303030;
+    color: #bfbfbf;
+  }
+}
+
+/* ============================================================
+   EDITOR STATUS BAR — Word-style bottom bar
+   ============================================================ */
+.editor-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 6px 12px;
+  margin-top: 4px;
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #595959;
+  min-height: 34px;
+  transition: border-color 0.2s ease;
+}
+
+.editor-status-bar:hover {
+  border-color: #e6e6e6;
+}
+
+.editor-status-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.editor-status-bar .ant-divider-vertical {
+  height: 14px;
+  margin: 0 2px;
+  border-color: #e6e6e6;
+}
+
+.editor-status-bar .ant-select-selection-item {
+  font-size: 12px;
+  padding-inline-end: 14px !important;
+}
+
+.editor-status-bar .ant-tag {
+  margin: 0;
+  font-size: 11px;
+  line-height: 18px;
+  padding: 0 6px;
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 768px) {
+  .editor-status-bar {
+    font-size: 11px;
+    padding: 6px 8px;
+    gap: 6px;
+  }
+
+  .editor-status-bar .ant-select-selection-item {
+    font-size: 11px;
+  }
+
+  /* Collapse less-critical items on mobile */
+  .editor-status-bar .editor-status-item:not(:first-child):not(:nth-child(2)) {
+    /* keep everything, but allow wrapping */
+  }
+}
+
+/* ---------- Dark mode ---------- */
+@media (prefers-color-scheme: dark) {
+  .editor-status-bar {
+    background: #1f1f1f;
+    border-color: #303030;
+    color: #bfbfbf;
+  }
+
+  .editor-status-bar .ant-divider-vertical {
+    border-color: #303030;
+  }
+
+  .editor-status-bar .ant-select-selection-item {
+    color: #bfbfbf;
+  }
+}

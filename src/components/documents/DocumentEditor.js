@@ -70,6 +70,7 @@ import { useTrackChanges } from './useTrackChanges';
 import TrackChangesPanel from './TrackChangesPanel';
 import EditorRibbon from '../editor/EditorRibbon';
 import PDFEditor from '../editor/PDFEditor';
+import EditorStatusBar from '../editor/EditorStatusBar';
 import '../editor/EditorRibbon.css';
 import './DocumentEditor.css';
 
@@ -131,7 +132,8 @@ const DocumentEditor = ({
   const [readTime, setReadTime] = useState(0);
   const [readingMode, setReadingMode] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
-
+  const [zoom, setZoom] = useState(100);
+  const [language, setLanguage] = useState('en');
   // ============================================================
   // STATE — Panels / Drawers
   // ============================================================
@@ -490,7 +492,7 @@ const DocumentEditor = ({
     };
     document.addEventListener('keydown', h);
     return () => document.removeEventListener('keydown', h);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [findOpen]);
 
   // ============================================================
@@ -595,7 +597,7 @@ const DocumentEditor = ({
       }
     });
     return headings;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [editor, editor?.state?.doc]);
 
   const jumpToHeading = (pos) => {
@@ -1098,17 +1100,40 @@ const DocumentEditor = ({
               </div>
             )}
 
-            {/* Footer */}
-            <div className="editor-footer">
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                {wordCount} words • {charCount} chars • {readTime} min read
-              </Text>
-              {trackChangesEnabled && (
-                <Tag color="orange" style={{ marginLeft: 8 }}>
-                  <HistoryOutlined /> Tracking changes
-                </Tag>
-              )}
-            </div>
+            {/* ---------- Status bar (Word-style) ---------- */}
+<EditorStatusBar
+  wordCount={wordCount}
+  charCount={charCount}
+  readTime={readTime}
+  mode={editorMode}
+  pageNumber={1}                 /* wired later when PDF thumbnails sync */
+  totalPages={1}                 /* wired later when PDF thumbnails sync */
+  onPageChange={() => {}}        /* wired later when PDF thumbnails sync */
+  zoom={zoom}
+  onZoomChange={setZoom}
+  language={language}
+  onLanguageChange={setLanguage}
+  pageSize={pageSize}
+  onPageSizeChange={setPageSize}
+  lastSaved={lastSaved}
+  isSaving={saving}
+  readingMode={readingMode}
+  focusMode={focusMode}
+  trackChangesEnabled={trackChangesEnabled}
+  currentSection={
+    outline.length > 0 && editor
+      ? (() => {
+          // Find the heading closest before the cursor
+          const pos = editor.state.selection.from;
+          let current = null;
+          for (const h of outline) {
+            if (h.pos <= pos) current = h.text;
+          }
+          return current;
+        })()
+      : null
+  }
+/>
 
             {/* Metadata */}
             {!readingMode && !focusMode && (
