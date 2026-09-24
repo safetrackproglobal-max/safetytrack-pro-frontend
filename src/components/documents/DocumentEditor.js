@@ -72,6 +72,14 @@ import DocumentSignature from './DocumentSignature';
 import { useTrackChanges } from './useTrackChanges';
 import TrackChangesPanel from './TrackChangesPanel';
 import './DocumentEditor.css';
+
+// ============================================================
+// NEW IMPORTS (added as requested)
+// ============================================================
+import EditorRibbon from '../editor/EditorRibbon';
+import PDFEditor from '../editor/PDFEditor';
+import '../editor/EditorRibbon.css';
+
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
@@ -168,6 +176,17 @@ const DocumentEditor = ({
 
   // Autosave timer
   const autoSaveTimer = useRef(null);
+
+  // ============================================================
+  // NEW STATE (added as requested)
+  // ============================================================
+  const [ribbonTab, setRibbonTab] = useState('home');
+  const [editorMode, setEditorMode] = useState(isPdf ? 'pdf' : 'html');
+  const [activePdfTool, setActivePdfTool] = useState('select');
+
+  // NEW: PDF signature / form panel state (added as requested)
+  const [signaturePlacing, setSignaturePlacing] = useState(false);
+  const [showFormPanel, setShowFormPanel] = useState(false);
 
   // Turndown for Markdown export
   const turndown = useMemo(() => new TurndownService({ headingStyle: 'atx' }), []);
@@ -948,6 +967,90 @@ const DocumentEditor = ({
   // BUBBLE MENU (floating on selection)
   // ============================================================
   const renderBubbleMenu = () => null;
+
+  // ============================================================
+  // NEW — RIBBON (added as requested)
+  // ============================================================
+  const renderRibbon = () => (
+    <EditorRibbon
+      mode={editorMode}
+      activeTab={ribbonTab}
+      onTabChange={setRibbonTab}
+      documentTitle={title}
+      canUndo={editor?.can().undo()}
+      canRedo={editor?.can().redo()}
+      activeFormats={{
+        bold: editor?.isActive('bold'),
+        italic: editor?.isActive('italic'),
+        underline: editor?.isActive('underline'),
+        strike: editor?.isActive('strike'),
+        highlight: editor?.isActive('highlight'),
+      }}
+      // File actions
+      onNew={() => { setTitle(''); editor?.commands.setContent('<p></p>'); }}
+      onOpen={() => importInputRef.current?.click()}
+      onSave={handleSave}
+      onSaveAs={handleSaveAsNew}
+      onExport={(fmt) => {
+        if (fmt === 'pdf') handleExportPDF();
+        else if (fmt === 'docx') handleExportWord();
+        else if (fmt === 'md') handleExportMarkdown();
+        else if (fmt === 'html') handleExportHTML();
+      }}
+      onPrint={() => window.print()}
+      // Edit
+      onUndo={() => editor?.chain().focus().undo().run()}
+      onRedo={() => editor?.chain().focus().redo().run()}
+      onCut={() => document.execCommand('cut')}
+      onCopy={() => document.execCommand('copy')}
+      onPaste={() => {}}
+      // Format
+      onBold={() => editor?.chain().focus().toggleBold().run()}
+      onItalic={() => editor?.chain().focus().toggleItalic().run()}
+      onUnderline={() => editor?.chain().focus().toggleUnderline().run()}
+      onStrike={() => editor?.chain().focus().toggleStrike().run()}
+      onHighlight={() => editor?.chain().focus().toggleHighlight().run()}
+      onAlignLeft={() => editor?.chain().focus().setTextAlign('left').run()}
+      onAlignCenter={() => editor?.chain().focus().setTextAlign('center').run()}
+      onAlignRight={() => editor?.chain().focus().setTextAlign('right').run()}
+      onOrderedList={() => editor?.chain().focus().toggleOrderedList().run()}
+      onUnorderedList={() => editor?.chain().focus().toggleBulletList().run()}
+      onLink={() => setLinkModalVisible(true)}
+      onImage={() => imageInputRef.current?.click()}
+      onTable={() => editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+      // PDF annotation
+      onTextAnnotation={() => setActivePdfTool('text')}
+      onRectAnnotation={() => setActivePdfTool('rect')}
+      onEllipseAnnotation={() => setActivePdfTool('ellipse')}
+      onLineAnnotation={() => setActivePdfTool('line')}
+      onStickyNote={() => setActivePdfTool('note')}
+      onSignature={() => setSignatureModalVisible(true)}
+      onStamp={() => message.info('Stamp tool coming soon')}
+      // PDF signature / form (added as requested)
+      onPlaceSignature={() => setSignaturePlacing(true)}
+      onOpenFormPanel={() => setShowFormPanel(true)}
+      // Pages (PDF) — delegated via custom events (added as requested)
+      onInsertPage={() => {
+        window.dispatchEvent(new CustomEvent('pdf-page-insert'));
+      }}
+      onDeletePage={() => {
+        window.dispatchEvent(new CustomEvent('pdf-page-delete'));
+      }}
+      onRotateLeft={() => {
+        window.dispatchEvent(new CustomEvent('pdf-page-rotate', { detail: { degrees: -90 } }));
+      }}
+      onRotateRight={() => {
+        window.dispatchEvent(new CustomEvent('pdf-page-rotate', { detail: { degrees: 90 } }));
+      }}
+      // View
+      onZoomIn={() => message.info('Zoom via PDF toolbar')}
+      onZoomOut={() => message.info('Zoom via PDF toolbar')}
+      onFitWidth={() => message.info('Fit width via PDF toolbar')}
+      onFitPage={() => message.info('Fit page via PDF toolbar')}
+      onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
+    />
+  );
+
   // ============================================================
   // METADATA SIDEBAR
   // ============================================================
@@ -1142,13 +1245,39 @@ const DocumentEditor = ({
           {/* MAIN BODY — single column, editor on top, metadata below */}
           {/* ============================================================ */}
           <div className="editor-body">
-            {/* Toolbar (hidden in reading/focus mode) */}
-            {!readingMode && !focusMode && renderToolbar()}
+            {/* NEW: Ribbon (added as requested) */}
+            {renderRibbon()}
 
-            {/* Editor content */}
-            <div className="editor-wrapper">
-              <EditorContent editor={editor} className={editorClass} />
-            </div>
+            {/* NEW: Conditional PDF/HTML editor (added as requested) */}
+            {editorMode === 'pdf' && initialPdfUrl ? (
+              <PDFEditor
+                pdfUrl={initialPdfUrl}
+                documentId={documentId}
+                activeTool={activePdfTool}
+                signaturePlacing={signaturePlacing}
+                onSignaturePlacingChange={setSignaturePlacing}
+                showFormPanel={showFormPanel}
+                onShowFormPanelChange={setShowFormPanel}
+                onSave={(blob) => {
+                  const file = new File([blob], `${title || 'document'}-annotated.pdf`, {
+                    type: 'application/pdf'
+                  });
+                  // Hand off to your existing save flow
+                  if (onSave) onSave({ file, title, isPdf: true });
+                }}
+                onClose={() => setEditorMode('html')}
+              />
+            ) : (
+              <>
+                {/* Toolbar (hidden in reading/focus mode) */}
+                {!readingMode && !focusMode && renderToolbar()}
+
+                {/* Editor content */}
+                <div className="editor-wrapper">
+                  <EditorContent editor={editor} className={editorClass} />
+                </div>
+              </>
+            )}
 
             {/* Footer (word count) */}
             <div className="editor-footer">
