@@ -1209,3 +1209,18 @@
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ============================================================
+   FORCE VISIBILITY — debug rule
+   ============================================================ */
+.editor-body .editor-status-bar {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 1;
+  min-height: 34px;
+  width: 100%;
+  border: 1px solid #d9d9d9;
+  background: #f0f0f0;
+}
