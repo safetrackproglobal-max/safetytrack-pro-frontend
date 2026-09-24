@@ -74,7 +74,7 @@ import { useIncidentNotifications } from '../context/NotificationContext';
 // NEW: Advanced Incident Components
 // ============================================================
 import FishboneDiagram from '../components/incident/FishboneDiagram';
-
+import AIInvestigationAssistant from '../components/incident/AIInvestigationAssistant.js';
 import IncidentTimeline from '../components/incident/IncidentTimeline';
 import EditIncidentModal from '../components/incident/EditIncidentModal';
 import CorrectiveActionTracker from '../components/incident/CorrectiveActionTracker';
@@ -82,19 +82,15 @@ import IncidentComments from '../components/incident/IncidentComments';
 import InvestigationAssignment from '../components/incident/InvestigationAssignment';
 import WitnessStatementForm from '../components/incident/WitnessStatementForm';
 import AuditTrailViewer from '../components/incident/AuditTrailViewer';
-
 // ============================================================
 // NEW: Analytics & Compliance Components
 // ============================================================
 import PredictiveAnalyticsDashboard from '../components/analytics/PredictiveAnalyticsDashboard';
 import SimilarIncidentDetection from '../components/analytics/SimilarIncidentDetection';
 import CostAnalysisModule from '../components/analytics/CostAnalysisModule';
-import RegulatoryReporting from '../components/compliance/RegulatoryReporting';
-import EscalationMatrix from '../components/compliance/EscalationMatrix';
+import RegulatoryReporting from '../components/compliance/RegulatoryReporting.js';
+import EscalationMatrix from '../components/compliance/EscalationMatrix.js';
 
-// ============================================================
-// NEW: Safety Components
-// ============================================================
 import SafetyObservations from '../components/compliance/SafetyObservations';
 import LessonsLearned from '../components/compliance/LessonsLearned';
 
@@ -1641,12 +1637,29 @@ function ReportsPage() {
   const [filterKey, setFilterKey] = useState(null);
   const [fileList, setFileList] = useState([]);
   const [uploading, setUploading] = useState(false);
+
+  // ✅ NEW: Fetch incidents at parent level so tabs can share data
+  const [allIncidents, setAllIncidents] = useState([]);
   
   const { pushNotification } = useContext(NotificationContext);
   const { notifyIncidentReportSuccess, notifyIncidentReportError } = useIncidentNotifications();
 
   const isAdmin = isAnyAdmin();
   const isEmployeeUser = isEmployee();
+
+  // ✅ Load incidents once at the page level
+  useEffect(() => {
+    const fetchAll = async () => {
+      try {
+        const response = await notificationService.getIncidents();
+        const list = response?.incidents || (Array.isArray(response) ? response : []);
+        setAllIncidents(list);
+      } catch (error) {
+        console.error('Failed to load incidents for tabs:', error);
+      }
+    };
+    if (user) fetchAll();
+  }, [user]);
 
   const showIncidentModal = () => {
     setIncidentModalVisible(true);
@@ -1797,22 +1810,22 @@ function ReportsPage() {
 
         {/* ---------- PREDICTIVE ANALYTICS TAB ---------- */}
         <TabPane tab={<span><LineChartOutlined /> Predictive Analytics</span>} key="predictive">
-          <PredictiveAnalyticsDashboard incidents={[]} />
+          <PredictiveAnalyticsDashboard incidents={allIncidents} />
         </TabPane>
 
         {/* ---------- COST ANALYSIS TAB ---------- */}
         <TabPane tab={<span><DollarOutlined /> Cost Analysis</span>} key="costs">
-          <CostAnalysisModule incidents={[]} />
+          <CostAnalysisModule incidents={allIncidents} />
         </TabPane>
 
         {/* ---------- REGULATORY COMPLIANCE TAB ---------- */}
         <TabPane tab={<span><AuditOutlined /> Regulatory Compliance</span>} key="compliance">
-          <RegulatoryReporting incidents={[]} />
+          <RegulatoryReporting incidents={allIncidents} />
         </TabPane>
 
         {/* ---------- ESCALATION MATRIX TAB ---------- */}
         <TabPane tab={<span><ThunderboltOutlined /> Escalation Matrix</span>} key="escalation">
-          <EscalationMatrix incidents={[]} onEscalate={(incident, rule) => {
+          <EscalationMatrix incidents={allIncidents} onEscalate={(incident, rule) => {
             console.log('Escalating:', incident, rule);
           }} />
         </TabPane>
@@ -1846,7 +1859,7 @@ function ReportsPage() {
         >
           <LessonsLearned
             lessons={[]}
-            incidents={[]}
+            incidents={allIncidents}
             currentUser={{ id: user?.id, name: user?.name, role: user?.role }}
             onAddLesson={(lesson) => {
               console.log('New lesson:', lesson);
