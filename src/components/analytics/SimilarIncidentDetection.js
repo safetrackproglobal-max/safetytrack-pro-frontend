@@ -177,8 +177,7 @@ const SimilarIncidentDetection = ({
     if (currentIncident && visible) {
       findSimilar();
     }
-  }, [currentIncident?.id, visible]); // eslint-disable-line react-hooks/exhaustive-deps
-
+  }, [currentIncident?.id, visible]);
   // ==================== MATCHED FIELDS ====================
 
   const getMatchedFields = (inc1, inc2) => {
