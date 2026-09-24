@@ -2,18 +2,17 @@
 // Modern Tiptap-based Document Editor
 // Features: rich text, tables, images, tasks, code, AI, versions,
 //           find/replace, outline, autosave, signature,
-//           track changes, slash commands, bubble menu,
-//           focus mode, reading mode, import/export
+//           track changes, slash commands, focus mode,
+//           reading mode, import/export, PDF annotation mode
 
 import React, {
   useState, useEffect, useCallback, useRef, useMemo
 } from 'react';
 import {
   Card, Row, Col, Button, Space, Input, Select, Form, Modal,
-  message, Spin, Alert, Divider, Typography, Tag, Tooltip,
-  Switch, Upload, Drawer, Descriptions, Tabs, Popconfirm,
-  Dropdown, Menu, Badge, Avatar, List, Collapse, DatePicker,
-  Radio, InputNumber, Segmented, Statistic, Empty, Affix, Progress
+  message, Spin, Divider, Typography, Tag, Tooltip,
+  Switch, Upload, Drawer, Tabs, Dropdown, Menu, Badge, Avatar, List,
+  Collapse, DatePicker, InputNumber, Empty, Progress
 } from 'antd';
 import {
   SaveOutlined, CloseOutlined, UndoOutlined, RedoOutlined,
@@ -21,21 +20,19 @@ import {
   StrikethroughOutlined, OrderedListOutlined, UnorderedListOutlined,
   AlignLeftOutlined, AlignCenterOutlined, AlignRightOutlined,
   LinkOutlined, PictureOutlined, TableOutlined, CodeOutlined,
-  HighlightOutlined, FontColorsOutlined, ClearOutlined,
-  CopyOutlined, SearchOutlined, DeleteOutlined, PlusOutlined,
-  MinusOutlined, SignatureOutlined, ClockCircleOutlined,
-  RobotOutlined, DownloadOutlined, FilePdfOutlined, FileWordOutlined,
+  HighlightOutlined, CopyOutlined, SearchOutlined, DeleteOutlined,
+  PlusOutlined, MinusOutlined, SignatureOutlined, ClockCircleOutlined,
+  RobotOutlined, FilePdfOutlined, FileWordOutlined,
   FileTextOutlined, EyeOutlined, HistoryOutlined,
   FullscreenOutlined, FullscreenExitOutlined,
   CheckSquareOutlined, FontSizeOutlined, BlockOutlined, MenuOutlined,
   InsertRowAboveOutlined, InsertRowBelowOutlined,
   InsertRowLeftOutlined, InsertRowRightOutlined,
   DeleteRowOutlined, DeleteColumnOutlined, MergeCellsOutlined,
-  SplitCellsOutlined, BgColorsOutlined, CloudUploadOutlined,
+  SplitCellsOutlined, CloudUploadOutlined,
   ExportOutlined, ImportOutlined, FileMarkdownOutlined,
-  ReadOutlined, HighlightFilled, ThunderboltOutlined,
-  BookOutlined, StarOutlined, StrikethroughOutlined as StrikeIcon,
-  VerticalAlignBottomOutlined, OrderedListOutlined as OrderedIcon
+  ReadOutlined, ThunderboltOutlined,
+  StrikethroughOutlined as StrikeIcon,
 } from '@ant-design/icons';
 
 // ============================================================
@@ -71,14 +68,10 @@ import pdfService from '../../services/pdfService';
 import DocumentSignature from './DocumentSignature';
 import { useTrackChanges } from './useTrackChanges';
 import TrackChangesPanel from './TrackChangesPanel';
-import './DocumentEditor.css';
-
-// ============================================================
-// NEW IMPORTS (added as requested)
-// ============================================================
 import EditorRibbon from '../editor/EditorRibbon';
 import PDFEditor from '../editor/PDFEditor';
 import '../editor/EditorRibbon.css';
+import './DocumentEditor.css';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -105,10 +98,11 @@ const DocumentEditor = ({
   userRole = 'admin',
   currentUser = null,
   isPdf = false,
-  maxWords = null          // optional quota (null = unlimited)
+  maxWords = null,
+  editingSource = 'regular',
 }) => {
   // ============================================================
-  // STATE — metadata
+  // STATE — Document metadata
   // ============================================================
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -127,7 +121,7 @@ const DocumentEditor = ({
   const [orientation, setOrientation] = useState('portrait');
 
   // ============================================================
-  // STATE — UI
+  // STATE — Editor UI
   // ============================================================
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [autoSave, setAutoSave] = useState(true);
@@ -138,7 +132,9 @@ const DocumentEditor = ({
   const [readingMode, setReadingMode] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
 
-  // Panels
+  // ============================================================
+  // STATE — Panels / Drawers
+  // ============================================================
   const [outlineOpen, setOutlineOpen] = useState(false);
   const [findOpen, setFindOpen] = useState(false);
   const [findText, setFindText] = useState('');
@@ -151,60 +147,79 @@ const DocumentEditor = ({
   const [commentInput, setCommentInput] = useState('');
   const [commentLoading, setCommentLoading] = useState(false);
 
-  // AI
+  // ============================================================
+  // STATE — AI
+  // ============================================================
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState([]);
   const [showAiPanel, setShowAiPanel] = useState(false);
 
-  // Track Changes
+  // ============================================================
+  // STATE — Track changes
+  // ============================================================
   const [trackChangesEnabled, setTrackChangesEnabled] = useState(false);
   const [trackPanelOpen, setTrackPanelOpen] = useState(false);
 
-  // Signature
+  // ============================================================
+  // STATE — Signature & modals
+  // ============================================================
   const [signatureModalVisible, setSignatureModalVisible] = useState(false);
-
-  // Link modal
   const [linkModalVisible, setLinkModalVisible] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
-
-  // Image upload
   const [imageUploading, setImageUploading] = useState(false);
-  const imageInputRef = useRef(null);
-
-  // Import
-  const importInputRef = useRef(null);
-
-  // Autosave timer
-  const autoSaveTimer = useRef(null);
 
   // ============================================================
-  // NEW STATE (added as requested)
+  // STATE — Ribbon / PDF mode
   // ============================================================
   const [ribbonTab, setRibbonTab] = useState('home');
-  const [editorMode, setEditorMode] = useState(isPdf ? 'pdf' : 'html');
+  const [editorMode, setEditorMode] = useState(
+    isPdf || (initialPdfUrl && initialPdfUrl.endsWith('.pdf')) ? 'pdf' : 'html'
+  );
   const [activePdfTool, setActivePdfTool] = useState('select');
-
-  // NEW: PDF signature / form panel state (added as requested)
   const [signaturePlacing, setSignaturePlacing] = useState(false);
   const [showFormPanel, setShowFormPanel] = useState(false);
+
+  // ============================================================
+  // REFS
+  // ============================================================
+  const imageInputRef = useRef(null);
+  const importInputRef = useRef(null);
+  const autoSaveTimer = useRef(null);
 
   // Turndown for Markdown export
   const turndown = useMemo(() => new TurndownService({ headingStyle: 'atx' }), []);
 
   // ============================================================
+  // IMAGE PICKER HANDLER (must be before any use in arrays/effects)
+  // ============================================================
+  const handlePickImage = useCallback(() => {
+    imageInputRef.current?.click();
+  }, []);
+
+  // ============================================================
   // TIPTAP EDITOR
   // ============================================================
+  const updateCounts = useCallback((ed) => {
+    if (!ed) return;
+    const text = ed.getText() || '';
+    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    const chars = text.length;
+    setWordCount(words);
+    setCharCount(chars);
+    setReadTime(Math.ceil(words / 200));
+  }, []);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
         codeBlock: false,
-        heading: { levels: [1, 2, 3, 4, 5, 6] }
+        heading: { levels: [1, 2, 3, 4, 5, 6] },
       }),
       Underline,
       Link.configure({
         openOnClick: false,
         autolink: true,
-        HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' }
+        HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' },
       }),
       Image.configure({ inline: false, allowBase64: true }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
@@ -223,28 +238,14 @@ const DocumentEditor = ({
       Subscript,
       Superscript,
       CodeBlockLowlight.configure({ lowlight }),
-      Focus.configure({ className: 'has-focus', mode: 'shallowest' })
+      Focus.configure({ className: 'has-focus', mode: 'shallowest' }),
     ],
     content: initialContent || '<p></p>',
     editable: !readOnly,
     onUpdate: ({ editor }) => {
       updateCounts(editor);
-    }
+    },
   });
-
-  // ============================================================
-  // COUNTING
-  // ============================================================
-  const updateCounts = useCallback((ed) => {
-    if (!ed) return;
-    const text = ed.getText() || '';
-    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-    const chars = text.length;
-    const readTimeMinutes = Math.ceil(words / 200);
-    setWordCount(words);
-    setCharCount(chars);
-    setReadTime(readTimeMinutes);
-  }, []);
 
   // ============================================================
   // TRACK CHANGES HOOK
@@ -257,61 +258,8 @@ const DocumentEditor = ({
     saveCurrentChange,
     acceptChange,
     rejectChange,
-    deleteChange
+    deleteChange,
   } = useTrackChanges(editor, documentId, trackChangesEnabled);
-
-  // ============================================================
-  // SLASH COMMANDS (simple keyboard listener; no external plugin needed)
-  // ============================================================
-  useEffect(() => {
-    if (!editor) return;
-    const handleKeyDown = (event) => {
-      if (event.key !== '/') return;
-      const { $from } = editor.state.selection;
-      const charBefore = $from.parent.textBetween(
-        Math.max(0, $from.parentOffset - 1),
-        $from.parentOffset,
-        undefined,
-        '\ufffc'
-      );
-      // Only trigger at start of line or after whitespace
-      if (charBefore && !/\s/.test(charBefore)) return;
-
-      setTimeout(() => openSlashMenu(), 50);
-    };
-    const dom = editor.view.dom;
-    dom.addEventListener('keydown', handleKeyDown);
-    return () => dom.removeEventListener('keydown', handleKeyDown);
-  }, [editor]);
-  const handlePickImage = () => imageInputRef.current?.click();
-  const [slashMenuOpen, setSlashMenuOpen] = useState(false);
-
-  const openSlashMenu = () => setSlashMenuOpen(true);
-
-  const slashCommands = [
-    { key: 'h1', label: 'Heading 1', icon: <FontSizeOutlined />, action: () => editor.chain().focus().toggleHeading({ level: 1 }).run() },
-    { key: 'h2', label: 'Heading 2', icon: <FontSizeOutlined />, action: () => editor.chain().focus().toggleHeading({ level: 2 }).run() },
-    { key: 'h3', label: 'Heading 3', icon: <FontSizeOutlined />, action: () => editor.chain().focus().toggleHeading({ level: 3 }).run() },
-    { key: 'p', label: 'Paragraph', icon: <FileTextOutlined />, action: () => editor.chain().focus().setParagraph().run() },
-    { key: 'ul', label: 'Bullet List', icon: <UnorderedListOutlined />, action: () => editor.chain().focus().toggleBulletList().run() },
-    { key: 'ol', label: 'Ordered List', icon: <OrderedListOutlined />, action: () => editor.chain().focus().toggleOrderedList().run() },
-    { key: 'task', label: 'Task List', icon: <CheckSquareOutlined />, action: () => editor.chain().focus().toggleTaskList().run() },
-    { key: 'quote', label: 'Blockquote', icon: <BlockOutlined />, action: () => editor.chain().focus().toggleBlockquote().run() },
-    { key: 'code', label: 'Code Block', icon: <CodeOutlined />, action: () => editor.chain().focus().toggleCodeBlock().run() },
-    { key: 'table', label: 'Table', icon: <TableOutlined />, action: () => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() },
-    { key: 'image', label: 'Image', icon: <PictureOutlined />, action: handlePickImage },
-    { key: 'hr', label: 'Divider', icon: <MinusOutlined />, action: () => editor.chain().focus().setHorizontalRule().run() }
-  ];
-
-  const runSlashCommand = (cmd) => {
-    // Remove the "/" trigger before applying
-    editor.chain().focus().deleteRange({
-      from: editor.state.selection.from - 1,
-      to: editor.state.selection.from
-    }).run();
-    cmd.action();
-    setSlashMenuOpen(false);
-  };
 
   // ============================================================
   // LOAD DOCUMENT
@@ -350,20 +298,24 @@ const DocumentEditor = ({
     if (documentId) loadDocument();
   }, [documentId, loadDocument]);
 
-  // Load versions/comments when drawers open
+  // ============================================================
+  // LOAD VERSIONS / COMMENTS
+  // ============================================================
   useEffect(() => {
     if (versionsOpen && documentId) {
-      documentService.getVersions(documentId).then((d) => {
-        setVersions(d.versions || d.data || []);
-      }).catch(() => {});
+      documentService
+        .getVersions(documentId)
+        .then((d) => setVersions(d.versions || d.data || []))
+        .catch(() => {});
     }
   }, [versionsOpen, documentId]);
 
   useEffect(() => {
     if (commentsOpen && documentId) {
-      documentService.getComments(documentId).then((d) => {
-        setComments(d.comments || d.data || []);
-      }).catch(() => {});
+      documentService
+        .getComments(documentId)
+        .then((d) => setComments(d.comments || d.data || []))
+        .catch(() => {});
     }
   }, [commentsOpen, documentId]);
 
@@ -384,7 +336,7 @@ const DocumentEditor = ({
   };
 
   // ============================================================
-  // SAVE
+  // SAVE / AUTOSAVE
   // ============================================================
   const handleSave = async () => {
     const tErr = validateTitle(title);
@@ -399,7 +351,6 @@ const DocumentEditor = ({
 
     setSaving(true);
     try {
-      // If tracking is on and there's an unsaved change, save it too
       if (trackChangesEnabled && hasUnsavedChange) {
         await saveCurrentChange();
       }
@@ -418,7 +369,8 @@ const DocumentEditor = ({
         company_id: companyId,
         version: documentId ? version + 1 : 1,
         page_size: pageSize,
-        orientation
+        orientation,
+        editing_source: editingSource,
       };
 
       let result;
@@ -460,7 +412,8 @@ const DocumentEditor = ({
         is_confidential: isConfidential,
         company_id: companyId,
         page_size: pageSize,
-        orientation
+        orientation,
+        editing_source: editingSource,
       });
       message.success('Saved as new');
       onSave?.(result);
@@ -472,16 +425,15 @@ const DocumentEditor = ({
     }
   };
 
-  // ============================================================
-  // AUTOSAVE
-  // ============================================================
   const handleAutoSave = useCallback(async () => {
     if (!autoSave || !documentId || !title.trim()) return;
     const html = editor?.getHTML() || '';
     if (validateContent(html)) return;
     try {
       await documentService.autoSaveDocument(documentId, {
-        content: html, title, description
+        content: html,
+        title,
+        description,
       });
       setLastSaved(new Date());
     } catch (err) {
@@ -494,31 +446,6 @@ const DocumentEditor = ({
     autoSaveTimer.current = setInterval(handleAutoSave, 30000);
     return () => clearInterval(autoSaveTimer.current);
   }, [autoSave, handleAutoSave]);
-
-  // ============================================================
-  // KEYBOARD SHORTCUTS
-  // ============================================================
-  useEffect(() => {
-    const h = (e) => {
-      if (e.ctrlKey && e.key.toLowerCase() === 's') { e.preventDefault(); handleSave(); }
-      if (e.ctrlKey && e.key.toLowerCase() === 'f') { e.preventDefault(); setFindOpen(true); }
-      if (e.ctrlKey && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        setLinkModalVisible(true);
-      }
-      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 't') {
-        e.preventDefault();
-        toggleTrackChanges();
-      }
-      if (e.key === 'Escape') {
-        if (findOpen) setFindOpen(false);
-        if (slashMenuOpen) setSlashMenuOpen(false);
-      }
-    };
-    document.addEventListener('keydown', h);
-    return () => document.removeEventListener('keydown', h);
-    
-  }, [handleSave, findOpen, slashMenuOpen]);
 
   // ============================================================
   // TRACK CHANGES TOGGLE
@@ -537,10 +464,38 @@ const DocumentEditor = ({
   };
 
   // ============================================================
-  // IMAGE UPLOAD
+  // KEYBOARD SHORTCUTS
   // ============================================================
-  
+  useEffect(() => {
+    const h = (e) => {
+      if (e.ctrlKey && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        handleSave();
+      }
+      if (e.ctrlKey && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        setFindOpen(true);
+      }
+      if (e.ctrlKey && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setLinkModalVisible(true);
+      }
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 't') {
+        e.preventDefault();
+        toggleTrackChanges();
+      }
+      if (e.key === 'Escape') {
+        if (findOpen) setFindOpen(false);
+      }
+    };
+    document.addEventListener('keydown', h);
+    return () => document.removeEventListener('keydown', h);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [findOpen]);
 
+  // ============================================================
+  // IMAGE / FILE UPLOAD
+  // ============================================================
   const handleImageSelected = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -563,9 +518,6 @@ const DocumentEditor = ({
     }
   };
 
-  // ============================================================
-  // IMPORT FILE (HTML / Markdown / plain text)
-  // ============================================================
   const handleImportFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -576,7 +528,6 @@ const DocumentEditor = ({
       if (ext === 'html' || ext === 'htm') {
         html = text;
       } else if (ext === 'md' || ext === 'markdown') {
-        // Very basic markdown-to-HTML
         html = text
           .replace(/^### (.*$)/gim, '<h3>$1</h3>')
           .replace(/^## (.*$)/gim, '<h2>$1</h2>')
@@ -601,7 +552,7 @@ const DocumentEditor = ({
   };
 
   // ============================================================
-  // LINK MODAL
+  // LINK
   // ============================================================
   const handleInsertLink = () => {
     if (!editor || !linkUrl.trim()) return;
@@ -644,7 +595,7 @@ const DocumentEditor = ({
       }
     });
     return headings;
-    
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor, editor?.state?.doc]);
 
   const jumpToHeading = (pos) => {
@@ -665,12 +616,17 @@ const DocumentEditor = ({
     setAiLoading(true);
     try {
       const enhanced = await pdfService.enhanceDocumentContent({
-        content: txt, style: 'professional', enhance_level: 'moderate'
+        content: txt,
+        style: 'professional',
+        enhance_level: 'moderate',
       });
       editor.commands.setContent(`<p>${enhanced}</p>`, false);
       message.success('Enhanced');
-    } catch { message.error('AI enhance failed'); }
-    finally { setAiLoading(false); }
+    } catch {
+      message.error('AI enhance failed');
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const handleAISummarize = async () => {
@@ -680,8 +636,11 @@ const DocumentEditor = ({
     try {
       const summary = await pdfService.summarizeDocument({ content: txt, length: 'medium' });
       Modal.info({ title: 'AI Summary', content: summary, width: 600 });
-    } catch { message.error('AI summarize failed'); }
-    finally { setAiLoading(false); }
+    } catch {
+      message.error('AI summarize failed');
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const handleAISuggestion = async () => {
@@ -690,12 +649,17 @@ const DocumentEditor = ({
     setAiLoading(true);
     try {
       const suggestions = await pdfService.getAIEditingSuggestions({
-        content: txt, context: title, document_type: documentType
+        content: txt,
+        context: title,
+        document_type: documentType,
       });
       setAiSuggestions(suggestions || []);
       setShowAiPanel(true);
-    } catch { message.error('AI suggestions failed'); }
-    finally { setAiLoading(false); }
+    } catch {
+      message.error('AI suggestions failed');
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const applyAISuggestion = (sug) => {
@@ -724,10 +688,17 @@ const DocumentEditor = ({
   const handleExportPDF = async () => {
     try {
       const html = editor?.getHTML() || '';
-      const blob = await pdfService.exportToPDF({ content: html, title, pageSize, orientation });
+      const blob = await pdfService.exportToPDF({
+        content: html,
+        title,
+        pageSize,
+        orientation,
+      });
       downloadBlob(blob, `${title || 'document'}.pdf`);
       message.success('Exported PDF');
-    } catch { message.error('PDF export failed'); }
+    } catch {
+      message.error('PDF export failed');
+    }
   };
 
   const handleExportWord = async () => {
@@ -736,7 +707,9 @@ const DocumentEditor = ({
       const blob = await pdfService.exportToWord({ content: html, title });
       downloadBlob(blob, `${title || 'document'}.docx`);
       message.success('Exported Word');
-    } catch { message.error('Word export failed'); }
+    } catch {
+      message.error('Word export failed');
+    }
   };
 
   const handleExportHTML = () => {
@@ -764,212 +737,15 @@ const DocumentEditor = ({
       const d = await documentService.getComments(documentId);
       setComments(d.comments || d.data || []);
       message.success('Comment added');
-    } catch { message.error('Failed to add comment'); }
-    finally { setCommentLoading(false); }
+    } catch {
+      message.error('Failed to add comment');
+    } finally {
+      setCommentLoading(false);
+    }
   };
 
   // ============================================================
-  // TOOLBAR
-  // ============================================================
-  const renderToolbar = () => {
-    if (!editor) return null;
-    const c = (name, opts = {}) => editor.chain().focus()[name](opts).run();
-    const wordPct = maxWords ? Math.min(100, Math.round((wordCount / maxWords) * 100)) : null;
-
-    return (
-      <div className="editor-toolbar">
-        <Space wrap size={4}>
-          {/* Undo/Redo */}
-          <Button.Group size="small">
-            <Tooltip title="Undo (Ctrl+Z)">
-              <Button icon={<UndoOutlined />} onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()} />
-            </Tooltip>
-            <Tooltip title="Redo (Ctrl+Y)">
-              <Button icon={<RedoOutlined />} onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()} />
-            </Tooltip>
-          </Button.Group>
-
-          <Divider type="vertical" />
-
-          {/* Heading select */}
-          <Select
-            size="small"
-            value={
-              editor.isActive('heading', { level: 1 }) ? 'h1' :
-              editor.isActive('heading', { level: 2 }) ? 'h2' :
-              editor.isActive('heading', { level: 3 }) ? 'h3' :
-              editor.isActive('heading', { level: 4 }) ? 'h4' :
-              editor.isActive('heading', { level: 5 }) ? 'h5' :
-              editor.isActive('heading', { level: 6 }) ? 'h6' : 'p'
-            }
-            onChange={(v) => {
-              if (v === 'p') c('setParagraph');
-              else c('toggleHeading', { level: parseInt(v.substring(1)) });
-            }}
-            style={{ width: 110 }}
-          >
-            <Option value="p">Paragraph</Option>
-            <Option value="h1">Heading 1</Option>
-            <Option value="h2">Heading 2</Option>
-            <Option value="h3">Heading 3</Option>
-            <Option value="h4">Heading 4</Option>
-            <Option value="h5">Heading 5</Option>
-            <Option value="h6">Heading 6</Option>
-          </Select>
-
-          <Divider type="vertical" />
-
-          {/* Inline styles */}
-          <Button.Group size="small">
-            <Tooltip title="Bold"><Button icon={<BoldOutlined />} type={editor.isActive('bold') ? 'primary' : 'default'} onClick={() => c('toggleBold')} /></Tooltip>
-            <Tooltip title="Italic"><Button icon={<ItalicOutlined />} type={editor.isActive('italic') ? 'primary' : 'default'} onClick={() => c('toggleItalic')} /></Tooltip>
-            <Tooltip title="Underline"><Button icon={<UnderlineOutlined />} type={editor.isActive('underline') ? 'primary' : 'default'} onClick={() => c('toggleUnderline')} /></Tooltip>
-            <Tooltip title="Strike"><Button icon={<StrikethroughOutlined />} type={editor.isActive('strike') ? 'primary' : 'default'} onClick={() => c('toggleStrike')} /></Tooltip>
-            <Tooltip title="Highlight"><Button icon={<HighlightOutlined />} type={editor.isActive('highlight') ? 'primary' : 'default'} onClick={() => c('toggleHighlight')} /></Tooltip>
-            <Tooltip title="Code"><Button icon={<CodeOutlined />} type={editor.isActive('code') ? 'primary' : 'default'} onClick={() => c('toggleCode')} /></Tooltip>
-          </Button.Group>
-
-          <Divider type="vertical" />
-
-          {/* Align */}
-          <Button.Group size="small">
-            <Tooltip title="Left"><Button icon={<AlignLeftOutlined />} type={editor.isActive({ textAlign: 'left' }) ? 'primary' : 'default'} onClick={() => c('setTextAlign', 'left')} /></Tooltip>
-            <Tooltip title="Center"><Button icon={<AlignCenterOutlined />} type={editor.isActive({ textAlign: 'center' }) ? 'primary' : 'default'} onClick={() => c('setTextAlign', 'center')} /></Tooltip>
-            <Tooltip title="Right"><Button icon={<AlignRightOutlined />} type={editor.isActive({ textAlign: 'right' }) ? 'primary' : 'default'} onClick={() => c('setTextAlign', 'right')} /></Tooltip>
-          </Button.Group>
-
-          <Divider type="vertical" />
-
-          {/* Lists */}
-          <Button.Group size="small">
-            <Tooltip title="Bullet List"><Button icon={<UnorderedListOutlined />} type={editor.isActive('bulletList') ? 'primary' : 'default'} onClick={() => c('toggleBulletList')} /></Tooltip>
-            <Tooltip title="Ordered List"><Button icon={<OrderedListOutlined />} type={editor.isActive('orderedList') ? 'primary' : 'default'} onClick={() => c('toggleOrderedList')} /></Tooltip>
-            <Tooltip title="Task List"><Button icon={<CheckSquareOutlined />} type={editor.isActive('taskList') ? 'primary' : 'default'} onClick={() => c('toggleTaskList')} /></Tooltip>
-            <Tooltip title="Quote"><Button icon={<BlockOutlined />} type={editor.isActive('blockquote') ? 'primary' : 'default'} onClick={() => c('toggleBlockquote')} /></Tooltip>
-            <Tooltip title="Code Block"><Button icon={<CodeOutlined />} type={editor.isActive('codeBlock') ? 'primary' : 'default'} onClick={() => c('toggleCodeBlock')} /></Tooltip>
-          </Button.Group>
-
-          <Divider type="vertical" />
-
-          {/* Insert */}
-          <Tooltip title="Insert Link (Ctrl+K)"><Button size="small" icon={<LinkOutlined />} onClick={() => setLinkModalVisible(true)} /></Tooltip>
-          <Tooltip title="Insert Image"><Button size="small" icon={<PictureOutlined />} loading={imageUploading} onClick={handlePickImage} /></Tooltip>
-
-          <Dropdown
-            trigger={['click']}
-            menu={{
-              items: [
-                { key: 'insert', label: 'Insert Table', icon: <TableOutlined />, onClick: () => c('insertTable', { rows: 3, cols: 3, withHeaderRow: true }) },
-                { type: 'divider' },
-                { key: 'addRowBefore', label: 'Row Above', icon: <InsertRowAboveOutlined />, onClick: () => c('addRowBefore') },
-                { key: 'addRowAfter', label: 'Row Below', icon: <InsertRowBelowOutlined />, onClick: () => c('addRowAfter') },
-                { key: 'addColBefore', label: 'Column Left', icon: <InsertRowLeftOutlined />, onClick: () => c('addColumnBefore') },
-                { key: 'addColAfter', label: 'Column Right', icon: <InsertRowRightOutlined />, onClick: () => c('addColumnAfter') },
-                { type: 'divider' },
-                { key: 'delRow', label: 'Delete Row', icon: <DeleteRowOutlined />, onClick: () => c('deleteRow') },
-                { key: 'delCol', label: 'Delete Column', icon: <DeleteColumnOutlined />, onClick: () => c('deleteColumn') },
-                { key: 'delTable', label: 'Delete Table', icon: <DeleteOutlined />, danger: true, onClick: () => c('deleteTable') },
-                { type: 'divider' },
-                { key: 'merge', label: 'Merge Cells', icon: <MergeCellsOutlined />, onClick: () => c('mergeCells') },
-                { key: 'split', label: 'Split Cell', icon: <SplitCellsOutlined />, onClick: () => c('splitCell') }
-              ]
-            }}
-          >
-            <Button size="small" icon={<TableOutlined />}>Table</Button>
-          </Dropdown>
-
-          <Tooltip title="Find & Replace (Ctrl+F)"><Button size="small" icon={<SearchOutlined />} onClick={() => setFindOpen(true)} /></Tooltip>
-
-          <Divider type="vertical" />
-
-          {/* Track Changes */}
-          <Tooltip title={trackChangesEnabled ? 'Tracking ON (Ctrl+Shift+T)' : 'Enable Track Changes (Ctrl+Shift+T)'}>
-            <Button
-              size="small"
-              icon={<HistoryOutlined />}
-              type={trackChangesEnabled ? 'primary' : 'default'}
-              className={trackChangesEnabled ? 'tc-toggle-active' : ''}
-              onClick={toggleTrackChanges}
-            >
-              {trackChangesEnabled ? 'Tracking' : 'Track'}
-            </Button>
-          </Tooltip>
-          <Tooltip title="Pending changes">
-            <Badge count={pendingChanges.length} size="small">
-              <Button size="small" icon={<EyeOutlined />} onClick={() => setTrackPanelOpen(true)} />
-            </Badge>
-          </Tooltip>
-
-          <Divider type="vertical" />
-
-          {/* AI */}
-          <Tooltip title="AI Enhance"><Button size="small" icon={<RobotOutlined />} loading={aiLoading} onClick={handleAIEnhance}>Enhance</Button></Tooltip>
-          <Tooltip title="AI Summarize"><Button size="small" icon={<RobotOutlined />} loading={aiLoading} onClick={handleAISummarize}>Summarize</Button></Tooltip>
-          <Tooltip title="AI Suggestions"><Button size="small" type="dashed" icon={<ThunderboltOutlined />} loading={aiLoading} onClick={handleAISuggestion}>Suggest</Button></Tooltip>
-
-          <Divider type="vertical" />
-
-          {/* Panels */}
-          <Tooltip title="Outline"><Button size="small" icon={<MenuOutlined />} onClick={() => setOutlineOpen(true)} /></Tooltip>
-          <Tooltip title="Comments">
-            <Badge count={comments.length} size="small">
-              <Button size="small" icon={<FileTextOutlined />} onClick={() => setCommentsOpen(true)} />
-            </Badge>
-          </Tooltip>
-          <Tooltip title="Versions"><Button size="small" icon={<HistoryOutlined />} onClick={() => setVersionsOpen(true)} /></Tooltip>
-
-          <Divider type="vertical" />
-
-          {/* Modes */}
-          <Tooltip title="Reading Mode">
-            <Button
-              size="small"
-              icon={<ReadOutlined />}
-              type={readingMode ? 'primary' : 'default'}
-              onClick={() => { setReadingMode(!readingMode); setFocusMode(false); }}
-            />
-          </Tooltip>
-          <Tooltip title="Focus Mode">
-            <Button
-              size="small"
-              icon={<EyeOutlined />}
-              type={focusMode ? 'primary' : 'default'}
-              onClick={() => { setFocusMode(!focusMode); setReadingMode(false); }}
-            />
-          </Tooltip>
-          <Tooltip title="Fullscreen">
-            <Button size="small" icon={isFullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />} onClick={() => setIsFullscreen(!isFullscreen)} />
-          </Tooltip>
-
-          <Divider type="vertical" />
-
-          <Tooltip title="Autosave">
-            <Switch size="small" checked={autoSave} onChange={setAutoSave} checkedChildren="Auto" unCheckedChildren="Off" />
-          </Tooltip>
-          {lastSaved && <Tag color="green" style={{ fontSize: 11 }}>Saved {lastSaved.toLocaleTimeString()}</Tag>}
-        </Space>
-
-        {wordPct !== null && (
-          <div style={{ marginTop: 8, width: 220 }}>
-            <Progress
-              percent={wordPct}
-              size="small"
-              status={wordPct >= 100 ? 'exception' : 'active'}
-              format={() => `${wordCount}/${maxWords}`}
-            />
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // ============================================================
-  // BUBBLE MENU (floating on selection)
-  // ============================================================
-  const renderBubbleMenu = () => null;
-
-  // ============================================================
-  // NEW — RIBBON (added as requested)
+  // RENDER — RIBBON
   // ============================================================
   const renderRibbon = () => (
     <EditorRibbon
@@ -986,8 +762,11 @@ const DocumentEditor = ({
         strike: editor?.isActive('strike'),
         highlight: editor?.isActive('highlight'),
       }}
-      // File actions
-      onNew={() => { setTitle(''); editor?.commands.setContent('<p></p>'); }}
+      // File
+      onNew={() => {
+        setTitle('');
+        editor?.commands.setContent('<p></p>');
+      }}
       onOpen={() => importInputRef.current?.click()}
       onSave={handleSave}
       onSaveAs={handleSaveAsNew}
@@ -1017,7 +796,9 @@ const DocumentEditor = ({
       onUnorderedList={() => editor?.chain().focus().toggleBulletList().run()}
       onLink={() => setLinkModalVisible(true)}
       onImage={() => imageInputRef.current?.click()}
-      onTable={() => editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+      onTable={() =>
+        editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+      }
       // PDF annotation
       onTextAnnotation={() => setActivePdfTool('text')}
       onRectAnnotation={() => setActivePdfTool('rect')}
@@ -1026,23 +807,31 @@ const DocumentEditor = ({
       onStickyNote={() => setActivePdfTool('note')}
       onSignature={() => setSignatureModalVisible(true)}
       onStamp={() => message.info('Stamp tool coming soon')}
-      // PDF signature / form (added as requested)
       onPlaceSignature={() => setSignaturePlacing(true)}
       onOpenFormPanel={() => setShowFormPanel(true)}
-      // Pages (PDF) — delegated via custom events (added as requested)
-      onInsertPage={() => {
-        window.dispatchEvent(new CustomEvent('pdf-page-insert'));
-      }}
-      onDeletePage={() => {
-        window.dispatchEvent(new CustomEvent('pdf-page-delete'));
-      }}
-      onRotateLeft={() => {
-        window.dispatchEvent(new CustomEvent('pdf-page-rotate', { detail: { degrees: -90 } }));
-      }}
-      onRotateRight={() => {
-        window.dispatchEvent(new CustomEvent('pdf-page-rotate', { detail: { degrees: 90 } }));
-      }}
+      // Pages (PDF) — events delegated to thumbnail panel
+      onInsertPage={() => window.dispatchEvent(new CustomEvent('pdf-page-insert'))}
+      onDeletePage={() => window.dispatchEvent(new CustomEvent('pdf-page-delete'))}
+      onRotateLeft={() =>
+        window.dispatchEvent(new CustomEvent('pdf-page-rotate', { detail: { degrees: -90 } }))
+      }
+      onRotateRight={() =>
+        window.dispatchEvent(new CustomEvent('pdf-page-rotate', { detail: { degrees: 90 } }))
+      }
       // View
+      onToggleReading={() => setReadingMode(!readingMode)}
+      onToggleFocus={() => setFocusMode(!focusMode)}
+      readingMode={readingMode}
+      focusMode={focusMode}
+      onToggleTrack={toggleTrackChanges}
+      onOpenTrackPanel={() => setTrackPanelOpen(true)}
+      trackChangesEnabled={trackChangesEnabled}
+      onOpenOutline={() => setOutlineOpen(true)}
+      onOpenComments={() => setCommentsOpen(true)}
+      onOpenVersions={() => setVersionsOpen(true)}
+      onAIAssist={handleAIEnhance}
+      onAISummarize={handleAISummarize}
+      onAISuggest={handleAISuggestion}
       onZoomIn={() => message.info('Zoom via PDF toolbar')}
       onZoomOut={() => message.info('Zoom via PDF toolbar')}
       onFitWidth={() => message.info('Fit width via PDF toolbar')}
@@ -1052,22 +841,36 @@ const DocumentEditor = ({
   );
 
   // ============================================================
-  // METADATA SIDEBAR
+  // RENDER — METADATA PANEL
   // ============================================================
   const renderMetadata = () => (
     <Collapse defaultActiveKey={['meta']} ghost>
       <Panel header="Document Metadata" key="meta">
         <Form layout="vertical" size="small">
           <Form.Item
-            label="Title" required
+            label="Title"
+            required
             validateStatus={validateTitle(title) ? 'error' : 'success'}
             help={validateTitle(title) || ''}
           >
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={255} showCount />
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              maxLength={255}
+              showCount
+            />
           </Form.Item>
+
           <Form.Item label="Description">
-            <TextArea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} maxLength={500} showCount />
+            <TextArea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+              maxLength={500}
+              showCount
+            />
           </Form.Item>
+
           <Row gutter={8}>
             <Col span={12}>
               <Form.Item label="Type">
@@ -1093,6 +896,7 @@ const DocumentEditor = ({
               </Form.Item>
             </Col>
           </Row>
+
           <Row gutter={8}>
             <Col span={12}>
               <Form.Item label="Category">
@@ -1115,9 +919,11 @@ const DocumentEditor = ({
               </Form.Item>
             </Col>
           </Row>
+
           <Form.Item label="Tags">
             <Select mode="tags" value={tags} onChange={setTags} placeholder="Add tags" />
           </Form.Item>
+
           <Row gutter={8}>
             <Col span={12}>
               <Form.Item label="Page Size">
@@ -1137,9 +943,15 @@ const DocumentEditor = ({
               </Form.Item>
             </Col>
           </Row>
+
           <Form.Item label="Expiry Date">
-            <DatePicker value={expiresAt} onChange={setExpiresAt} style={{ width: '100%' }} />
+            <DatePicker
+              value={expiresAt}
+              onChange={setExpiresAt}
+              style={{ width: '100%' }}
+            />
           </Form.Item>
+
           <Row gutter={8}>
             <Col span={12}>
               <Form.Item label="Confidential">
@@ -1159,24 +971,30 @@ const DocumentEditor = ({
   );
 
   // ============================================================
-  // RENDER
+  // RENDER — MAIN
   // ============================================================
   if (loading) {
-    return <div className="document-editor-loading"><Spin size="large" /></div>;
+    return (
+      <div className="document-editor-loading">
+        <Spin size="large" />
+      </div>
+    );
   }
 
   const editorClass = [
     'document-editor-content',
     readingMode ? 'reading-mode' : '',
-    focusMode ? 'focus-mode' : ''
-  ].filter(Boolean).join(' ');
+    focusMode ? 'focus-mode' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
-    return (
+  return (
     <>
       <div className={`document-editor-container ${isFullscreen ? 'fullscreen-mode' : ''}`}>
         <Card className="editor-card" bordered={false}>
           {/* ============================================================ */}
-          {/* HEADER — title + actions */}
+          {/* HEADER */}
           {/* ============================================================ */}
           <div className="editor-header">
             <div className="editor-header-title">
@@ -1199,10 +1017,16 @@ const DocumentEditor = ({
                   <Button icon={<CopyOutlined />} onClick={handleSaveAsNew} loading={saving}>
                     Save As
                   </Button>
-                  <Button icon={<EyeOutlined />} onClick={() => onDocumentUpdate?.({ id: documentId })}>
+                  <Button
+                    icon={<EyeOutlined />}
+                    onClick={() => onDocumentUpdate?.({ id: documentId })}
+                  >
                     View
                   </Button>
-                  <Button icon={<SignatureOutlined />} onClick={() => setSignatureModalVisible(true)}>
+                  <Button
+                    icon={<SignatureOutlined />}
+                    onClick={() => setSignatureModalVisible(true)}
+                  >
                     Sign
                   </Button>
                 </>
@@ -1221,8 +1045,8 @@ const DocumentEditor = ({
                     { key: 'pdf', label: 'Export as PDF', icon: <FilePdfOutlined />, onClick: handleExportPDF },
                     { key: 'word', label: 'Export as Word', icon: <FileWordOutlined />, onClick: handleExportWord },
                     { key: 'html', label: 'Export as HTML', icon: <FileTextOutlined />, onClick: handleExportHTML },
-                    { key: 'md', label: 'Export as Markdown', icon: <FileMarkdownOutlined />, onClick: handleExportMarkdown }
-                  ]
+                    { key: 'md', label: 'Export as Markdown', icon: <FileMarkdownOutlined />, onClick: handleExportMarkdown },
+                  ],
                 }}
               >
                 <Button icon={<ExportOutlined />}>Export</Button>
@@ -1242,14 +1066,14 @@ const DocumentEditor = ({
           <Divider style={{ margin: '12px 0' }} />
 
           {/* ============================================================ */}
-          {/* MAIN BODY — single column, editor on top, metadata below */}
+          {/* BODY */}
           {/* ============================================================ */}
           <div className="editor-body">
-            {/* NEW: Ribbon (added as requested) */}
+            {/* Ribbon */}
             {renderRibbon()}
 
-            {/* NEW: Conditional PDF/HTML editor (added as requested) */}
-            {editorMode === 'pdf' && initialPdfUrl ? (
+            {/* Editor area — PDF or HTML */}
+            {editorMode === 'pdf' && (initialPdfUrl || documentId) ? (
               <PDFEditor
                 pdfUrl={initialPdfUrl}
                 documentId={documentId}
@@ -1259,27 +1083,22 @@ const DocumentEditor = ({
                 showFormPanel={showFormPanel}
                 onShowFormPanelChange={setShowFormPanel}
                 onSave={(blob) => {
-                  const file = new File([blob], `${title || 'document'}-annotated.pdf`, {
-                    type: 'application/pdf'
-                  });
-                  // Hand off to your existing save flow
+                  const file = new File(
+                    [blob],
+                    `${title || 'document'}-annotated.pdf`,
+                    { type: 'application/pdf' }
+                  );
                   if (onSave) onSave({ file, title, isPdf: true });
                 }}
                 onClose={() => setEditorMode('html')}
               />
             ) : (
-              <>
-                {/* Toolbar (hidden in reading/focus mode) */}
-                {!readingMode && !focusMode && renderToolbar()}
-
-                {/* Editor content */}
-                <div className="editor-wrapper">
-                  <EditorContent editor={editor} className={editorClass} />
-                </div>
-              </>
+              <div className="editor-wrapper">
+                <EditorContent editor={editor} className={editorClass} />
+              </div>
             )}
 
-            {/* Footer (word count) */}
+            {/* Footer */}
             <div className="editor-footer">
               <Text type="secondary" style={{ fontSize: 12 }}>
                 {wordCount} words • {charCount} chars • {readTime} min read
@@ -1291,19 +1110,17 @@ const DocumentEditor = ({
               )}
             </div>
 
-            {/* Metadata — collapsible, full width below editor */}
+            {/* Metadata */}
             {!readingMode && !focusMode && (
-              <div className="editor-metadata-section">
-                {renderMetadata()}
-              </div>
+              <div className="editor-metadata-section">{renderMetadata()}</div>
             )}
           </div>
         </Card>
       </div>
 
-    
-
-      {/* Hidden file inputs */}
+      {/* ============================================================ */}
+      {/* HIDDEN FILE INPUTS */}
+      {/* ============================================================ */}
       <input
         ref={imageInputRef}
         type="file"
@@ -1319,14 +1136,20 @@ const DocumentEditor = ({
         onChange={handleImportFile}
       />
 
-      {/* Find & Replace Modal */}
+      {/* ============================================================ */}
+      {/* FIND & REPLACE MODAL */}
+      {/* ============================================================ */}
       <Modal
         title="Find & Replace"
         open={findOpen}
         onCancel={() => setFindOpen(false)}
         footer={[
-          <Button key="find" onClick={runFind}>Find</Button>,
-          <Button key="replaceAll" type="primary" onClick={replaceAll}>Replace All</Button>
+          <Button key="find" onClick={runFind}>
+            Find
+          </Button>,
+          <Button key="replaceAll" type="primary" onClick={replaceAll}>
+            Replace All
+          </Button>,
         ]}
       >
         <Input
@@ -1344,11 +1167,16 @@ const DocumentEditor = ({
         {findMatches > 0 && <Text type="secondary">{findMatches} matches</Text>}
       </Modal>
 
-      {/* Link Modal */}
+      {/* ============================================================ */}
+      {/* LINK MODAL */}
+      {/* ============================================================ */}
       <Modal
         title="Insert / Edit Link"
         open={linkModalVisible}
-        onCancel={() => { setLinkModalVisible(false); setLinkUrl(''); }}
+        onCancel={() => {
+          setLinkModalVisible(false);
+          setLinkUrl('');
+        }}
         onOk={handleInsertLink}
       >
         <Input
@@ -1358,7 +1186,9 @@ const DocumentEditor = ({
         />
       </Modal>
 
-      {/* Outline Drawer */}
+      {/* ============================================================ */}
+      {/* OUTLINE DRAWER */}
+      {/* ============================================================ */}
       <Drawer
         title="Document Outline"
         placement="right"
@@ -1383,7 +1213,9 @@ const DocumentEditor = ({
         )}
       </Drawer>
 
-      {/* Comments Drawer */}
+      {/* ============================================================ */}
+      {/* COMMENTS DRAWER */}
+      {/* ============================================================ */}
       <Drawer
         title={`Comments (${comments.length})`}
         placement="right"
@@ -1429,7 +1261,9 @@ const DocumentEditor = ({
         </Button>
       </Drawer>
 
-      {/* Versions Drawer */}
+      {/* ============================================================ */}
+      {/* VERSIONS DRAWER */}
+      {/* ============================================================ */}
       <Drawer
         title={`Versions (${versions.length})`}
         placement="right"
@@ -1445,7 +1279,11 @@ const DocumentEditor = ({
             renderItem={(v) => (
               <List.Item>
                 <List.Item.Meta
-                  title={<Space>v{v.version} {v.is_current && <Tag color="green">Current</Tag>}</Space>}
+                  title={
+                    <Space>
+                      v{v.version} {v.is_current && <Tag color="green">Current</Tag>}
+                    </Space>
+                  }
                   description={
                     <div>
                       <div>{v.changes || 'No changes recorded'}</div>
@@ -1461,9 +1299,15 @@ const DocumentEditor = ({
         )}
       </Drawer>
 
-      {/* AI Suggestions Panel */}
+      {/* ============================================================ */}
+      {/* AI SUGGESTIONS DRAWER */}
+      {/* ============================================================ */}
       <Drawer
-        title={<Space><RobotOutlined /> AI Suggestions</Space>}
+        title={
+          <Space>
+            <RobotOutlined /> AI Suggestions
+          </Space>
+        }
         placement="right"
         open={showAiPanel}
         onClose={() => setShowAiPanel(false)}
@@ -1475,7 +1319,17 @@ const DocumentEditor = ({
           <List
             dataSource={aiSuggestions}
             renderItem={(s) => (
-              <List.Item actions={[<Button type="primary" size="small" onClick={() => applyAISuggestion(s)}>Apply</Button>]}>
+              <List.Item
+                actions={[
+                  <Button
+                    type="primary"
+                    size="small"
+                    onClick={() => applyAISuggestion(s)}
+                  >
+                    Apply
+                  </Button>,
+                ]}
+              >
                 <List.Item.Meta title={s.title} description={s.description} />
               </List.Item>
             )}
@@ -1483,7 +1337,9 @@ const DocumentEditor = ({
         )}
       </Drawer>
 
-      {/* Track Changes Panel */}
+      {/* ============================================================ */}
+      {/* TRACK CHANGES PANEL */}
+      {/* ============================================================ */}
       <TrackChangesPanel
         open={trackPanelOpen}
         onClose={() => setTrackPanelOpen(false)}
@@ -1511,7 +1367,9 @@ const DocumentEditor = ({
         loading={tcLoading}
       />
 
-      {/* Signature Modal */}
+      {/* ============================================================ */}
+      {/* SIGNATURE MODAL */}
+      {/* ============================================================ */}
       <Modal
         title="Sign Document"
         open={signatureModalVisible}
@@ -1519,7 +1377,9 @@ const DocumentEditor = ({
         footer={null}
         width="90%"
         style={{ top: 20 }}
-        styles={{ body: { padding: 16, maxHeight: 'calc(100vh - 200px)', overflow: 'auto' } }}
+        styles={{
+          body: { padding: 16, maxHeight: 'calc(100vh - 200px)', overflow: 'auto' },
+        }}
         destroyOnClose
       >
         <DocumentSignature
@@ -1536,4 +1396,5 @@ const DocumentEditor = ({
     </>
   );
 };
+
 export default DocumentEditor;
