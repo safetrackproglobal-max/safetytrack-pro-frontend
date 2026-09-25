@@ -31,8 +31,8 @@ import PageThumbnailPanel from '../documents/PageThumbnailPanel';
 const { Text } = Typography;
 
 // Configure PDF.js worker (use a CDN or local copy)
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 /**
  * PDFEditor
  *
