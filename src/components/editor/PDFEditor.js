@@ -23,6 +23,7 @@ import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 // ============================================================
 // LOCAL IMPORTS
 // ============================================================
+import api from '../../services/api';                    // ✅ axios instance (has baseURL + auth interceptor)
 import documentService from '../../services/documentService';
 import PDFFormPanel from '../documents/PDFFormPanel';
 import PDFSignaturePlacer from '../documents/PDFSignaturePlacer';
@@ -30,19 +31,24 @@ import PageThumbnailPanel from '../documents/PageThumbnailPanel';
 
 const { Text } = Typography;
 
-// Configure PDF.js worker (use a CDN or local copy)
+// ============================================================
+// PDF.js worker — version-matched CDN with correct path (.mjs)
+// ============================================================
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+
+// ============================================================
+// URL resolver — backend serves PDFs via /api/documents/:id/raw
+// ============================================================
+const API_BASE = (
+  process.env.REACT_APP_API_URL ||
+  'https://safetrackproglobal-backend-production.up.railway.app/api'
+).replace(/\/$/, '');
+
+const buildRawUrl = (documentId) => `${API_BASE}/documents/${documentId}/raw`;
+
 /**
  * PDFEditor
- *
- * Props:
- *   pdfUrl       - URL to fetch the PDF from
- *   documentId   - ID of the document (for signature/form/redaction features)
- *   activeTool   - 'select' | 'highlight' | 'rect' | 'ellipse' | 'line' | 'text' | 'note'
- *                | 'redact' | 'text-edit'
- *   onSave       - callback(blob) called when user saves annotated PDF
- *   onClose      - callback to close the editor
  */
 const PDFEditor = ({
   pdfUrl,
@@ -65,8 +71,8 @@ const PDFEditor = ({
   // ============================================================
   // STATE — annotations
   // ============================================================
-  const [annotations, setAnnotations] = useState([]); // [{id, page, type, geometry, color, text}]
-  const [drawing, setDrawing] = useState(null); // currently-drawing annotation
+  const [annotations, setAnnotations] = useState([]);
+  const [drawing, setDrawing] = useState(null);
   const [selectedAnnId, setSelectedAnnId] = useState(null);
 
   // ============================================================
@@ -84,7 +90,7 @@ const PDFEditor = ({
   // ============================================================
   // STATE — redaction
   // ============================================================
-  const [pendingRedactions, setPendingRedactions] = useState([]); // [{page, x, y, w, h}] screen px
+  const [pendingRedactions, setPendingRedactions] = useState([]);
   const [redactionModalOpen, setRedactionModalOpen] = useState(false);
   const [redactionReason, setRedactionReason] = useState('');
   const [redactionBasis, setRedactionBasis] = useState('policy');
@@ -95,9 +101,9 @@ const PDFEditor = ({
   // ============================================================
   // STATE — text editing
   // ============================================================
-  const [textEditTarget, setTextEditTarget] = useState(null); // {page,x,y,w,h,original}
+  const [textEditTarget, setTextEditTarget] = useState(null);
   const [textEditValue, setTextEditValue] = useState('');
-  const [pendingTextEdits, setPendingTextEdits] = useState([]); // queued edits
+  const [pendingTextEdits, setPendingTextEdits] = useState([]);
 
   // ============================================================
   // REFS
@@ -108,36 +114,65 @@ const PDFEditor = ({
   const textLayerRef = useRef(null);
 
   // ============================================================
-  // LOAD PDF (extracted so it can be re-triggered)
+  // LOAD PDF — from /api/documents/:id/raw with JWT
   // ============================================================
-  const loadPDF = useCallback(() => {
-    if (!pdfUrl) return;
+  const loadPDF = useCallback(async () => {
+    if (!documentId && !pdfUrl) return;
+
     setLoading(true);
     setError(null);
     setAnnotations([]);
     setPendingRedactions([]);
     setPendingTextEdits([]);
 
-    // Fetch raw bytes (kept for pdf-lib re-save)
-    fetch(pdfUrl)
-      .then((r) => r.arrayBuffer())
-      .then((buf) => setPdfBytes(buf))
-      .catch((err) => console.error('Failed to fetch PDF bytes:', err));
+    const absoluteUrl = documentId
+      ? buildRawUrl(documentId)
+      : pdfUrl;
 
-    // Load into PDF.js for rendering
-    pdfjsLib
-      .getDocument(pdfUrl)
-      .promise.then((doc) => {
-        setPdfDoc(doc);
-        setNumPages(doc.numPages);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error('Failed to load PDF:', err);
-        setError(err.message || 'Failed to load PDF');
-        setLoading(false);
+    console.log('🔍 [PDFEditor] Loading:', absoluteUrl);
+
+    try {
+      const token =
+        localStorage.getItem('token') ||
+        localStorage.getItem('access_token') ||
+        '';
+
+      const res = await fetch(absoluteUrl, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
-  }, [pdfUrl]);
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} — ${res.statusText}`);
+      }
+
+      const buffer = await res.arrayBuffer();
+
+      // Validate that we actually received a PDF
+      const header = new TextDecoder().decode(
+        new Uint8Array(buffer).slice(0, 5)
+      );
+      if (header !== '%PDF-') {
+        const preview = new TextDecoder().decode(
+          new Uint8Array(buffer).slice(0, 200)
+        );
+        throw new Error(
+          `Server did not return a PDF. Response starts with: "${preview.slice(0, 80)}..."`
+        );
+      }
+
+      setPdfBytes(buffer);
+
+      // PDF.js loads from bytes (avoids a second fetch)
+      const doc = await pdfjsLib.getDocument({ data: buffer }).promise;
+      setPdfDoc(doc);
+      setNumPages(doc.numPages);
+      setLoading(false);
+    } catch (err) {
+      console.error('❌ [PDFEditor] Load failed:', err);
+      setError(err.message || 'Failed to load PDF');
+      setLoading(false);
+    }
+  }, [documentId, pdfUrl]);
 
   useEffect(() => {
     loadPDF();
@@ -193,39 +228,36 @@ const PDFEditor = ({
       });
 
       // ---------- TEXT LAYER ----------
-      // After page.render(...)
-try {
-  const textContent = await page.getTextContent();
-  const textLayerDiv = textLayerRef.current;
-  
-  if (textLayerDiv) {
-    textLayerDiv.innerHTML = '';
-    textLayerDiv.style.width = `${viewport.width}px`;
-    textLayerDiv.style.height = `${viewport.height}px`;
+      try {
+        const textContent = await page.getTextContent();
+        const textLayerDiv = textLayerRef.current;
 
-    // ✅ Use the new TextLayer class
-    const textLayer = new pdfjsLib.TextLayer({
-      textContentSource: textContent,
-      container: textLayerDiv,
-      viewport,
-    });
+        if (textLayerDiv) {
+          textLayerDiv.innerHTML = '';
+          textLayerDiv.style.width = `${viewport.width}px`;
+          textLayerDiv.style.height = `${viewport.height}px`;
 
-    await textLayer.render();
+          const textLayer = new pdfjsLib.TextLayer({
+            textContentSource: textContent,
+            container: textLayerDiv,
+            viewport,
+          });
 
-    // Now add click handlers to each text span
-    textLayerDiv.querySelectorAll('span').forEach((span) => {
-      span.style.cursor = 'text';
-      span.addEventListener('click', (e) => {
-        e.stopPropagation();
-        handleTextClick(span, e);
-      });
-    });
-  }
-} catch (err) {
-  if (err?.name !== 'RenderingCancelledException') {
-    console.error('Text layer error:', err);
-  }
-}
+          await textLayer.render();
+
+          textLayerDiv.querySelectorAll('span').forEach((span) => {
+            span.style.cursor = 'text';
+            span.addEventListener('click', (e) => {
+              e.stopPropagation();
+              handleTextClick(span, e);
+            });
+          });
+        }
+      } catch (err) {
+        if (err?.name !== 'RenderingCancelledException') {
+          console.error('Text layer error:', err);
+        }
+      }
     });
 
     return () => {
@@ -290,7 +322,6 @@ try {
       return;
     }
 
-    // Redaction tool → queue, don't add to regular annotations
     if (activeTool === 'redact') {
       setPendingRedactions((prev) => [
         ...prev,
@@ -300,7 +331,6 @@ try {
       return;
     }
 
-    // Regular annotation
     addAnnotation({
       type: drawing.type,
       page: currentPage,
@@ -368,7 +398,6 @@ try {
         };
       };
 
-      // Coordinate transform: canvas pixels → PDF points
       const pxToPt = 72 / (96 * scale);
 
       annotations.forEach((ann) => {
@@ -505,7 +534,6 @@ try {
     );
   };
 
-  // Page-filtered annotations
   const pageAnnotations = useMemo(
     () => annotations.filter((a) => a.page === currentPage),
     [annotations, currentPage]
@@ -638,7 +666,7 @@ try {
       </div>
 
       {/* ============================================================ */}
-      {/* MAIN CONTENT: thumbnails + canvas area + form panel */}
+      {/* MAIN CONTENT */}
       {/* ============================================================ */}
       <div className="pdf-editor-main" style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         {showThumbs && (
@@ -655,7 +683,6 @@ try {
           </div>
         )}
 
-        {/* PDF viewport */}
         <div
           className="pdf-editor-canvas-area"
           style={{
@@ -677,7 +704,6 @@ try {
           >
             <canvas ref={canvasRef} style={{ display: 'block' }} />
 
-            {/* Text layer (for text-edit mode) */}
             <div
               ref={textLayerRef}
               className="pdf-text-layer"
@@ -691,7 +717,6 @@ try {
               }}
             />
 
-            {/* Annotation overlay */}
             <svg
               ref={overlayRef}
               className="pdf-editor-overlay"
@@ -708,7 +733,6 @@ try {
             >
               {pageAnnotations.map(renderAnnotationSvg)}
 
-              {/* Currently drawing shape */}
               {drawing && (
                 <rect
                   x={Math.min(drawing.startX, drawing.currentX)}
@@ -729,7 +753,6 @@ try {
                 />
               )}
 
-              {/* Pending redaction marks */}
               {pendingRedactions
                 .filter((r) => r.page === currentPage)
                 .map((r) => {
@@ -766,7 +789,6 @@ try {
                 })}
             </svg>
 
-            {/* Signature placer */}
             {signaturePlacing && (
               <PDFSignaturePlacer
                 containerRef={overlayRef}
@@ -796,7 +818,6 @@ try {
               />
             )}
 
-            {/* Text edit popover */}
             {textEditTarget && (
               <div
                 className="pdf-text-edit-popover"
@@ -843,7 +864,6 @@ try {
               </div>
             )}
 
-            {/* Tool hint */}
             {activeTool === 'text-edit' && (
               <div className="pdf-tool-hint" style={{ position: 'absolute', bottom: 8, left: 8, background: '#fff', padding: '4px 8px', borderRadius: 4, fontSize: 12 }}>
                 <InfoCircleOutlined /> Click any text to edit. Long edits may overlap
@@ -853,9 +873,6 @@ try {
           </div>
         </div>
 
-        {/* ============================================================ */}
-        {/* FORM PANEL */}
-        {/* ============================================================ */}
         {showFormPanel && (
           <div className="pdf-form-panel" style={{ width: 260, borderLeft: '1px solid #e0e0e0', overflow: 'auto' }}>
             <PDFFormPanel
