@@ -216,6 +216,8 @@ const DocumentEditor = ({
       StarterKit.configure({
         codeBlock: false,
         heading: { levels: [1, 2, 3, 4, 5, 6] },
+        link: false,        // ← ADD
+        underline: false,
       }),
       Underline,
       Link.configure({
