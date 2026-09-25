@@ -17,19 +17,17 @@
   display: flex;
   align-items: center;
   gap: 2px;
-  padding: 6px 12px;
+  padding: 4px 8px;
   background: #ffffff;
   border-bottom: 1px solid #f0f0f0;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .editor-menubar-item {
-  padding: 5px 12px;
+  padding: 4px 10px;
   border-radius: 4px;
   cursor: pointer;
   color: #262626;
-  font-size: 14px;
-  font-weight: 500;
   transition: background 0.15s;
 }
 
@@ -40,7 +38,7 @@
 .editor-menubar-help {
   margin-left: auto;
   color: #8c8c8c;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 /* ============================================================
@@ -48,18 +46,18 @@
    ============================================================ */
 .editor-ribbon-tabs {
   display: flex;
-  gap: 4px;
-  padding: 6px 12px 0;
+  gap: 2px;
+  padding: 4px 8px 0;
   background: #ffffff;
 }
 
 .editor-ribbon-tab {
-  padding: 8px 18px;
+  padding: 6px 14px;
   border: none;
   background: transparent;
   cursor: pointer;
-  font-size: 14.5px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 500;
   color: #595959;
   border-top-left-radius: 6px;
   border-top-right-radius: 6px;
@@ -75,7 +73,7 @@
 .editor-ribbon-tab.active {
   background: #fafafa;
   color: #1890ff;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .editor-ribbon-tab.active::after {
@@ -84,17 +82,16 @@
   bottom: -1px;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 2px;
   background: #1890ff;
-  border-radius: 2px 2px 0 0;
 }
 
 /* ============================================================
    RIBBON BODY
    ============================================================ */
 .editor-ribbon-body {
-  min-height: 104px;
-  padding: 10px 16px;
+  min-height: 82px;
+  padding: 6px 12px;
   background: #fafafa;
   border-top: 1px solid #e0e0e0;
   overflow-x: auto;
@@ -103,8 +100,8 @@
 .editor-ribbon-content {
   display: flex;
   align-items: stretch;
-  gap: 8px;
-  height: 84px;
+  gap: 4px;
+  height: 70px;
 }
 
 /* ============================================================
@@ -114,9 +111,9 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 4px 12px;
+  padding: 2px 8px;
   border-right: 1px solid #e0e0e0;
-  min-width: 70px;
+  min-width: 60px;
 }
 
 .editor-ribbon-group:last-child {
@@ -126,17 +123,16 @@
 .editor-ribbon-group-content {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   flex: 1;
 }
 
 .editor-ribbon-group-label {
-  font-size: 11.5px;
-  font-weight: 500;
+  font-size: 10px;
   text-align: center;
   color: #8c8c8c;
   letter-spacing: 0.3px;
-  padding-top: 4px;
+  padding-top: 2px;
 }
 
 /* ============================================================
@@ -147,10 +143,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-width: 66px;
-  min-height: 72px;
-  padding: 6px 12px;
+  gap: 4px;
+  min-width: 54px;
+  min-height: 58px;
+  padding: 4px 8px;
   background: transparent;
   border: 1px solid transparent;
   border-radius: 6px;
@@ -188,21 +184,19 @@
 }
 
 .editor-ribbon-btn-icon {
-  font-size: 26px;
+  font-size: 20px;
   line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 28px;
+  height: 22px;
 }
 
 .editor-ribbon-btn-label {
-  font-size: 12.5px;
-  font-weight: 500;
-  line-height: 1.25;
+  font-size: 11px;
+  line-height: 1.2;
   text-align: center;
   white-space: nowrap;
-  color: #262626;
 }
 
 /* ============================================================
@@ -212,15 +206,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 30px;
+  width: 28px;
+  height: 26px;
   padding: 0;
   background: transparent;
   border: 1px solid transparent;
   border-radius: 4px;
   cursor: pointer;
   color: #262626;
-  font-size: 16px;
+  font-size: 14px;
   transition: all 0.15s;
 }
 
@@ -246,19 +240,19 @@
 .editor-ribbon-stack {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .editor-ribbon-row {
   display: flex;
-  gap: 4px;
+  gap: 2px;
 }
 
 /* Fake circle icon (for ellipse) */
 .editor-ribbon-shape-circle {
   display: inline-block;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   border: 2px solid currentColor;
   border-radius: 50%;
 }
@@ -309,9 +303,6 @@
   .editor-ribbon-btn-small {
     color: #e0e0e0;
   }
-  .editor-ribbon-btn-big .editor-ribbon-btn-label {
-    color: #e0e0e0;
-  }
   .editor-ribbon-btn-big:hover,
   .editor-ribbon-btn-small:hover {
     background: #0a2a4a;
@@ -331,34 +322,26 @@
 @media (max-width: 768px) {
   .editor-ribbon-body {
     min-height: auto;
-    padding: 6px 8px;
+    padding: 4px 6px;
   }
   .editor-ribbon-content {
     height: auto;
     flex-wrap: wrap;
-    gap: 6px;
   }
   .editor-ribbon-btn-big {
-    min-width: 56px;
-    min-height: 60px;
-  }
-  .editor-ribbon-btn-icon {
-    font-size: 20px;
-    height: 22px;
+    min-width: 44px;
+    min-height: 48px;
   }
   .editor-ribbon-btn-label {
-    font-size: 11px;
+    font-size: 10px;
   }
   .editor-menubar-item {
-    padding: 4px 8px;
-    font-size: 12.5px;
+    padding: 4px 6px;
+    font-size: 12px;
   }
   .editor-ribbon-tab {
-    padding: 6px 12px;
-    font-size: 13px;
-  }
-  .editor-ribbon-group-label {
-    font-size: 10px;
+    padding: 6px 10px;
+    font-size: 12px;
   }
 }
 
@@ -367,11 +350,6 @@
    ============================================================ */
 .editor-body {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.editor-body.pdf-mode {
   flex-direction: row;
   align-items: stretch;
   gap: 12px;
@@ -446,6 +424,24 @@
   padding: 12px;
   overflow-y: auto;
   max-height: 640px;
+}
+
+/* When switching to PDF mode, the editor-body is row-aligned
+   (palette on left, PDF in center, form panel on right).
+   In HTML mode, the editor-body stays a single column. */
+.editor-body:has(.pdf-editor-host) {
+  /* no-op — this is a marker */
+}
+
+
+.editor-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.editor-body.pdf-mode {
+  flex-direction: row;
 }
 
 /* ============================================================
@@ -641,7 +637,7 @@
 }
 
 /* ============================================================
-   DARK MODE — PDF SECTIONS
+   DARK MODE
    ============================================================ */
 @media (prefers-color-scheme: dark) {
   .pdf-editor-thumbs {
@@ -675,8 +671,7 @@
    ============================================================ */
 .pdf-text-layer {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 0; left: 0;
   overflow: hidden;
   opacity: 1;
   line-height: 1;
@@ -687,7 +682,7 @@
 .pdf-text-layer > span {
   position: absolute;
   white-space: pre;
-  color: transparent;
+  color: transparent;             /* invisible but selectable */
   transform-origin: 0% 0%;
   cursor: text;
 }
@@ -701,10 +696,12 @@
   outline: 1px dashed #1890ff;
 }
 
+/* Text edit popover */
 .pdf-text-edit-popover {
   font-size: 13px;
 }
 
+/* Pending text edit highlight */
 .pdf-text-layer > span.pending-edit {
   background: rgba(250, 173, 20, 0.35);
   border-bottom: 2px solid #faad14;
