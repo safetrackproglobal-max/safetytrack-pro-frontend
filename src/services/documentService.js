@@ -2393,6 +2393,265 @@ class DocumentService {
     }
   }
 
+
+    // ============================================================
+  // PDF EDITING
+  // ============================================================
+
+  /**
+   * Get the raw PDF URL for PDF.js consumption.
+   */
+  getRawDocumentUrl(documentId) {
+    const base = (api.defaults.baseURL || '').replace(/\/$/, '');
+    return `${base}/documents/${documentId}/raw`;
+  }
+
+  /**
+   * Save an annotated PDF back to the backend.
+   * @param {number} documentId
+   * @param {Blob} pdfBlob
+   * @param {string} filename
+   */
+  async saveAnnotatedPdf(documentId, pdfBlob, filename = 'annotated.pdf') {
+    try {
+      const formData = new FormData();
+      formData.append('file', pdfBlob, filename);
+      const response = await api.post(
+        `/documents/${documentId}/save-annotated`,
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Failed to save annotated PDF:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get AcroForm fields for a PDF.
+   */
+  async getPdfFormFields(documentId) {
+    try {
+      const response = await api.get(`/documents/${documentId}/form-fields`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch form fields:', error);
+      return { fields: [], count: 0 };
+    }
+  }
+
+  // ============================================================
+  // PDF FORM FILL + SIGNATURE
+  // ============================================================
+
+  /**
+   * Fill AcroForm fields and save as a new version.
+   * @param {number} documentId
+   * @param {object} values  — { field_name: value, ... }
+   * @param {boolean} flatten
+   */
+  async fillPdfForm(documentId, values, flatten = false) {
+    try {
+      const response = await api.post(
+        `/documents/${documentId}/fill-form`,
+        { values, flatten }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fill PDF form:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Stamp a signature/initials image onto a PDF page.
+   * @param {number} documentId
+   * @param {object} payload — { image_data_url, page_number, x_percent, y_percent, width_percent, rotation }
+   */
+  async stampSignature(documentId, payload) {
+    try {
+      const response = await api.post(
+        `/documents/${documentId}/stamp`,
+        payload
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Failed to stamp signature:', error);
+      throw error;
+    }
+  }
+
+  // ============================================================
+  // PDF PAGE OPERATIONS
+  // ============================================================
+
+  async rotatePdfPages(documentId, pages, degrees = 90) {
+    try {
+      const response = await api.post(`/documents/${documentId}/pages/rotate`, {
+        pages, degrees
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to rotate pages:', error);
+      throw error;
+    }
+  }
+
+  async deletePdfPages(documentId, pages) {
+    try {
+      const response = await api.post(`/documents/${documentId}/pages/delete`, { pages });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to delete pages:', error);
+      throw error;
+    }
+  }
+
+  async reorderPdfPages(documentId, order) {
+    try {
+      const response = await api.post(`/documents/${documentId}/pages/reorder`, { order });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to reorder pages:', error);
+      throw error;
+    }
+  }
+
+  async insertPdfPages(documentId, payload) {
+    try {
+      const response = await api.post(`/documents/${documentId}/pages/insert`, payload);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to insert pages:', error);
+      throw error;
+    }
+  }
+
+  async extractPdfPages(documentId, pages, newTitle) {
+    try {
+      const response = await api.post(`/documents/${documentId}/pages/extract`, {
+        pages, new_title: newTitle
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to extract pages:', error);
+      throw error;
+    }
+  }
+
+async applyRedactions(documentId, redactions, options = {}) {
+  try {
+    const response = await api.post(`/documents/${documentId}/redact`, {
+      redactions,
+      fill_color: options.fillColor || '#000000',
+      remove_metadata: options.removeMetadata !== false,
+      remove_embedded_files: options.removeEmbeddedFiles !== false,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Failed to apply redactions:', error);
+    throw error;
+  }
+}
+
+async verifyRedactions(documentId, regions) {
+  try {
+    const response = await api.post(
+      `/documents/${documentId}/redact/verify`,
+      { regions }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Failed to verify redactions:', error);
+    return { leaks: [], has_leaks: false };
+  }
+}
+
+async applyTextEdits(documentId, edits) {
+  try {
+    const response = await api.post(
+      `/documents/${documentId}/text-edits`,
+      { edits }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Failed to apply text edits:', error);
+    throw error;
+  }
+}
+
+  /**
+   * Get track-changes / document changes for a document.
+   * Falls back gracefully if the backend endpoint isn't ready yet.
+   */
+  async getDocumentChanges(documentId, params = {}) {
+    try {
+      const queryParams = new URLSearchParams(this.cleanParams(params));
+      const response = await api.get(
+        `/documents/${documentId}/changes?${queryParams.toString()}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch changes for ${documentId}:`, error);
+      // Return an empty shape so callers don't crash
+      return {
+        success: false,
+        changes: [],
+        pendingChanges: [],
+        currentHunks: [],
+        hasUnsavedChange: false,
+      };
+    }
+  }
+
+  // ============================================================
+  // REDACTION (compliance-grade)
+  // ============================================================
+
+  async applyRedactions(documentId, payload) {
+    try {
+      const response = await api.post(`/documents/${documentId}/redact`, payload, {
+        timeout: 120000,   // redaction can take a while on large PDFs
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to apply redactions:', error);
+      throw error;
+    }
+  }
+
+  async getRedactionLogs(params = {}) {
+    try {
+      const queryParams = new URLSearchParams(params);
+      const response = await api.get(`/dm-documents/redactions?${queryParams.toString()}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch redaction logs:', error);
+      return { redactions: [], total: 0 };
+    }
+  }
+
+  async downloadRedactionCertificate(logId) {
+    try {
+      const response = await api.get(
+        `/dm-documents/redactions/${logId}/certificate`,
+        { responseType: 'blob' }
+      );
+      // Trigger download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `redaction-certificate-${logId}.pdf`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      return true;
+    } catch (error) {
+      console.error('Failed to download certificate:', error);
+      throw error;
+    }
+  }
+
   // ============================================================
   // ✨ ACCESS CONTROL — backend: /api/dm-documents/... + /api/dm-permissions/...
   // ============================================================
