@@ -11,7 +11,7 @@ import {
   DragOutlined, CheckOutlined, CloseOutlined
 } from '@ant-design/icons';
 import * as pdfjsLib from 'pdfjs-dist';
-
+import api from '../../services/api';  
 import documentService from '../../services/documentService';
 
 const PageThumbnailPanel = ({
