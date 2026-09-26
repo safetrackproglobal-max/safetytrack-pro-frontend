@@ -14,7 +14,7 @@ export function NotificationProvider({ children }) {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const res = await fetch("/api/notifications", {
+      const res = await fetch("/notifications", {
         headers: { 
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -50,7 +50,7 @@ export function NotificationProvider({ children }) {
   async function markAllRead() {
     try {
       const token = localStorage.getItem('token');
-      await fetch("/api/notifications/mark-read", {
+      await fetch("/notifications/mark-read", {
         method: "POST",
         headers: { 
           Authorization: `Bearer ${token}`,
@@ -67,7 +67,7 @@ export function NotificationProvider({ children }) {
   async function markAsRead(notificationId) {
     try {
       const token = localStorage.getItem('token');
-      await fetch(`/api/notifications/${notificationId}/read`, {
+      await fetch(`/notifications/${notificationId}/read`, {
         method: "POST",
         headers: { 
           Authorization: `Bearer ${token}`,
