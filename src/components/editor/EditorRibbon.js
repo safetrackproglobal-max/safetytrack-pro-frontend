@@ -340,21 +340,28 @@ const EditorRibbon = ({
 
       {/* EDIT — Hand / Select Text ----------------------------- */}
       <Group title="Edit">
-        <BigBtn
-          icon={<DragOutlined />}
-          label="Hand"
-          onClick={() => onToolChange?.('hand')}
-          active={activeTool === 'hand'}
-          tooltip="Pan mode"
-        />
-        <BigBtn
-          icon={<SelectOutlined />}
-          label="Select"
-          onClick={() => onToolChange?.('select')}
-          active={activeTool === 'select'}
-          tooltip="Select text"
-        />
-      </Group>
+  <BigBtn
+    icon={<DragOutlined />}
+    label="Hand"
+    onClick={() => onToolChange?.('hand')}
+    active={activeTool === 'hand'}
+    tooltip="Pan mode"
+  />
+  <BigBtn
+    icon={<SelectOutlined />}
+    label="Select"
+    onClick={() => onToolChange?.('select')}
+    active={activeTool === 'select'}
+    tooltip="Select text"
+  />
+  <BigBtn
+    icon={<EditIcon />}
+    label="Edit Text"
+    onClick={() => onToolChange?.('text-edit')}
+    active={activeTool === 'text-edit'}
+    tooltip="Click any word to edit it in place"
+  />
+</Group>
 
       {/* UNDO -------------------------------------------------- */}
       <Group title="Undo">
@@ -427,38 +434,70 @@ const EditorRibbon = ({
   // ANNOTATE TAB
   // ============================================================
   const renderAnnotateTab = () => (
-    <div className="editor-ribbon-content">
-      <Group title="Markup">
-        <BigBtn icon={<HighlightOutlined />} label="Highlight" onClick={onHighlight} />
-        <BigBtn icon={<EditIcon />} label="Text Box" onClick={onTextAnnotation} />
-        <BigBtn icon={<MessageOutlined />} label="Sticky Note" onClick={onStickyNote} />
-      </Group>
+  <div className="editor-ribbon-content">
+    <Group title="Markup">
+      <BigBtn icon={<HighlightOutlined />} label="Highlight" onClick={onHighlight} />
+      <BigBtn icon={<EditIcon />} label="Text Box" onClick={onTextAnnotation} />
+      <BigBtn icon={<MessageOutlined />} label="Sticky Note" onClick={onStickyNote} />
+    </Group>
 
-      <Group title="Shapes">
-        <BigBtn icon={<BorderOutlined />} label="Rectangle" onClick={onRectAnnotation} />
-        <BigBtn icon={<MinusOutlined />} label="Line" onClick={onLineAnnotation} />
-        <BigBtn
-          icon={<div className="editor-ribbon-shape-circle" />}
-          label="Ellipse"
-          onClick={onEllipseAnnotation}
-        />
-      </Group>
+    {/* ✅ NEW: Edit Text tool */}
+    <Group title="Edit Text">
+      <BigBtn
+        icon={<EditIcon />}
+        label="Edit Text"
+        onClick={() => onToolChange?.('text-edit')}
+        active={activeTool === 'text-edit'}
+        tooltip="Click any word to edit it in place"
+      />
+    </Group>
 
-      <Group title="Sign & Stamp">
-        <BigBtn icon={<SignatureOutlined />} label="Signature" onClick={onSignature} />
-        <BigBtn icon={<EditIcon />} label="Stamp" onClick={onStamp} />
-      </Group>
+    <Group title="Shapes">
+      <BigBtn icon={<BorderOutlined />} label="Rectangle" onClick={onRectAnnotation} />
+      <BigBtn icon={<MinusOutlined />} label="Line" onClick={onLineAnnotation} />
+      <BigBtn
+        icon={<div className="editor-ribbon-shape-circle" />}
+        label="Ellipse"
+        onClick={onEllipseAnnotation}
+      />
+    </Group>
 
-      <Group title="Forms">
-        <BigBtn
-          icon={<SignatureOutlined />}
-          label="Sign PDF"
-          onClick={() => onPlaceSignature?.()}
-        />
-        <BigBtn icon={<EditIcon />} label="Fill Form" onClick={() => onOpenFormPanel?.()} />
-      </Group>
-    </div>
-  );
+    <Group title="Sign & Stamp">
+      <BigBtn icon={<SignatureOutlined />} label="Signature" onClick={onSignature} />
+      <BigBtn icon={<EditIcon />} label="Stamp" onClick={onStamp} />
+    </Group>
+
+    <Group title="Forms">
+      <BigBtn
+        icon={<SignatureOutlined />}
+        label="Sign PDF"
+        onClick={() => onPlaceSignature?.()}
+      />
+      <BigBtn icon={<EditIcon />} label="Fill Form" onClick={() => onOpenFormPanel?.()} />
+    </Group>
+
+    {/* Hint when text-edit is active */}
+    {activeTool === 'text-edit' && (
+      <div
+        style={{
+          marginLeft: 'auto',
+          padding: '8px 12px',
+          background: '#e6f4ff',
+          border: '1px solid #91caff',
+          borderRadius: 4,
+          fontSize: 12,
+          color: '#0050b3',
+          alignSelf: 'center',
+          maxWidth: 260,
+        }}
+      >
+        ✏️ <strong>Text Edit mode active</strong>
+        <br />
+        Click any word in the PDF to change it.
+      </div>
+    )}
+  </div>
+);
 
   // ============================================================
   // PAGES TAB
