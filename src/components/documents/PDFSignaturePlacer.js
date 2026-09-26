@@ -1,5 +1,6 @@
 // src/components/documents/editor/PDFSignaturePlacer.jsx
-// Drag-and-drop signature placement on a PDF page
+// Drag-and-drop signature placement on a PDF page.
+// The signature data URL comes from the parent component (already fetched).
 
 import React, { useRef, useState, useEffect } from 'react';
 import { Button, Space, message, Slider, Tooltip } from 'antd';
@@ -10,32 +11,14 @@ import {
 const PDFSignaturePlacer = ({
   containerRef,
   currentPage,
-  onPlace,              // callback({ page, x_percent, y_percent, width_percent })
-  onCancel
+  signature,           // ✅ data URL passed from parent
+  onPlace,
+  onCancel,
 }) => {
-  const [signature, setSignature] = useState(null);   // data URL
-  const [placement, setPlacement] = useState(null);   // { x, y, w }
+  const [placement, setPlacement] = useState(null);
   const [dragging, setDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [sizePct, setSizePct] = useState(25);
-
-  // Fetch signature from your existing backend (or prop)
-  useEffect(() => {
-    (async () => {
-      try {
-        // Reuse whatever stores the user's signature
-        const res = await fetch('/api/users/me/signature', {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.signature_data_url) setSignature(data.signature_data_url);
-        }
-      } catch (_) { /* silent */ }
-    })();
-  }, []);
 
   // ------------------------------------------------------------
   // MOUSE HANDLERS
@@ -46,7 +29,7 @@ const PDFSignaturePlacer = ({
     setPlacement({
       ...placement,
       x: e.clientX - rect.left - dragOffset.x,
-      y: e.clientY - rect.top - dragOffset.y
+      y: e.clientY - rect.top - dragOffset.y,
     });
   };
 
@@ -71,9 +54,9 @@ const PDFSignaturePlacer = ({
       x: (rect.width - w) / 2,
       y: rect.height - h - 40,
       w,
-      h
+      h,
     });
-  }, [signature, sizePct]);
+  }, [signature, sizePct, containerRef]);
 
   // ------------------------------------------------------------
   // CONFIRM
@@ -95,12 +78,19 @@ const PDFSignaturePlacer = ({
   // ------------------------------------------------------------
   if (!signature) {
     return (
-      <div style={{
-        position: 'absolute',
-        top: 12, left: 12,
-        background: 'rgba(0,0,0,0.75)', color: '#fff',
-        padding: 8, borderRadius: 6, fontSize: 12, zIndex: 100
-      }}>
+      <div
+        style={{
+          position: 'absolute',
+          top: 12,
+          left: 12,
+          background: 'rgba(0,0,0,0.75)',
+          color: '#fff',
+          padding: 8,
+          borderRadius: 6,
+          fontSize: 12,
+          zIndex: 100,
+        }}
+      >
         No signature on file. Please capture one first.
       </div>
     );
@@ -123,7 +113,7 @@ const PDFSignaturePlacer = ({
             zIndex: 100,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
           }}
         >
           <img
@@ -132,30 +122,45 @@ const PDFSignaturePlacer = ({
             style={{
               maxWidth: '100%',
               maxHeight: '100%',
-              pointerEvents: 'none'
+              pointerEvents: 'none',
             }}
           />
         </div>
       )}
 
       {/* Floating controls */}
-      <div style={{
-        position: 'absolute',
-        bottom: 12, left: '50%', transform: 'translateX(-50%)',
-        background: '#fff', boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-        padding: 12, borderRadius: 8, zIndex: 101,
-        display: 'flex', alignItems: 'center', gap: 12
-      }}>
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 12,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: '#fff',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+          padding: 12,
+          borderRadius: 8,
+          zIndex: 101,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+        }}
+      >
         <span style={{ fontSize: 12 }}>Size</span>
         <Slider
-          min={10} max={60} value={sizePct}
+          min={10}
+          max={60}
+          value={sizePct}
           onChange={setSizePct}
           style={{ width: 120 }}
         />
         <Button
-          type="primary" size="small" icon={<CheckOutlined />}
+          type="primary"
+          size="small"
+          icon={<CheckOutlined />}
           onClick={confirmPlacement}
-        >Place</Button>
+        >
+          Place
+        </Button>
         <Button size="small" icon={<CloseOutlined />} onClick={onCancel}>
           Cancel
         </Button>
@@ -167,8 +172,10 @@ const PDFSignaturePlacer = ({
         onMouseUp={handleContainerMouseUp}
         onMouseLeave={handleContainerMouseUp}
         style={{
-          position: 'absolute', inset: 0,
-          zIndex: 99, pointerEvents: dragging ? 'auto' : 'none'
+          position: 'absolute',
+          inset: 0,
+          zIndex: 99,
+          pointerEvents: dragging ? 'auto' : 'none',
         }}
       />
     </>
