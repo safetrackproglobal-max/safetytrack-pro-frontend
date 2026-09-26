@@ -275,86 +275,85 @@ const PDFEditor = forwardRef(({
   // RENDER PAGE TO CANVAS + TEXT LAYER — HIGH-DPI AWARE
   // ============================================================
   useEffect(() => {
-    if (!pdfDoc || !canvasRef.current) return;
+  if (!pdfDoc || !canvasRef.current) return;
 
-    let cancelled = false;
-    let renderTask = null;
+  let cancelled = false;
+  let renderTask = null;
 
-    pdfDoc.getPage(currentPage).then(async (page) => {
-      if (cancelled || !canvasRef.current) return;
+  pdfDoc.getPage(currentPage).then(async (page) => {
+    if (cancelled || !canvasRef.current) return;
 
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext('2d');
-      const dpr = window.devicePixelRatio || 1;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
 
-      // Logical viewport at user's chosen scale
-      const viewport = page.getViewport({ scale });
+    // Logical viewport at user's chosen scale
+    const viewport = page.getViewport({ scale });
 
-      // Logical display size
-      const logicalWidth = Math.floor(viewport.width);
-      const logicalHeight = Math.floor(viewport.height);
+    // Logical display size
+    const logicalWidth = Math.floor(viewport.width);
+    const logicalHeight = Math.floor(viewport.height);
 
-      // Physical canvas size — DPR-scaled for crispness
-      canvas.width = Math.floor(logicalWidth * dpr);
-      canvas.height = Math.floor(logicalHeight * dpr);
-      canvas.style.width = `${logicalWidth}px`;
-      canvas.style.height = `${logicalHeight}px`;
+    // Physical canvas size — DPR-scaled for crispness
+    canvas.width = Math.floor(logicalWidth * dpr);
+    canvas.height = Math.floor(logicalHeight * dpr);
+    canvas.style.width = `${logicalWidth}px`;
+    canvas.style.height = `${logicalHeight}px`;
 
-      // Record logical size for overlay positioning
-      setPageSize({ width: logicalWidth, height: logicalHeight });
+    // Record logical size for overlay positioning
+    setPageSize({ width: logicalWidth, height: logicalHeight });
 
-      // Scale context so PDF.js draws in logical units
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // ✅ Let PDF.js scale via the transform — DON'T also do ctx.setTransform
+    renderTask = page.render({
+      canvasContext: ctx,
+      viewport,
+      transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null,
+    });
 
-      renderTask = page.render({
-        canvasContext: ctx,
-        viewport,
-        transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null,
-      });
-      renderTask.promise.catch((err) => {
-        if (err?.name !== 'RenderingCancelledException') {
-          console.error('Render error:', err);
-        }
-      });
-
-      // ---------- TEXT LAYER ----------
-      try {
-        const textContent = await page.getTextContent();
-        const textLayerDiv = textLayerRef.current;
-
-        if (textLayerDiv) {
-          textLayerDiv.innerHTML = '';
-          textLayerDiv.style.width = `${logicalWidth}px`;
-          textLayerDiv.style.height = `${logicalHeight}px`;
-
-          const textLayer = new pdfjsLib.TextLayer({
-            textContentSource: textContent,
-            container: textLayerDiv,
-            viewport,
-          });
-
-          await textLayer.render();
-
-          textLayerDiv.querySelectorAll('span').forEach((span) => {
-            span.style.cursor = 'text';
-            span.addEventListener('click', (e) => {
-              e.stopPropagation();
-              handleTextClick(span, e);
-            });
-          });
-        }
-      } catch (err) {
-        if (err?.name !== 'RenderingCancelledException') {
-          console.error('Text layer error:', err);
-        }
+    renderTask.promise.catch((err) => {
+      if (err?.name !== 'RenderingCancelledException') {
+        console.error('Render error:', err);
       }
     });
 
-    return () => {
-      cancelled = true;
-      if (renderTask) renderTask.cancel();
-    };
-  }, [pdfDoc, currentPage, scale, activeTool]);
+    // ---------- TEXT LAYER ----------
+    try {
+      const textContent = await page.getTextContent();
+      const textLayerDiv = textLayerRef.current;
+
+      if (textLayerDiv) {
+        textLayerDiv.innerHTML = '';
+        textLayerDiv.style.width = `${logicalWidth}px`;
+        textLayerDiv.style.height = `${logicalHeight}px`;
+
+        const textLayer = new pdfjsLib.TextLayer({
+          textContentSource: textContent,
+          container: textLayerDiv,
+          viewport,
+        });
+
+        await textLayer.render();
+
+        textLayerDiv.querySelectorAll('span').forEach((span) => {
+          span.style.cursor = 'text';
+          span.addEventListener('click', (e) => {
+            e.stopPropagation();
+            handleTextClick(span, e);
+          });
+        });
+      }
+    } catch (err) {
+      if (err?.name !== 'RenderingCancelledException') {
+        console.error('Text layer error:', err);
+      }
+    }
+  });
+
+  return () => {
+    cancelled = true;
+    if (renderTask) renderTask.cancel();
+  };
+}, [pdfDoc, currentPage, scale, activeTool]);
 
   // ============================================================
   // ANNOTATION DRAWING
