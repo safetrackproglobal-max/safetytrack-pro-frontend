@@ -1168,17 +1168,30 @@ class DocumentService {
   // ============================================================
 
   /**
-   * Get all signatures for a document
-   */
-  async getDocumentSignatures(documentId) {
-    try {
-      const response = await api.get(`/documents/${documentId}/signatures`);
-      return response.data;
-    } catch (error) {
-      console.error(`Failed to fetch signatures for ${documentId}:`, error);
-      throw error;
-    }
+ * Get all signatures for a document.
+ * Returns an array (unwraps the { success, signatures } envelope).
+ */
+async getDocumentSignatures(documentId) {
+  try {
+    const response = await api.get(`/documents/${documentId}/signatures`);
+    // Backend returns { success: true, signatures: [...] }
+    return response.data?.signatures || [];
+  } catch (error) {
+    console.error(`Failed to fetch signatures for ${documentId}:`, error);
+    return [];
   }
+}
+
+/**
+ * Get the most recent signed signature for a document.
+ * Returns null if none exists.
+ */
+async getLatestSignature(documentId) {
+  const sigs = await this.getDocumentSignatures(documentId);
+  if (!Array.isArray(sigs) || sigs.length === 0) return null;
+  const signed = sigs.filter((s) => s.status === 'signed');
+  return signed[0] || sigs[0] || null;
+}
 
   /**
    * Create a new signature
