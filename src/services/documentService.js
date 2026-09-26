@@ -1167,28 +1167,37 @@ class DocumentService {
   // DIGITAL SIGNATURES
   // ============================================================
 
- /**
-   * Get all signatures for a document
-   */
-  async getDocumentSignatures(documentId) {
-    try {
-      const response = await api.get(`/documents/${documentId}/signatures`);
-      return response.data;
-    } catch (error) {
-      console.error(`Failed to fetch signatures for ${documentId}:`, error);
-      throw error;
-    }
+/**
+ * Get all signatures for a document.
+ * Returns the full envelope: { success, signatures, total }
+ * (unchanged — used by the Sign Document modal & history panel)
+ */
+async getDocumentSignatures(documentId) {
+  try {
+    const response = await api.get(`/documents/${documentId}/signatures`);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to fetch signatures for ${documentId}:`, error);
+    throw error;
   }
+}
 
 /**
  * Get the most recent signed signature for a document.
- * Returns null if none exists.
+ * Unwraps the envelope internally.
+ * Returns a signature object or null.
  */
 async getLatestSignature(documentId) {
-  const sigs = await this.getDocumentSignatures(documentId);
-  if (!Array.isArray(sigs) || sigs.length === 0) return null;
-  const signed = sigs.filter((s) => s.status === 'signed');
-  return signed[0] || sigs[0] || null;
+  try {
+    const res = await api.get(`/documents/${documentId}/signatures`);
+    const sigs = res.data?.signatures || [];
+    if (!Array.isArray(sigs) || sigs.length === 0) return null;
+    const signed = sigs.filter((s) => s.status === 'signed');
+    return signed[0] || sigs[0] || null;
+  } catch (error) {
+    console.error(`Failed to fetch latest signature for ${documentId}:`, error);
+    return null;
+  }
 }
 
   /**
