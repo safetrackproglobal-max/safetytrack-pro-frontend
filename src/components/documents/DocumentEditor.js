@@ -187,7 +187,7 @@ const DocumentEditor = ({
   const imageInputRef = useRef(null);
   const importInputRef = useRef(null);
   const autoSaveTimer = useRef(null);
-
+  const pdfEditorRef = useRef(null);
   // Turndown for Markdown export
   const turndown = useMemo(() => new TurndownService({ headingStyle: 'atx' }), []);
 
@@ -860,10 +860,12 @@ const DocumentEditor = ({
       onActualSize={() => message.info('Actual size — 100% zoom')}
 
       // Zoom (delegated to PDF toolbar)
-      onZoomIn={() => message.info('Zoom via PDF toolbar')}
-      onZoomOut={() => message.info('Zoom via PDF toolbar')}
-      onFitWidth={() => message.info('Fit width via PDF toolbar')}
-      onFitPage={() => message.info('Fit page via PDF toolbar')}
+      onActualSize={() => pdfEditorRef.current?.actualSize()}
+      onZoomIn={() => pdfEditorRef.current?.zoomIn()}
+      onZoomOut={() => pdfEditorRef.current?.zoomOut()}
+      onFitWidth={() => pdfEditorRef.current?.fitWidth()}
+      onFitPage={() => pdfEditorRef.current?.fitPage()}
+      onStamp={() => setActivePdfTool('stamp')}
       onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
     />
   );
@@ -1102,6 +1104,7 @@ const DocumentEditor = ({
             {/* Editor area — PDF or HTML */}
             {editorMode === 'pdf' && (initialPdfUrl || documentId) ? (
               <PDFEditor
+                ref={pdfEditorRef}
                 pdfUrl={initialPdfUrl}
                 documentId={documentId}
                 activeTool={activePdfTool}
