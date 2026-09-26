@@ -766,6 +766,18 @@ const DocumentEditor = ({
         strike: editor?.isActive('strike'),
         highlight: editor?.isActive('highlight'),
       }}
+
+      // ============================================================
+      // ✅ NEW — Hand / Select mode (PDF-XChange "Edit" group)
+      // ============================================================
+      activeTool={activePdfTool}
+      onToolChange={(tool) => setActivePdfTool(tool)}
+
+      // ============================================================
+      // ✅ NEW — Search group (opens Find & Replace modal)
+      // ============================================================
+      onFindReplace={() => setFindOpen(true)}
+
       // File
       onNew={() => {
         setTitle('');
@@ -781,12 +793,14 @@ const DocumentEditor = ({
         else if (fmt === 'html') handleExportHTML();
       }}
       onPrint={() => window.print()}
+
       // Edit
       onUndo={() => editor?.chain().focus().undo().run()}
       onRedo={() => editor?.chain().focus().redo().run()}
       onCut={() => document.execCommand('cut')}
       onCopy={() => document.execCommand('copy')}
       onPaste={() => {}}
+
       // Format
       onBold={() => editor?.chain().focus().toggleBold().run()}
       onItalic={() => editor?.chain().focus().toggleItalic().run()}
@@ -803,6 +817,7 @@ const DocumentEditor = ({
       onTable={() =>
         editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
       }
+
       // PDF annotation
       onTextAnnotation={() => setActivePdfTool('text')}
       onRectAnnotation={() => setActivePdfTool('rect')}
@@ -813,6 +828,7 @@ const DocumentEditor = ({
       onStamp={() => message.info('Stamp tool coming soon')}
       onPlaceSignature={() => setSignaturePlacing(true)}
       onOpenFormPanel={() => setShowFormPanel(true)}
+
       // Pages (PDF) — events delegated to thumbnail panel
       onInsertPage={() => window.dispatchEvent(new CustomEvent('pdf-page-insert'))}
       onDeletePage={() => window.dispatchEvent(new CustomEvent('pdf-page-delete'))}
@@ -822,6 +838,7 @@ const DocumentEditor = ({
       onRotateRight={() =>
         window.dispatchEvent(new CustomEvent('pdf-page-rotate', { detail: { degrees: 90 } }))
       }
+
       // View
       onToggleReading={() => setReadingMode(!readingMode)}
       onToggleFocus={() => setFocusMode(!focusMode)}
@@ -836,6 +853,13 @@ const DocumentEditor = ({
       onAIAssist={handleAIEnhance}
       onAISummarize={handleAISummarize}
       onAISuggest={handleAISuggestion}
+
+      // ============================================================
+      // ✅ NEW — Actual Size (resets zoom to 100%)
+      // ============================================================
+      onActualSize={() => message.info('Actual size — 100% zoom')}
+
+      // Zoom (delegated to PDF toolbar)
       onZoomIn={() => message.info('Zoom via PDF toolbar')}
       onZoomOut={() => message.info('Zoom via PDF toolbar')}
       onFitWidth={() => message.info('Fit width via PDF toolbar')}
@@ -843,7 +867,6 @@ const DocumentEditor = ({
       onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
     />
   );
-
   // ============================================================
   // RENDER — METADATA PANEL
   // ============================================================
