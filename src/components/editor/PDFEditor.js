@@ -4,6 +4,8 @@
 //           signature placement, form fields, page thumbnails,
 //           redaction (compliance-grade), text editing,
 //           zoom/fit controls, hand-pan, and stamp annotations.
+//
+// Renders at devicePixelRatio for crisp text on retina/high-DPI displays.
 
 import React, {
   useState, useEffect, useRef, useCallback, useMemo,
@@ -69,6 +71,7 @@ const PDFEditor = forwardRef(({
   const [numPages, setNumPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [scale, setScale] = useState(1.2);
+  const [pageSize, setPageSize] = useState({ width: 0, height: 0 });
 
   // ============================================================
   // STATE — annotations
@@ -142,10 +145,8 @@ const PDFEditor = forwardRef(({
     if (!viewportRef.current || !pdfDoc) return;
     try {
       const page = await pdfDoc.getPage(currentPage);
-      // PDF native page width in points
       const baseViewport = page.getViewport({ scale: 1 });
-      const containerWidth =
-        viewportRef.current.clientWidth - 48; // minus padding
+      const containerWidth = viewportRef.current.clientWidth - 48;
       const newScale = containerWidth / baseViewport.width;
       setScale(+Math.max(0.25, Math.min(4, newScale)).toFixed(2));
     } catch (err) {
@@ -158,10 +159,8 @@ const PDFEditor = forwardRef(({
     try {
       const page = await pdfDoc.getPage(currentPage);
       const baseViewport = page.getViewport({ scale: 1 });
-      const containerWidth =
-        viewportRef.current.clientWidth - 48;
-      const containerHeight =
-        viewportRef.current.clientHeight - 48;
+      const containerWidth = viewportRef.current.clientWidth - 48;
+      const containerHeight = viewportRef.current.clientHeight - 48;
       const scaleByW = containerWidth / baseViewport.width;
       const scaleByH = containerHeight / baseViewport.height;
       const newScale = Math.min(scaleByW, scaleByH);
@@ -273,7 +272,7 @@ const PDFEditor = forwardRef(({
   }, [documentId]);
 
   // ============================================================
-  // RENDER PAGE TO CANVAS + TEXT LAYER
+  // RENDER PAGE TO CANVAS + TEXT LAYER — HIGH-DPI AWARE
   // ============================================================
   useEffect(() => {
     if (!pdfDoc || !canvasRef.current) return;
@@ -283,27 +282,50 @@ const PDFEditor = forwardRef(({
 
     pdfDoc.getPage(currentPage).then(async (page) => {
       if (cancelled || !canvasRef.current) return;
-      const viewport = page.getViewport({ scale });
+
       const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
+      const dpr = window.devicePixelRatio || 1;
 
-      renderTask = page.render({ canvasContext: ctx, viewport });
+      // Logical viewport at user's chosen scale
+      const viewport = page.getViewport({ scale });
+
+      // Logical display size
+      const logicalWidth = Math.floor(viewport.width);
+      const logicalHeight = Math.floor(viewport.height);
+
+      // Physical canvas size — DPR-scaled for crispness
+      canvas.width = Math.floor(logicalWidth * dpr);
+      canvas.height = Math.floor(logicalHeight * dpr);
+      canvas.style.width = `${logicalWidth}px`;
+      canvas.style.height = `${logicalHeight}px`;
+
+      // Record logical size for overlay positioning
+      setPageSize({ width: logicalWidth, height: logicalHeight });
+
+      // Scale context so PDF.js draws in logical units
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      renderTask = page.render({
+        canvasContext: ctx,
+        viewport,
+        transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null,
+      });
       renderTask.promise.catch((err) => {
         if (err?.name !== 'RenderingCancelledException') {
           console.error('Render error:', err);
         }
       });
 
+      // ---------- TEXT LAYER ----------
       try {
         const textContent = await page.getTextContent();
         const textLayerDiv = textLayerRef.current;
 
         if (textLayerDiv) {
           textLayerDiv.innerHTML = '';
-          textLayerDiv.style.width = `${viewport.width}px`;
-          textLayerDiv.style.height = `${viewport.height}px`;
+          textLayerDiv.style.width = `${logicalWidth}px`;
+          textLayerDiv.style.height = `${logicalHeight}px`;
 
           const textLayer = new pdfjsLib.TextLayer({
             textContentSource: textContent,
@@ -373,7 +395,7 @@ const PDFEditor = forwardRef(({
       return;
     }
 
-    // Stamp → prompt for stamp text, then draw a rectangle
+    // Stamp → prompt for stamp text
     if (activeTool === 'stamp') {
       const label = window.prompt('Stamp text (e.g. APPROVED, DRAFT, CONFIDENTIAL):', 'APPROVED');
       if (!label) return;
@@ -400,7 +422,6 @@ const PDFEditor = forwardRef(({
   };
 
   const handleMouseMove = (e) => {
-    // Hand-pan
     if (panning && viewportRef.current && panStartRef.current) {
       const dx = e.clientX - panStartRef.current.x;
       const dy = e.clientY - panStartRef.current.y;
@@ -705,11 +726,8 @@ const PDFEditor = forwardRef(({
     return <Empty description={`Failed to load PDF: ${error}`} />;
   }
 
-  const canvasEl = canvasRef.current;
-  const canvasW = canvasEl?.width || 0;
-  const canvasH = canvasEl?.height || 0;
-
   const isHandMode = activeTool === 'hand';
+  const isTextEditMode = activeTool === 'text-edit';
 
   return (
     <div className="pdf-editor" ref={containerRef} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -738,42 +756,22 @@ const PDFEditor = forwardRef(({
             </Button>
           </Tooltip>
           <Tooltip title="Zoom out">
-            <Button
-              size="small"
-              icon={<ZoomOutOutlined />}
-              onClick={zoomOut}
-            />
+            <Button size="small" icon={<ZoomOutOutlined />} onClick={zoomOut} />
           </Tooltip>
           <span style={{ fontSize: 12, minWidth: 44, textAlign: 'center' }}>
             {Math.round(scale * 100)}%
           </span>
           <Tooltip title="Zoom in">
-            <Button
-              size="small"
-              icon={<ZoomInOutlined />}
-              onClick={zoomIn}
-            />
+            <Button size="small" icon={<ZoomInOutlined />} onClick={zoomIn} />
           </Tooltip>
           <Tooltip title="Actual size (100%)">
-            <Button
-              size="small"
-              icon={<OneToOneOutlined />}
-              onClick={actualSize}
-            />
+            <Button size="small" icon={<OneToOneOutlined />} onClick={actualSize} />
           </Tooltip>
           <Tooltip title="Fit width">
-            <Button
-              size="small"
-              icon={<ExpandOutlined />}
-              onClick={fitWidth}
-            />
+            <Button size="small" icon={<ExpandOutlined />} onClick={fitWidth} />
           </Tooltip>
           <Tooltip title="Fit page">
-            <Button
-              size="small"
-              icon={<CompressOutlined />}
-              onClick={fitPage}
-            />
+            <Button size="small" icon={<CompressOutlined />} onClick={fitPage} />
           </Tooltip>
         </Space>
 
@@ -882,7 +880,14 @@ const PDFEditor = forwardRef(({
               alignSelf: 'flex-start',
             }}
           >
-            <canvas ref={canvasRef} style={{ display: 'block' }} />
+            <canvas
+              ref={canvasRef}
+              style={{
+                display: 'block',
+                width: pageSize.width ? `${pageSize.width}px` : 'auto',
+                height: pageSize.height ? `${pageSize.height}px` : 'auto',
+              }}
+            />
 
             <div
               ref={textLayerRef}
@@ -891,8 +896,8 @@ const PDFEditor = forwardRef(({
                 position: 'absolute',
                 top: 0,
                 left: 0,
-                pointerEvents: activeTool === 'text-edit' ? 'auto' : 'none',
-                userSelect: activeTool === 'text-edit' ? 'text' : 'none',
+                pointerEvents: isTextEditMode ? 'auto' : 'none',
+                userSelect: isTextEditMode ? 'text' : 'none',
                 color: 'transparent',
                 lineHeight: 1,
               }}
@@ -905,14 +910,17 @@ const PDFEditor = forwardRef(({
                 position: 'absolute',
                 top: 0,
                 left: 0,
-                width: canvasW,
-                height: canvasH,
+                width: pageSize.width,
+                height: pageSize.height,
                 cursor: isHandMode
                   ? 'grab'
-                  : activeTool === 'select'
-                    ? 'default'
-                    : 'crosshair',
-                pointerEvents: isHandMode ? 'none' : 'auto',
+                  : isTextEditMode
+                    ? 'text'
+                    : activeTool === 'select'
+                      ? 'default'
+                      : 'crosshair',
+                // ✅ Disable overlay when panning OR editing text so clicks reach the text layer
+                pointerEvents: (isHandMode || isTextEditMode) ? 'none' : 'auto',
               }}
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
@@ -1063,7 +1071,7 @@ const PDFEditor = forwardRef(({
               </div>
             )}
 
-            {activeTool === 'text-edit' && (
+            {isTextEditMode && (
               <div
                 className="pdf-tool-hint"
                 style={{
