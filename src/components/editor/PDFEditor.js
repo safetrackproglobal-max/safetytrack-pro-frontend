@@ -988,40 +988,64 @@ const PDFEditor = forwardRef(({
             </svg>
 
             {signaturePlacing && (
-              <PDFSignaturePlacer
-                containerRef={overlayRef}
-                currentPage={currentPage}
-                onPlace={async (placement) => {
-                  setSignaturePlacing(false);
-                  try {
-                    const signature =
-                      (typeof getUserSignatureDataUrl === 'function' &&
-                        (await getUserSignatureDataUrl())) ||
-                      null;
-                    if (!signature) {
-                      message.error('No signature available — please create one first');
-                      return;
-                    }
-                    message.loading({ content: 'Stamping…', key: 'stamp' });
+  <PDFSignaturePlacer
+    containerRef={overlayRef}
+    currentPage={currentPage}
+    onPlace={async (placement) => {
+      setSignaturePlacing(false);
+      try {
+        // 1. Fetch the most recent signed signature for this document
+        const signature = await documentService.getLatestSignature(documentId);
 
-                    const res = await documentService.stampSignature(documentId, {
-                      image_data_url: signature,
-                      page_number: placement.page,
-                      x_percent: placement.x_percent,
-                      y_percent: placement.y_percent,
-                      width_percent: placement.width_percent,
-                    });
+        if (!signature) {
+          message.error(
+            'No saved signature found for this document. Please sign the document first.'
+          );
+          return;
+        }
 
-                    message.success({ content: 'Signature placed', key: 'stamp' });
-                    onSave?.(res?.document);
-                    window.dispatchEvent(new CustomEvent('pdf-reload'));
-                  } catch (err) {
-                    message.error({ content: 'Failed to place signature', key: 'stamp' });
-                  }
-                }}
-                onCancel={() => setSignaturePlacing(false)}
-              />
-            )}
+        // 2. Extract the data URL — DB stores it as { "image": "data:..." }
+        const imageDataUrl =
+          signature.signature_data?.image ||
+          signature.signature_data?.image_data_url ||
+          signature.signature_data?.dataUrl ||
+          (typeof signature.signature_data === 'string'
+            ? signature.signature_data
+            : null);
+
+        if (!imageDataUrl || !imageDataUrl.startsWith('data:image')) {
+          console.error('Signature data shape unrecognized:', signature.signature_data);
+          message.error(
+            'Signature data is unreadable. Please create a new signature.'
+          );
+          return;
+        }
+
+        // 3. Send to backend for stamping
+        message.loading({ content: 'Stamping…', key: 'stamp' });
+
+        const res = await documentService.stampSignature(documentId, {
+          image_data_url: imageDataUrl,
+          page_number: placement.page,
+          x_percent: placement.x_percent,
+          y_percent: placement.y_percent,
+          width_percent: placement.width_percent,
+        });
+
+        message.success({ content: 'Signature placed', key: 'stamp' });
+        onSave?.(res?.document);
+        window.dispatchEvent(new CustomEvent('pdf-reload'));
+      } catch (err) {
+        console.error('Signature placement failed:', err);
+        message.error({
+          content: err?.message || 'Failed to place signature',
+          key: 'stamp',
+        });
+      }
+    }}
+    onCancel={() => setSignaturePlacing(false)}
+  />
+)}
 
             {textEditTarget && (
               <div
