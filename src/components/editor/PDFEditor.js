@@ -84,9 +84,11 @@ const PDFEditor = forwardRef(({
   // STATE — signature / forms
   // ============================================================
   const [signaturePlacing, setSignaturePlacing] = useState(false);
+  const [activeSignature, setActiveSignature] = useState(null);
   const [formFields, setFormFields] = useState([]);
   const [showFormPanel, setShowFormPanel] = useState(false);
 
+  
   // ============================================================
   // STATE — page thumbnails
   // ============================================================
