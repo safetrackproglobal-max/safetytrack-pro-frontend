@@ -1167,20 +1167,18 @@ class DocumentService {
   // DIGITAL SIGNATURES
   // ============================================================
 
-  /**
- * Get all signatures for a document.
- * Returns an array (unwraps the { success, signatures } envelope).
- */
-async getDocumentSignatures(documentId) {
-  try {
-    const response = await api.get(`/documents/${documentId}/signatures`);
-    // Backend returns { success: true, signatures: [...] }
-    return response.data?.signatures || [];
-  } catch (error) {
-    console.error(`Failed to fetch signatures for ${documentId}:`, error);
-    return [];
+ /**
+   * Get all signatures for a document
+   */
+  async getDocumentSignatures(documentId) {
+    try {
+      const response = await api.get(`/documents/${documentId}/signatures`);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch signatures for ${documentId}:`, error);
+      throw error;
+    }
   }
-}
 
 /**
  * Get the most recent signed signature for a document.
