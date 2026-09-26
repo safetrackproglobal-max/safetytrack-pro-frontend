@@ -990,41 +990,19 @@ const PDFEditor = forwardRef(({
   <PDFSignaturePlacer
     containerRef={overlayRef}
     currentPage={currentPage}
+    signature={activeSignature}
     onPlace={async (placement) => {
       setSignaturePlacing(false);
       try {
-        // 1. Fetch the most recent signed signature for this document
-        const signature = await documentService.getLatestSignature(documentId);
-
-        if (!signature) {
-          message.error(
-            'No saved signature found for this document. Please sign the document first.'
-          );
+        if (!activeSignature) {
+          message.error('No signature available.');
           return;
         }
 
-        // 2. Extract the data URL — DB stores it as { "image": "data:..." }
-        const imageDataUrl =
-          signature.signature_data?.image ||
-          signature.signature_data?.image_data_url ||
-          signature.signature_data?.dataUrl ||
-          (typeof signature.signature_data === 'string'
-            ? signature.signature_data
-            : null);
-
-        if (!imageDataUrl || !imageDataUrl.startsWith('data:image')) {
-          console.error('Signature data shape unrecognized:', signature.signature_data);
-          message.error(
-            'Signature data is unreadable. Please create a new signature.'
-          );
-          return;
-        }
-
-        // 3. Send to backend for stamping
         message.loading({ content: 'Stamping…', key: 'stamp' });
 
         const res = await documentService.stampSignature(documentId, {
-          image_data_url: imageDataUrl,
+          image_data_url: activeSignature,
           page_number: placement.page,
           x_percent: placement.x_percent,
           y_percent: placement.y_percent,
@@ -1032,6 +1010,7 @@ const PDFEditor = forwardRef(({
         });
 
         message.success({ content: 'Signature placed', key: 'stamp' });
+        setActiveSignature(null);
         onSave?.(res?.document);
         window.dispatchEvent(new CustomEvent('pdf-reload'));
       } catch (err) {
@@ -1042,7 +1021,10 @@ const PDFEditor = forwardRef(({
         });
       }
     }}
-    onCancel={() => setSignaturePlacing(false)}
+    onCancel={() => {
+      setSignaturePlacing(false);
+      setActiveSignature(null);
+    }}
   />
 )}
             {textEditTarget && (
