@@ -2,7 +2,9 @@
 // PDF-XChange-style ribbon for the document editor
 
 import React from 'react';
-import { Dropdown, Tooltip } from 'antd';
+import {
+  Menu, Dropdown, Button, Space, Tooltip, Divider, Tabs
+} from 'antd';
 import {
   FileOutlined, EditOutlined, EyeOutlined, PlusOutlined,
   FormatPainterOutlined, ToolOutlined, QuestionCircleOutlined,
@@ -17,18 +19,15 @@ import {
   ZoomInOutlined, ZoomOutOutlined, ExpandOutlined,
   CompressOutlined, RotateLeftOutlined, RotateRightOutlined,
   DeleteOutlined, FileAddOutlined, BgColorsOutlined,
-  SignatureOutlined, FilePdfOutlined,
+   SignatureOutlined, FilePdfOutlined,
   FileTextOutlined, FileMarkdownOutlined,
-  // NEW icons for the redesign
-  SearchOutlined, DownloadOutlined, CloudDownloadOutlined,
-  SelectOutlined, DragOutlined, OneToOneOutlined,
-  FileWordOutlined, FileExcelOutlined, FileImageOutlined,
-  FundOutlined, LinkOutlined as LinkIcon,
 } from '@ant-design/icons';
+
+const { SubMenu } = Menu;
 
 /**
  * Ribbon toolbar + menu bar for the document editor.
- * Styled after PDF-XChange Editor.
+ * Renders above the actual editor area.
  */
 const EditorRibbon = ({
   // Actions
@@ -38,7 +37,6 @@ const EditorRibbon = ({
   onSaveAs,
   onExport,
   onPrint,
-  onDownload,
   onUndo,
   onRedo,
   onCut,
@@ -47,8 +45,8 @@ const EditorRibbon = ({
   // Formatting
   onBold,
   onItalic,
-  onPlaceSignature,
-  onOpenFormPanel,
+  onPlaceSignature,      // NEW
+  onOpenFormPanel,       // NEW
   onUnderline,
   onStrike,
   onAlignLeft,
@@ -78,10 +76,8 @@ const EditorRibbon = ({
   onZoomOut,
   onFitWidth,
   onFitPage,
-  onActualSize,
-  onToggleHand,
-  onToggleSelect,
-  // Track changes / panels
+  
+  // ...existing props...
   onToggleReading,
   onToggleFocus,
   onToggleTrack,
@@ -96,20 +92,16 @@ const EditorRibbon = ({
   readingMode,
   focusMode,
   onToggleFullscreen,
-  // Search
-  onFindReplace,
   // State
   activeTab = 'home',
   onTabChange,
-  mode = 'html',
+  mode = 'html',        // 'html' | 'pdf'
   readOnly = false,
   documentTitle,
+  // Optional computed state
   canUndo = false,
   canRedo = false,
-  activeFormats = {},
-  // Active tool state for Hand / Select
-  activeTool = 'select',
-  onToolChange,
+  activeFormats = {}
 }) => {
   const isPdf = mode === 'pdf';
 
@@ -128,13 +120,13 @@ const EditorRibbon = ({
             { key: 'save', icon: <SaveOutlined />, label: 'Save (Ctrl+S)', onClick: onSave },
             { key: 'saveas', icon: <SaveOutlined />, label: 'Save As…', onClick: onSaveAs },
             { type: 'divider' },
-            { key: 'pdf', icon: <FilePdfOutlined />, label: 'Export as PDF', onClick: () => onExport?.('pdf') },
-            { key: 'docx', icon: <FileTextOutlined />, label: 'Export as Word', onClick: () => onExport?.('docx') },
-            { key: 'md', icon: <FileMarkdownOutlined />, label: 'Export as Markdown', onClick: () => onExport?.('md') },
-            { key: 'html', icon: <FileTextOutlined />, label: 'Export as HTML', onClick: () => onExport?.('html') },
+            { key: 'pdf', icon: <FilePdfOutlined />, label: 'Export as PDF', onClick: () => onExport('pdf') },
+            { key: 'docx', icon: <FileTextOutlined />, label: 'Export as Word', onClick: () => onExport('docx') },
+            { key: 'md', icon: <FileMarkdownOutlined />, label: 'Export as Markdown', onClick: () => onExport('md') },
+            { key: 'html', icon: <FileTextOutlined />, label: 'Export as HTML', onClick: () => onExport('html') },
             { type: 'divider' },
-            { key: 'print', icon: <PrinterOutlined />, label: 'Print (Ctrl+P)', onClick: onPrint },
-          ],
+            { key: 'print', icon: <PrinterOutlined />, label: 'Print (Ctrl+P)', onClick: onPrint }
+          ]
         }}
       >
         <span className="editor-menubar-item">File</span>
@@ -149,10 +141,8 @@ const EditorRibbon = ({
             { type: 'divider' },
             { key: 'cut', icon: <ScissorOutlined />, label: 'Cut (Ctrl+X)', onClick: onCut },
             { key: 'copy', icon: <CopyOutlined />, label: 'Copy (Ctrl+C)', onClick: onCopy },
-            { key: 'paste', icon: <SnippetsOutlined />, label: 'Paste (Ctrl+V)', onClick: onPaste },
-            { type: 'divider' },
-            { key: 'find', icon: <SearchOutlined />, label: 'Find & Replace (Ctrl+F)', onClick: onFindReplace },
-          ],
+            { key: 'paste', icon: <SnippetsOutlined />, label: 'Paste (Ctrl+V)', onClick: onPaste }
+          ]
         }}
       >
         <span className="editor-menubar-item">Edit</span>
@@ -165,15 +155,11 @@ const EditorRibbon = ({
             { key: 'zin', icon: <ZoomInOutlined />, label: 'Zoom In (Ctrl++)', onClick: onZoomIn },
             { key: 'zout', icon: <ZoomOutOutlined />, label: 'Zoom Out (Ctrl+-)', onClick: onZoomOut },
             { type: 'divider' },
-            { key: 'actual', icon: <OneToOneOutlined />, label: 'Actual Size', onClick: onActualSize },
             { key: 'fitw', label: 'Fit Width', onClick: onFitWidth },
             { key: 'fitp', label: 'Fit Page', onClick: onFitPage },
             { type: 'divider' },
-            { key: 'read', icon: <EyeOutlined />, label: 'Reading Mode', onClick: onToggleReading },
-            { key: 'focus', icon: <EyeOutlined />, label: 'Focus Mode', onClick: onToggleFocus },
-            { type: 'divider' },
-            { key: 'full', icon: <ExpandOutlined />, label: 'Fullscreen (F11)', onClick: onToggleFullscreen },
-          ],
+            { key: 'full', icon: <ExpandOutlined />, label: 'Fullscreen (F11)', onClick: onToggleFullscreen }
+          ]
         }}
       >
         <span className="editor-menubar-item">View</span>
@@ -190,9 +176,9 @@ const EditorRibbon = ({
             ...(isPdf ? [
               { key: 'page', icon: <FileAddOutlined />, label: 'Insert Page', onClick: onInsertPage },
               { key: 'text-ann', icon: <EditIcon />, label: 'Text Annotation', onClick: onTextAnnotation },
-              { key: 'rect-ann', icon: <BorderOutlined />, label: 'Rectangle', onClick: onRectAnnotation },
-            ] : []),
-          ],
+              { key: 'rect-ann', icon: <BorderOutlined />, label: 'Rectangle', onClick: onRectAnnotation }
+            ] : [])
+          ]
         }}
       >
         <span className="editor-menubar-item">Insert</span>
@@ -207,56 +193,22 @@ const EditorRibbon = ({
             { key: 'underline', label: 'Underline (Ctrl+U)', onClick: onUnderline },
             { key: 'strike', label: 'Strikethrough', onClick: onStrike },
             { type: 'divider' },
-            { key: 'hl', icon: <HighlightOutlined />, label: 'Highlight', onClick: onHighlight },
-          ],
+            { key: 'hl', icon: <HighlightOutlined />, label: 'Highlight', onClick: onHighlight }
+          ]
         }}
       >
         <span className="editor-menubar-item">Format</span>
       </Dropdown>
 
-      {/* Comment / Review */}
       <Dropdown
         trigger={['click']}
         menu={{
           items: [
-            { key: 'new-comment', icon: <MessageOutlined />, label: 'New Comment', onClick: onStickyNote },
-            { key: 'open-comments', label: 'Open Comment Panel', onClick: onOpenComments },
-            { type: 'divider' },
-            { key: 'track', label: trackChangesEnabled ? 'Disable Track Changes' : 'Enable Track Changes', onClick: onToggleTrack },
-            { key: 'open-track', label: 'Open Track Changes Panel', onClick: onOpenTrackPanel },
-          ],
-        }}
-      >
-        <span className="editor-menubar-item">Comments</span>
-      </Dropdown>
-
-      {/* Form */}
-      <Dropdown
-        trigger={['click']}
-        menu={{
-          items: [
-            { key: 'sig', icon: <SignatureOutlined />, label: 'Sign PDF', onClick: () => onPlaceSignature?.() },
-            { key: 'fill', icon: <EditIcon />, label: 'Fill Form', onClick: () => onOpenFormPanel?.() },
-            { type: 'divider' },
-            { key: 'sig2', icon: <SignatureOutlined />, label: 'Signature Panel', onClick: onSignature },
-          ],
-        }}
-      >
-        <span className="editor-menubar-item">Form</span>
-      </Dropdown>
-
-      {/* Tools */}
-      <Dropdown
-        trigger={['click']}
-        menu={{
-          items: [
-            { key: 'ai-enhance', label: 'AI Enhance', onClick: onAIAssist },
-            { key: 'ai-summary', label: 'AI Summarize', onClick: onAISummarize },
-            { key: 'ai-suggest', label: 'AI Suggestions', onClick: onAISuggest },
-            { type: 'divider' },
+            { key: 'sig', icon: <SignatureOutlined />, label: 'Signature', onClick: onSignature },
             { key: 'stamp', icon: <EditOutlined />, label: 'Stamp', onClick: onStamp },
-            { key: 'bg', icon: <BgColorsOutlined />, label: 'Watermark / Background', disabled: true },
-          ],
+            { type: 'divider' },
+            { key: 'bg', icon: <BgColorsOutlined />, label: 'Watermark / Background', disabled: true }
+          ]
         }}
       >
         <span className="editor-menubar-item">Tools</span>
@@ -269,7 +221,7 @@ const EditorRibbon = ({
   );
 
   // ============================================================
-  // HELPERS
+  // RIBBON GROUP — helper
   // ============================================================
   const Group = ({ title, children }) => (
     <div className="editor-ribbon-group">
@@ -278,8 +230,8 @@ const EditorRibbon = ({
     </div>
   );
 
-  const BigBtn = ({ icon, label, onClick, disabled, active, danger, tooltip }) => (
-    <Tooltip title={tooltip || label}>
+  const BigBtn = ({ icon, label, onClick, disabled, active, danger }) => (
+    <Tooltip title={label}>
       <button
         type="button"
         className={`editor-ribbon-btn-big ${active ? 'active' : ''} ${danger ? 'danger' : ''}`}
@@ -306,30 +258,10 @@ const EditorRibbon = ({
   );
 
   // ============================================================
-  // HOME TAB — redesigned to match PDF-XChange
-  // Groups: File | Zoom | Clipboard | Edit | Undo | Search
+  // RIBBON TABS — content
   // ============================================================
   const renderHomeTab = () => (
     <div className="editor-ribbon-content">
-      {/* FILE -------------------------------------------------- */}
-      <Group title="File">
-        <BigBtn icon={<FolderOpenOutlined />} label="Open" onClick={onOpen} tooltip="Open document" />
-        <BigBtn icon={<SaveOutlined />} label="Save" onClick={onSave} tooltip="Save (Ctrl+S)" />
-        <BigBtn icon={<PrinterOutlined />} label="Print" onClick={onPrint} tooltip="Print (Ctrl+P)" />
-      </Group>
-
-      {/* ZOOM -------------------------------------------------- */}
-      <Group title="Zoom">
-        <BigBtn icon={<ZoomInOutlined />} label="Zoom In" onClick={onZoomIn} tooltip="Zoom In" />
-        <BigBtn icon={<ZoomOutOutlined />} label="Zoom Out" onClick={onZoomOut} tooltip="Zoom Out" />
-        <div className="editor-ribbon-stack">
-          <SmallBtn icon={<OneToOneOutlined />} tooltip="Actual Size" onClick={onActualSize} />
-          <SmallBtn icon={<ExpandOutlined />} tooltip="Fit Width" onClick={onFitWidth} />
-          <SmallBtn icon={<CompressOutlined />} tooltip="Fit Page" onClick={onFitPage} />
-        </div>
-      </Group>
-
-      {/* CLIPBOARD --------------------------------------------- */}
       <Group title="Clipboard">
         <BigBtn icon={<SnippetsOutlined />} label="Paste" onClick={onPaste} />
         <div className="editor-ribbon-stack">
@@ -338,31 +270,11 @@ const EditorRibbon = ({
         </div>
       </Group>
 
-      {/* EDIT — Hand / Select Text ----------------------------- */}
-      <Group title="Edit">
-        <BigBtn
-          icon={<DragOutlined />}
-          label="Hand"
-          onClick={() => onToolChange?.('hand')}
-          active={activeTool === 'hand'}
-          tooltip="Pan mode"
-        />
-        <BigBtn
-          icon={<SelectOutlined />}
-          label="Select"
-          onClick={() => onToolChange?.('select')}
-          active={activeTool === 'select'}
-          tooltip="Select text"
-        />
-      </Group>
-
-      {/* UNDO -------------------------------------------------- */}
       <Group title="Undo">
         <BigBtn icon={<UndoOutlined />} label="Undo" onClick={onUndo} disabled={!canUndo} />
         <BigBtn icon={<RedoOutlined />} label="Redo" onClick={onRedo} disabled={!canRedo} />
       </Group>
 
-      {/* FONT / PARAGRAPH — text editing essentials ------------ */}
       <Group title="Font">
         <div className="editor-ribbon-stack">
           <div className="editor-ribbon-row">
@@ -381,7 +293,7 @@ const EditorRibbon = ({
         <div className="editor-ribbon-stack">
           <div className="editor-ribbon-row">
             <SmallBtn icon={<AlignLeftOutlined />} tooltip="Align Left" onClick={onAlignLeft} />
-            <SmallBtn icon={<AlignCenterOutlined />} tooltip="Align Center" onClick={onAlignCenter} />
+            <SmallBtn icon={<AlignCenterOutlined />} tooltip="Center" onClick={onAlignCenter} />
             <SmallBtn icon={<AlignRightOutlined />} tooltip="Align Right" onClick={onAlignRight} />
           </div>
           <div className="editor-ribbon-row">
@@ -391,21 +303,14 @@ const EditorRibbon = ({
         </div>
       </Group>
 
-      {/* SEARCH ------------------------------------------------- */}
-      <Group title="Search">
-        <BigBtn
-          icon={<SearchOutlined />}
-          label="Find"
-          onClick={onFindReplace}
-          tooltip="Find & Replace (Ctrl+F)"
-        />
+      <Group title="Insert">
+        <BigBtn icon={<LinkOutlined />} label="Link" onClick={onLink} />
+        <BigBtn icon={<PictureOutlined />} label="Image" onClick={onImage} />
+        <BigBtn icon={<TableOutlined />} label="Table" onClick={onTable} />
       </Group>
     </div>
   );
 
-  // ============================================================
-  // INSERT TAB
-  // ============================================================
   const renderInsertTab = () => (
     <div className="editor-ribbon-content">
       <Group title="Pages">
@@ -423,46 +328,53 @@ const EditorRibbon = ({
     </div>
   );
 
-  // ============================================================
-  // ANNOTATE TAB
-  // ============================================================
   const renderAnnotateTab = () => (
     <div className="editor-ribbon-content">
       <Group title="Markup">
-        <BigBtn icon={<HighlightOutlined />} label="Highlight" onClick={onHighlight} />
-        <BigBtn icon={<EditIcon />} label="Text Box" onClick={onTextAnnotation} />
-        <BigBtn icon={<MessageOutlined />} label="Sticky Note" onClick={onStickyNote} />
+        <BigBtn
+          icon={<HighlightOutlined />}
+          label="Highlight"
+          onClick={onHighlight}
+        />
+        <BigBtn
+          icon={<EditIcon />}
+          label="Text Box"
+          onClick={onTextAnnotation}
+        />
+        <BigBtn
+          icon={<MessageOutlined />}
+          label="Sticky Note"
+          onClick={onStickyNote}
+        />
       </Group>
 
       <Group title="Shapes">
         <BigBtn icon={<BorderOutlined />} label="Rectangle" onClick={onRectAnnotation} />
         <BigBtn icon={<MinusOutlined />} label="Line" onClick={onLineAnnotation} />
-        <BigBtn
-          icon={<div className="editor-ribbon-shape-circle" />}
-          label="Ellipse"
-          onClick={onEllipseAnnotation}
-        />
+        <BigBtn icon={<div className="editor-ribbon-shape-circle" />} label="Ellipse" onClick={onEllipseAnnotation} />
       </Group>
 
       <Group title="Sign & Stamp">
         <BigBtn icon={<SignatureOutlined />} label="Signature" onClick={onSignature} />
-        <BigBtn icon={<EditIcon />} label="Stamp" onClick={onStamp} />
+        <BigBtn icon={<EditOutlined />} label="Stamp" onClick={onStamp} />
       </Group>
 
+      {/* NEW: Forms group (added as requested) */}
       <Group title="Forms">
         <BigBtn
           icon={<SignatureOutlined />}
           label="Sign PDF"
           onClick={() => onPlaceSignature?.()}
         />
-        <BigBtn icon={<EditIcon />} label="Fill Form" onClick={() => onOpenFormPanel?.()} />
+        <BigBtn
+          icon={<EditIcon />}
+          label="Fill Form"
+          onClick={() => onOpenFormPanel?.()}
+        />
       </Group>
     </div>
   );
 
-  // ============================================================
-  // PAGES TAB
-  // ============================================================
   const renderPagesTab = () => (
     <div className="editor-ribbon-content">
       <Group title="Manage">
@@ -477,49 +389,6 @@ const EditorRibbon = ({
     </div>
   );
 
-  // ============================================================
-  // REVIEW TAB
-  // ============================================================
-  const renderReviewTab = () => (
-    <div className="editor-ribbon-content">
-      <Group title="Comments">
-        <BigBtn icon={<MessageOutlined />} label="New Comment" onClick={onStickyNote} />
-        <BigBtn icon={<MessageOutlined />} label="Open Panel" onClick={onOpenComments} />
-      </Group>
-
-      <Group title="Track Changes">
-        <BigBtn
-          icon={<EditIcon />}
-          label={trackChangesEnabled ? 'Tracking ON' : 'Track'}
-          onClick={onToggleTrack}
-          active={trackChangesEnabled}
-        />
-        <BigBtn icon={<EyeOutlined />} label="Pending" onClick={onOpenTrackPanel} />
-      </Group>
-
-      <Group title="Versions">
-        <BigBtn icon={<FileTextOutlined />} label="Versions" onClick={onOpenVersions} />
-        <BigBtn icon={<FileTextOutlined />} label="Outline" onClick={onOpenOutline} />
-      </Group>
-
-      <Group title="Signatures">
-        <BigBtn icon={<SignatureOutlined />} label="Sign" onClick={onSignature} />
-        <BigBtn
-          icon={<SignatureOutlined />}
-          label="Sign PDF"
-          onClick={() => onPlaceSignature?.()}
-        />
-      </Group>
-
-      <Group title="Forms">
-        <BigBtn icon={<EditIcon />} label="Fill Form" onClick={() => onOpenFormPanel?.()} />
-      </Group>
-    </div>
-  );
-
-  // ============================================================
-  // VIEW TAB
-  // ============================================================
   const renderViewTab = () => (
     <div className="editor-ribbon-content">
       <Group title="Zoom">
@@ -530,26 +399,35 @@ const EditorRibbon = ({
       <Group title="Layout">
         <BigBtn icon={<ExpandOutlined />} label="Fit Width" onClick={onFitWidth} />
         <BigBtn icon={<CompressOutlined />} label="Fit Page" onClick={onFitPage} />
-        <BigBtn icon={<OneToOneOutlined />} label="Actual Size" onClick={onActualSize} />
-      </Group>
-
-      <Group title="Modes">
-        <BigBtn
-          icon={<EyeOutlined />}
-          label="Reading"
-          onClick={onToggleReading}
-          active={readingMode}
-        />
-        <BigBtn
-          icon={<EyeOutlined />}
-          label="Focus"
-          onClick={onToggleFocus}
-          active={focusMode}
-        />
       </Group>
 
       <Group title="Window">
         <BigBtn icon={<ExpandOutlined />} label="Fullscreen" onClick={onToggleFullscreen} />
+      </Group>
+    </div>
+  );
+
+  const renderReviewTab = () => (
+    <div className="editor-ribbon-content">
+      <Group title="Comments">
+        <BigBtn icon={<MessageOutlined />} label="New Comment" onClick={onStickyNote} />
+      </Group>
+      <Group title="Signatures">
+        <BigBtn icon={<SignatureOutlined />} label="Sign" onClick={onSignature} />
+      </Group>
+
+      {/* NEW: Forms group (added as requested) */}
+      <Group title="Forms">
+        <BigBtn
+          icon={<SignatureOutlined />}
+          label="Sign PDF"
+          onClick={() => onPlaceSignature?.()}
+        />
+        <BigBtn
+          icon={<EditIcon />}
+          label="Fill Form"
+          onClick={() => onOpenFormPanel?.()}
+        />
       </Group>
     </div>
   );
@@ -560,7 +438,7 @@ const EditorRibbon = ({
     annotate: renderAnnotateTab(),
     pages: renderPagesTab(),
     review: renderReviewTab(),
-    view: renderViewTab(),
+    view: renderViewTab()
   };
 
   // ============================================================
@@ -568,8 +446,10 @@ const EditorRibbon = ({
   // ============================================================
   return (
     <div className="editor-ribbon">
+      {/* Menu bar */}
       {menuBar}
 
+      {/* Ribbon tabs */}
       <div className="editor-ribbon-tabs">
         {[
           { key: 'home', label: 'Home' },
@@ -577,7 +457,7 @@ const EditorRibbon = ({
           { key: 'annotate', label: 'Annotate' },
           { key: 'pages', label: 'Pages' },
           { key: 'review', label: 'Review' },
-          { key: 'view', label: 'View' },
+          { key: 'view', label: 'View' }
         ].map((t) => (
           <button
             key={t.key}
@@ -590,6 +470,7 @@ const EditorRibbon = ({
         ))}
       </div>
 
+      {/* Ribbon body */}
       <div className="editor-ribbon-body">
         {tabsContent[activeTab] || tabsContent.home}
       </div>
