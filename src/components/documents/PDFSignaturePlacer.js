@@ -2,7 +2,7 @@
 // Drag-and-drop signature placement on a PDF page.
 // The signature data URL comes from the parent component (already fetched).
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Button, Space, message, Slider, Tooltip } from 'antd';
 import {
   CheckOutlined, CloseOutlined, DeleteOutlined
@@ -18,48 +18,89 @@ const PDFSignaturePlacer = ({
   console.log('🎯 [Placer] Render — signature prop =',
     signature ? signature.substring(0, 60) + '...' : null);
 
-  // ... rest
-}) => {
   const [placement, setPlacement] = useState(null);
   const [dragging, setDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [sizePct, setSizePct] = useState(25);
 
   // ------------------------------------------------------------
-  // MOUSE HANDLERS
+  // DRAG STATE REFS — keep latest values for global listeners
   // ------------------------------------------------------------
-  const handleContainerMouseMove = (e) => {
-    if (!dragging || !placement) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    setPlacement({
-      ...placement,
-      x: e.clientX - rect.left - dragOffset.x,
-      y: e.clientY - rect.top - dragOffset.y,
-    });
-  };
+  const draggingRef = useRef(false);
+  const placementRef = useRef(null);
+  const dragOffsetRef = useRef({ x: 0, y: 0 });
 
-  const handleContainerMouseUp = () => setDragging(false);
+  useEffect(() => { draggingRef.current = dragging; }, [dragging]);
+  useEffect(() => { placementRef.current = placement; }, [placement]);
+  useEffect(() => { dragOffsetRef.current = dragOffset; }, [dragOffset]);
+
+  // ------------------------------------------------------------
+  // DRAG HANDLERS — attached at window level while dragging
+  // ------------------------------------------------------------
+  const handleMouseMove = useCallback((e) => {
+    if (!draggingRef.current || !placementRef.current) return;
+    const el = containerRef?.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setPlacement({
+      ...placementRef.current,
+      x: e.clientX - rect.left - dragOffsetRef.current.x,
+      y: e.clientY - rect.top - dragOffsetRef.current.y,
+    });
+  }, [containerRef]);
+
+  const handleMouseUp = useCallback(() => {
+    setDragging(false);
+  }, []);
+
+  useEffect(() => {
+    if (!dragging) return;
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [dragging, handleMouseMove, handleMouseUp]);
 
   const startDrag = (e) => {
     if (!placement) return;
-    const rect = e.target.getBoundingClientRect();
+    const rect = e.currentTarget.getBoundingClientRect();
     setDragOffset({ x: e.clientX - rect.left, y: e.clientY - rect.top });
     setDragging(true);
+    e.preventDefault();
   };
 
   // ------------------------------------------------------------
-  // PLACE INITIALLY CENTERED
+  // PLACE INITIALLY CENTERED — recompute position whenever the
+  // size or page changes, preserving the same relative anchor.
   // ------------------------------------------------------------
   useEffect(() => {
-    if (!signature || !containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
+    const el = containerRef?.current;
+    if (!signature || !el) return;
+    const rect = el.getBoundingClientRect();
     const w = rect.width * (sizePct / 100);
     const h = w * 0.35;
-    setPlacement({
-      x: (rect.width - w) / 2,
-      y: rect.height - h - 40,
-      w,
-      h,
+    setPlacement((prev) => {
+      // If we already have a placement, keep the center position
+      // and just resize around it.
+      if (prev) {
+        const cx = prev.x + prev.w / 2;
+        const cy = prev.y + prev.h / 2;
+        return {
+          x: Math.max(0, Math.min(rect.width - w, cx - w / 2)),
+          y: Math.max(0, Math.min(rect.height - h, cy - h / 2)),
+          w,
+          h,
+        };
+      }
+      // First render — bottom-center like before.
+      return {
+        x: (rect.width - w) / 2,
+        y: rect.height - h - 40,
+        w,
+        h,
+      };
     });
   }, [signature, sizePct, containerRef]);
 
@@ -67,7 +108,7 @@ const PDFSignaturePlacer = ({
   // CONFIRM
   // ------------------------------------------------------------
   const confirmPlacement = () => {
-    if (!placement || !containerRef.current) return;
+    if (!placement || !containerRef?.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const payload = {
       page: currentPage,
@@ -78,7 +119,8 @@ const PDFSignaturePlacer = ({
     onPlace?.(payload);
   };
 
-console.log('🎯 [Placer] About to render. signature valid?', !!signature);
+  console.log('🎯 [Placer] About to render. signature valid?', !!signature);
+
   // ------------------------------------------------------------
   // RENDER
   // ------------------------------------------------------------
@@ -115,20 +157,23 @@ console.log('🎯 [Placer] About to render. signature valid?', !!signature);
             height: placement.h,
             border: '2px dashed #1890ff',
             background: 'rgba(24,144,255,0.08)',
-            cursor: 'move',
+            cursor: dragging ? 'grabbing' : 'move',
             zIndex: 100,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            userSelect: 'none',
           }}
         >
           <img
             src={signature}
             alt="Signature"
+            draggable={false}
             style={{
               maxWidth: '100%',
               maxHeight: '100%',
               pointerEvents: 'none',
+              userSelect: 'none',
             }}
           />
         </div>
@@ -171,19 +216,6 @@ console.log('🎯 [Placer] About to render. signature valid?', !!signature);
           Cancel
         </Button>
       </div>
-
-      {/* Mouse tracking overlay */}
-      <div
-        onMouseMove={handleContainerMouseMove}
-        onMouseUp={handleContainerMouseUp}
-        onMouseLeave={handleContainerMouseUp}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          zIndex: 99,
-          pointerEvents: dragging ? 'auto' : 'none',
-        }}
-      />
     </>
   );
 };
