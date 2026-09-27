@@ -4,11 +4,10 @@
    RIBBON CONTAINER
    ============================================================ */
 .editor-ribbon {
-  background: #f3f3f3;
-  border-bottom: 1px solid #d6d6d6;
+  background: #fafafa;
+  border-bottom: 1px solid #e0e0e0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   user-select: none;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 /* ============================================================
@@ -18,41 +17,28 @@
   display: flex;
   align-items: center;
   gap: 2px;
-  padding: 5px 12px;
+  padding: 4px 8px;
   background: #ffffff;
-  border-bottom: 1px solid #e6e6e6;
-  font-size: 13.5px;
-  height: 32px;
-  box-sizing: border-box;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 13px;
 }
 
 .editor-menubar-item {
-  padding: 5px 12px;
-  border-radius: 3px;
+  padding: 4px 10px;
+  border-radius: 4px;
   cursor: pointer;
-  color: #1f1f1f;
-  font-size: 13.5px;
-  font-weight: 500;
-  transition: background 0.12s;
-  white-space: nowrap;
+  color: #262626;
+  transition: background 0.15s;
 }
 
 .editor-menubar-item:hover {
-  background: #e6f4ff;
-  color: #0050b3;
+  background: #f0f0f0;
 }
 
 .editor-menubar-help {
   margin-left: auto;
-  color: #595959;
-  font-size: 12.5px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.editor-menubar-help:hover {
-  color: #0050b3;
+  color: #8c8c8c;
+  font-size: 12px;
 }
 
 /* ============================================================
@@ -60,87 +46,74 @@
    ============================================================ */
 .editor-ribbon-tabs {
   display: flex;
-  gap: 1px;
-  padding: 4px 12px 0;
+  gap: 2px;
+  padding: 4px 8px 0;
   background: #ffffff;
-  border-bottom: 1px solid #d6d6d6;
-  position: relative;
 }
 
 .editor-ribbon-tab {
-  padding: 7px 16px 8px;
+  padding: 6px 14px;
   border: none;
   background: transparent;
   cursor: pointer;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 500;
-  color: #404040;
-  border-radius: 0;
-  transition: background 0.12s, color 0.12s;
+  color: #595959;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  transition: background 0.15s, color 0.15s;
   position: relative;
-  letter-spacing: 0.1px;
 }
 
 .editor-ribbon-tab:hover {
   background: #f0f0f0;
-  color: #1f1f1f;
+  color: #262626;
 }
 
 .editor-ribbon-tab.active {
-  background: #f3f3f3;
-  color: #0050b3;
+  background: #fafafa;
+  color: #1890ff;
   font-weight: 600;
 }
 
 .editor-ribbon-tab.active::after {
   content: '';
   position: absolute;
-  bottom: 0;
+  bottom: -1px;
   left: 0;
   right: 0;
   height: 2px;
-  background: #1a6fc4;
+  background: #1890ff;
 }
 
 /* ============================================================
    RIBBON BODY
    ============================================================ */
 .editor-ribbon-body {
-  min-height: 92px;
-  padding: 6px 10px;
-  background: #f3f3f3;
-  border-top: 1px solid #e6e6e6;
+  min-height: 82px;
+  padding: 6px 12px;
+  background: #fafafa;
+  border-top: 1px solid #e0e0e0;
   overflow-x: auto;
-  overflow-y: hidden;
-}
-
-.editor-ribbon-body::-webkit-scrollbar {
-  height: 8px;
-}
-
-.editor-ribbon-body::-webkit-scrollbar-thumb {
-  background: #c8c8c8;
-  border-radius: 4px;
 }
 
 .editor-ribbon-content {
   display: flex;
   align-items: stretch;
-  gap: 0;
-  height: 78px;
+  gap: 4px;
+  height: 70px;
 }
 
 /* ============================================================
-   GROUPS — vertical separator between them
+   GROUPS
    ============================================================ */
 .editor-ribbon-group {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 3px 10px 0;
-  border-right: 1px solid #d6d6d6;
+  padding: 2px 8px;
+  border-right: 1px solid #e0e0e0;
   min-width: 60px;
-  position: relative;
 }
 
 .editor-ribbon-group:last-child {
@@ -150,19 +123,16 @@
 .editor-ribbon-group-content {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   flex: 1;
-  min-height: 60px;
 }
 
 .editor-ribbon-group-label {
-  font-size: 10.5px;
-  font-weight: 500;
+  font-size: 10px;
   text-align: center;
-  color: #767676;
-  letter-spacing: 0.2px;
-  padding: 2px 0 3px;
-  white-space: nowrap;
+  color: #8c8c8c;
+  letter-spacing: 0.3px;
+  padding-top: 2px;
 }
 
 /* ============================================================
@@ -172,20 +142,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  gap: 3px;
-  min-width: 60px;
-  max-width: 74px;
-  min-height: 62px;
-  padding: 5px 6px 4px;
+  justify-content: center;
+  gap: 4px;
+  min-width: 54px;
+  min-height: 58px;
+  padding: 4px 8px;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 3px;
+  border-radius: 6px;
   cursor: pointer;
-  color: #1f1f1f;
-  transition: background 0.12s, border-color 0.12s;
+  color: #262626;
+  transition: all 0.15s;
   font-family: inherit;
-  text-align: center;
 }
 
 .editor-ribbon-btn-big:hover {
@@ -195,13 +163,11 @@
 
 .editor-ribbon-btn-big:active {
   background: #bae0ff;
-  border-color: #1890ff;
 }
 
 .editor-ribbon-btn-big.active {
   background: #bae0ff;
   border-color: #1890ff;
-  color: #0050b3;
 }
 
 .editor-ribbon-btn-big:disabled {
@@ -218,24 +184,18 @@
 }
 
 .editor-ribbon-btn-icon {
-  font-size: 24px;
+  font-size: 20px;
   line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 26px;
-  color: #1a6fc4;
+  height: 22px;
 }
 
 .editor-ribbon-btn-label {
-  font-size: 11.5px;
-  font-weight: 400;
+  font-size: 11px;
   line-height: 1.2;
   text-align: center;
-  color: #1f1f1f;
-  max-width: 68px;
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -246,16 +206,16 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
+  width: 28px;
   height: 26px;
   padding: 0;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 3px;
+  border-radius: 4px;
   cursor: pointer;
-  color: #1a6fc4;
-  font-size: 15px;
-  transition: background 0.12s, border-color 0.12s;
+  color: #262626;
+  font-size: 14px;
+  transition: all 0.15s;
 }
 
 .editor-ribbon-btn-small:hover {
@@ -270,7 +230,7 @@
 }
 
 .editor-ribbon-btn-small:disabled {
-  opacity: 0.35;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
@@ -281,15 +241,14 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  justify-content: center;
 }
 
 .editor-ribbon-row {
   display: flex;
   gap: 2px;
-  align-items: center;
 }
 
+/* Fake circle icon (for ellipse) */
 .editor-ribbon-shape-circle {
   display: inline-block;
   width: 14px;
@@ -299,7 +258,7 @@
 }
 
 /* ============================================================
-   DARK MODE — RIBBON
+   DARK MODE
    ============================================================ */
 @media (prefers-color-scheme: dark) {
   .editor-ribbon {
@@ -314,12 +273,10 @@
     color: #e0e0e0;
   }
   .editor-menubar-item:hover {
-    background: #0a2a4a;
-    color: #4fa8f5;
+    background: #303030;
   }
   .editor-ribbon-tabs {
     background: #252526;
-    border-bottom-color: #303030;
   }
   .editor-ribbon-tab {
     color: #a0a0a0;
@@ -331,9 +288,6 @@
   .editor-ribbon-tab.active {
     background: #1e1e1e;
     color: #4fa8f5;
-  }
-  .editor-ribbon-tab.active::after {
-    background: #4fa8f5;
   }
   .editor-ribbon-body {
     background: #1e1e1e;
@@ -347,13 +301,6 @@
   }
   .editor-ribbon-btn-big,
   .editor-ribbon-btn-small {
-    color: #e0e0e0;
-  }
-  .editor-ribbon-btn-big .editor-ribbon-btn-icon,
-  .editor-ribbon-btn-small {
-    color: #4fa8f5;
-  }
-  .editor-ribbon-btn-big .editor-ribbon-btn-label {
     color: #e0e0e0;
   }
   .editor-ribbon-btn-big:hover,
@@ -382,85 +329,34 @@
     flex-wrap: wrap;
   }
   .editor-ribbon-btn-big {
-    min-width: 52px;
-    min-height: 54px;
-    padding: 4px 4px 3px;
-  }
-  .editor-ribbon-btn-icon {
-    font-size: 20px;
-    height: 22px;
+    min-width: 44px;
+    min-height: 48px;
   }
   .editor-ribbon-btn-label {
-    font-size: 10.5px;
+    font-size: 10px;
   }
   .editor-menubar-item {
-    padding: 4px 8px;
+    padding: 4px 6px;
     font-size: 12px;
   }
   .editor-ribbon-tab {
     padding: 6px 10px;
-    font-size: 12.5px;
+    font-size: 12px;
   }
-  .editor-ribbon-group-label {
-    font-size: 10px;
-  }
-}
-
-/* ============================================================
-   PDF EDITOR — standard bounded container
-   ============================================================ */
-
-/* Base editor-body — HTML mode default */
-.editor-body {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-height: 0;
-}
-
-/* PDF mode: bound the container so the canvas can scroll.
-   Adjust the subtracted value (180px) to match your app's chrome:
-     Header (64px) + Card header (84px) + Padding (32px) ≈ 180px  */
-.document-editor-container.pdf-mode {
-  height: calc(100vh - 180px);
-  min-height: 600px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  background: #ffffff;
-}
-
-.document-editor-container.pdf-mode .editor-card,
-.document-editor-container.pdf-mode .editor-card .ant-card-body {
-  flex: 1 1 0;
-  min-height: 0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.document-editor-container.pdf-mode .editor-body {
-  flex: 1 1 0;
-  min-height: 0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-/* PDF editor takes whatever's left after header + ribbon */
-.document-editor-container.pdf-mode .pdf-editor {
-  flex: 1 1 0;
-  min-height: 500px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-width: 0;
 }
 
 /* ============================================================
    PDF TOOL PALETTE (left rail)
    ============================================================ */
+.editor-body {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 12px;
+  min-height: 500px;
+  min-width: 0;
+}
+
 .pdf-tool-palette {
   flex-shrink: 0;
   width: 48px;
@@ -510,7 +406,7 @@
 }
 
 .pdf-editor-host {
-  flex: 1 1 0;
+  flex: 1 1 auto;
   min-width: 0;
   min-height: 500px;
   border: 1px solid #f0f0f0;
@@ -519,9 +415,6 @@
   background: #525659;
 }
 
-/* ============================================================
-   PDF FORM PANEL (right)
-   ============================================================ */
 .pdf-form-panel {
   flex-shrink: 0;
   width: 240px;
@@ -533,6 +426,27 @@
   max-height: 640px;
 }
 
+/* When switching to PDF mode, the editor-body is row-aligned
+   (palette on left, PDF in center, form panel on right).
+   In HTML mode, the editor-body stays a single column. */
+.editor-body:has(.pdf-editor-host) {
+  /* no-op — this is a marker */
+}
+
+
+.editor-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.editor-body.pdf-mode {
+  flex-direction: row;
+}
+
+/* ============================================================
+   FORM PANEL
+   ============================================================ */
 .pdf-form-panel-inner {
   display: flex;
   flex-direction: column;
@@ -562,6 +476,9 @@
   background: rgba(24, 144, 255, 0.12);
 }
 
+/* ============================================================
+   SIGNATURE PLACER
+   ============================================================ */
 .pdf-signature-overlay {
   position: absolute;
   border: 2px dashed #1890ff;
@@ -570,94 +487,32 @@
 }
 
 /* ============================================================
-   PDF EDITOR LAYOUT — bounded flex chain
+   PDF EDITOR LAYOUT — thumbs + canvas + form panel
    ============================================================ */
-.pdf-editor {
-  flex: 1 1 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-height: 0;
-  min-width: 0;
-}
-
 .pdf-editor-main {
-  flex: 1 1 0;
   display: flex;
   flex-direction: row;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
-  min-height: 0;              /* CRITICAL: lets children shrink */
 }
 
 .pdf-editor-thumbs {
-  width: 140px;               /* slimmer sidebar for more canvas room */
+  width: 200px;
   flex-shrink: 0;
   border-right: 1px solid #e0e0e0;
   background: #f5f5f5;
   overflow-y: auto;
-  min-height: 0;
 }
 
 .pdf-editor-canvas-area {
-  flex: 1 1 0;
+  flex: 1 1 auto;
   min-width: 0;
-  min-height: 0;              /* CRITICAL: allows the scroll */
-  overflow-y: auto;
-  overflow-x: auto;
+  overflow: auto;
   background: #525659;
   padding: 24px;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
-}
-
-.pdf-editor-page {
-  flex-shrink: 0;
-  position: relative;
-  align-self: center;
-  background: #ffffff;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-}
-
-/* ============================================================
-   PDF TEXT LAYER (invisible selectable text overlay)
-   ============================================================ */
-.pdf-text-layer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  overflow: hidden;
-  opacity: 1;
-  line-height: 1;
-  z-index: 2;
-  pointer-events: auto;
-}
-
-.pdf-text-layer > span {
-  position: absolute;
-  white-space: pre;
-  color: transparent;
-  transform-origin: 0% 0%;
-  cursor: text;
-}
-
-.pdf-text-layer > span::selection {
-  background: rgba(24, 144, 255, 0.35);
-}
-
-.pdf-text-layer > span:hover {
-  background: rgba(24, 144, 255, 0.15);
-  outline: 1px dashed #1890ff;
-}
-
-.pdf-text-edit-popover {
-  font-size: 13px;
-}
-
-.pdf-text-layer > span.pending-edit {
-  background: rgba(250, 173, 20, 0.35);
-  border-bottom: 2px solid #faad14;
+  justify-content: center;
 }
 
 /* ============================================================
@@ -782,7 +637,7 @@
 }
 
 /* ============================================================
-   DARK MODE — PDF SECTIONS
+   DARK MODE
    ============================================================ */
 @media (prefers-color-scheme: dark) {
   .pdf-editor-thumbs {
@@ -809,7 +664,45 @@
   .page-thumb-num {
     color: #808080;
   }
-  .pdf-editor-page {
-    background: #1f1f1f;
-  }
+}
+
+/* ============================================================
+   PDF TEXT LAYER (invisible, selectable)
+   ============================================================ */
+.pdf-text-layer {
+  position: absolute;
+  top: 0; left: 0;
+  overflow: hidden;
+  opacity: 1;
+  line-height: 1;
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.pdf-text-layer > span {
+  position: absolute;
+  white-space: pre;
+  color: transparent;             /* invisible but selectable */
+  transform-origin: 0% 0%;
+  cursor: text;
+}
+
+.pdf-text-layer > span::selection {
+  background: rgba(24, 144, 255, 0.35);
+}
+
+.pdf-text-layer > span:hover {
+  background: rgba(24, 144, 255, 0.15);
+  outline: 1px dashed #1890ff;
+}
+
+/* Text edit popover */
+.pdf-text-edit-popover {
+  font-size: 13px;
+}
+
+/* Pending text edit highlight */
+.pdf-text-layer > span.pending-edit {
+  background: rgba(250, 173, 20, 0.35);
+  border-bottom: 2px solid #faad14;
 }
