@@ -11,9 +11,14 @@ import {
 const PDFSignaturePlacer = ({
   containerRef,
   currentPage,
-  signature,           // ✅ data URL passed from parent
+  signature,
   onPlace,
   onCancel,
+}) => {
+  console.log('🎯 [Placer] Render — signature prop =',
+    signature ? signature.substring(0, 60) + '...' : null);
+
+  // ... rest
 }) => {
   const [placement, setPlacement] = useState(null);
   const [dragging, setDragging] = useState(false);
@@ -73,6 +78,7 @@ const PDFSignaturePlacer = ({
     onPlace?.(payload);
   };
 
+console.log('🎯 [Placer] About to render. signature valid?', !!signature);
   // ------------------------------------------------------------
   // RENDER
   // ------------------------------------------------------------
