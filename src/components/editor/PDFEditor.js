@@ -684,6 +684,9 @@ const PDFEditor = forwardRef(({
       );
     }
 
+console.log('🎯 [Render] signaturePlacing =', signaturePlacing,
+            '| activeSignature =', activeSignature ? activeSignature.substring(0, 60) + '...' : null);
+
     return (
       <g key={ann.id} {...commonProps}>
         {shape}
@@ -817,26 +820,38 @@ const PDFEditor = forwardRef(({
             />
           </Tooltip>
           <Tooltip title="Place signature">
-            <Button
-              size="small"
-              icon={<SignatureOutlined />}
-              onClick={() => setSignaturePlacing(true)}
-            >
-              Sign
-            </Button>
-          </Tooltip>
-          <Tooltip title="Save annotated PDF">
-            <Button type="primary" size="small" icon={<SaveOutlined />} onClick={handleSave}>
-              Save
-            </Button>
-          </Tooltip>
-          {onClose && (
-            <Tooltip title="Close">
-              <Button size="small" icon={<CloseOutlined />} onClick={onClose} />
-            </Tooltip>
-          )}
-        </Space>
-      </div>
+  <Button
+    size="small"
+    icon={<SignatureOutlined />}
+    onClick={async () => {
+      console.log('🎯 [Sign] Button clicked. documentId =', documentId);
+      try {
+        const sig = await documentService.getLatestSignature(documentId);
+        console.log('🎯 [Sign] getLatestSignature returned:', sig);
+
+        const image = sig?.signature_data?.image;
+        console.log('🎯 [Sign] Extracted image (first 60 chars):',
+          image ? image.substring(0, 60) : null);
+
+        if (!image) {
+          console.warn('🎯 [Sign] No image — aborting');
+          message.error('No saved signature for this document. Please sign it first.');
+          return;
+        }
+
+        console.log('🎯 [Sign] Setting activeSignature and opening placer');
+        setActiveSignature(image);
+        setSignaturePlacing(true);
+        console.log('🎯 [Sign] signaturePlacing should now be true');
+      } catch (err) {
+        console.error('🎯 [Sign] FAILED:', err);
+        message.error('Failed to load signature.');
+      }
+    }}
+  >
+    Sign
+  </Button>
+</Tooltip>
 
       {/* ============================================================ */}
       {/* MAIN CONTENT */}
