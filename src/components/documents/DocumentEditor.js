@@ -1020,7 +1020,7 @@ const DocumentEditor = ({
 
   return (
     <>
-      <div className={`document-editor-container ${isFullscreen ? 'fullscreen-mode' : ''}`}>
+      <div className={`document-editor-container ${isFullscreen ? 'fullscreen-mode' : ''} ${editorMode === 'pdf' ? 'pdf-mode' : ''}`}>
         <Card className="editor-card" bordered={false}>
           {/* ============================================================ */}
           {/* HEADER */}
