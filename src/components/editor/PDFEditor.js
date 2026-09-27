@@ -282,27 +282,60 @@ const PDFEditor = forwardRef(({
   // ============================================================
 // AUTO-FIT-WIDTH on first load
 // ============================================================
+// ============================================================
+// AUTO-FIT-WIDTH on first load — A4 natural, or fit-to-width if narrow
+// ============================================================
 useEffect(() => {
-  if (!pdfDoc || !viewportRef.current) return;
+  if (!pdfDoc) return;
   let cancelled = false;
 
-  (async () => {
+  const run = async () => {
+    // Wait one tick for layout so viewportRef is attached
+    await new Promise((r) => setTimeout(r, 100));
+    if (cancelled) return;
+
     try {
       const page = await pdfDoc.getPage(1);
-      if (cancelled || !viewportRef.current) return;
       const baseViewport = page.getViewport({ scale: 1 });
-      const containerWidth = viewportRef.current.clientWidth - 48;
-      const fitScale = containerWidth / baseViewport.width;
-      const clampedScale = Math.max(0.5, Math.min(2, fitScale));
-      setScale(+clampedScale.toFixed(2));
-    } catch (err) {
-      console.error('Auto-fit failed:', err);
-    }
-  })();
+      const naturalScale = 96 / 72;                 // A4 at 96 DPI
+      const naturalWidth = baseViewport.width * naturalScale;
 
+      const canvasEl = viewportRef.current;
+      const containerWidth = canvasEl?.clientWidth || 800;
+
+      // Account for padding (24px each side = 48) + a small safety margin
+      const availableWidth = containerWidth - 64;
+
+      const preferNatural = availableWidth >= naturalWidth;
+      const finalScale = preferNatural
+        ? naturalScale
+        : availableWidth / baseViewport.width;
+
+      const clamped = Math.max(0.25, Math.min(3, finalScale));
+
+      console.log('📄 Viewport setup:', {
+        mode: preferNatural ? 'A4 natural (100%)' : 'fit-to-width',
+        containerWidth,
+        availableWidth,
+        naturalWidth: Math.round(naturalWidth),
+        finalScale: clamped.toFixed(3),
+      });
+
+      setScale(+clamped.toFixed(3));
+
+      // Reset scroll position
+      if (canvasEl) {
+        canvasEl.scrollTop = 0;
+        canvasEl.scrollLeft = 0;
+      }
+    } catch (err) {
+      console.error('Viewport setup failed:', err);
+    }
+  };
+
+  run();
   return () => { cancelled = true; };
 }, [pdfDoc]);
-
   // ============================================================
   // MEASURE ALL PAGE DIMENSIONS — cheap, no canvas rendering
   // ============================================================
