@@ -6,6 +6,7 @@
 //           zoom/fit controls, hand-pan, and stamp annotations.
 //
 // Renders at devicePixelRatio for crisp text on retina/high-DPI displays.
+// Renders ALL pages stacked vertically for continuous scrolling.
 
 import React, {
   useState, useEffect, useRef, useCallback, useMemo,
@@ -36,13 +37,13 @@ import PageThumbnailPanel from '../documents/PageThumbnailPanel';
 const { Text } = Typography;
 
 // ============================================================
-// PDF.js worker — version-matched CDN with correct path (.mjs)
+// PDF.js worker
 // ============================================================
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
 // ============================================================
-// URL resolver — backend serves PDFs via /api/documents/:id/raw
+// URL resolver
 // ============================================================
 const API_BASE = (
   process.env.REACT_APP_API_URL ||
@@ -71,7 +72,7 @@ const PDFEditor = forwardRef(({
   const [numPages, setNumPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [scale, setScale] = useState(1.2);
-  const [pageSize, setPageSize] = useState({ width: 0, height: 0 });
+  const [pageSizes, setPageSizes] = useState([]);
 
   // ============================================================
   // STATE — annotations
@@ -119,15 +120,18 @@ const PDFEditor = forwardRef(({
   // ============================================================
   // REFS
   // ============================================================
-  const canvasRef = useRef(null);
-  const overlayRef = useRef(null);
   const containerRef = useRef(null);
-  const textLayerRef = useRef(null);
   const viewportRef = useRef(null);
   const panStartRef = useRef(null);
 
+  // Multi-page refs
+  const canvasRefs = useRef([]);
+  const overlayRefs = useRef([]);
+  const textLayerRefs = useRef([]);
+  const pageWrapperRefs = useRef([]);
+
   // ============================================================
-  // IMPERATIVE API — expose zoom/fit to parent (ribbon)
+  // IMPERATIVE API
   // ============================================================
   const zoomIn = useCallback(() => {
     setScale((s) => Math.min(4, +(s + 0.15).toFixed(2)));
@@ -273,17 +277,17 @@ const PDFEditor = forwardRef(({
   }, [documentId]);
 
   // ============================================================
-  // TEXT EDIT CLICK — declared before use in render effect
+  // TEXT EDIT CLICK
   // ============================================================
-  const handleTextClick = useCallback((span) => {
+  const handleTextClick = (pageNumber, span, event) => {
     if (activeTool !== 'text-edit') return;
-    const textLayer = textLayerRef.current;
+    const textLayer = textLayerRefs.current[pageNumber - 1];
     if (!textLayer) return;
     const layerRect = textLayer.getBoundingClientRect();
     const spanRect = span.getBoundingClientRect();
 
     setTextEditTarget({
-      page: currentPage,
+      page: pageNumber,
       x: spanRect.left - layerRect.left,
       y: spanRect.top - layerRect.top,
       w: spanRect.width,
@@ -291,91 +295,83 @@ const PDFEditor = forwardRef(({
       original: span.textContent,
     });
     setTextEditValue(span.textContent);
-  }, [activeTool, currentPage]);
+  };
 
   // ============================================================
-  // RENDER PAGE TO CANVAS + TEXT LAYER — HIGH-DPI AWARE
+  // RENDER ALL PAGES
   // ============================================================
   useEffect(() => {
-    if (!pdfDoc || !canvasRef.current) return;
+    if (!pdfDoc) return;
 
     let cancelled = false;
-    let renderTask = null;
 
-    pdfDoc.getPage(currentPage).then(async (page) => {
-      if (cancelled || !canvasRef.current) return;
-
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext('2d');
+    const renderAllPages = async () => {
       const dpr = window.devicePixelRatio || 1;
+      const sizes = [];
 
-      // Logical viewport at user's chosen scale
-      const viewport = page.getViewport({ scale });
+      for (let i = 1; i <= pdfDoc.numPages; i++) {
+        if (cancelled) return;
 
-      // Logical display size
-      const logicalWidth = Math.floor(viewport.width);
-      const logicalHeight = Math.floor(viewport.height);
+        const page = await pdfDoc.getPage(i);
+        const viewport = page.getViewport({ scale });
 
-      // Physical canvas size — DPR-scaled for crispness
-      canvas.width = Math.floor(logicalWidth * dpr);
-      canvas.height = Math.floor(logicalHeight * dpr);
-      canvas.style.width = `${logicalWidth}px`;
-      canvas.style.height = `${logicalHeight}px`;
+        const logicalWidth = Math.floor(viewport.width);
+        const logicalHeight = Math.floor(viewport.height);
 
-      // Record logical size for overlay positioning
-      setPageSize({ width: logicalWidth, height: logicalHeight });
+        sizes.push({ width: logicalWidth, height: logicalHeight });
 
-      // ✅ Let PDF.js scale via the transform — DON'T also do ctx.setTransform
-      renderTask = page.render({
-        canvasContext: ctx,
-        viewport,
-        transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null,
-      });
+        const canvas = canvasRefs.current[i - 1];
+        if (!canvas) continue;
 
-      renderTask.promise.catch((err) => {
-        if (err?.name !== 'RenderingCancelledException') {
-          console.error('Render error:', err);
-        }
-      });
+        const ctx = canvas.getContext('2d');
+        canvas.width = Math.floor(logicalWidth * dpr);
+        canvas.height = Math.floor(logicalHeight * dpr);
+        canvas.style.width = `${logicalWidth}px`;
+        canvas.style.height = `${logicalHeight}px`;
 
-      // ---------- TEXT LAYER ----------
-      try {
-        const textContent = await page.getTextContent();
-        const textLayerDiv = textLayerRef.current;
+        await page.render({
+          canvasContext: ctx,
+          viewport,
+          transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null,
+        }).promise;
 
-        if (textLayerDiv) {
-          textLayerDiv.innerHTML = '';
-          textLayerDiv.style.width = `${logicalWidth}px`;
-          textLayerDiv.style.height = `${logicalHeight}px`;
+        // ---------- TEXT LAYER ----------
+        try {
+          const textContent = await page.getTextContent();
+          const textLayerDiv = textLayerRefs.current[i - 1];
+          if (textLayerDiv) {
+            textLayerDiv.innerHTML = '';
+            textLayerDiv.style.width = `${logicalWidth}px`;
+            textLayerDiv.style.height = `${logicalHeight}px`;
 
-          const textLayer = new pdfjsLib.TextLayer({
-            textContentSource: textContent,
-            container: textLayerDiv,
-            viewport,
-          });
-
-          await textLayer.render();
-
-          textLayerDiv.querySelectorAll('span').forEach((span) => {
-            span.style.cursor = 'text';
-            span.addEventListener('click', (e) => {
-              e.stopPropagation();
-              handleTextClick(span);
+            const textLayer = new pdfjsLib.TextLayer({
+              textContentSource: textContent,
+              container: textLayerDiv,
+              viewport,
             });
-          });
-        }
-      } catch (err) {
-        if (err?.name !== 'RenderingCancelledException') {
-          console.error('Text layer error:', err);
+            await textLayer.render();
+
+            textLayerDiv.querySelectorAll('span').forEach((span) => {
+              span.style.cursor = 'text';
+              span.addEventListener('click', (e) => {
+                e.stopPropagation();
+                handleTextClick(i, span, e);
+              });
+            });
+          }
+        } catch (err) {
+          if (err?.name !== 'RenderingCancelledException') {
+            console.error(`Text layer error on page ${i}:`, err);
+          }
         }
       }
-    });
 
-    return () => {
-      cancelled = true;
-      if (renderTask) renderTask.cancel();
+      if (!cancelled) setPageSizes(sizes);
     };
-  }, [pdfDoc, currentPage, scale, activeTool, handleTextClick]);
+
+    renderAllPages();
+    return () => { cancelled = true; };
+  }, [pdfDoc, scale, activeTool]);
 
   // ============================================================
   // CLEAR DRAWING WHEN TOOL CHANGES
@@ -385,9 +381,33 @@ const PDFEditor = forwardRef(({
   }, [activeTool]);
 
   // ============================================================
-  // ANNOTATION DRAWING
+  // UPDATE CURRENT PAGE ON SCROLL
   // ============================================================
-  const handleMouseDown = (e) => {
+  useEffect(() => {
+    const el = viewportRef.current;
+    if (!el || pageSizes.length === 0) return;
+
+    const onScroll = () => {
+      const scrollY = el.scrollTop + 100; // +100 = middle-ish of first page
+      let cumulative = 0;
+      for (let i = 0; i < pageSizes.length; i++) {
+        cumulative += pageSizes[i].height + 24; // + gap
+        if (scrollY < cumulative) {
+          if (currentPage !== i + 1) setCurrentPage(i + 1);
+          return;
+        }
+      }
+      if (currentPage !== pageSizes.length) setCurrentPage(pageSizes.length);
+    };
+
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, [pageSizes, currentPage]);
+
+  // ============================================================
+  // ANNOTATION DRAWING — per page
+  // ============================================================
+  const handleMouseDownForPage = (pageNum) => (e) => {
     // Hand-pan
     if (activeTool === 'hand' && viewportRef.current) {
       setPanning(true);
@@ -401,13 +421,14 @@ const PDFEditor = forwardRef(({
       return;
     }
 
-    if (activeTool === 'select' || activeTool === 'text-edit' || !overlayRef.current) return;
+    const overlay = overlayRefs.current[pageNum - 1];
+    if (!overlay) return;
+    if (activeTool === 'select' || activeTool === 'text-edit') return;
 
-    const rect = overlayRef.current.getBoundingClientRect();
+    const rect = overlay.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    // Text / Note → prompt for content
     if (activeTool === 'text' || activeTool === 'note') {
       const text = window.prompt(
         activeTool === 'note' ? 'Note text:' : 'Enter text:'
@@ -415,7 +436,7 @@ const PDFEditor = forwardRef(({
       if (!text) return;
       addAnnotation({
         type: activeTool,
-        page: currentPage,
+        page: pageNum,
         geometry: { x, y, w: 200, h: 40 },
         text,
         color: activeTool === 'note' ? '#fadb14' : '#1890ff',
@@ -423,16 +444,13 @@ const PDFEditor = forwardRef(({
       return;
     }
 
-    // Stamp → prompt for stamp text
     if (activeTool === 'stamp') {
-      const label = window.prompt('Stamp text (e.g. APPROVED, DRAFT, CONFIDENTIAL):', 'APPROVED');
+      const label = window.prompt('Stamp text (e.g. APPROVED, DRAFT):', 'APPROVED');
       if (!label) return;
-      const w = 180;
-      const h = 60;
       addAnnotation({
         type: 'stamp',
-        page: currentPage,
-        geometry: { x, y, w, h },
+        page: pageNum,
+        geometry: { x, y, w: 180, h: 60 },
         text: label.toUpperCase(),
         color: '#fa541c',
       });
@@ -441,7 +459,7 @@ const PDFEditor = forwardRef(({
 
     setDrawing({
       type: activeTool,
-      page: currentPage,
+      page: pageNum,
       startX: x,
       startY: y,
       currentX: x,
@@ -449,7 +467,7 @@ const PDFEditor = forwardRef(({
     });
   };
 
-  const handleMouseMove = (e) => {
+  const handleMouseMoveForPage = (pageNum) => (e) => {
     if (panning && viewportRef.current && panStartRef.current) {
       const dx = e.clientX - panStartRef.current.x;
       const dy = e.clientY - panStartRef.current.y;
@@ -459,7 +477,9 @@ const PDFEditor = forwardRef(({
     }
 
     if (!drawing) return;
-    const rect = overlayRef.current.getBoundingClientRect();
+    const overlay = overlayRefs.current[pageNum - 1];
+    if (!overlay) return;
+    const rect = overlay.getBoundingClientRect();
     setDrawing({
       ...drawing,
       currentX: e.clientX - rect.left,
@@ -508,7 +528,6 @@ const PDFEditor = forwardRef(({
     setDrawing(null);
   }, [panning, drawing]);
 
-  // Global mouseup — clears drawing even if released outside the overlay
   useEffect(() => {
     if (!drawing && !panning) return;
     window.addEventListener('mouseup', handleMouseUp);
@@ -636,7 +655,7 @@ const PDFEditor = forwardRef(({
   };
 
   // ============================================================
-  // RENDER ANNOTATION OVERLAY
+  // RENDER ANNOTATION SVG
   // ============================================================
   const renderAnnotationSvg = (ann) => {
     const { x, y, w, h } = ann.geometry;
@@ -657,15 +676,7 @@ const PDFEditor = forwardRef(({
       shape = <rect x={x} y={y} width={w} height={h} fill="transparent" stroke={ann.color} strokeWidth={2} />;
     } else if (ann.type === 'ellipse') {
       shape = (
-        <ellipse
-          cx={x + w / 2}
-          cy={y + h / 2}
-          rx={w / 2}
-          ry={h / 2}
-          fill="transparent"
-          stroke={ann.color}
-          strokeWidth={2}
-        />
+        <ellipse cx={x + w / 2} cy={y + h / 2} rx={w / 2} ry={h / 2} fill="transparent" stroke={ann.color} strokeWidth={2} />
       );
     } else if (ann.type === 'line') {
       shape = <line x1={x} y1={y} x2={x + w} y2={y + h} stroke={ann.color} strokeWidth={2} />;
@@ -679,21 +690,8 @@ const PDFEditor = forwardRef(({
     } else if (ann.type === 'stamp') {
       shape = (
         <>
-          <rect
-            x={x} y={y} width={w} height={h}
-            fill="transparent"
-            stroke={ann.color}
-            strokeWidth={3}
-            rx={4}
-          />
-          <text
-            x={x + w / 2}
-            y={y + h / 2 + 8}
-            textAnchor="middle"
-            fontSize={20}
-            fontWeight="bold"
-            fill={ann.color}
-          >
+          <rect x={x} y={y} width={w} height={h} fill="transparent" stroke={ann.color} strokeWidth={3} rx={4} />
+          <text x={x + w / 2} y={y + h / 2 + 8} textAnchor="middle" fontSize={20} fontWeight="bold" fill={ann.color}>
             {ann.text}
           </text>
         </>
@@ -705,10 +703,7 @@ const PDFEditor = forwardRef(({
         {shape}
         {isSelected && (
           <>
-            <rect
-              x={x - 4} y={y - 4} width={w + 8} height={h + 8}
-              fill="none" stroke="#1890ff" strokeWidth={1.5} strokeDasharray="4 2"
-            />
+            <rect x={x - 4} y={y - 4} width={w + 8} height={h + 8} fill="none" stroke="#1890ff" strokeWidth={1.5} strokeDasharray="4 2" />
             <circle cx={x + w + 4} cy={y - 4} r={7} fill="#ff4d4f" />
             <text
               x={x + w + 4} y={y - 1} textAnchor="middle" fontSize={9}
@@ -722,11 +717,6 @@ const PDFEditor = forwardRef(({
       </g>
     );
   };
-
-  const pageAnnotations = useMemo(
-    () => annotations.filter((a) => a.page === currentPage),
-    [annotations, currentPage]
-  );
 
   // ============================================================
   // RENDER
@@ -747,7 +737,11 @@ const PDFEditor = forwardRef(({
   const isTextEditMode = activeTool === 'text-edit';
 
   return (
-    <div className="pdf-editor" ref={containerRef} style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+    <div
+      className="pdf-editor"
+      ref={containerRef}
+      style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}
+    >
       {/* ============================================================ */}
       {/* TOOLBAR */}
       {/* ============================================================ */}
@@ -801,14 +795,31 @@ const PDFEditor = forwardRef(({
           <Button
             size="small"
             disabled={currentPage <= 1}
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            onClick={() => {
+              const next = Math.max(1, currentPage - 1);
+              setCurrentPage(next);
+              // Scroll to that page
+              const el = viewportRef.current;
+              const wrapper = pageWrapperRefs.current[next - 1];
+              if (el && wrapper) {
+                el.scrollTop = wrapper.offsetTop - 24;
+              }
+            }}
           >
             ←
           </Button>
           <Button
             size="small"
             disabled={currentPage >= numPages}
-            onClick={() => setCurrentPage((p) => Math.min(numPages, p + 1))}
+            onClick={() => {
+              const next = Math.min(numPages, currentPage + 1);
+              setCurrentPage(next);
+              const el = viewportRef.current;
+              const wrapper = pageWrapperRefs.current[next - 1];
+              if (el && wrapper) {
+                el.scrollTop = wrapper.offsetTop - 24;
+              }
+            }}
           >
             →
           </Button>
@@ -838,22 +849,13 @@ const PDFEditor = forwardRef(({
               size="small"
               icon={<SignatureOutlined />}
               onClick={async () => {
-                console.log('🎯 [Sign] Button clicked. documentId =', documentId);
                 try {
                   const sig = await documentService.getLatestSignature(documentId);
-                  console.log('🎯 [Sign] getLatestSignature returned:', sig);
-
                   const image = sig?.signature_data?.image;
-                  console.log('🎯 [Sign] Extracted image (first 60 chars):',
-                    image ? image.substring(0, 60) : null);
-
                   if (!image) {
-                    console.warn('🎯 [Sign] No image — aborting');
                     message.error('No saved signature for this document. Please sign it first.');
                     return;
                   }
-
-                  console.log('🎯 [Sign] Setting activeSignature and opening placer');
                   setActiveSignature(image);
                   setSignaturePlacing(true);
                 } catch (err) {
@@ -867,12 +869,7 @@ const PDFEditor = forwardRef(({
           </Tooltip>
 
           <Tooltip title="Save annotated PDF">
-            <Button
-              size="small"
-              type="primary"
-              icon={<SaveOutlined />}
-              onClick={handleSave}
-            >
+            <Button size="small" type="primary" icon={<SaveOutlined />} onClick={handleSave}>
               Save
             </Button>
           </Tooltip>
@@ -891,7 +888,14 @@ const PDFEditor = forwardRef(({
                 onSave?.(newDoc);
                 window.dispatchEvent(new CustomEvent('pdf-reload'));
               }}
-              onPageClick={(num) => setCurrentPage(num)}
+              onPageClick={(num) => {
+                setCurrentPage(num);
+                const el = viewportRef.current;
+                const wrapper = pageWrapperRefs.current[num - 1];
+                if (el && wrapper) {
+                  el.scrollTop = wrapper.offsetTop - 24;
+                }
+              }}
               activePage={currentPage}
             />
           </div>
@@ -906,99 +910,105 @@ const PDFEditor = forwardRef(({
             background: '#525659',
             padding: 24,
             display: 'flex',
-            justifyContent: 'center',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 24,
             cursor: isHandMode ? (panning ? 'grabbing' : 'grab') : 'default',
           }}
-          onMouseDown={isHandMode ? handleMouseDown : undefined}
-          onMouseMove={isHandMode ? handleMouseMove : undefined}
-          onMouseUp={isHandMode ? handleMouseUp : undefined}
-          onMouseLeave={isHandMode ? handleMouseUp : undefined}
         >
-          <div
-            className="pdf-editor-page"
-            style={{
-              position: 'relative',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
-              alignSelf: 'flex-start',
-            }}
-          >
-            <canvas
-              ref={canvasRef}
-              style={{
-                display: 'block',
-                width: pageSize.width ? `${pageSize.width}px` : 'auto',
-                height: pageSize.height ? `${pageSize.height}px` : 'auto',
-              }}
-            />
-
+          {Array.from({ length: numPages }, (_, i) => i + 1).map((pageNum) => (
             <div
-              ref={textLayerRef}
-              className="pdf-text-layer"
+              key={pageNum}
+              ref={(el) => (pageWrapperRefs.current[pageNum - 1] = el)}
+              className="pdf-editor-page"
               style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                pointerEvents: isTextEditMode ? 'auto' : 'none',
-                userSelect: isTextEditMode ? 'text' : 'none',
-                color: 'transparent',
-                lineHeight: 1,
+                position: 'relative',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+                alignSelf: 'center',
               }}
-            />
-
-            <svg
-              ref={overlayRef}
-              className="pdf-editor-overlay"
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: pageSize.width,
-                height: pageSize.height,
-                cursor: isHandMode
-                  ? 'grab'
-                  : isTextEditMode
-                    ? 'text'
-                    : activeTool === 'select'
-                      ? 'default'
-                      : 'crosshair',
-                pointerEvents: (isHandMode || isTextEditMode) ? 'none' : 'auto',
-              }}
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
             >
-              {pageAnnotations.map(renderAnnotationSvg)}
+              <canvas
+                ref={(el) => (canvasRefs.current[pageNum - 1] = el)}
+                style={{
+                  display: 'block',
+                  width: pageSizes[pageNum - 1]?.width
+                    ? `${pageSizes[pageNum - 1].width}px`
+                    : 'auto',
+                  height: pageSizes[pageNum - 1]?.height
+                    ? `${pageSizes[pageNum - 1].height}px`
+                    : 'auto',
+                }}
+              />
 
-              {drawing && (
-                <rect
-                  x={Math.min(drawing.startX, drawing.currentX)}
-                  y={Math.min(drawing.startY, drawing.currentY)}
-                  width={Math.abs(drawing.currentX - drawing.startX)}
-                  height={Math.abs(drawing.currentY - drawing.startY)}
-                  fill={
-                    drawing.type === 'highlight' ? '#ffec3d' :
-                    drawing.type === 'rect' ? 'rgba(255,77,79,0.1)' :
-                    'rgba(24,144,255,0.1)'
-                  }
-                  stroke={
-                    drawing.type === 'rect' ? '#ff4d4f' :
-                    drawing.type === 'ellipse' ? '#52c41a' : '#1890ff'
-                  }
-                  strokeWidth={2}
-                  strokeDasharray="4 2"
-                />
-              )}
+              <div
+                ref={(el) => (textLayerRefs.current[pageNum - 1] = el)}
+                className="pdf-text-layer"
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  pointerEvents: isTextEditMode ? 'auto' : 'none',
+                  userSelect: isTextEditMode ? 'text' : 'none',
+                  color: 'transparent',
+                  lineHeight: 1,
+                }}
+              />
 
-              {pendingRedactions
-                .filter((r) => r.page === currentPage)
-                .map((r) => {
-                  const globalIdx = pendingRedactions.indexOf(r);
-                  return (
+              <svg
+                ref={(el) => (overlayRefs.current[pageNum - 1] = el)}
+                className="pdf-editor-overlay"
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: pageSizes[pageNum - 1]?.width || 0,
+                  height: pageSizes[pageNum - 1]?.height || 0,
+                  cursor: isHandMode
+                    ? 'grab'
+                    : isTextEditMode
+                      ? 'text'
+                      : activeTool === 'select'
+                        ? 'default'
+                        : 'crosshair',
+                  pointerEvents: (isHandMode || isTextEditMode) ? 'none' : 'auto',
+                }}
+                onMouseDown={handleMouseDownForPage(pageNum)}
+                onMouseMove={handleMouseMoveForPage(pageNum)}
+                onMouseUp={handleMouseUp}
+              >
+                {annotations
+                  .filter((a) => a.page === pageNum)
+                  .map(renderAnnotationSvg)}
+
+                {drawing && drawing.page === pageNum && (
+                  <rect
+                    x={Math.min(drawing.startX, drawing.currentX)}
+                    y={Math.min(drawing.startY, drawing.currentY)}
+                    width={Math.abs(drawing.currentX - drawing.startX)}
+                    height={Math.abs(drawing.currentY - drawing.startY)}
+                    fill={
+                      drawing.type === 'highlight' ? '#ffec3d' :
+                      drawing.type === 'rect' ? 'rgba(255,77,79,0.1)' :
+                      'rgba(24,144,255,0.1)'
+                    }
+                    stroke={
+                      drawing.type === 'rect' ? '#ff4d4f' :
+                      drawing.type === 'ellipse' ? '#52c41a' : '#1890ff'
+                    }
+                    strokeWidth={2}
+                    strokeDasharray="4 2"
+                  />
+                )}
+
+                {pendingRedactions
+                  .filter((r) => r.page === pageNum)
+                  .map((r, idx) => (
                     <g
-                      key={`redact_${globalIdx}`}
+                      key={`redact_${pageNum}_${idx}`}
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
                         if (window.confirm('Remove this redaction mark?')) {
+                          const globalIdx = pendingRedactions.indexOf(r);
                           setPendingRedactions((prev) =>
                             prev.filter((_, i) => i !== globalIdx)
                           );
@@ -1014,128 +1024,123 @@ const PDFEditor = forwardRef(({
                       />
                       <line x1={r.x} y1={r.y} x2={r.x + r.w} y2={r.y + r.h} stroke="#ff7875" strokeWidth={1} />
                       <line x1={r.x + r.w} y1={r.y} x2={r.x} y2={r.y + r.h} stroke="#ff7875" strokeWidth={1} />
-                      <text
-                        x={r.x + 4}
-                        y={r.y + 14}
-                        fill="#fff"
-                        fontSize={11}
-                        fontWeight="bold"
-                      >
-                        REDACT #{globalIdx + 1}
+                      <text x={r.x + 4} y={r.y + 14} fill="#fff" fontSize={11} fontWeight="bold">
+                        REDACT #{idx + 1}
                       </text>
                     </g>
-                  );
-                })}
-            </svg>
+                  ))}
+              </svg>
 
-            {signaturePlacing && (
-              <PDFSignaturePlacer
-                containerRef={overlayRef}
-                currentPage={currentPage}
-                signature={activeSignature}
-                onPlace={async (placement) => {
-                  setSignaturePlacing(false);
-                  try {
-                    if (!activeSignature) {
-                      message.error('No signature available.');
-                      return;
-                    }
-
-                    message.loading({ content: 'Stamping…', key: 'stamp' });
-
-                    const res = await documentService.stampSignature(documentId, {
-                      image_data_url: activeSignature,
-                      page_number: placement.page,
-                      x_percent: placement.x_percent,
-                      y_percent: placement.y_percent,
-                      width_percent: placement.width_percent,
-                    });
-
-                    message.success({ content: 'Signature placed', key: 'stamp' });
-                    setActiveSignature(null);
-                    onSave?.(res?.document);
-                    window.dispatchEvent(new CustomEvent('pdf-reload'));
-                  } catch (err) {
-                    console.error('Signature placement failed:', err);
-                    message.error({
-                      content: err?.message || 'Failed to place signature',
-                      key: 'stamp',
-                    });
-                  }
-                }}
-                onCancel={() => {
-                  setSignaturePlacing(false);
-                  setActiveSignature(null);
-                }}
-              />
-            )}
-
-            {textEditTarget && (
-              <div
-                className="pdf-text-edit-popover"
-                style={{
-                  position: 'absolute',
-                  left: textEditTarget.x,
-                  top: textEditTarget.y + textEditTarget.h + 4,
-                  zIndex: 200,
-                  background: '#fff',
-                  border: '1px solid #1890ff',
-                  borderRadius: 6,
-                  padding: 8,
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-                  width: 240,
-                }}
-              >
-                <Input
-                  size="small"
-                  value={textEditValue}
-                  onChange={(e) => setTextEditValue(e.target.value)}
-                  autoFocus
-                  onPressEnter={() => {
-                    setPendingTextEdits((prev) => [
-                      ...prev,
-                      { ...textEditTarget, new_text: textEditValue },
-                    ]);
-                    setTextEditTarget(null);
+              {textEditTarget && textEditTarget.page === pageNum && (
+                <div
+                  className="pdf-text-edit-popover"
+                  style={{
+                    position: 'absolute',
+                    left: textEditTarget.x,
+                    top: textEditTarget.y + textEditTarget.h + 4,
+                    zIndex: 200,
+                    background: '#fff',
+                    border: '1px solid #1890ff',
+                    borderRadius: 6,
+                    padding: 8,
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+                    width: 240,
                   }}
-                />
-                <Space style={{ marginTop: 6, display: 'flex', justifyContent: 'flex-end' }}>
-                  <Button size="small" onClick={() => setTextEditTarget(null)}>Cancel</Button>
-                  <Button
+                >
+                  <Input
                     size="small"
-                    type="primary"
-                    onClick={() => {
+                    value={textEditValue}
+                    onChange={(e) => setTextEditValue(e.target.value)}
+                    autoFocus
+                    onPressEnter={() => {
                       setPendingTextEdits((prev) => [
                         ...prev,
                         { ...textEditTarget, new_text: textEditValue },
                       ]);
                       setTextEditTarget(null);
                     }}
-                  >
-                    Queue
-                  </Button>
-                </Space>
-              </div>
-            )}
+                  />
+                  <Space style={{ marginTop: 6, display: 'flex', justifyContent: 'flex-end' }}>
+                    <Button size="small" onClick={() => setTextEditTarget(null)}>Cancel</Button>
+                    <Button
+                      size="small"
+                      type="primary"
+                      onClick={() => {
+                        setPendingTextEdits((prev) => [
+                          ...prev,
+                          { ...textEditTarget, new_text: textEditValue },
+                        ]);
+                        setTextEditTarget(null);
+                      }}
+                    >
+                      Queue
+                    </Button>
+                  </Space>
+                </div>
+              )}
+            </div>
+          ))}
 
-            {isTextEditMode && (
-              <div
-                className="pdf-tool-hint"
-                style={{
-                  position: 'absolute',
-                  bottom: 8,
-                  left: 8,
-                  background: '#fff',
-                  padding: '4px 8px',
-                  borderRadius: 4,
-                  fontSize: 12,
-                }}
-              >
-                <InfoCircleOutlined /> Click any text to edit. Long edits may overlap
-                other elements. For complex text, use redaction + insert a text box.
-              </div>
-            )}
-          </div>
+          {signaturePlacing && (
+            <PDFSignaturePlacer
+              containerRef={{ current: overlayRefs.current[currentPage - 1] }}
+              currentPage={currentPage}
+              signature={activeSignature}
+              onPlace={async (placement) => {
+                setSignaturePlacing(false);
+                try {
+                  if (!activeSignature) {
+                    message.error('No signature available.');
+                    return;
+                  }
+
+                  message.loading({ content: 'Stamping…', key: 'stamp' });
+
+                  const res = await documentService.stampSignature(documentId, {
+                    image_data_url: activeSignature,
+                    page_number: placement.page,
+                    x_percent: placement.x_percent,
+                    y_percent: placement.y_percent,
+                    width_percent: placement.width_percent,
+                  });
+
+                  message.success({ content: 'Signature placed', key: 'stamp' });
+                  setActiveSignature(null);
+                  onSave?.(res?.document);
+                  window.dispatchEvent(new CustomEvent('pdf-reload'));
+                } catch (err) {
+                  console.error('Signature placement failed:', err);
+                  message.error({
+                    content: err?.message || 'Failed to place signature',
+                    key: 'stamp',
+                  });
+                }
+              }}
+              onCancel={() => {
+                setSignaturePlacing(false);
+                setActiveSignature(null);
+              }}
+            />
+          )}
+
+          {isTextEditMode && (
+            <div
+              className="pdf-tool-hint"
+              style={{
+                position: 'sticky',
+                bottom: 8,
+                alignSelf: 'center',
+                background: '#fff',
+                padding: '4px 8px',
+                borderRadius: 4,
+                fontSize: 12,
+                zIndex: 50,
+              }}
+            >
+              <InfoCircleOutlined /> Click any text to edit. Long edits may overlap
+              other elements. For complex text, use redaction + insert a text box.
+            </div>
+          )}
         </div>
 
         {showFormPanel && (
@@ -1175,23 +1180,22 @@ const PDFEditor = forwardRef(({
           size="small"
           style={{ position: 'absolute', bottom: 16, right: 200, zIndex: 100 }}
           onClick={async () => {
-            const canvas = canvasRef.current;
-            const rect = canvas.getBoundingClientRect();
-            const pw = rect.width;
-            const ph = rect.height;
-
-            const payload = pendingTextEdits.map((e) => ({
-              page: e.page,
-              x_percent: e.x / pw,
-              y_percent: 1 - (e.y + e.h) / ph,
-              w_percent: e.w / pw,
-              h_percent: e.h / ph,
-              new_text: e.new_text,
-              font_size: 11,
-              color: '#000000',
-              font_family: 'Helvetica',
-              hide_original: true,
-            }));
+            // Compute per-page dimensions from pageSizes
+            const payload = pendingTextEdits.map((e) => {
+              const size = pageSizes[e.page - 1] || { width: 1, height: 1 };
+              return {
+                page: e.page,
+                x_percent: e.x / size.width,
+                y_percent: 1 - (e.y + e.h) / size.height,
+                w_percent: e.w / size.width,
+                h_percent: e.h / size.height,
+                new_text: e.new_text,
+                font_size: 11,
+                color: '#000000',
+                font_family: 'Helvetica',
+                hide_original: true,
+              };
+            });
 
             try {
               message.loading({ content: 'Applying text edits…', key: 'tedit' });
@@ -1227,18 +1231,16 @@ const PDFEditor = forwardRef(({
         onOk={async () => {
           setApplying(true);
           try {
-            const canvas = canvasRef.current;
-            const rect = canvas.getBoundingClientRect();
-            const pw = rect.width;
-            const ph = rect.height;
-
-            const regions = pendingRedactions.map((r) => ({
-              page: r.page,
-              x_percent: r.x / pw,
-              y_percent: r.y / ph,
-              w_percent: r.w / pw,
-              h_percent: r.h / ph,
-            }));
+            const regions = pendingRedactions.map((r) => {
+              const size = pageSizes[r.page - 1] || { width: 1, height: 1 };
+              return {
+                page: r.page,
+                x_percent: r.x / size.width,
+                y_percent: r.y / size.height,
+                w_percent: r.w / size.width,
+                h_percent: r.h / size.height,
+              };
+            });
 
             const res = await documentService.applyRedactions(documentId, {
               regions,
