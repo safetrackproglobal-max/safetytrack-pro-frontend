@@ -346,17 +346,40 @@
 }
 
 /* ============================================================
-   PDF TOOL PALETTE (left rail)
+   EDITOR BODY — base layout for HTML and PDF modes
    ============================================================ */
 .editor-body {
   display: flex;
-  flex-direction: row;
-  align-items: stretch;
+  flex-direction: column;
   gap: 12px;
-  min-height: 500px;
+  min-height: 0;
   min-width: 0;
 }
 
+/* PDF mode: the container gets a bounded height so children can scroll.
+   The `.pdf-mode` class is set by DocumentEditor.jsx when editorMode === 'pdf'. */
+.document-editor-container.pdf-mode {
+  height: calc(100vh - 180px);   /* adjust 180 to your app header height */
+  min-height: 600px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+}
+
+.document-editor-container.pdf-mode .editor-card,
+.document-editor-container.pdf-mode .editor-card .ant-card-body,
+.document-editor-container.pdf-mode .editor-body {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================================
+   PDF TOOL PALETTE (left rail)
+   ============================================================ */
 .pdf-tool-palette {
   flex-shrink: 0;
   width: 48px;
@@ -406,47 +429,27 @@
 }
 
 .pdf-editor-host {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-width: 0;
-  min-height: 500px;
+  min-height: 0;
   border: 1px solid #f0f0f0;
   border-radius: 8px;
   overflow: hidden;
   background: #525659;
 }
 
+/* ============================================================
+   PDF FORM PANEL (right side)
+   ============================================================ */
 .pdf-form-panel {
   flex-shrink: 0;
   width: 240px;
   background: #fff;
-  border: 1px solid #f0f0f0;
-  border-radius: 8px;
-  padding: 12px;
+  border-left: 1px solid #e0e0e0;
   overflow-y: auto;
-  max-height: 640px;
+  min-height: 0;
 }
 
-/* When switching to PDF mode, the editor-body is row-aligned
-   (palette on left, PDF in center, form panel on right).
-   In HTML mode, the editor-body stays a single column. */
-.editor-body:has(.pdf-editor-host) {
-  /* no-op — this is a marker */
-}
-
-
-.editor-body {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.editor-body.pdf-mode {
-  flex-direction: row;
-}
-
-/* ============================================================
-   FORM PANEL
-   ============================================================ */
 .pdf-form-panel-inner {
   display: flex;
   flex-direction: column;
@@ -454,9 +457,8 @@
 }
 
 .pdf-form-panel-header {
-  padding: 8px 4px;
+  padding: 8px 12px;
   border-bottom: 1px solid #f0f0f0;
-  margin-bottom: 8px;
   font-size: 13px;
   color: #262626;
 }
@@ -464,7 +466,7 @@
 .pdf-form-fields {
   flex: 1;
   overflow-y: auto;
-  padding-right: 4px;
+  padding: 12px;
 }
 
 .pdf-field-overlay {
@@ -476,9 +478,6 @@
   background: rgba(24, 144, 255, 0.12);
 }
 
-/* ============================================================
-   SIGNATURE PLACER
-   ============================================================ */
 .pdf-signature-overlay {
   position: absolute;
   border: 2px dashed #1890ff;
@@ -487,32 +486,69 @@
 }
 
 /* ============================================================
-   PDF EDITOR LAYOUT — thumbs + canvas + form panel
+   PDF EDITOR LAYOUT — bounded flex chain
    ============================================================ */
+.pdf-editor {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+  min-width: 0;
+}
+
 .pdf-editor-main {
+  flex: 1 1 0;
   display: flex;
   flex-direction: row;
-  flex: 1;
-  min-height: 0;
   overflow: hidden;
+  min-height: 0;
 }
 
 .pdf-editor-thumbs {
-  width: 200px;
+  width: 140px;
   flex-shrink: 0;
   border-right: 1px solid #e0e0e0;
   background: #f5f5f5;
   overflow-y: auto;
+  min-height: 0;
 }
 
 .pdf-editor-canvas-area {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-width: 0;
-  overflow: auto;
-  background: #525659;
-  padding: 24px;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: auto;
+  background: #3f4347;
+  padding: 32px 24px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+
+/* Pages: never compressed, always natural size */
+.pdf-editor-page {
+  flex-shrink: 0;
+  position: relative;
+  align-self: center;
+  background: #ffffff;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.3),
+    0 8px 24px rgba(0, 0, 0, 0.4);
+  border-radius: 2px;
+}
+
+/* Page number label under each page */
+.pdf-editor-page::after {
+  content: attr(data-page-num);
+  position: absolute;
+  bottom: -22px;
+  right: 0;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* ============================================================
@@ -637,7 +673,47 @@
 }
 
 /* ============================================================
-   DARK MODE
+   PDF TEXT LAYER (invisible selectable text)
+   ============================================================ */
+.pdf-text-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  opacity: 1;
+  line-height: 1;
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.pdf-text-layer > span {
+  position: absolute;
+  white-space: pre;
+  color: transparent;
+  transform-origin: 0% 0%;
+  cursor: text;
+}
+
+.pdf-text-layer > span::selection {
+  background: rgba(24, 144, 255, 0.35);
+}
+
+.pdf-text-layer > span:hover {
+  background: rgba(24, 144, 255, 0.15);
+  outline: 1px dashed #1890ff;
+}
+
+.pdf-text-edit-popover {
+  font-size: 13px;
+}
+
+.pdf-text-layer > span.pending-edit {
+  background: rgba(250, 173, 20, 0.35);
+  border-bottom: 2px solid #faad14;
+}
+
+/* ============================================================
+   DARK MODE — PDF SECTIONS
    ============================================================ */
 @media (prefers-color-scheme: dark) {
   .pdf-editor-thumbs {
@@ -664,45 +740,7 @@
   .page-thumb-num {
     color: #808080;
   }
-}
-
-/* ============================================================
-   PDF TEXT LAYER (invisible, selectable)
-   ============================================================ */
-.pdf-text-layer {
-  position: absolute;
-  top: 0; left: 0;
-  overflow: hidden;
-  opacity: 1;
-  line-height: 1;
-  z-index: 2;
-  pointer-events: auto;
-}
-
-.pdf-text-layer > span {
-  position: absolute;
-  white-space: pre;
-  color: transparent;             /* invisible but selectable */
-  transform-origin: 0% 0%;
-  cursor: text;
-}
-
-.pdf-text-layer > span::selection {
-  background: rgba(24, 144, 255, 0.35);
-}
-
-.pdf-text-layer > span:hover {
-  background: rgba(24, 144, 255, 0.15);
-  outline: 1px dashed #1890ff;
-}
-
-/* Text edit popover */
-.pdf-text-edit-popover {
-  font-size: 13px;
-}
-
-/* Pending text edit highlight */
-.pdf-text-layer > span.pending-edit {
-  background: rgba(250, 173, 20, 0.35);
-  border-bottom: 2px solid #faad14;
+  .pdf-editor-page {
+    background: #1f1f1f;
+  }
 }
