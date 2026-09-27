@@ -88,7 +88,6 @@ const PDFEditor = forwardRef(({
   const [formFields, setFormFields] = useState([]);
   const [showFormPanel, setShowFormPanel] = useState(false);
 
-  
   // ============================================================
   // STATE — page thumbnails
   // ============================================================
@@ -124,7 +123,7 @@ const PDFEditor = forwardRef(({
   const overlayRef = useRef(null);
   const containerRef = useRef(null);
   const textLayerRef = useRef(null);
-  const viewportRef = useRef(null); // the scrollable canvas area
+  const viewportRef = useRef(null);
   const panStartRef = useRef(null);
 
   // ============================================================
@@ -274,88 +273,116 @@ const PDFEditor = forwardRef(({
   }, [documentId]);
 
   // ============================================================
+  // TEXT EDIT CLICK — declared before use in render effect
+  // ============================================================
+  const handleTextClick = useCallback((span) => {
+    if (activeTool !== 'text-edit') return;
+    const textLayer = textLayerRef.current;
+    if (!textLayer) return;
+    const layerRect = textLayer.getBoundingClientRect();
+    const spanRect = span.getBoundingClientRect();
+
+    setTextEditTarget({
+      page: currentPage,
+      x: spanRect.left - layerRect.left,
+      y: spanRect.top - layerRect.top,
+      w: spanRect.width,
+      h: spanRect.height,
+      original: span.textContent,
+    });
+    setTextEditValue(span.textContent);
+  }, [activeTool, currentPage]);
+
+  // ============================================================
   // RENDER PAGE TO CANVAS + TEXT LAYER — HIGH-DPI AWARE
   // ============================================================
   useEffect(() => {
-  if (!pdfDoc || !canvasRef.current) return;
+    if (!pdfDoc || !canvasRef.current) return;
 
-  let cancelled = false;
-  let renderTask = null;
+    let cancelled = false;
+    let renderTask = null;
 
-  pdfDoc.getPage(currentPage).then(async (page) => {
-    if (cancelled || !canvasRef.current) return;
+    pdfDoc.getPage(currentPage).then(async (page) => {
+      if (cancelled || !canvasRef.current) return;
 
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    const dpr = window.devicePixelRatio || 1;
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
 
-    // Logical viewport at user's chosen scale
-    const viewport = page.getViewport({ scale });
+      // Logical viewport at user's chosen scale
+      const viewport = page.getViewport({ scale });
 
-    // Logical display size
-    const logicalWidth = Math.floor(viewport.width);
-    const logicalHeight = Math.floor(viewport.height);
+      // Logical display size
+      const logicalWidth = Math.floor(viewport.width);
+      const logicalHeight = Math.floor(viewport.height);
 
-    // Physical canvas size — DPR-scaled for crispness
-    canvas.width = Math.floor(logicalWidth * dpr);
-    canvas.height = Math.floor(logicalHeight * dpr);
-    canvas.style.width = `${logicalWidth}px`;
-    canvas.style.height = `${logicalHeight}px`;
+      // Physical canvas size — DPR-scaled for crispness
+      canvas.width = Math.floor(logicalWidth * dpr);
+      canvas.height = Math.floor(logicalHeight * dpr);
+      canvas.style.width = `${logicalWidth}px`;
+      canvas.style.height = `${logicalHeight}px`;
 
-    // Record logical size for overlay positioning
-    setPageSize({ width: logicalWidth, height: logicalHeight });
+      // Record logical size for overlay positioning
+      setPageSize({ width: logicalWidth, height: logicalHeight });
 
-    // ✅ Let PDF.js scale via the transform — DON'T also do ctx.setTransform
-    renderTask = page.render({
-      canvasContext: ctx,
-      viewport,
-      transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null,
-    });
+      // ✅ Let PDF.js scale via the transform — DON'T also do ctx.setTransform
+      renderTask = page.render({
+        canvasContext: ctx,
+        viewport,
+        transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null,
+      });
 
-    renderTask.promise.catch((err) => {
-      if (err?.name !== 'RenderingCancelledException') {
-        console.error('Render error:', err);
-      }
-    });
+      renderTask.promise.catch((err) => {
+        if (err?.name !== 'RenderingCancelledException') {
+          console.error('Render error:', err);
+        }
+      });
 
-    // ---------- TEXT LAYER ----------
-    try {
-      const textContent = await page.getTextContent();
-      const textLayerDiv = textLayerRef.current;
+      // ---------- TEXT LAYER ----------
+      try {
+        const textContent = await page.getTextContent();
+        const textLayerDiv = textLayerRef.current;
 
-      if (textLayerDiv) {
-        textLayerDiv.innerHTML = '';
-        textLayerDiv.style.width = `${logicalWidth}px`;
-        textLayerDiv.style.height = `${logicalHeight}px`;
+        if (textLayerDiv) {
+          textLayerDiv.innerHTML = '';
+          textLayerDiv.style.width = `${logicalWidth}px`;
+          textLayerDiv.style.height = `${logicalHeight}px`;
 
-        const textLayer = new pdfjsLib.TextLayer({
-          textContentSource: textContent,
-          container: textLayerDiv,
-          viewport,
-        });
-
-        await textLayer.render();
-
-        textLayerDiv.querySelectorAll('span').forEach((span) => {
-          span.style.cursor = 'text';
-          span.addEventListener('click', (e) => {
-            e.stopPropagation();
-            handleTextClick(span, e);
+          const textLayer = new pdfjsLib.TextLayer({
+            textContentSource: textContent,
+            container: textLayerDiv,
+            viewport,
           });
-        });
-      }
-    } catch (err) {
-      if (err?.name !== 'RenderingCancelledException') {
-        console.error('Text layer error:', err);
-      }
-    }
-  });
 
-  return () => {
-    cancelled = true;
-    if (renderTask) renderTask.cancel();
-  };
-}, [pdfDoc, currentPage, scale, activeTool]);
+          await textLayer.render();
+
+          textLayerDiv.querySelectorAll('span').forEach((span) => {
+            span.style.cursor = 'text';
+            span.addEventListener('click', (e) => {
+              e.stopPropagation();
+              handleTextClick(span);
+            });
+          });
+        }
+      } catch (err) {
+        if (err?.name !== 'RenderingCancelledException') {
+          console.error('Text layer error:', err);
+        }
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      if (renderTask) renderTask.cancel();
+    };
+  }, [pdfDoc, currentPage, scale, activeTool, handleTextClick]);
+
+  // ============================================================
+  // CLEAR DRAWING WHEN TOOL CHANGES
+  // ============================================================
+  useEffect(() => {
+    setDrawing(null);
+  }, [activeTool]);
 
   // ============================================================
   // ANNOTATION DRAWING
@@ -440,7 +467,7 @@ const PDFEditor = forwardRef(({
     });
   };
 
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
     if (panning) {
       setPanning(false);
       panStartRef.current = null;
@@ -448,6 +475,7 @@ const PDFEditor = forwardRef(({
     }
 
     if (!drawing) return;
+
     const x = Math.min(drawing.startX, drawing.currentX);
     const y = Math.min(drawing.startY, drawing.currentY);
     const w = Math.abs(drawing.currentX - drawing.startX);
@@ -458,10 +486,10 @@ const PDFEditor = forwardRef(({
       return;
     }
 
-    if (activeTool === 'redact') {
+    if (drawing.type === 'redact') {
       setPendingRedactions((prev) => [
         ...prev,
-        { page: currentPage, x, y, w, h },
+        { page: drawing.page, x, y, w, h },
       ]);
       setDrawing(null);
       return;
@@ -469,7 +497,7 @@ const PDFEditor = forwardRef(({
 
     addAnnotation({
       type: drawing.type,
-      page: currentPage,
+      page: drawing.page,
       geometry: { x, y, w, h },
       color:
         drawing.type === 'highlight' ? '#ffec3d' :
@@ -478,7 +506,14 @@ const PDFEditor = forwardRef(({
         '#1890ff',
     });
     setDrawing(null);
-  };
+  }, [panning, drawing]);
+
+  // Global mouseup — clears drawing even if released outside the overlay
+  useEffect(() => {
+    if (!drawing && !panning) return;
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => window.removeEventListener('mouseup', handleMouseUp);
+  }, [drawing, panning, handleMouseUp]);
 
   const addAnnotation = (ann) => {
     setAnnotations((prev) => [
@@ -490,27 +525,6 @@ const PDFEditor = forwardRef(({
   const deleteAnnotation = (id) => {
     setAnnotations((prev) => prev.filter((a) => a.id !== id));
     setSelectedAnnId(null);
-  };
-
-  // ============================================================
-  // TEXT EDIT CLICK
-  // ============================================================
-  const handleTextClick = (span, event) => {
-    if (activeTool !== 'text-edit') return;
-    const textLayer = textLayerRef.current;
-    if (!textLayer) return;
-    const layerRect = textLayer.getBoundingClientRect();
-    const spanRect = span.getBoundingClientRect();
-
-    setTextEditTarget({
-      page: currentPage,
-      x: spanRect.left - layerRect.left,
-      y: spanRect.top - layerRect.top,
-      w: spanRect.width,
-      h: spanRect.height,
-      original: span.textContent,
-    });
-    setTextEditValue(span.textContent);
   };
 
   // ============================================================
@@ -605,6 +619,8 @@ const PDFEditor = forwardRef(({
               maxWidth: w - 8,
             });
             break;
+          default:
+            break;
         }
       });
 
@@ -684,9 +700,6 @@ const PDFEditor = forwardRef(({
       );
     }
 
-console.log('🎯 [Render] signaturePlacing =', signaturePlacing,
-            '| activeSignature =', activeSignature ? activeSignature.substring(0, 60) + '...' : null);
-
     return (
       <g key={ann.id} {...commonProps}>
         {shape}
@@ -734,7 +747,7 @@ console.log('🎯 [Render] signaturePlacing =', signaturePlacing,
   const isTextEditMode = activeTool === 'text-edit';
 
   return (
-    <div className="pdf-editor" ref={containerRef} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div className="pdf-editor" ref={containerRef} style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       {/* ============================================================ */}
       {/* TOOLBAR */}
       {/* ============================================================ */}
@@ -819,39 +832,52 @@ console.log('🎯 [Render] signaturePlacing =', signaturePlacing,
               }}
             />
           </Tooltip>
+
           <Tooltip title="Place signature">
-  <Button
-    size="small"
-    icon={<SignatureOutlined />}
-    onClick={async () => {
-      console.log('🎯 [Sign] Button clicked. documentId =', documentId);
-      try {
-        const sig = await documentService.getLatestSignature(documentId);
-        console.log('🎯 [Sign] getLatestSignature returned:', sig);
+            <Button
+              size="small"
+              icon={<SignatureOutlined />}
+              onClick={async () => {
+                console.log('🎯 [Sign] Button clicked. documentId =', documentId);
+                try {
+                  const sig = await documentService.getLatestSignature(documentId);
+                  console.log('🎯 [Sign] getLatestSignature returned:', sig);
 
-        const image = sig?.signature_data?.image;
-        console.log('🎯 [Sign] Extracted image (first 60 chars):',
-          image ? image.substring(0, 60) : null);
+                  const image = sig?.signature_data?.image;
+                  console.log('🎯 [Sign] Extracted image (first 60 chars):',
+                    image ? image.substring(0, 60) : null);
 
-        if (!image) {
-          console.warn('🎯 [Sign] No image — aborting');
-          message.error('No saved signature for this document. Please sign it first.');
-          return;
-        }
+                  if (!image) {
+                    console.warn('🎯 [Sign] No image — aborting');
+                    message.error('No saved signature for this document. Please sign it first.');
+                    return;
+                  }
 
-        console.log('🎯 [Sign] Setting activeSignature and opening placer');
-        setActiveSignature(image);
-        setSignaturePlacing(true);
-        console.log('🎯 [Sign] signaturePlacing should now be true');
-      } catch (err) {
-        console.error('🎯 [Sign] FAILED:', err);
-        message.error('Failed to load signature.');
-      }
-    }}
-  >
-    Sign
-  </Button>
-</Tooltip>
+                  console.log('🎯 [Sign] Setting activeSignature and opening placer');
+                  setActiveSignature(image);
+                  setSignaturePlacing(true);
+                } catch (err) {
+                  console.error('🎯 [Sign] FAILED:', err);
+                  message.error('Failed to load signature.');
+                }
+              }}
+            >
+              Sign
+            </Button>
+          </Tooltip>
+
+          <Tooltip title="Save annotated PDF">
+            <Button
+              size="small"
+              type="primary"
+              icon={<SaveOutlined />}
+              onClick={handleSave}
+            >
+              Save
+            </Button>
+          </Tooltip>
+        </Space>
+      </div>
 
       {/* ============================================================ */}
       {/* MAIN CONTENT */}
@@ -935,7 +961,6 @@ console.log('🎯 [Render] signaturePlacing =', signaturePlacing,
                     : activeTool === 'select'
                       ? 'default'
                       : 'crosshair',
-                // ✅ Disable overlay when panning OR editing text so clicks reach the text layer
                 pointerEvents: (isHandMode || isTextEditMode) ? 'none' : 'auto',
               }}
               onMouseDown={handleMouseDown}
@@ -1004,46 +1029,47 @@ console.log('🎯 [Render] signaturePlacing =', signaturePlacing,
             </svg>
 
             {signaturePlacing && (
-  <PDFSignaturePlacer
-    containerRef={overlayRef}
-    currentPage={currentPage}
-    signature={activeSignature}
-    onPlace={async (placement) => {
-      setSignaturePlacing(false);
-      try {
-        if (!activeSignature) {
-          message.error('No signature available.');
-          return;
-        }
+              <PDFSignaturePlacer
+                containerRef={overlayRef}
+                currentPage={currentPage}
+                signature={activeSignature}
+                onPlace={async (placement) => {
+                  setSignaturePlacing(false);
+                  try {
+                    if (!activeSignature) {
+                      message.error('No signature available.');
+                      return;
+                    }
 
-        message.loading({ content: 'Stamping…', key: 'stamp' });
+                    message.loading({ content: 'Stamping…', key: 'stamp' });
 
-        const res = await documentService.stampSignature(documentId, {
-          image_data_url: activeSignature,
-          page_number: placement.page,
-          x_percent: placement.x_percent,
-          y_percent: placement.y_percent,
-          width_percent: placement.width_percent,
-        });
+                    const res = await documentService.stampSignature(documentId, {
+                      image_data_url: activeSignature,
+                      page_number: placement.page,
+                      x_percent: placement.x_percent,
+                      y_percent: placement.y_percent,
+                      width_percent: placement.width_percent,
+                    });
 
-        message.success({ content: 'Signature placed', key: 'stamp' });
-        setActiveSignature(null);
-        onSave?.(res?.document);
-        window.dispatchEvent(new CustomEvent('pdf-reload'));
-      } catch (err) {
-        console.error('Signature placement failed:', err);
-        message.error({
-          content: err?.message || 'Failed to place signature',
-          key: 'stamp',
-        });
-      }
-    }}
-    onCancel={() => {
-      setSignaturePlacing(false);
-      setActiveSignature(null);
-    }}
-  />
-)}
+                    message.success({ content: 'Signature placed', key: 'stamp' });
+                    setActiveSignature(null);
+                    onSave?.(res?.document);
+                    window.dispatchEvent(new CustomEvent('pdf-reload'));
+                  } catch (err) {
+                    console.error('Signature placement failed:', err);
+                    message.error({
+                      content: err?.message || 'Failed to place signature',
+                      key: 'stamp',
+                    });
+                  }
+                }}
+                onCancel={() => {
+                  setSignaturePlacing(false);
+                  setActiveSignature(null);
+                }}
+              />
+            )}
+
             {textEditTarget && (
               <div
                 className="pdf-text-edit-popover"
