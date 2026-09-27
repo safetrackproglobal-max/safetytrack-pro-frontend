@@ -280,6 +280,30 @@ const PDFEditor = forwardRef(({
   }, [documentId]);
 
   // ============================================================
+// AUTO-FIT-WIDTH on first load
+// ============================================================
+useEffect(() => {
+  if (!pdfDoc || !viewportRef.current) return;
+  let cancelled = false;
+
+  (async () => {
+    try {
+      const page = await pdfDoc.getPage(1);
+      if (cancelled || !viewportRef.current) return;
+      const baseViewport = page.getViewport({ scale: 1 });
+      const containerWidth = viewportRef.current.clientWidth - 48;
+      const fitScale = containerWidth / baseViewport.width;
+      const clampedScale = Math.max(0.5, Math.min(2, fitScale));
+      setScale(+clampedScale.toFixed(2));
+    } catch (err) {
+      console.error('Auto-fit failed:', err);
+    }
+  })();
+
+  return () => { cancelled = true; };
+}, [pdfDoc]);
+
+  // ============================================================
   // MEASURE ALL PAGE DIMENSIONS — cheap, no canvas rendering
   // ============================================================
   useEffect(() => {
