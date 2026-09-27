@@ -995,7 +995,7 @@ useEffect(() => {
       {/* MAIN CONTENT */}
       <div className="pdf-editor-main" style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         {showThumbs && (
-          <div className="pdf-editor-thumbs" style={{ width: 180, borderRight: '1px solid #e0e0e0', overflow: 'auto' }}>
+          <div className="pdf-editor-thumbs">
             <PageThumbnailPanel
               documentId={documentId}
               onDocumentChange={(newDoc) => {
