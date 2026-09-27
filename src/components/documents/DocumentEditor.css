@@ -1224,3 +1224,99 @@
   border: 1px solid #d9d9d9;
   background: #f0f0f0;
 }
+
+/* ============================================================
+   34. PDF EDITOR — scoped height so the canvas area scrolls
+   ============================================================ */
+
+/* The outer editor container needs a bounded height when the PDF editor is active */
+.document-editor-container:has(.pdf-editor) {
+  height: calc(100vh - 80px);   /* adjust 80px to your page header height */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.document-editor-container:has(.pdf-editor) .editor-card,
+.document-editor-container:has(.pdf-editor) .editor-card .ant-card-body,
+.document-editor-container:has(.pdf-editor) .editor-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The PDF editor root */
+.pdf-editor {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Split row: thumbnails + canvas + form panel */
+.pdf-editor-main {
+  flex: 1 1 auto;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;              /* ← the critical fix */
+}
+
+/* The only thing that scrolls */
+.pdf-editor-canvas-area {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: auto;
+  min-height: 0;              /* ← the critical fix */
+  min-width: 0;               /* ← allows horizontal scroll */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 24px;
+  background: #525659;
+}
+
+/* Individual pages keep their intrinsic size */
+.pdf-editor-page {
+  flex-shrink: 0;
+  position: relative;
+  align-self: center;
+}
+
+/* Left thumbnail rail */
+.pdf-editor-thumbs {
+  width: 180px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  min-height: 0;
+  border-right: 1px solid #e0e0e0;
+}
+
+/* Optional right form panel */
+.pdf-form-panel {
+  width: 260px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  min-height: 0;
+  border-left: 1px solid #e0e0e0;
+}
+
+/* Fallback for browsers without :has() support */
+.document-editor-container.pdf-mode {
+  height: calc(100vh - 80px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.document-editor-container.pdf-mode .editor-card,
+.document-editor-container.pdf-mode .editor-card .ant-card-body,
+.document-editor-container.pdf-mode .editor-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
