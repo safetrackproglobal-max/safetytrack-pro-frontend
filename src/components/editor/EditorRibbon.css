@@ -407,20 +407,40 @@
 }
 
 /* ============================================================
-   PDF TOOL PALETTE (left rail) — unchanged
+   PDF TOOL PALETTE (left rail)
    ============================================================ */
+
+/* Base editor-body — used by the HTML editor */
 .editor-body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-height: 0;
 }
 
-.editor-body.pdf-mode {
-  flex-direction: row;
-  align-items: stretch;
-  gap: 12px;
-  min-height: 500px;
-  min-width: 0;
+/* PDF mode: the outer card gets a bounded height so inner areas can scroll */
+.document-editor-container.pdf-mode {
+  height: calc(100vh - 80px);   /* adjust 80 to your header height */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.document-editor-container.pdf-mode .editor-card,
+.document-editor-container.pdf-mode .editor-card .ant-card-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.document-editor-container.pdf-mode .editor-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .pdf-tool-palette {
@@ -528,12 +548,23 @@
   cursor: move;
 }
 
+/* ============================================================
+   PDF editor — full layout with bounded heights
+   ============================================================ */
+.pdf-editor {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
 .pdf-editor-main {
+  flex: 1 1 auto;
   display: flex;
   flex-direction: row;
-  flex: 1;
-  min-height: 0;
   overflow: hidden;
+  min-height: 0;              /* ← critical */
 }
 
 .pdf-editor-thumbs {
@@ -542,196 +573,26 @@
   border-right: 1px solid #e0e0e0;
   background: #f5f5f5;
   overflow-y: auto;
+  min-height: 0;              /* ← critical */
 }
 
 .pdf-editor-canvas-area {
   flex: 1 1 auto;
   min-width: 0;
-  overflow: auto;
+  min-height: 0;              /* ← critical: allows vertical scroll */
+  overflow-y: auto;
+  overflow-x: auto;
   background: #525659;
   padding: 24px;
   display: flex;
-  justify-content: center;
-}
-
-.page-thumb-panel {
-  padding: 8px;
-  height: 100%;
-  display: flex;
   flex-direction: column;
-  min-height: 0;
+  align-items: center;        /* center horizontally */
+  gap: 24px;
 }
 
-.page-thumb-toolbar {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #e0e0e0;
-  margin-bottom: 8px;
-}
-
-.page-thumb-count {
-  font-size: 11px;
-  color: #595959;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.page-thumb-sel-count {
-  color: #1890ff;
-}
-
-.page-thumb-actions {
-  display: flex;
-  gap: 4px;
-}
-
-.page-thumb-sel-bar {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 6px;
-}
-
-.page-thumb-reorder-banner {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  background: #fff7e6;
-  border: 1px solid #ffd591;
-  border-radius: 4px;
-  margin-bottom: 6px;
-  font-size: 11px;
-  color: #ad6800;
-}
-
-.page-thumb-grid {
-  flex: 1;
-  overflow-y: auto;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-}
-
-.page-thumb-item {
-  background: #fff;
-  border: 2px solid transparent;
-  border-radius: 4px;
-  cursor: pointer;
-  overflow: hidden;
-  transition: all 0.15s;
-  user-select: none;
-}
-
-.page-thumb-item:hover {
-  border-color: #91caff;
-  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.15);
-}
-
-.page-thumb-item.selected {
-  border-color: #1890ff;
-  background: #e6f4ff;
-}
-
-.page-thumb-item.drag-over {
-  border-color: #52c41a;
-  border-style: dashed;
-}
-
-.page-thumb-header {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 6px;
-  background: #fafafa;
-  border-bottom: 1px solid #f0f0f0;
-  font-size: 10px;
-}
-
-.page-thumb-num {
-  flex: 1;
-  text-align: right;
-  color: #8c8c8c;
-  font-weight: 600;
-}
-
-.page-thumb-image {
-  padding: 4px;
-  display: flex;
-  justify-content: center;
-  background: #fff;
-}
-
-.page-thumb-image img {
-  display: block;
-  max-width: 100%;
-  height: auto;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-}
-
-@media (prefers-color-scheme: dark) {
-  .pdf-editor-thumbs {
-    background: #1a1a1a;
-    border-right-color: #303030;
-  }
-  .page-thumb-toolbar {
-    border-bottom-color: #303030;
-  }
-  .page-thumb-count {
-    color: #a0a0a0;
-  }
-  .page-thumb-item {
-    background: #262626;
-  }
-  .page-thumb-item.selected {
-    background: #0a2a4a;
-    border-color: #4fa8f5;
-  }
-  .page-thumb-header {
-    background: #1f1f1f;
-    border-bottom-color: #303030;
-  }
-  .page-thumb-num {
-    color: #808080;
-  }
-}
-
-.pdf-text-layer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  overflow: hidden;
-  opacity: 1;
-  line-height: 1;
-  z-index: 2;
-  pointer-events: auto;
-}
-
-.pdf-text-layer > span {
-  position: absolute;
-  white-space: pre;
-  color: transparent;
-  transform-origin: 0% 0%;
-  cursor: text;
-}
-
-.pdf-text-layer > span::selection {
-  background: rgba(24, 144, 255, 0.35);
-}
-
-.pdf-text-layer > span:hover {
-  background: rgba(24, 144, 255, 0.15);
-  outline: 1px dashed #1890ff;
-}
-
-.pdf-text-edit-popover {
-  font-size: 13px;
-}
-
-.pdf-text-layer > span.pending-edit {
-  background: rgba(250, 173, 20, 0.35);
-  border-bottom: 2px solid #faad14;
+/* Individual PDF pages keep their intrinsic size */
+.pdf-editor-page {
+  flex-shrink: 0;
+  position: relative;
+  align-self: center;
 }
