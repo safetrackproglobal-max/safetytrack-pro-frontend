@@ -131,7 +131,7 @@
 }
 
 /* ============================================================
-   GROUPS — vertical separator between them
+   GROUPS
    ============================================================ */
 .editor-ribbon-group {
   display: flex;
@@ -166,7 +166,7 @@
 }
 
 /* ============================================================
-   BUTTONS — BIG (icon + label) — PDF-XChange primary style
+   BUTTONS — BIG
    ============================================================ */
 .editor-ribbon-btn-big {
   display: flex;
@@ -240,7 +240,7 @@
 }
 
 /* ============================================================
-   BUTTONS — SMALL (icon-only) — secondary style
+   BUTTONS — SMALL
    ============================================================ */
 .editor-ribbon-btn-small {
   display: inline-flex;
@@ -299,7 +299,7 @@
 }
 
 /* ============================================================
-   DARK MODE
+   DARK MODE — RIBBON
    ============================================================ */
 @media (prefers-color-scheme: dark) {
   .editor-ribbon {
@@ -407,14 +407,11 @@
 }
 
 /* ============================================================
-   PDF TOOL PALETTE (left rail)
+   PDF EDITOR — standard container with fixed height
+   The container is bounded by the viewport so the canvas area
+   scrolls internally. Pages render at natural size.
    ============================================================ */
 
-/* ============================================================
-   PDF TOOL PALETTE (left rail)
-   ============================================================ */
-
-/* Base editor-body — HTML mode default */
 .editor-body {
   display: flex;
   flex-direction: column;
@@ -422,13 +419,15 @@
   min-height: 0;
 }
 
-/* PDF mode: bound the container so child areas can scroll */
 .document-editor-container.pdf-mode {
-  height: calc(100vh - 40px);
-  min-height: 500px;
+  /* Container fills the viewport minus app chrome.
+     Adjust the subtracted value if your app header is a different height. */
+  height: calc(100vh - 180px);
+  min-height: 600px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  background: #ffffff;
 }
 
 .document-editor-container.pdf-mode .editor-card,
@@ -449,7 +448,6 @@
   gap: 0;
 }
 
-/* The PDF editor takes whatever's left after header + ribbon */
 .document-editor-container.pdf-mode .pdf-editor {
   flex: 1 1 0;
   min-height: 500px;
@@ -459,6 +457,9 @@
   min-width: 0;
 }
 
+/* ============================================================
+   PDF tool palette / editor host
+   ============================================================ */
 .pdf-tool-palette {
   flex-shrink: 0;
   width: 48px;
@@ -581,7 +582,7 @@
   display: flex;
   flex-direction: row;
   overflow: hidden;
-  min-height: 0;              /* ← CRITICAL: lets children shrink */
+  min-height: 0;
 }
 
 .pdf-editor-thumbs {
@@ -596,7 +597,7 @@
 .pdf-editor-canvas-area {
   flex: 1 1 0;
   min-width: 0;
-  min-height: 0;              /* ← CRITICAL: allows the scroll */
+  min-height: 0;
   overflow-y: auto;
   overflow-x: auto;
   background: #525659;
@@ -653,7 +654,7 @@
 }
 
 /* ============================================================
-   Thumbnail panel (unchanged)
+   Thumbnail panel
    ============================================================ */
 .page-thumb-panel {
   padding: 8px;
@@ -773,6 +774,9 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
+/* ============================================================
+   DARK MODE — PDF SECTIONS
+   ============================================================ */
 @media (prefers-color-scheme: dark) {
   .pdf-editor-thumbs {
     background: #1a1a1a;
