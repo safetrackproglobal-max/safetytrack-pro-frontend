@@ -103,35 +103,24 @@ const LessonsLearned = ({
   // ==================== FETCH FROM API ====================
 
   const fetchLessons = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await notificationService.getLessonsLearned({
-        page: 1,
-        per_page: 100
-      });
-
-      const lessonsData = 
-        response?.lessons || 
-        response?.data?.lessons || 
-        (Array.isArray(response) ? response : []) ||
-        [];
-
-      if (lessonsData.length > 0) {
-        setLessons(lessonsData);
-      } else if (initialLessons.length > 0) {
-        setLessons(initialLessons);
-      }
-      // If both empty, leave as empty array (shows "no lessons" state)
-    } catch (error) {
-      console.error('Failed to fetch lessons:', error);
-      // Fall back to initialLessons prop if available
-      if (initialLessons.length > 0) {
-        setLessons(initialLessons);
-      }
-    } finally {
-      setLoading(false);
+  setLoading(true);
+  try {
+    const response = await notificationService.getLessonsLearned();
+    
+    // ✅ GUARANTEE array
+    let lessonsData = response?.lessons || response?.data?.lessons;
+    if (!Array.isArray(lessonsData)) {
+      lessonsData = [];
     }
-  }, [initialLessons]);
+    
+    setLessons(lessonsData);
+  } catch (error) {
+    console.error('Failed to fetch lessons:', error);
+    setLessons([]);  // ✅ Always set empty array
+  } finally {
+    setLoading(false);
+  }
+}, [initialLessons]);
 
   useEffect(() => {
     fetchLessons();
