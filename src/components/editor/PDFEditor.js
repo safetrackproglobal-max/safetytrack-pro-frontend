@@ -1,1453 +1,1479 @@
-// src/components/documents/DocumentEditor.jsx
-// Modern Tiptap-based Document Editor
-// Features: rich text, tables, images, tasks, code, AI, versions,
-//           find/replace, outline, autosave, signature,
-//           track changes, slash commands, focus mode,
-//           reading mode, import/export, PDF annotation mode
+// src/components/documents/editor/PDFEditor.jsx
+// PDF.js-based viewer with VIRTUALIZED multi-page rendering
+// Only renders pages near the current viewport — works for 300+ page PDFs.
 
 import React, {
-  useState, useEffect, useCallback, useRef, useMemo
+  useState, useEffect, useRef, useCallback, useMemo,
+  forwardRef, useImperativeHandle,
 } from 'react';
 import {
-  Card, Row, Col, Button, Space, Input, Select, Form, Modal,
-  message, Spin, Divider, Typography, Tag, Tooltip,
-  Switch, Upload, Drawer, Tabs, Dropdown, Menu, Badge, Avatar, List,
-  Collapse, DatePicker, InputNumber, Empty, Progress
+  Spin, Empty, message, Button, Space, Tooltip, Modal, Form,
+  Input, Select, Alert, Drawer, List, Tag, Typography,
 } from 'antd';
 import {
-  SaveOutlined, CloseOutlined, UndoOutlined, RedoOutlined,
-  BoldOutlined, ItalicOutlined, UnderlineOutlined,
-  StrikethroughOutlined, OrderedListOutlined, UnorderedListOutlined,
-  AlignLeftOutlined, AlignCenterOutlined, AlignRightOutlined,
-  LinkOutlined, PictureOutlined, TableOutlined, CodeOutlined,
-  HighlightOutlined, CopyOutlined, SearchOutlined, DeleteOutlined,
-  PlusOutlined, MinusOutlined, SignatureOutlined, ClockCircleOutlined,
-  RobotOutlined, FilePdfOutlined, FileWordOutlined,
-  FileTextOutlined, EyeOutlined, HistoryOutlined,
-  FullscreenOutlined, FullscreenExitOutlined,
-  CheckSquareOutlined, FontSizeOutlined, BlockOutlined, MenuOutlined,
-  InsertRowAboveOutlined, InsertRowBelowOutlined,
-  InsertRowLeftOutlined, InsertRowRightOutlined,
-  DeleteRowOutlined, DeleteColumnOutlined, MergeCellsOutlined,
-  SplitCellsOutlined, CloudUploadOutlined,
-  ExportOutlined, ImportOutlined, FileMarkdownOutlined,
-  ReadOutlined, ThunderboltOutlined,
-  StrikethroughOutlined as StrikeIcon,
+  ZoomInOutlined, ZoomOutOutlined, ExpandOutlined,
+  CloseOutlined, SaveOutlined, SignatureOutlined,
+  SafetyCertificateOutlined, HistoryOutlined,
+  InfoCircleOutlined, OneToOneOutlined, CompressOutlined,
 } from '@ant-design/icons';
-
-// ============================================================
-// TIPTAP IMPORTS — Tiptap v3 (named exports only)
-// ============================================================
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
-import Link from '@tiptap/extension-link';
-import Image from '@tiptap/extension-image';
-import TextAlign from '@tiptap/extension-text-align';
-import Highlight from '@tiptap/extension-highlight';
-import { TextStyle } from '@tiptap/extension-text-style';
-import Color from '@tiptap/extension-color';
-import Placeholder from '@tiptap/extension-placeholder';
-import CharacterCount from '@tiptap/extension-character-count';
-import { Table, TableRow, TableCell, TableHeader } from '@tiptap/extension-table';
-import TaskList from '@tiptap/extension-task-list';
-import TaskItem from '@tiptap/extension-task-item';
-import TiptapTypography from '@tiptap/extension-typography';
-import Subscript from '@tiptap/extension-subscript';
-import Superscript from '@tiptap/extension-superscript';
-import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
-import Focus from '@tiptap/extension-focus';
-import { createLowlight, common } from 'lowlight';
-import TurndownService from 'turndown';
+import * as pdfjsLib from 'pdfjs-dist';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 
 // ============================================================
 // LOCAL IMPORTS
 // ============================================================
 import documentService from '../../services/documentService';
-import pdfService from '../../services/pdfService';
-import DocumentSignature from './DocumentSignature';
-import { useTrackChanges } from './useTrackChanges';
-import TrackChangesPanel from './TrackChangesPanel';
-import EditorRibbon from '../editor/EditorRibbon';
-import PDFEditor from '../editor/PDFEditor';
-import EditorStatusBar from '../editor/EditorStatusBar';
-import '../editor/EditorRibbon.css';
-import './DocumentEditor.css';
+import PDFFormPanel from '../documents/PDFFormPanel';
+import PDFSignaturePlacer from '../documents/PDFSignaturePlacer';
+import PageThumbnailPanel from '../documents/PageThumbnailPanel';
 
-const { Title, Text } = Typography;
-const { Option } = Select;
-const { TextArea } = Input;
-const { Panel } = Collapse;
-
-// Lowlight for code blocks
-const lowlight = createLowlight(common);
+const { Text } = Typography;
 
 // ============================================================
-// MAIN COMPONENT
+// PDF.js worker
 // ============================================================
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
-const DocumentEditor = ({
-  documentId = null,
-  initialContent = '',
-  initialPdfUrl = null,
+// ============================================================
+// URL resolver
+// ============================================================
+const API_BASE = (
+  process.env.REACT_APP_API_URL ||
+  'https://safetrackproglobal-backend-production.up.railway.app/api'
+).replace(/\/$/, '');
+
+const buildRawUrl = (documentId) => `${API_BASE}/documents/${documentId}/raw`;
+
+// ============================================================
+// VIRTUALIZATION CONFIG
+// ============================================================
+const PAGE_GAP = 24;              // px gap between pages
+const PRELOAD_RANGE = 1;          // render current ± this many pages
+
+// ============================================================
+// PDF Editor
+// ============================================================
+const PDFEditor = forwardRef(({
+  pdfUrl,
+  documentId,
+  activeTool = 'select',
   onSave,
-  onCancel,
-  onDocumentUpdate,
-  readOnly = false,
-  embedded = false,
-  companyId = null,
-  userRole = 'admin',
-  currentUser = null,
-  isPdf = false,
-  maxWords = null,
-  editingSource = 'regular',
-}) => {
+  onClose,
+}, ref) => {
   // ============================================================
-  // STATE — Document metadata
+  // STATE — PDF loading / viewport
   // ============================================================
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [documentType, setDocumentType] = useState('report');
-  const [module, setModule] = useState('general');
-  const [category, setCategory] = useState('');
-  const [tags, setTags] = useState([]);
-  const [version, setVersion] = useState(1);
-  const [status, setStatus] = useState('draft');
-  const [priority, setPriority] = useState('medium');
-  const [isConfidential, setIsConfidential] = useState(false);
-  const [expiresAt, setExpiresAt] = useState(null);
-  const [pageSize, setPageSize] = useState('a4');
-  const [orientation, setOrientation] = useState('portrait');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [pdfDoc, setPdfDoc] = useState(null);
+  const [pdfBytes, setPdfBytes] = useState(null);
+  const [numPages, setNumPages] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [scale, setScale] = useState(1.2);
+  // Layout dimensions per page (measured once, not per render)
+  const [pageDims, setPageDims] = useState([]);   // [{ width, height }]
+  // Pages whose canvas has been rendered
+  const [renderedPages, setRenderedPages] = useState(new Set());
 
   // ============================================================
-  // STATE — Editor UI
+  // STATE — annotations
   // ============================================================
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [autoSave, setAutoSave] = useState(true);
-  const [lastSaved, setLastSaved] = useState(null);
-  const [wordCount, setWordCount] = useState(0);
-  const [charCount, setCharCount] = useState(0);
-  const [readTime, setReadTime] = useState(0);
-  const [readingMode, setReadingMode] = useState(false);
-  const [focusMode, setFocusMode] = useState(false);
-  const [zoom, setZoom] = useState(100);
-  const [language, setLanguage] = useState('en');
-  // ============================================================
-  // STATE — Panels / Drawers
-  // ============================================================
-  const [outlineOpen, setOutlineOpen] = useState(false);
-  const [findOpen, setFindOpen] = useState(false);
-  const [findText, setFindText] = useState('');
-  const [replaceText, setReplaceText] = useState('');
-  const [findMatches, setFindMatches] = useState(0);
-  const [commentsOpen, setCommentsOpen] = useState(false);
-  const [versionsOpen, setVersionsOpen] = useState(false);
-  const [versions, setVersions] = useState([]);
-  const [comments, setComments] = useState([]);
-  const [commentInput, setCommentInput] = useState('');
-  const [commentLoading, setCommentLoading] = useState(false);
+  const [annotations, setAnnotations] = useState([]);
+  const [drawing, setDrawing] = useState(null);
+  const [selectedAnnId, setSelectedAnnId] = useState(null);
 
   // ============================================================
-  // STATE — AI
+  // STATE — signature / forms
   // ============================================================
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiSuggestions, setAiSuggestions] = useState([]);
-  const [showAiPanel, setShowAiPanel] = useState(false);
-
-  // ============================================================
-  // STATE — Track changes
-  // ============================================================
-  const [trackChangesEnabled, setTrackChangesEnabled] = useState(false);
-  const [trackPanelOpen, setTrackPanelOpen] = useState(false);
-
-  // ============================================================
-  // STATE — Signature & modals
-  // ============================================================
-  const [signatureModalVisible, setSignatureModalVisible] = useState(false);
-  const [linkModalVisible, setLinkModalVisible] = useState(false);
-  const [linkUrl, setLinkUrl] = useState('');
-  const [imageUploading, setImageUploading] = useState(false);
-
-  // ============================================================
-  // STATE — Ribbon / PDF mode
-  // ============================================================
-  const [ribbonTab, setRibbonTab] = useState('home');
-  const [editorMode, setEditorMode] = useState(
-    isPdf || (initialPdfUrl && initialPdfUrl.endsWith('.pdf')) ? 'pdf' : 'html'
-  );
-  const [activePdfTool, setActivePdfTool] = useState('select');
   const [signaturePlacing, setSignaturePlacing] = useState(false);
+  const [activeSignature, setActiveSignature] = useState(null);
+  const [formFields, setFormFields] = useState([]);
   const [showFormPanel, setShowFormPanel] = useState(false);
+
+  // ============================================================
+  // STATE — page thumbnails
+  // ============================================================
+  const [showThumbs, setShowThumbs] = useState(true);
+
+  // ============================================================
+  // STATE — redaction
+  // ============================================================
+  const [pendingRedactions, setPendingRedactions] = useState([]);
+  const [redactionModalOpen, setRedactionModalOpen] = useState(false);
+  const [redactionReason, setRedactionReason] = useState('');
+  const [redactionBasis, setRedactionBasis] = useState('policy');
+  const [applying, setApplying] = useState(false);
+  const [redactionHistoryOpen, setRedactionHistoryOpen] = useState(false);
+  const [redactionHistory, setRedactionHistory] = useState([]);
+
+  // ============================================================
+  // STATE — text editing
+  // ============================================================
+  const [textEditTarget, setTextEditTarget] = useState(null);
+  const [textEditValue, setTextEditValue] = useState('');
+  const [pendingTextEdits, setPendingTextEdits] = useState([]);
+
+  // ============================================================
+  // STATE — hand-pan dragging
+  // ============================================================
+  const [panning, setPanning] = useState(false);
 
   // ============================================================
   // REFS
   // ============================================================
-  const imageInputRef = useRef(null);
-  const importInputRef = useRef(null);
-  const autoSaveTimer = useRef(null);
-  const pdfEditorRef = useRef(null);
-  // Turndown for Markdown export
-  const turndown = useMemo(() => new TurndownService({ headingStyle: 'atx' }), []);
+  const containerRef = useRef(null);
+  const viewportRef = useRef(null);
+  const panStartRef = useRef(null);
+
+  const canvasRefs = useRef({});        // { [pageNum]: HTMLCanvasElement }
+  const overlayRefs = useRef({});       // { [pageNum]: SVGSVGElement }
+  const textLayerRefs = useRef({});     // { [pageNum]: HTMLDivElement }
+  const pageWrapperRefs = useRef({});   // { [pageNum]: HTMLDivElement }
 
   // ============================================================
-  // IMAGE PICKER HANDLER (must be before any use in arrays/effects)
+  // IMPERATIVE API
   // ============================================================
-  const handlePickImage = useCallback(() => {
-    imageInputRef.current?.click();
+  const zoomIn = useCallback(() => {
+    setScale((s) => Math.min(4, +(s + 0.15).toFixed(2)));
   }, []);
 
-  // ============================================================
-  // TIPTAP EDITOR
-  // ============================================================
-  const updateCounts = useCallback((ed) => {
-    if (!ed) return;
-    const text = ed.getText() || '';
-    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-    const chars = text.length;
-    setWordCount(words);
-    setCharCount(chars);
-    setReadTime(Math.ceil(words / 200));
+  const zoomOut = useCallback(() => {
+    setScale((s) => Math.max(0.25, +(s - 0.15).toFixed(2)));
   }, []);
 
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        codeBlock: false,
-        heading: { levels: [1, 2, 3, 4, 5, 6] },
-        link: false,        // ← ADD
-        underline: false,
-      }),
-      Underline,
-      Link.configure({
-        openOnClick: false,
-        autolink: true,
-        HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' },
-      }),
-      Image.configure({ inline: false, allowBase64: true }),
-      TextAlign.configure({ types: ['heading', 'paragraph'] }),
-      Highlight.configure({ multicolor: true }),
-      TextStyle,
-      Color,
-      Placeholder.configure({ placeholder: 'Start writing…  Type / for commands' }),
-      CharacterCount,
-      Table.configure({ resizable: true }),
-      TableRow,
-      TableHeader,
-      TableCell,
-      TaskList,
-      TaskItem.configure({ nested: true }),
-      TiptapTypography,
-      Subscript,
-      Superscript,
-      CodeBlockLowlight.configure({ lowlight }),
-      Focus.configure({ className: 'has-focus', mode: 'shallowest' }),
-    ],
-    content: initialContent || '<p></p>',
-    editable: !readOnly,
-    onUpdate: ({ editor }) => {
-      updateCounts(editor);
-    },
-  });
+  const actualSize = useCallback(() => {
+    setScale(1.0);
+    message.success('Zoom reset to 100%');
+  }, []);
 
-  // ============================================================
-  // TRACK CHANGES HOOK
-  // ============================================================
-  const {
-    pendingChanges,
-    currentHunks,
-    hasUnsavedChange,
-    loading: tcLoading,
-    saveCurrentChange,
-    acceptChange,
-    rejectChange,
-    deleteChange,
-  } = useTrackChanges(editor, documentId, trackChangesEnabled);
-
-  // ============================================================
-  // LOAD DOCUMENT
-  // ============================================================
-  const loadDocument = useCallback(async () => {
-    if (!documentId) return;
-    setLoading(true);
+  const fitWidth = useCallback(async () => {
+    if (!viewportRef.current || !pdfDoc) return;
     try {
-      const data = await documentService.getDocument(documentId);
-      const html = data.content || data.html_content || '<p></p>';
-      setTitle(data.title || '');
-      setDescription(data.description || '');
-      setDocumentType(data.document_type || 'report');
-      setModule(data.module || 'general');
-      setCategory(data.category || '');
-      setTags(Array.isArray(data.tags) ? data.tags : []);
-      setVersion(data.version || 1);
-      setStatus(data.status || 'draft');
-      setPriority(data.priority || 'medium');
-      setIsConfidential(data.is_confidential || false);
-      setExpiresAt(data.expires_at || null);
-
-      if (editor && !editor.isDestroyed) {
-        editor.commands.setContent(html, false);
-        updateCounts(editor);
-      }
+      const page = await pdfDoc.getPage(currentPage);
+      const baseViewport = page.getViewport({ scale: 1 });
+      const containerWidth = viewportRef.current.clientWidth - 48;
+      const newScale = containerWidth / baseViewport.width;
+      setScale(+Math.max(0.25, Math.min(4, newScale)).toFixed(2));
     } catch (err) {
-      console.error('Load document failed:', err);
-      message.error('Failed to load document');
-    } finally {
+      console.error('Fit width failed:', err);
+    }
+  }, [pdfDoc, currentPage]);
+
+  const fitPage = useCallback(async () => {
+    if (!viewportRef.current || !pdfDoc) return;
+    try {
+      const page = await pdfDoc.getPage(currentPage);
+      const baseViewport = page.getViewport({ scale: 1 });
+      const containerWidth = viewportRef.current.clientWidth - 48;
+      const containerHeight = viewportRef.current.clientHeight - 48;
+      const scaleByW = containerWidth / baseViewport.width;
+      const scaleByH = containerHeight / baseViewport.height;
+      const newScale = Math.min(scaleByW, scaleByH);
+      setScale(+Math.max(0.25, Math.min(4, newScale)).toFixed(2));
+    } catch (err) {
+      console.error('Fit page failed:', err);
+    }
+  }, [pdfDoc, currentPage]);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      zoomIn,
+      zoomOut,
+      actualSize,
+      fitWidth,
+      fitPage,
+      getScale: () => scale,
+      getCurrentPage: () => currentPage,
+      getNumPages: () => numPages,
+      setCurrentPage,
+    }),
+    [zoomIn, zoomOut, actualSize, fitWidth, fitPage, scale, currentPage, numPages]
+  );
+
+  // ============================================================
+  // LOAD PDF
+  // ============================================================
+  const loadPDF = useCallback(async () => {
+    if (!documentId && !pdfUrl) return;
+
+    setLoading(true);
+    setError(null);
+    setAnnotations([]);
+    setPendingRedactions([]);
+    setPendingTextEdits([]);
+    setRenderedPages(new Set());
+
+    const absoluteUrl = documentId ? buildRawUrl(documentId) : pdfUrl;
+    console.log('🔍 [PDFEditor] Loading:', absoluteUrl);
+
+    try {
+      const token =
+        localStorage.getItem('token') ||
+        localStorage.getItem('access_token') ||
+        '';
+
+      const res = await fetch(absoluteUrl, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} — ${res.statusText}`);
+      }
+
+      const buffer = await res.arrayBuffer();
+
+      const header = new TextDecoder().decode(
+        new Uint8Array(buffer).slice(0, 5)
+      );
+      if (header !== '%PDF-') {
+        const preview = new TextDecoder().decode(
+          new Uint8Array(buffer).slice(0, 200)
+        );
+        throw new Error(
+          `Server did not return a PDF. Response starts with: "${preview.slice(0, 80)}..."`
+        );
+      }
+
+      setPdfBytes(buffer);
+
+      const doc = await pdfjsLib.getDocument({ data: buffer }).promise;
+      setPdfDoc(doc);
+      setNumPages(doc.numPages);
+      setCurrentPage(1);
+      setLoading(false);
+    } catch (err) {
+      console.error('❌ [PDFEditor] Load failed:', err);
+      setError(err.message || 'Failed to load PDF');
       setLoading(false);
     }
-  }, [documentId, editor, updateCounts]);
+  }, [documentId, pdfUrl]);
 
   useEffect(() => {
-    if (documentId) loadDocument();
-  }, [documentId, loadDocument]);
+    loadPDF();
+  }, [loadPDF]);
 
   // ============================================================
-  // LOAD VERSIONS / COMMENTS
+  // RELOAD LISTENER
   // ============================================================
   useEffect(() => {
-    if (versionsOpen && documentId) {
-      documentService
-        .getVersions(documentId)
-        .then((d) => setVersions(d.versions || d.data || []))
-        .catch(() => {});
-    }
-  }, [versionsOpen, documentId]);
+    const reload = () => loadPDF();
+    window.addEventListener('pdf-reload', reload);
+    return () => window.removeEventListener('pdf-reload', reload);
+  }, [loadPDF]);
 
+  // ============================================================
+  // LOAD FORM FIELDS
+  // ============================================================
   useEffect(() => {
-    if (commentsOpen && documentId) {
-      documentService
-        .getComments(documentId)
-        .then((d) => setComments(d.comments || d.data || []))
-        .catch(() => {});
-    }
-  }, [commentsOpen, documentId]);
+    if (!documentId) return;
+    (async () => {
+      try {
+        const data = await documentService.getPdfFormFields(documentId);
+        setFormFields(data.fields || []);
+        setShowFormPanel((data.fields || []).length > 0);
+      } catch (err) {
+        console.warn('PDF form fields unavailable:', err?.message);
+      }
+    })();
+  }, [documentId]);
 
   // ============================================================
-  // VALIDATION
-  // ============================================================
-  const validateTitle = (v) => {
-    if (!v || v.trim().length < 3) return 'Title must be at least 3 characters';
-    if (v.length > 255) return 'Title cannot exceed 255 characters';
-    return null;
-  };
+// AUTO-FIT-WIDTH on first load
+// ============================================================
+useEffect(() => {
+  if (!pdfDoc || !viewportRef.current) return;
+  let cancelled = false;
 
-  const validateContent = (html) => {
-    const txt = (html || '').replace(/<[^>]*>/g, '').trim();
-    if (!txt) return 'Content cannot be empty';
-    if (txt.length < 10) return 'Content must be at least 10 characters';
-    return null;
-  };
-
-  // ============================================================
-  // SAVE / AUTOSAVE
-  // ============================================================
-  const handleSave = async () => {
-    const tErr = validateTitle(title);
-    if (tErr) return message.error(tErr);
-    const html = editor?.getHTML() || '';
-    const cErr = validateContent(html);
-    if (cErr) return message.error(cErr);
-
-    if (maxWords && wordCount > maxWords) {
-      return message.error(`Word limit exceeded (${wordCount}/${maxWords})`);
-    }
-
-    setSaving(true);
+  (async () => {
     try {
-      if (trackChangesEnabled && hasUnsavedChange) {
-        await saveCurrentChange();
-      }
-
-      const payload = {
-        title: title.trim(),
-        description: description.trim(),
-        content: html,
-        document_type: documentType,
-        module,
-        category,
-        tags,
-        priority,
-        is_confidential: isConfidential,
-        expires_at: expiresAt,
-        company_id: companyId,
-        version: documentId ? version + 1 : 1,
-        page_size: pageSize,
-        orientation,
-        editing_source: editingSource,
-      };
-
-      let result;
-      if (documentId) {
-        result = await documentService.updateDocument(documentId, payload);
-        message.success('Document updated');
-      } else {
-        result = await documentService.createDocument(payload);
-        message.success('Document created');
-      }
-
-      setVersion(documentId ? version + 1 : 1);
-      setLastSaved(new Date());
-      onSave?.(result);
-      onDocumentUpdate?.(result);
+      const page = await pdfDoc.getPage(1);
+      if (cancelled || !viewportRef.current) return;
+      const baseViewport = page.getViewport({ scale: 1 });
+      const containerWidth = viewportRef.current.clientWidth - 48;
+      const fitScale = containerWidth / baseViewport.width;
+      const clampedScale = Math.max(0.5, Math.min(2, fitScale));
+      setScale(+clampedScale.toFixed(2));
     } catch (err) {
-      console.error('Save failed:', err);
-      message.error(err.message || 'Failed to save');
-    } finally {
-      setSaving(false);
+      console.error('Auto-fit failed:', err);
     }
-  };
+  })();
 
-  const handleSaveAsNew = async () => {
-    const tErr = validateTitle(title);
-    if (tErr) return message.error(tErr);
-    setSaving(true);
-    try {
-      const html = editor?.getHTML() || '';
-      const result = await documentService.createDocument({
-        title: `${title} (Copy)`,
-        description,
-        content: html,
-        document_type: documentType,
-        module,
-        category,
-        tags,
-        priority,
-        is_confidential: isConfidential,
-        company_id: companyId,
-        page_size: pageSize,
-        orientation,
-        editing_source: editingSource,
+  return () => { cancelled = true; };
+}, [pdfDoc]);
+
+  // ============================================================
+  // MEASURE ALL PAGE DIMENSIONS — cheap, no canvas rendering
+  // ============================================================
+  useEffect(() => {
+    if (!pdfDoc) return;
+
+    let cancelled = false;
+
+    (async () => {
+      const dims = [];
+      for (let i = 1; i <= pdfDoc.numPages; i++) {
+        if (cancelled) return;
+        const page = await pdfDoc.getPage(i);
+        const viewport = page.getViewport({ scale });
+        dims.push({
+          width: Math.floor(viewport.width),
+          height: Math.floor(viewport.height),
+        });
+      }
+      if (!cancelled) {
+        setPageDims(dims);
+        // Reset rendered pages on scale change
+        setRenderedPages(new Set());
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [pdfDoc, scale]);
+
+  // ============================================================
+  // SCROLL HANDLER — determines current page + which pages to render
+  // ============================================================
+  useEffect(() => {
+    const el = viewportRef.current;
+    if (!el || pageDims.length === 0) return;
+
+    const onScroll = () => {
+      const scrollTop = el.scrollTop;
+      const viewportHeight = el.clientHeight;
+
+      let cumulative = 0;
+      let visibleStart = 1;
+      let visibleEnd = 1;
+
+      for (let i = 0; i < pageDims.length; i++) {
+        const top = cumulative;
+        const bottom = top + pageDims[i].height + PAGE_GAP;
+        if (bottom > scrollTop && top < scrollTop + viewportHeight) {
+          if (visibleStart === 1 && i > 0) visibleStart = i + 1;
+          visibleEnd = i + 1;
+        }
+        cumulative = bottom;
+      }
+
+      // Update current page
+      if (currentPage < visibleStart || currentPage > visibleEnd) {
+        setCurrentPage(visibleStart);
+      }
+
+      // Preload range
+      const toRender = [];
+      for (
+        let i = Math.max(1, visibleStart - PRELOAD_RANGE);
+        i <= Math.min(numPages, visibleEnd + PRELOAD_RANGE);
+        i++
+      ) {
+        toRender.push(i);
+      }
+
+      setRenderedPages((prev) => {
+        const next = new Set(prev);
+        let changed = false;
+        toRender.forEach((p) => {
+          if (!next.has(p)) {
+            next.add(p);
+            changed = true;
+          }
+        });
+        return changed ? next : prev;
       });
-      message.success('Saved as new');
-      onSave?.(result);
-      onDocumentUpdate?.(result);
-    } catch (err) {
-      message.error(err.message || 'Failed to save copy');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleAutoSave = useCallback(async () => {
-    if (!autoSave || !documentId || !title.trim()) return;
-    const html = editor?.getHTML() || '';
-    if (validateContent(html)) return;
-    try {
-      await documentService.autoSaveDocument(documentId, {
-        content: html,
-        title,
-        description,
-      });
-      setLastSaved(new Date());
-    } catch (err) {
-      console.error('Autosave failed:', err);
-    }
-  }, [autoSave, documentId, title, description, editor]);
-
-  useEffect(() => {
-    if (!autoSave) return;
-    autoSaveTimer.current = setInterval(handleAutoSave, 30000);
-    return () => clearInterval(autoSaveTimer.current);
-  }, [autoSave, handleAutoSave]);
-
-  // ============================================================
-  // TRACK CHANGES TOGGLE
-  // ============================================================
-  const toggleTrackChanges = async () => {
-    if (trackChangesEnabled) {
-      if (hasUnsavedChange) {
-        await saveCurrentChange();
-      }
-      setTrackChangesEnabled(false);
-      message.info('Track changes OFF');
-    } else {
-      setTrackChangesEnabled(true);
-      message.info('Track changes ON — edits will be recorded');
-    }
-  };
-
-  // ============================================================
-  // KEYBOARD SHORTCUTS
-  // ============================================================
-  useEffect(() => {
-    const h = (e) => {
-      if (e.ctrlKey && e.key.toLowerCase() === 's') {
-        e.preventDefault();
-        handleSave();
-      }
-      if (e.ctrlKey && e.key.toLowerCase() === 'f') {
-        e.preventDefault();
-        setFindOpen(true);
-      }
-      if (e.ctrlKey && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        setLinkModalVisible(true);
-      }
-      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 't') {
-        e.preventDefault();
-        toggleTrackChanges();
-      }
-      if (e.key === 'Escape') {
-        if (findOpen) setFindOpen(false);
-      }
     };
-    document.addEventListener('keydown', h);
-    return () => document.removeEventListener('keydown', h);
-    
-  }, [findOpen]);
+
+    el.addEventListener('scroll', onScroll, { passive: true });
+    onScroll(); // Initial pass
+    return () => el.removeEventListener('scroll', onScroll);
+  }, [pageDims, numPages, currentPage]);
 
   // ============================================================
-  // IMAGE / FILE UPLOAD
+  // RENDER A SINGLE PAGE (lazy) — called when a page becomes visible
   // ============================================================
-  const handleImageSelected = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      message.error('Only images allowed');
+  const renderPage = useCallback(async (pageNum) => {
+    if (!pdfDoc) return;
+    const canvas = canvasRefs.current[pageNum];
+    const textLayerDiv = textLayerRefs.current[pageNum];
+    if (!canvas) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const page = await pdfDoc.getPage(pageNum);
+    const viewport = page.getViewport({ scale });
+
+    const logicalWidth = Math.floor(viewport.width);
+    const logicalHeight = Math.floor(viewport.height);
+
+    // Skip if already rendered at this size
+    if (
+      canvas.width === Math.floor(logicalWidth * dpr) &&
+      canvas.height === Math.floor(logicalHeight * dpr) &&
+      canvas.dataset.rendered === 'true'
+    ) {
       return;
     }
-    setImageUploading(true);
-    try {
-      const result = await documentService.uploadImage(file);
-      const url = result?.url || result?.data?.url;
-      if (url && editor) editor.chain().focus().setImage({ src: url }).run();
-      message.success('Image inserted');
-    } catch (err) {
-      console.error(err);
-      message.error('Image upload failed');
-    } finally {
-      setImageUploading(false);
-      e.target.value = '';
-    }
-  };
 
-  const handleImportFile = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const ext = file.name.split('.').pop().toLowerCase();
-    try {
-      const text = await file.text();
-      let html = '';
-      if (ext === 'html' || ext === 'htm') {
-        html = text;
-      } else if (ext === 'md' || ext === 'markdown') {
-        html = text
-          .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-          .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-          .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\*(.*?)\*/g, '<em>$1</em>')
-          .replace(/^- (.*$)/gim, '<li>$1</li>')
-          .replace(/\n{2,}/g, '</p><p>')
-          .replace(/^/, '<p>')
-          .replace(/$/, '</p>');
-      } else {
-        html = `<p>${text.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}</p>`;
+    canvas.width = Math.floor(logicalWidth * dpr);
+    canvas.height = Math.floor(logicalHeight * dpr);
+    canvas.style.width = `${logicalWidth}px`;
+    canvas.style.height = `${logicalHeight}px`;
+    canvas.dataset.rendered = 'true';
+
+    const ctx = canvas.getContext('2d');
+    await page.render({
+      canvasContext: ctx,
+      viewport,
+      transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null,
+    }).promise;
+
+    // Text layer
+    if (textLayerDiv) {
+      try {
+        const textContent = await page.getTextContent();
+        textLayerDiv.innerHTML = '';
+        textLayerDiv.style.width = `${logicalWidth}px`;
+        textLayerDiv.style.height = `${logicalHeight}px`;
+
+        const textLayer = new pdfjsLib.TextLayer({
+          textContentSource: textContent,
+          container: textLayerDiv,
+          viewport,
+        });
+        await textLayer.render();
+
+        textLayerDiv.querySelectorAll('span').forEach((span) => {
+          span.style.cursor = 'text';
+          span.addEventListener('click', (e) => {
+            e.stopPropagation();
+            handleTextClick(pageNum, span, e);
+          });
+        });
+      } catch (err) {
+        if (err?.name !== 'RenderingCancelledException') {
+          console.error(`Text layer error on page ${pageNum}:`, err);
+        }
       }
-      editor?.commands.setContent(html, false);
-      message.success('File imported');
-    } catch (err) {
-      console.error(err);
-      message.error('Import failed');
-    } finally {
-      e.target.value = '';
     }
-  };
+  }, [pdfDoc, scale]);
 
   // ============================================================
-  // LINK
+  // TRIGGER RENDER FOR PAGES IN renderedPages
   // ============================================================
-  const handleInsertLink = () => {
-    if (!editor || !linkUrl.trim()) return;
-    editor.chain().focus().extendMarkRange('link').setLink({ href: linkUrl }).run();
-    setLinkModalVisible(false);
-    setLinkUrl('');
-  };
-
-  // ============================================================
-  // FIND & REPLACE
-  // ============================================================
-  const runFind = () => {
-    if (!editor || !findText) return;
-    const text = editor.getText();
-    const regex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-    const matches = text.match(regex) || [];
-    setFindMatches(matches.length);
-    message.info(`${matches.length} matches found`);
-  };
-
-  const replaceAll = () => {
-    if (!editor || !findText) return;
-    const html = editor.getHTML();
-    const regex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-    const updated = html.replace(regex, replaceText);
-    editor.commands.setContent(updated, false);
-    message.success('Replaced all matches');
-    setFindOpen(false);
-  };
-
-  // ============================================================
-  // OUTLINE
-  // ============================================================
-  const outline = useMemo(() => {
-    if (!editor) return [];
-    const headings = [];
-    editor.state.doc.descendants((node, pos) => {
-      if (node.type.name === 'heading') {
-        headings.push({ level: node.attrs.level, text: node.textContent, pos });
-      }
+  useEffect(() => {
+    renderedPages.forEach((pageNum) => {
+      renderPage(pageNum);
     });
-    return headings;
-    
-  }, [editor, editor?.state?.doc]);
+  }, [renderedPages, renderPage]);
 
-  const jumpToHeading = (pos) => {
-    if (!editor) return;
-    editor.chain().focus().setTextSelection(pos).run();
-    editor.commands.scrollIntoView();
-    setOutlineOpen(false);
+  // ============================================================
+  // CLEAR DRAWING WHEN TOOL CHANGES
+  // ============================================================
+  useEffect(() => {
+    setDrawing(null);
+  }, [activeTool]);
+
+  // ============================================================
+  // TEXT EDIT CLICK
+  // ============================================================
+  const handleTextClick = (pageNumber, span, event) => {
+    if (activeTool !== 'text-edit') return;
+    const textLayer = textLayerRefs.current[pageNumber];
+    if (!textLayer) return;
+    const layerRect = textLayer.getBoundingClientRect();
+    const spanRect = span.getBoundingClientRect();
+
+    setTextEditTarget({
+      page: pageNumber,
+      x: spanRect.left - layerRect.left,
+      y: spanRect.top - layerRect.top,
+      w: spanRect.width,
+      h: spanRect.height,
+      original: span.textContent,
+    });
+    setTextEditValue(span.textContent);
   };
 
   // ============================================================
-  // AI
+  // ANNOTATION DRAWING — per page
   // ============================================================
-  const getPlainText = () => editor?.getText() || '';
+  const handleMouseDownForPage = (pageNum) => (e) => {
+    if (activeTool === 'hand' && viewportRef.current) {
+      setPanning(true);
+      panStartRef.current = {
+        x: e.clientX,
+        y: e.clientY,
+        sl: viewportRef.current.scrollLeft,
+        st: viewportRef.current.scrollTop,
+      };
+      e.preventDefault();
+      return;
+    }
 
-  const handleAIEnhance = async () => {
-    const txt = getPlainText();
-    if (txt.length < 100) return message.warning('Need at least 100 chars');
-    setAiLoading(true);
-    try {
-      const enhanced = await pdfService.enhanceDocumentContent({
-        content: txt,
-        style: 'professional',
-        enhance_level: 'moderate',
+    const overlay = overlayRefs.current[pageNum];
+    if (!overlay) return;
+    if (activeTool === 'select' || activeTool === 'text-edit') return;
+
+    const rect = overlay.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    if (activeTool === 'text' || activeTool === 'note') {
+      const text = window.prompt(
+        activeTool === 'note' ? 'Note text:' : 'Enter text:'
+      );
+      if (!text) return;
+      addAnnotation({
+        type: activeTool,
+        page: pageNum,
+        geometry: { x, y, w: 200, h: 40 },
+        text,
+        color: activeTool === 'note' ? '#fadb14' : '#1890ff',
       });
-      editor.commands.setContent(`<p>${enhanced}</p>`, false);
-      message.success('Enhanced');
-    } catch {
-      message.error('AI enhance failed');
-    } finally {
-      setAiLoading(false);
+      return;
     }
-  };
 
-  const handleAISummarize = async () => {
-    const txt = getPlainText();
-    if (txt.length < 200) return message.warning('Need at least 200 chars');
-    setAiLoading(true);
-    try {
-      const summary = await pdfService.summarizeDocument({ content: txt, length: 'medium' });
-      Modal.info({ title: 'AI Summary', content: summary, width: 600 });
-    } catch {
-      message.error('AI summarize failed');
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
-  const handleAISuggestion = async () => {
-    const txt = getPlainText();
-    if (txt.length < 50) return message.warning('Need at least 50 chars');
-    setAiLoading(true);
-    try {
-      const suggestions = await pdfService.getAIEditingSuggestions({
-        content: txt,
-        context: title,
-        document_type: documentType,
+    if (activeTool === 'stamp') {
+      const label = window.prompt('Stamp text (e.g. APPROVED, DRAFT):', 'APPROVED');
+      if (!label) return;
+      addAnnotation({
+        type: 'stamp',
+        page: pageNum,
+        geometry: { x, y, w: 180, h: 60 },
+        text: label.toUpperCase(),
+        color: '#fa541c',
       });
-      setAiSuggestions(suggestions || []);
-      setShowAiPanel(true);
-    } catch {
-      message.error('AI suggestions failed');
-    } finally {
-      setAiLoading(false);
+      return;
     }
+
+    setDrawing({
+      type: activeTool,
+      page: pageNum,
+      startX: x,
+      startY: y,
+      currentX: x,
+      currentY: y,
+    });
   };
 
-  const applyAISuggestion = (sug) => {
-    if (!editor) return;
-    if (sug.action === 'replace' || sug.action === 'rewrite') {
-      editor.commands.setContent(sug.content, false);
-    } else if (sug.action === 'insert') {
-      editor.commands.insertContent(`<p>${sug.content}</p>`);
+  const handleMouseMoveForPage = (pageNum) => (e) => {
+    if (panning && viewportRef.current && panStartRef.current) {
+      const dx = e.clientX - panStartRef.current.x;
+      const dy = e.clientY - panStartRef.current.y;
+      viewportRef.current.scrollLeft = panStartRef.current.sl - dx;
+      viewportRef.current.scrollTop = panStartRef.current.st - dy;
+      return;
     }
-    setShowAiPanel(false);
-    message.success('AI suggestion applied');
+
+    if (!drawing) return;
+    const overlay = overlayRefs.current[pageNum];
+    if (!overlay) return;
+    const rect = overlay.getBoundingClientRect();
+    setDrawing({
+      ...drawing,
+      currentX: e.clientX - rect.left,
+      currentY: e.clientY - rect.top,
+    });
+  };
+
+  const handleMouseUp = useCallback(() => {
+    if (panning) {
+      setPanning(false);
+      panStartRef.current = null;
+      return;
+    }
+
+    if (!drawing) return;
+
+    const x = Math.min(drawing.startX, drawing.currentX);
+    const y = Math.min(drawing.startY, drawing.currentY);
+    const w = Math.abs(drawing.currentX - drawing.startX);
+    const h = Math.abs(drawing.currentY - drawing.startY);
+
+    if (w < 5 || h < 5) {
+      setDrawing(null);
+      return;
+    }
+
+    if (drawing.type === 'redact') {
+      setPendingRedactions((prev) => [
+        ...prev,
+        { page: drawing.page, x, y, w, h },
+      ]);
+      setDrawing(null);
+      return;
+    }
+
+    addAnnotation({
+      type: drawing.type,
+      page: drawing.page,
+      geometry: { x, y, w, h },
+      color:
+        drawing.type === 'highlight' ? '#ffec3d' :
+        drawing.type === 'rect' ? '#ff4d4f' :
+        drawing.type === 'ellipse' ? '#52c41a' :
+        '#1890ff',
+    });
+    setDrawing(null);
+  }, [panning, drawing]);
+
+  useEffect(() => {
+    if (!drawing && !panning) return;
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => window.removeEventListener('mouseup', handleMouseUp);
+  }, [drawing, panning, handleMouseUp]);
+
+  const addAnnotation = (ann) => {
+    setAnnotations((prev) => [
+      ...prev,
+      { ...ann, id: `ann_${Date.now()}_${Math.random().toString(36).slice(2, 8)}` },
+    ]);
+  };
+
+  const deleteAnnotation = (id) => {
+    setAnnotations((prev) => prev.filter((a) => a.id !== id));
+    setSelectedAnnId(null);
   };
 
   // ============================================================
-  // EXPORT
+  // SAVE ANNOTATED PDF
   // ============================================================
-  const downloadBlob = (blob, filename) => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleExportPDF = async () => {
+  const handleSave = async () => {
+    if (!pdfBytes) return;
     try {
-      const html = editor?.getHTML() || '';
-      const blob = await pdfService.exportToPDF({
-        content: html,
-        title,
-        pageSize,
-        orientation,
+      message.loading({ content: 'Preparing PDF…', key: 'save' });
+
+      const pdfDocLib = await PDFDocument.load(pdfBytes);
+      const pages = pdfDocLib.getPages();
+      const font = await pdfDocLib.embedFont(StandardFonts.Helvetica);
+
+      const hexToRgb = (hex) => {
+        const h = hex.replace('#', '');
+        return {
+          r: parseInt(h.substring(0, 2), 16) / 255,
+          g: parseInt(h.substring(2, 4), 16) / 255,
+          b: parseInt(h.substring(4, 6), 16) / 255,
+        };
+      };
+
+      const pxToPt = 72 / (96 * scale);
+
+      annotations.forEach((ann) => {
+        const page = pages[ann.page - 1];
+        if (!page) return;
+        const { height: pageH } = page.getSize();
+
+        const x = ann.geometry.x * pxToPt;
+        const yTop = ann.geometry.y * pxToPt;
+        const w = ann.geometry.w * pxToPt;
+        const h = ann.geometry.h * pxToPt;
+        const y = pageH - yTop - h;
+
+        const color = hexToRgb(ann.color);
+
+        switch (ann.type) {
+          case 'highlight':
+            page.drawRectangle({
+              x, y, width: w, height: h,
+              color: rgb(color.r, color.g, color.b),
+              opacity: 0.35,
+            });
+            break;
+          case 'rect':
+            page.drawRectangle({
+              x, y, width: w, height: h,
+              borderColor: rgb(color.r, color.g, color.b),
+              borderWidth: 2,
+            });
+            break;
+          case 'ellipse':
+            page.drawEllipse({
+              x: x + w / 2,
+              y: y + h / 2,
+              xScale: w / 2,
+              yScale: h / 2,
+              borderColor: rgb(color.r, color.g, color.b),
+              borderWidth: 2,
+            });
+            break;
+          case 'line':
+            page.drawLine({
+              start: { x, y: pageH - yTop },
+              end: { x: x + w, y: pageH - (yTop + h) },
+              color: rgb(color.r, color.g, color.b),
+              thickness: 2,
+            });
+            break;
+          case 'text':
+          case 'note':
+          case 'stamp':
+            page.drawRectangle({
+              x, y, width: w, height: h,
+              color: rgb(color.r, color.g, color.b),
+              opacity: ann.type === 'stamp' ? 0.15 : 0.2,
+              borderColor: ann.type === 'stamp'
+                ? rgb(color.r, color.g, color.b)
+                : undefined,
+              borderWidth: ann.type === 'stamp' ? 2 : 0,
+            });
+            page.drawText(ann.text || '', {
+              x: x + 4,
+              y: y + h - 14,
+              size: ann.type === 'stamp' ? 16 : 11,
+              font,
+              color: ann.type === 'stamp'
+                ? rgb(color.r, color.g, color.b)
+                : rgb(0, 0, 0),
+              maxWidth: w - 8,
+            });
+            break;
+          default:
+            break;
+        }
       });
-      downloadBlob(blob, `${title || 'document'}.pdf`);
-      message.success('Exported PDF');
-    } catch {
-      message.error('PDF export failed');
-    }
-  };
 
-  const handleExportWord = async () => {
-    try {
-      const html = editor?.getHTML() || '';
-      const blob = await pdfService.exportToWord({ content: html, title });
-      downloadBlob(blob, `${title || 'document'}.docx`);
-      message.success('Exported Word');
-    } catch {
-      message.error('Word export failed');
-    }
-  };
+      const bytes = await pdfDocLib.save();
+      const blob = new Blob([bytes], { type: 'application/pdf' });
 
-  const handleExportHTML = () => {
-    const html = editor?.getHTML() || '';
-    downloadBlob(new Blob([html], { type: 'text/html' }), `${title || 'document'}.html`);
-    message.success('Exported HTML');
-  };
-
-  const handleExportMarkdown = () => {
-    const html = editor?.getHTML() || '';
-    const md = turndown.turndown(html);
-    downloadBlob(new Blob([md], { type: 'text/markdown' }), `${title || 'document'}.md`);
-    message.success('Exported Markdown');
-  };
-
-  // ============================================================
-  // COMMENTS
-  // ============================================================
-  const handleAddComment = async () => {
-    if (!commentInput.trim() || !documentId) return;
-    setCommentLoading(true);
-    try {
-      await documentService.addComment(documentId, commentInput);
-      setCommentInput('');
-      const d = await documentService.getComments(documentId);
-      setComments(d.comments || d.data || []);
-      message.success('Comment added');
-    } catch {
-      message.error('Failed to add comment');
-    } finally {
-      setCommentLoading(false);
+      message.success({ content: 'PDF ready', key: 'save' });
+      if (onSave) onSave(blob);
+    } catch (err) {
+      console.error('Save failed:', err);
+      message.error({ content: 'Failed to save PDF', key: 'save' });
     }
   };
 
   // ============================================================
-  // RENDER — RIBBON
+  // RENDER ANNOTATION SVG
   // ============================================================
-  const renderRibbon = () => (
-    <EditorRibbon
-      mode={editorMode}
-      activeTab={ribbonTab}
-      onTabChange={setRibbonTab}
-      documentTitle={title}
-      canUndo={editor?.can().undo()}
-      canRedo={editor?.can().redo()}
-      activeFormats={{
-        bold: editor?.isActive('bold'),
-        italic: editor?.isActive('italic'),
-        underline: editor?.isActive('underline'),
-        strike: editor?.isActive('strike'),
-        highlight: editor?.isActive('highlight'),
-      }}
+  const renderAnnotationSvg = (ann) => {
+    const { x, y, w, h } = ann.geometry;
+    const isSelected = selectedAnnId === ann.id;
 
-      // ============================================================
-      // ✅ NEW — Hand / Select mode (PDF-XChange "Edit" group)
-      // ============================================================
-      activeTool={activePdfTool}
-      onToolChange={(tool) => setActivePdfTool(tool)}
+    const commonProps = {
+      onClick: (e) => {
+        e.stopPropagation();
+        setSelectedAnnId(ann.id);
+      },
+      style: { cursor: 'pointer' },
+    };
 
-      // ============================================================
-      // ✅ NEW — Search group (opens Find & Replace modal)
-      // ============================================================
-      onFindReplace={() => setFindOpen(true)}
+    let shape = null;
+    if (ann.type === 'highlight') {
+      shape = <rect x={x} y={y} width={w} height={h} fill={ann.color} opacity={0.35} />;
+    } else if (ann.type === 'rect') {
+      shape = <rect x={x} y={y} width={w} height={h} fill="transparent" stroke={ann.color} strokeWidth={2} />;
+    } else if (ann.type === 'ellipse') {
+      shape = (
+        <ellipse cx={x + w / 2} cy={y + h / 2} rx={w / 2} ry={h / 2} fill="transparent" stroke={ann.color} strokeWidth={2} />
+      );
+    } else if (ann.type === 'line') {
+      shape = <line x1={x} y1={y} x2={x + w} y2={y + h} stroke={ann.color} strokeWidth={2} />;
+    } else if (ann.type === 'text' || ann.type === 'note') {
+      shape = (
+        <>
+          <rect x={x} y={y} width={w} height={h} fill={ann.color} opacity={0.2} rx={4} />
+          <text x={x + 6} y={y + 18} fontSize={12} fill="#000">{ann.text || ''}</text>
+        </>
+      );
+    } else if (ann.type === 'stamp') {
+      shape = (
+        <>
+          <rect x={x} y={y} width={w} height={h} fill="transparent" stroke={ann.color} strokeWidth={3} rx={4} />
+          <text x={x + w / 2} y={y + h / 2 + 8} textAnchor="middle" fontSize={20} fontWeight="bold" fill={ann.color}>
+            {ann.text}
+          </text>
+        </>
+      );
+    }
 
-      // File
-      onNew={() => {
-        setTitle('');
-        editor?.commands.setContent('<p></p>');
-      }}
-      onOpen={() => importInputRef.current?.click()}
-      onSave={handleSave}
-      onSaveAs={handleSaveAsNew}
-      onExport={(fmt) => {
-        if (fmt === 'pdf') handleExportPDF();
-        else if (fmt === 'docx') handleExportWord();
-        else if (fmt === 'md') handleExportMarkdown();
-        else if (fmt === 'html') handleExportHTML();
-      }}
-      onPrint={() => window.print()}
-
-      // Edit
-      onUndo={() => editor?.chain().focus().undo().run()}
-      onRedo={() => editor?.chain().focus().redo().run()}
-      onCut={() => document.execCommand('cut')}
-      onCopy={() => document.execCommand('copy')}
-      onPaste={() => {}}
-
-      // Format
-      onBold={() => editor?.chain().focus().toggleBold().run()}
-      onItalic={() => editor?.chain().focus().toggleItalic().run()}
-      onUnderline={() => editor?.chain().focus().toggleUnderline().run()}
-      onStrike={() => editor?.chain().focus().toggleStrike().run()}
-      onHighlight={() => editor?.chain().focus().toggleHighlight().run()}
-      onAlignLeft={() => editor?.chain().focus().setTextAlign('left').run()}
-      onAlignCenter={() => editor?.chain().focus().setTextAlign('center').run()}
-      onAlignRight={() => editor?.chain().focus().setTextAlign('right').run()}
-      onOrderedList={() => editor?.chain().focus().toggleOrderedList().run()}
-      onUnorderedList={() => editor?.chain().focus().toggleBulletList().run()}
-      onLink={() => setLinkModalVisible(true)}
-      onImage={() => imageInputRef.current?.click()}
-      onTable={() =>
-        editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
-      }
-
-      // PDF annotation
-      onTextAnnotation={() => setActivePdfTool('text')}
-      onRectAnnotation={() => setActivePdfTool('rect')}
-      onEllipseAnnotation={() => setActivePdfTool('ellipse')}
-      onLineAnnotation={() => setActivePdfTool('line')}
-      onStickyNote={() => setActivePdfTool('note')}
-      onSignature={() => setSignatureModalVisible(true)}
-      onStamp={() => message.info('Stamp tool coming soon')}
-      onPlaceSignature={() => setSignaturePlacing(true)}
-      onOpenFormPanel={() => setShowFormPanel(true)}
-
-      // Pages (PDF) — events delegated to thumbnail panel
-      onInsertPage={() => window.dispatchEvent(new CustomEvent('pdf-page-insert'))}
-      onDeletePage={() => window.dispatchEvent(new CustomEvent('pdf-page-delete'))}
-      onRotateLeft={() =>
-        window.dispatchEvent(new CustomEvent('pdf-page-rotate', { detail: { degrees: -90 } }))
-      }
-      onRotateRight={() =>
-        window.dispatchEvent(new CustomEvent('pdf-page-rotate', { detail: { degrees: 90 } }))
-      }
-
-      // View
-      onToggleReading={() => setReadingMode(!readingMode)}
-      onToggleFocus={() => setFocusMode(!focusMode)}
-      readingMode={readingMode}
-      focusMode={focusMode}
-      onToggleTrack={toggleTrackChanges}
-      onOpenTrackPanel={() => setTrackPanelOpen(true)}
-      trackChangesEnabled={trackChangesEnabled}
-      onOpenOutline={() => setOutlineOpen(true)}
-      onOpenComments={() => setCommentsOpen(true)}
-      onOpenVersions={() => setVersionsOpen(true)}
-      onAIAssist={handleAIEnhance}
-      onAISummarize={handleAISummarize}
-      onAISuggest={handleAISuggestion}
-
-      // ============================================================
-      // ✅ NEW — Actual Size (resets zoom to 100%)
-      // ============================================================
-      onActualSize={() => message.info('Actual size — 100% zoom')}
-
-      // Zoom (delegated to PDF toolbar)
-      onActualSize={() => pdfEditorRef.current?.actualSize()}
-      onZoomIn={() => pdfEditorRef.current?.zoomIn()}
-      onZoomOut={() => pdfEditorRef.current?.zoomOut()}
-      onFitWidth={() => pdfEditorRef.current?.fitWidth()}
-      onFitPage={() => pdfEditorRef.current?.fitPage()}
-      onStamp={() => setActivePdfTool('stamp')}
-      onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
-    />
-  );
-  // ============================================================
-  // RENDER — METADATA PANEL
-  // ============================================================
-  const renderMetadata = () => (
-    <Collapse defaultActiveKey={['meta']} ghost>
-      <Panel header="Document Metadata" key="meta">
-        <Form layout="vertical" size="small">
-          <Form.Item
-            label="Title"
-            required
-            validateStatus={validateTitle(title) ? 'error' : 'success'}
-            help={validateTitle(title) || ''}
-          >
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              maxLength={255}
-              showCount
-            />
-          </Form.Item>
-
-          <Form.Item label="Description">
-            <TextArea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={2}
-              maxLength={500}
-              showCount
-            />
-          </Form.Item>
-
-          <Row gutter={8}>
-            <Col span={12}>
-              <Form.Item label="Type">
-                <Select value={documentType} onChange={setDocumentType}>
-                  <Option value="report">Report</Option>
-                  <Option value="policy">Policy</Option>
-                  <Option value="record">Record</Option>
-                  <Option value="hse_report">HSE</Option>
-                  <Option value="permit">Permit</Option>
-                  <Option value="technical">Technical</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="Module">
-                <Select value={module} onChange={setModule}>
-                  <Option value="general">General</Option>
-                  <Option value="hse">HSE</Option>
-                  <Option value="environmental">Environmental</Option>
-                  <Option value="quality">Quality</Option>
-                  <Option value="hospital">Hospital</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={8}>
-            <Col span={12}>
-              <Form.Item label="Category">
-                <Select value={category} onChange={setCategory} allowClear>
-                  <Option value="safety">Safety</Option>
-                  <Option value="compliance">Compliance</Option>
-                  <Option value="technical">Technical</Option>
-                  <Option value="medical">Medical</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="Priority">
-                <Select value={priority} onChange={setPriority}>
-                  <Option value="low">Low</Option>
-                  <Option value="medium">Medium</Option>
-                  <Option value="high">High</Option>
-                  <Option value="critical">Critical</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Form.Item label="Tags">
-            <Select mode="tags" value={tags} onChange={setTags} placeholder="Add tags" />
-          </Form.Item>
-
-          <Row gutter={8}>
-            <Col span={12}>
-              <Form.Item label="Page Size">
-                <Select value={pageSize} onChange={setPageSize}>
-                  <Option value="a4">A4</Option>
-                  <Option value="letter">Letter</Option>
-                  <Option value="legal">Legal</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="Orientation">
-                <Select value={orientation} onChange={setOrientation}>
-                  <Option value="portrait">Portrait</Option>
-                  <Option value="landscape">Landscape</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Form.Item label="Expiry Date">
-            <DatePicker
-              value={expiresAt}
-              onChange={setExpiresAt}
-              style={{ width: '100%' }}
-            />
-          </Form.Item>
-
-          <Row gutter={8}>
-            <Col span={12}>
-              <Form.Item label="Confidential">
-                <Switch checked={isConfidential} onChange={setIsConfidential} />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="Status">
-                <Tag>{status.toUpperCase()}</Tag>
-                {documentId && <Tag color="blue">v{version}</Tag>}
-              </Form.Item>
-            </Col>
-          </Row>
-        </Form>
-      </Panel>
-    </Collapse>
-  );
+    return (
+      <g key={ann.id} {...commonProps}>
+        {shape}
+        {isSelected && (
+          <>
+            <rect x={x - 4} y={y - 4} width={w + 8} height={h + 8} fill="none" stroke="#1890ff" strokeWidth={1.5} strokeDasharray="4 2" />
+            <circle cx={x + w + 4} cy={y - 4} r={7} fill="#ff4d4f" />
+            <text
+              x={x + w + 4} y={y - 1} textAnchor="middle" fontSize={9}
+              fill="#fff" style={{ cursor: 'pointer', userSelect: 'none' }}
+              onClick={(e) => { e.stopPropagation(); deleteAnnotation(ann.id); }}
+            >
+              ×
+            </text>
+          </>
+        )}
+      </g>
+    );
+  };
 
   // ============================================================
-  // RENDER — MAIN
+  // RENDER
   // ============================================================
   if (loading) {
     return (
-      <div className="document-editor-loading">
-        <Spin size="large" />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+        <Spin size="large" tip="Loading PDF…" />
       </div>
     );
   }
 
-  const editorClass = [
-    'document-editor-content',
-    readingMode ? 'reading-mode' : '',
-    focusMode ? 'focus-mode' : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
+  if (error) {
+    return <Empty description={`Failed to load PDF: ${error}`} />;
+  }
+
+  const isHandMode = activeTool === 'hand';
+  const isTextEditMode = activeTool === 'text-edit';
 
   return (
-    <>
-      <div className={`document-editor-container ${isFullscreen ? 'fullscreen-mode' : ''} ${editorMode === 'pdf' ? 'pdf-mode' : ''}`}>
-        <Card className="editor-card" bordered={false}>
-          {/* ============================================================ */}
-          {/* HEADER */}
-          {/* ============================================================ */}
-          <div className="editor-header">
-            <div className="editor-header-title">
-              <Title level={4} style={{ margin: 0 }}>
-                {documentId ? 'Edit Document' : 'New Document'}
-              </Title>
-              {documentId && <Tag color="blue">v{version}</Tag>}
-              {readingMode && <Tag icon={<ReadOutlined />} color="purple">Reading</Tag>}
-              {focusMode && <Tag icon={<EyeOutlined />} color="cyan">Focus</Tag>}
-            </div>
+    <div
+      className="pdf-editor"
+      ref={containerRef}
+      style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}
+    >
+      {/* TOOLBAR */}
+      <div
+        className="pdf-editor-toolbar"
+        style={{
+          padding: '6px 12px',
+          background: '#fafafa',
+          borderBottom: '1px solid #e0e0e0',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+        }}
+      >
+        <Space>
+          <Tooltip title="Toggle thumbnails">
+            <Button
+              size="small"
+              type={showThumbs ? 'primary' : 'default'}
+              onClick={() => setShowThumbs((v) => !v)}
+            >
+              ☰
+            </Button>
+          </Tooltip>
+          <Tooltip title="Zoom out">
+            <Button size="small" icon={<ZoomOutOutlined />} onClick={zoomOut} />
+          </Tooltip>
+          <span style={{ fontSize: 12, minWidth: 44, textAlign: 'center' }}>
+            {Math.round(scale * 100)}%
+          </span>
+          <Tooltip title="Zoom in">
+            <Button size="small" icon={<ZoomInOutlined />} onClick={zoomIn} />
+          </Tooltip>
+          <Tooltip title="Actual size (100%)">
+            <Button size="small" icon={<OneToOneOutlined />} onClick={actualSize} />
+          </Tooltip>
+          <Tooltip title="Fit width">
+            <Button size="small" icon={<ExpandOutlined />} onClick={fitWidth} />
+          </Tooltip>
+          <Tooltip title="Fit page">
+            <Button size="small" icon={<CompressOutlined />} onClick={fitPage} />
+          </Tooltip>
+        </Space>
 
-            <div className="editor-header-actions">
-              {onCancel && (
-                <Button icon={<CloseOutlined />} onClick={onCancel}>
-                  Cancel
-                </Button>
-              )}
-              {documentId && (
-                <>
-                  <Button icon={<CopyOutlined />} onClick={handleSaveAsNew} loading={saving}>
-                    Save As
-                  </Button>
-                  <Button
-                    icon={<EyeOutlined />}
-                    onClick={() => onDocumentUpdate?.({ id: documentId })}
-                  >
-                    View
-                  </Button>
-                  <Button
-                    icon={<SignatureOutlined />}
-                    onClick={() => setSignatureModalVisible(true)}
-                  >
-                    Sign
-                  </Button>
-                </>
-              )}
+        <div style={{ flex: 1 }} />
 
-              <Tooltip title="Import file (HTML, MD, TXT)">
-                <Button
-                  icon={<ImportOutlined />}
-                  onClick={() => importInputRef.current?.click()}
-                />
-              </Tooltip>
+        <Space>
+          <span style={{ fontSize: 12 }}>
+            Page {currentPage} / {numPages}
+          </span>
+          <Button
+            size="small"
+            disabled={currentPage <= 1}
+            onClick={() => {
+              const next = Math.max(1, currentPage - 1);
+              setCurrentPage(next);
+              const el = viewportRef.current;
+              const wrapper = pageWrapperRefs.current[next];
+              if (el && wrapper) el.scrollTop = wrapper.offsetTop - 24;
+            }}
+          >
+            ←
+          </Button>
+          <Button
+            size="small"
+            disabled={currentPage >= numPages}
+            onClick={() => {
+              const next = Math.min(numPages, currentPage + 1);
+              setCurrentPage(next);
+              const el = viewportRef.current;
+              const wrapper = pageWrapperRefs.current[next];
+              if (el && wrapper) el.scrollTop = wrapper.offsetTop - 24;
+            }}
+          >
+            →
+          </Button>
+        </Space>
 
-              <Dropdown
-                menu={{
-                  items: [
-                    { key: 'pdf', label: 'Export as PDF', icon: <FilePdfOutlined />, onClick: handleExportPDF },
-                    { key: 'word', label: 'Export as Word', icon: <FileWordOutlined />, onClick: handleExportWord },
-                    { key: 'html', label: 'Export as HTML', icon: <FileTextOutlined />, onClick: handleExportHTML },
-                    { key: 'md', label: 'Export as Markdown', icon: <FileMarkdownOutlined />, onClick: handleExportMarkdown },
-                  ],
-                }}
-              >
-                <Button icon={<ExportOutlined />}>Export</Button>
-              </Dropdown>
+        <div style={{ flex: 1 }} />
 
-              <Button
-                type="primary"
-                icon={<SaveOutlined />}
-                loading={saving}
-                onClick={handleSave}
-              >
-                {documentId ? 'Update' : 'Create'}
-              </Button>
-            </div>
-          </div>
+        <Space>
+          <Tooltip title="Redaction history">
+            <Button
+              size="small"
+              icon={<HistoryOutlined />}
+              onClick={async () => {
+                try {
+                  const data = await documentService.getRedactionLogs({ document_id: documentId });
+                  setRedactionHistory(data.redactions || []);
+                  setRedactionHistoryOpen(true);
+                } catch (err) {
+                  message.warning('Redaction history unavailable');
+                }
+              }}
+            />
+          </Tooltip>
 
-          <Divider style={{ margin: '12px 0' }} />
+          <Tooltip title="Place signature">
+            <Button
+              size="small"
+              icon={<SignatureOutlined />}
+              onClick={async () => {
+                try {
+                  const sig = await documentService.getLatestSignature(documentId);
+                  const image = sig?.signature_data?.image;
+                  if (!image) {
+                    message.error('No saved signature for this document. Please sign it first.');
+                    return;
+                  }
+                  setActiveSignature(image);
+                  setSignaturePlacing(true);
+                } catch (err) {
+                  console.error('🎯 [Sign] FAILED:', err);
+                  message.error('Failed to load signature.');
+                }
+              }}
+            >
+              Sign
+            </Button>
+          </Tooltip>
 
-          {/* ============================================================ */}
-          {/* BODY */}
-          {/* ============================================================ */}
-          <div className="editor-body">
-            {/* Ribbon */}
-            {renderRibbon()}
-
-            {/* Editor area — PDF or HTML */}
-            {editorMode === 'pdf' && (initialPdfUrl || documentId) ? (
-              <PDFEditor
-                ref={pdfEditorRef}
-                pdfUrl={initialPdfUrl}
-                documentId={documentId}
-                activeTool={activePdfTool}
-                signaturePlacing={signaturePlacing}
-                onSignaturePlacingChange={setSignaturePlacing}
-                showFormPanel={showFormPanel}
-                onShowFormPanelChange={setShowFormPanel}
-                onSave={(blob) => {
-                  const file = new File(
-                    [blob],
-                    `${title || 'document'}-annotated.pdf`,
-                    { type: 'application/pdf' }
-                  );
-                  if (onSave) onSave({ file, title, isPdf: true });
-                }}
-                onClose={() => setEditorMode('html')}
-              />
-            ) : (
-              <div className="editor-wrapper">
-                <EditorContent editor={editor} className={editorClass} />
-              </div>
-            )}
-
-            {/* ---------- Status bar (Word-style) ---------- */}
-<EditorStatusBar
-  wordCount={wordCount}
-  charCount={charCount}
-  readTime={readTime}
-  mode={editorMode}
-  pageNumber={1}                 /* wired later when PDF thumbnails sync */
-  totalPages={1}                 /* wired later when PDF thumbnails sync */
-  onPageChange={() => {}}        /* wired later when PDF thumbnails sync */
-  zoom={zoom}
-  onZoomChange={setZoom}
-  language={language}
-  onLanguageChange={setLanguage}
-  pageSize={pageSize}
-  onPageSizeChange={setPageSize}
-  lastSaved={lastSaved}
-  isSaving={saving}
-  readingMode={readingMode}
-  focusMode={focusMode}
-  trackChangesEnabled={trackChangesEnabled}
-  currentSection={
-    outline.length > 0 && editor
-      ? (() => {
-          // Find the heading closest before the cursor
-          const pos = editor.state.selection.from;
-          let current = null;
-          for (const h of outline) {
-            if (h.pos <= pos) current = h.text;
-          }
-          return current;
-        })()
-      : null
-  }
-/>
-
-            {/* Metadata */}
-            {!readingMode && !focusMode && (
-              <div className="editor-metadata-section">{renderMetadata()}</div>
-            )}
-          </div>
-        </Card>
+          <Tooltip title="Save annotated PDF">
+            <Button size="small" type="primary" icon={<SaveOutlined />} onClick={handleSave}>
+              Save
+            </Button>
+          </Tooltip>
+        </Space>
       </div>
 
-      {/* ============================================================ */}
-      {/* HIDDEN FILE INPUTS */}
-      {/* ============================================================ */}
-      <input
-        ref={imageInputRef}
-        type="file"
-        accept="image/*"
-        style={{ display: 'none' }}
-        onChange={handleImageSelected}
-      />
-      <input
-        ref={importInputRef}
-        type="file"
-        accept=".html,.htm,.md,.markdown,.txt"
-        style={{ display: 'none' }}
-        onChange={handleImportFile}
-      />
-
-      {/* ============================================================ */}
-      {/* FIND & REPLACE MODAL */}
-      {/* ============================================================ */}
-      <Modal
-        title="Find & Replace"
-        open={findOpen}
-        onCancel={() => setFindOpen(false)}
-        footer={[
-          <Button key="find" onClick={runFind}>
-            Find
-          </Button>,
-          <Button key="replaceAll" type="primary" onClick={replaceAll}>
-            Replace All
-          </Button>,
-        ]}
-      >
-        <Input
-          placeholder="Find"
-          value={findText}
-          onChange={(e) => setFindText(e.target.value)}
-          style={{ marginBottom: 12 }}
-        />
-        <Input
-          placeholder="Replace with"
-          value={replaceText}
-          onChange={(e) => setReplaceText(e.target.value)}
-          style={{ marginBottom: 12 }}
-        />
-        {findMatches > 0 && <Text type="secondary">{findMatches} matches</Text>}
-      </Modal>
-
-      {/* ============================================================ */}
-      {/* LINK MODAL */}
-      {/* ============================================================ */}
-      <Modal
-        title="Insert / Edit Link"
-        open={linkModalVisible}
-        onCancel={() => {
-          setLinkModalVisible(false);
-          setLinkUrl('');
-        }}
-        onOk={handleInsertLink}
-      >
-        <Input
-          placeholder="https://example.com"
-          value={linkUrl}
-          onChange={(e) => setLinkUrl(e.target.value)}
-        />
-      </Modal>
-
-      {/* ============================================================ */}
-      {/* OUTLINE DRAWER */}
-      {/* ============================================================ */}
-      <Drawer
-        title="Document Outline"
-        placement="right"
-        open={outlineOpen}
-        onClose={() => setOutlineOpen(false)}
-        width={320}
-      >
-        {outline.length === 0 ? (
-          <Empty description="No headings yet" />
-        ) : (
-          <List
-            dataSource={outline}
-            renderItem={(h) => (
-              <List.Item
-                style={{ paddingLeft: (h.level - 1) * 12, cursor: 'pointer' }}
-                onClick={() => jumpToHeading(h.pos)}
-              >
-                <Text strong={h.level <= 2}>{h.text || '(empty heading)'}</Text>
-              </List.Item>
-            )}
-          />
+      {/* MAIN CONTENT */}
+      <div className="pdf-editor-main" style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        {showThumbs && (
+          <div className="pdf-editor-thumbs" style={{ width: 180, borderRight: '1px solid #e0e0e0', overflow: 'auto' }}>
+            <PageThumbnailPanel
+              documentId={documentId}
+              onDocumentChange={(newDoc) => {
+                onSave?.(newDoc);
+                window.dispatchEvent(new CustomEvent('pdf-reload'));
+              }}
+              onPageClick={(num) => {
+                setCurrentPage(num);
+                const el = viewportRef.current;
+                const wrapper = pageWrapperRefs.current[num];
+                if (el && wrapper) el.scrollTop = wrapper.offsetTop - 24;
+              }}
+              activePage={currentPage}
+            />
+          </div>
         )}
-      </Drawer>
 
-      {/* ============================================================ */}
-      {/* COMMENTS DRAWER */}
-      {/* ============================================================ */}
+        <div
+          ref={viewportRef}
+          className="pdf-editor-canvas-area"
+          style={{
+            flex: 1,
+            overflow: 'auto',
+            background: '#525659',
+            padding: 24,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: PAGE_GAP,
+            cursor: isHandMode ? (panning ? 'grabbing' : 'grab') : 'default',
+          }}
+        >
+          {Array.from({ length: numPages }, (_, i) => i + 1).map((pageNum) => {
+            const dims = pageDims[pageNum - 1];
+            const shouldRender = renderedPages.has(pageNum);
+            return (
+              <div
+                key={pageNum}
+                ref={(el) => (pageWrapperRefs.current[pageNum] = el)}
+                className="pdf-editor-page"
+                style={{
+                  position: 'relative',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+                  alignSelf: 'center',
+                  // Reserve exact space even before rendering
+                  width: dims?.width || 'auto',
+                  height: dims?.height || 'auto',
+                  minHeight: dims?.height || 500,
+                }}
+              >
+                {shouldRender ? (
+                  <>
+                    <canvas
+                      ref={(el) => {
+                        if (el) canvasRefs.current[pageNum] = el;
+                      }}
+                      style={{ display: 'block' }}
+                    />
+
+                    <div
+                      ref={(el) => {
+                        if (el) textLayerRefs.current[pageNum] = el;
+                      }}
+                      className="pdf-text-layer"
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        pointerEvents: isTextEditMode ? 'auto' : 'none',
+                        userSelect: isTextEditMode ? 'text' : 'none',
+                        color: 'transparent',
+                        lineHeight: 1,
+                      }}
+                    />
+
+                    <svg
+                      ref={(el) => {
+                        if (el) overlayRefs.current[pageNum] = el;
+                      }}
+                      className="pdf-editor-overlay"
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: dims?.width || 0,
+                        height: dims?.height || 0,
+                        cursor: isHandMode
+                          ? 'grab'
+                          : isTextEditMode
+                            ? 'text'
+                            : activeTool === 'select'
+                              ? 'default'
+                              : 'crosshair',
+                        pointerEvents: (isHandMode || isTextEditMode) ? 'none' : 'auto',
+                      }}
+                      onMouseDown={handleMouseDownForPage(pageNum)}
+                      onMouseMove={handleMouseMoveForPage(pageNum)}
+                      onMouseUp={handleMouseUp}
+                    >
+                      {annotations
+                        .filter((a) => a.page === pageNum)
+                        .map(renderAnnotationSvg)}
+
+                      {drawing && drawing.page === pageNum && (
+                        <rect
+                          x={Math.min(drawing.startX, drawing.currentX)}
+                          y={Math.min(drawing.startY, drawing.currentY)}
+                          width={Math.abs(drawing.currentX - drawing.startX)}
+                          height={Math.abs(drawing.currentY - drawing.startY)}
+                          fill={
+                            drawing.type === 'highlight' ? '#ffec3d' :
+                            drawing.type === 'rect' ? 'rgba(255,77,79,0.1)' :
+                            'rgba(24,144,255,0.1)'
+                          }
+                          stroke={
+                            drawing.type === 'rect' ? '#ff4d4f' :
+                            drawing.type === 'ellipse' ? '#52c41a' : '#1890ff'
+                          }
+                          strokeWidth={2}
+                          strokeDasharray="4 2"
+                        />
+                      )}
+
+                      {pendingRedactions
+                        .filter((r) => r.page === pageNum)
+                        .map((r, idx) => (
+                          <g
+                            key={`redact_${pageNum}_${idx}`}
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => {
+                              if (window.confirm('Remove this redaction mark?')) {
+                                const globalIdx = pendingRedactions.indexOf(r);
+                                setPendingRedactions((prev) =>
+                                  prev.filter((_, i) => i !== globalIdx)
+                                );
+                              }
+                            }}
+                          >
+                            <rect
+                              x={r.x} y={r.y} width={r.w} height={r.h}
+                              fill="black" fillOpacity={0.85} stroke="#ff4d4f" strokeWidth={2}
+                            />
+                            <line x1={r.x} y1={r.y} x2={r.x + r.w} y2={r.y + r.h} stroke="#ff7875" strokeWidth={1} />
+                            <line x1={r.x + r.w} y1={r.y} x2={r.x} y2={r.y + r.h} stroke="#ff7875" strokeWidth={1} />
+                            <text x={r.x + 4} y={r.y + 14} fill="#fff" fontSize={11} fontWeight="bold">
+                              REDACT #{idx + 1}
+                            </text>
+                          </g>
+                        ))}
+                    </svg>
+                  </>
+                ) : (
+                  // Placeholder — reserves space, renders a spinner
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: '#f0f0f0',
+                      color: '#888',
+                      fontSize: 13,
+                    }}
+                  >
+                    <Spin />
+                    <span style={{ marginLeft: 8 }}>Page {pageNum}</span>
+                  </div>
+                )}
+
+                {textEditTarget && textEditTarget.page === pageNum && (
+                  <div
+                    className="pdf-text-edit-popover"
+                    style={{
+                      position: 'absolute',
+                      left: textEditTarget.x,
+                      top: textEditTarget.y + textEditTarget.h + 4,
+                      zIndex: 200,
+                      background: '#fff',
+                      border: '1px solid #1890ff',
+                      borderRadius: 6,
+                      padding: 8,
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+                      width: 240,
+                    }}
+                  >
+                    <Input
+                      size="small"
+                      value={textEditValue}
+                      onChange={(e) => setTextEditValue(e.target.value)}
+                      autoFocus
+                      onPressEnter={() => {
+                        setPendingTextEdits((prev) => [
+                          ...prev,
+                          { ...textEditTarget, new_text: textEditValue },
+                        ]);
+                        setTextEditTarget(null);
+                      }}
+                    />
+                    <Space style={{ marginTop: 6, display: 'flex', justifyContent: 'flex-end' }}>
+                      <Button size="small" onClick={() => setTextEditTarget(null)}>Cancel</Button>
+                      <Button
+                        size="small"
+                        type="primary"
+                        onClick={() => {
+                          setPendingTextEdits((prev) => [
+                            ...prev,
+                            { ...textEditTarget, new_text: textEditValue },
+                          ]);
+                          setTextEditTarget(null);
+                        }}
+                      >
+                        Queue
+                      </Button>
+                    </Space>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {signaturePlacing && (
+            <PDFSignaturePlacer
+              containerRef={{ current: overlayRefs.current[currentPage] }}
+              currentPage={currentPage}
+              signature={activeSignature}
+              onPlace={async (placement) => {
+                setSignaturePlacing(false);
+                try {
+                  if (!activeSignature) {
+                    message.error('No signature available.');
+                    return;
+                  }
+                  message.loading({ content: 'Stamping…', key: 'stamp' });
+                  const res = await documentService.stampSignature(documentId, {
+                    image_data_url: activeSignature,
+                    page_number: placement.page,
+                    x_percent: placement.x_percent,
+                    y_percent: placement.y_percent,
+                    width_percent: placement.width_percent,
+                  });
+                  message.success({ content: 'Signature placed', key: 'stamp' });
+                  setActiveSignature(null);
+                  onSave?.(res?.document);
+                  window.dispatchEvent(new CustomEvent('pdf-reload'));
+                } catch (err) {
+                  console.error('Signature placement failed:', err);
+                  message.error({
+                    content: err?.message || 'Failed to place signature',
+                    key: 'stamp',
+                  });
+                }
+              }}
+              onCancel={() => {
+                setSignaturePlacing(false);
+                setActiveSignature(null);
+              }}
+            />
+          )}
+
+          {isTextEditMode && (
+            <div
+              className="pdf-tool-hint"
+              style={{
+                position: 'sticky',
+                bottom: 8,
+                alignSelf: 'center',
+                background: '#fff',
+                padding: '4px 8px',
+                borderRadius: 4,
+                fontSize: 12,
+                zIndex: 50,
+              }}
+            >
+              <InfoCircleOutlined /> Click any text to edit. Long edits may overlap
+              other elements. For complex text, use redaction + insert a text box.
+            </div>
+          )}
+        </div>
+
+        {showFormPanel && (
+          <div className="pdf-form-panel" style={{ width: 260, borderLeft: '1px solid #e0e0e0', overflow: 'auto' }}>
+            <PDFFormPanel
+              documentId={documentId}
+              pageNumber={currentPage}
+              fieldPositions={[]}
+              onBackendSave={(res) => {
+                message.success('Form saved');
+                onSave?.(res?.document);
+              }}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* FLOATING ACTION BUTTONS */}
+      {pendingRedactions.length > 0 && (
+        <Button
+          type="primary"
+          danger
+          size="small"
+          icon={<SafetyCertificateOutlined />}
+          style={{ position: 'absolute', bottom: 16, right: 16, zIndex: 100 }}
+          onClick={() => setRedactionModalOpen(true)}
+        >
+          Apply {pendingRedactions.length} Redaction{pendingRedactions.length > 1 ? 's' : ''}
+        </Button>
+      )}
+
+      {pendingTextEdits.length > 0 && (
+        <Button
+          type="primary"
+          size="small"
+          style={{ position: 'absolute', bottom: 16, right: 200, zIndex: 100 }}
+          onClick={async () => {
+            const payload = pendingTextEdits.map((e) => {
+              const size = pageDims[e.page - 1] || { width: 1, height: 1 };
+              return {
+                page: e.page,
+                x_percent: e.x / size.width,
+                y_percent: 1 - (e.y + e.h) / size.height,
+                w_percent: e.w / size.width,
+                h_percent: e.h / size.height,
+                new_text: e.new_text,
+                font_size: 11,
+                color: '#000000',
+                font_family: 'Helvetica',
+                hide_original: true,
+              };
+            });
+            try {
+              message.loading({ content: 'Applying text edits…', key: 'tedit' });
+              const res = await documentService.applyTextEdits(documentId, payload);
+              message.success({ content: 'Text edits applied', key: 'tedit' });
+              setPendingTextEdits([]);
+              onSave?.(res.document);
+              window.dispatchEvent(new CustomEvent('pdf-reload'));
+            } catch (err) {
+              message.error({ content: err.message || 'Failed', key: 'tedit' });
+            }
+          }}
+        >
+          Apply {pendingTextEdits.length} Text Edit{pendingTextEdits.length > 1 ? 's' : ''}
+        </Button>
+      )}
+
+      {/* REDACTION MODAL & HISTORY DRAWER (unchanged) */}
+      <Modal
+        title={
+          <Space>
+            <SafetyCertificateOutlined style={{ color: '#cf1322' }} />
+            Confirm Redaction
+          </Space>
+        }
+        open={redactionModalOpen}
+        onCancel={() => setRedactionModalOpen(false)}
+        confirmLoading={applying}
+        okText="Apply & Redact Permanently"
+        okButtonProps={{ danger: true }}
+        onOk={async () => {
+          setApplying(true);
+          try {
+            const regions = pendingRedactions.map((r) => {
+              const size = pageDims[r.page - 1] || { width: 1, height: 1 };
+              return {
+                page: r.page,
+                x_percent: r.x / size.width,
+                y_percent: r.y / size.height,
+                w_percent: r.w / size.width,
+                h_percent: r.h / size.height,
+              };
+            });
+
+            const res = await documentService.applyRedactions(documentId, {
+              regions,
+              reason: redactionReason || 'Redaction applied',
+              legal_basis: redactionBasis,
+              fill_color: '#000000',
+              remove_metadata: true,
+              remove_embedded_files: true,
+              remove_annotations: true,
+              remove_scripts: true,
+              sanitize_links: true,
+              sanitize_outline: true,
+              linearize: true,
+            });
+
+            if (res.success) {
+              message.success(
+                `Redacted successfully — certificate ${res.certificate_number}`
+              );
+              setPendingRedactions([]);
+              setRedactionModalOpen(false);
+              setRedactionReason('');
+              onSave?.(res.document);
+              window.dispatchEvent(new CustomEvent('pdf-reload'));
+            } else {
+              message.error(res.error || 'Redaction failed');
+            }
+          } catch (err) {
+            message.error(err.message || 'Failed to apply redactions');
+          } finally {
+            setApplying(false);
+          }
+        }}
+        width={560}
+      >
+        <Alert
+          type="warning"
+          showIcon
+          message="This action is irreversible"
+          description={
+            <div>
+              <p>
+                The redacted content will be <strong>permanently removed</strong>{' '}
+                from the PDF.
+              </p>
+              <p style={{ marginBottom: 0 }}>
+                A snapshot of the original will be saved as a version, and a
+                certificate will be generated for audit purposes.
+              </p>
+            </div>
+          }
+          style={{ marginBottom: 16 }}
+        />
+
+        <Form layout="vertical">
+          <Form.Item label="Reason / Justification">
+            <Input.TextArea
+              rows={3}
+              value={redactionReason}
+              onChange={(e) => setRedactionReason(e.target.value)}
+              placeholder="e.g. GDPR Article 17 — right to erasure request from data subject"
+              maxLength={500}
+              showCount
+            />
+          </Form.Item>
+          <Form.Item label="Legal Basis">
+            <Select
+              value={redactionBasis}
+              onChange={setRedactionBasis}
+              options={[
+                { label: 'Privacy / GDPR / HIPAA', value: 'privacy' },
+                { label: 'Security / Classified', value: 'security' },
+                { label: 'Court Order', value: 'court_order' },
+                { label: 'Company Policy', value: 'policy' },
+                { label: 'Other', value: 'other' },
+              ]}
+            />
+          </Form.Item>
+          <Alert
+            type="info"
+            showIcon
+            message={`${pendingRedactions.length} region(s) on ${
+              new Set(pendingRedactions.map((r) => r.page)).size
+            } page(s)`}
+          />
+        </Form>
+      </Modal>
+
       <Drawer
-        title={`Comments (${comments.length})`}
-        placement="right"
-        open={commentsOpen}
-        onClose={() => setCommentsOpen(false)}
-        width={420}
+        title="Redaction History"
+        open={redactionHistoryOpen}
+        onClose={() => setRedactionHistoryOpen(false)}
+        width={520}
       >
         <List
-          dataSource={comments}
-          locale={{ emptyText: 'No comments yet' }}
-          renderItem={(c) => (
-            <List.Item>
+          dataSource={redactionHistory}
+          renderItem={(r) => (
+            <List.Item
+              actions={[
+                <Button
+                  key="cert"
+                  size="small"
+                  type="link"
+                  onClick={() => documentService.downloadRedactionCertificate(r.id)}
+                >
+                  Certificate
+                </Button>,
+              ]}
+            >
               <List.Item.Meta
-                avatar={<Avatar icon={<SignatureOutlined />} />}
-                title={c.user?.name || c.created_by?.name || 'User'}
+                title={
+                  <Space>
+                    <Text strong>{r.certificate_number}</Text>
+                    {r.verified_no_leaks ? (
+                      <Tag color="green">Verified</Tag>
+                    ) : (
+                      <Tag color="orange">Review</Tag>
+                    )}
+                  </Space>
+                }
                 description={
-                  <div>
-                    <div>{c.content}</div>
-                    <div style={{ fontSize: 11, color: '#8c8c8c' }}>
-                      {c.created_at ? new Date(c.created_at).toLocaleString() : ''}
+                  <div style={{ fontSize: 12 }}>
+                    <div>
+                      {r.region_count} region(s) · v{r.before_version} → v
+                      {r.after_version}
                     </div>
+                    <div style={{ color: '#8c8c8c' }}>
+                      {r.redacted_by_name} · {new Date(r.created_at).toLocaleString()}
+                    </div>
+                    <div style={{ color: '#8c8c8c' }}>Basis: {r.legal_basis}</div>
                   </div>
                 }
               />
             </List.Item>
           )}
         />
-        <Divider />
-        <TextArea
-          rows={3}
-          value={commentInput}
-          onChange={(e) => setCommentInput(e.target.value)}
-          placeholder="Add a comment…"
-        />
-        <Button
-          type="primary"
-          block
-          style={{ marginTop: 8 }}
-          loading={commentLoading}
-          onClick={handleAddComment}
-        >
-          Post Comment
-        </Button>
       </Drawer>
-
-      {/* ============================================================ */}
-      {/* VERSIONS DRAWER */}
-      {/* ============================================================ */}
-      <Drawer
-        title={`Versions (${versions.length})`}
-        placement="right"
-        open={versionsOpen}
-        onClose={() => setVersionsOpen(false)}
-        width={420}
-      >
-        {versions.length === 0 ? (
-          <Empty description="No versions yet" />
-        ) : (
-          <List
-            dataSource={versions}
-            renderItem={(v) => (
-              <List.Item>
-                <List.Item.Meta
-                  title={
-                    <Space>
-                      v{v.version} {v.is_current && <Tag color="green">Current</Tag>}
-                    </Space>
-                  }
-                  description={
-                    <div>
-                      <div>{v.changes || 'No changes recorded'}</div>
-                      <div style={{ fontSize: 11, color: '#8c8c8c' }}>
-                        {v.created_at ? new Date(v.created_at).toLocaleString() : ''}
-                      </div>
-                    </div>
-                  }
-                />
-              </List.Item>
-            )}
-          />
-        )}
-      </Drawer>
-
-      {/* ============================================================ */}
-      {/* AI SUGGESTIONS DRAWER */}
-      {/* ============================================================ */}
-      <Drawer
-        title={
-          <Space>
-            <RobotOutlined /> AI Suggestions
-          </Space>
-        }
-        placement="right"
-        open={showAiPanel}
-        onClose={() => setShowAiPanel(false)}
-        width={400}
-      >
-        {aiSuggestions.length === 0 ? (
-          <Empty description="No suggestions" />
-        ) : (
-          <List
-            dataSource={aiSuggestions}
-            renderItem={(s) => (
-              <List.Item
-                actions={[
-                  <Button
-                    type="primary"
-                    size="small"
-                    onClick={() => applyAISuggestion(s)}
-                  >
-                    Apply
-                  </Button>,
-                ]}
-              >
-                <List.Item.Meta title={s.title} description={s.description} />
-              </List.Item>
-            )}
-          />
-        )}
-      </Drawer>
-
-      {/* ============================================================ */}
-      {/* TRACK CHANGES PANEL */}
-      {/* ============================================================ */}
-      <TrackChangesPanel
-        open={trackPanelOpen}
-        onClose={() => setTrackPanelOpen(false)}
-        pendingChanges={pendingChanges}
-        currentHunks={currentHunks}
-        hasUnsavedChange={hasUnsavedChange}
-        onAccept={async (id) => {
-          await acceptChange(id);
-          if (documentId) loadDocument();
-          message.success('Change accepted');
-        }}
-        onReject={async (id) => {
-          await rejectChange(id);
-          message.success('Change rejected');
-        }}
-        onDelete={async (id) => {
-          await deleteChange(id);
-          message.success('Change deleted');
-        }}
-        onSaveCurrent={async () => {
-          const c = await saveCurrentChange();
-          if (c) message.success('Change set saved');
-          else message.info('No changes to save');
-        }}
-        loading={tcLoading}
-      />
-
-      {/* ============================================================ */}
-      {/* SIGNATURE MODAL */}
-      {/* ============================================================ */}
-      <Modal
-        title="Sign Document"
-        open={signatureModalVisible}
-        onCancel={() => setSignatureModalVisible(false)}
-        footer={null}
-        width="90%"
-        style={{ top: 20 }}
-        styles={{
-          body: { padding: 16, maxHeight: 'calc(100vh - 200px)', overflow: 'auto' },
-        }}
-        destroyOnClose
-      >
-        <DocumentSignature
-          documentId={documentId}
-          documentTitle={title}
-          onSignatureComplete={() => {
-            setSignatureModalVisible(false);
-            onDocumentUpdate?.({ id: documentId });
-          }}
-          companyId={companyId}
-          currentUser={currentUser}
-        />
-      </Modal>
-    </>
+    </div>
   );
-};
+});
 
-export default DocumentEditor;
+export default PDFEditor;
