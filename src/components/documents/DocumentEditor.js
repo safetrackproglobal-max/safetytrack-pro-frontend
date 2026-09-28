@@ -134,6 +134,7 @@ const DocumentEditor = ({
   const [focusMode, setFocusMode] = useState(false);
   const [zoom, setZoom] = useState(100);
   const [language, setLanguage] = useState('en');
+
   // ============================================================
   // STATE — Panels / Drawers
   // ============================================================
@@ -188,6 +189,7 @@ const DocumentEditor = ({
   const importInputRef = useRef(null);
   const autoSaveTimer = useRef(null);
   const pdfEditorRef = useRef(null);
+
   // Turndown for Markdown export
   const turndown = useMemo(() => new TurndownService({ headingStyle: 'atx' }), []);
 
@@ -216,7 +218,7 @@ const DocumentEditor = ({
       StarterKit.configure({
         codeBlock: false,
         heading: { levels: [1, 2, 3, 4, 5, 6] },
-        link: false,        // ← ADD
+        link: false,
         underline: false,
       }),
       Underline,
@@ -494,7 +496,6 @@ const DocumentEditor = ({
     };
     document.addEventListener('keydown', h);
     return () => document.removeEventListener('keydown', h);
-    
   }, [findOpen]);
 
   // ============================================================
@@ -599,7 +600,6 @@ const DocumentEditor = ({
       }
     });
     return headings;
-    
   }, [editor, editor?.state?.doc]);
 
   const jumpToHeading = (pos) => {
@@ -767,15 +767,11 @@ const DocumentEditor = ({
         highlight: editor?.isActive('highlight'),
       }}
 
-      // ============================================================
-      // ✅ NEW — Hand / Select mode (PDF-XChange "Edit" group)
-      // ============================================================
+      // Hand / Select / Edit Text tool state
       activeTool={activePdfTool}
       onToolChange={(tool) => setActivePdfTool(tool)}
 
-      // ============================================================
-      // ✅ NEW — Search group (opens Find & Replace modal)
-      // ============================================================
+      // Search
       onFindReplace={() => setFindOpen(true)}
 
       // File
@@ -825,7 +821,7 @@ const DocumentEditor = ({
       onLineAnnotation={() => setActivePdfTool('line')}
       onStickyNote={() => setActivePdfTool('note')}
       onSignature={() => setSignatureModalVisible(true)}
-      onStamp={() => message.info('Stamp tool coming soon')}
+      onStamp={() => setActivePdfTool('stamp')}
       onPlaceSignature={() => setSignaturePlacing(true)}
       onOpenFormPanel={() => setShowFormPanel(true)}
 
@@ -854,21 +850,16 @@ const DocumentEditor = ({
       onAISummarize={handleAISummarize}
       onAISuggest={handleAISuggestion}
 
-      // ============================================================
-      // ✅ NEW — Actual Size (resets zoom to 100%)
-      // ============================================================
-      onActualSize={() => message.info('Actual size — 100% zoom')}
-
-      // Zoom (delegated to PDF toolbar)
+      // Zoom — delegated to PDF editor via ref
       onActualSize={() => pdfEditorRef.current?.actualSize()}
       onZoomIn={() => pdfEditorRef.current?.zoomIn()}
       onZoomOut={() => pdfEditorRef.current?.zoomOut()}
       onFitWidth={() => pdfEditorRef.current?.fitWidth()}
       onFitPage={() => pdfEditorRef.current?.fitPage()}
-      onStamp={() => setActivePdfTool('stamp')}
       onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
     />
   );
+
   // ============================================================
   // RENDER — METADATA PANEL
   // ============================================================
@@ -1018,9 +1009,19 @@ const DocumentEditor = ({
     .filter(Boolean)
     .join(' ');
 
+  const containerClass = [
+    'document-editor-container',
+    isFullscreen ? 'fullscreen-mode' : '',
+    editorMode === 'pdf' ? 'pdf-mode' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const isPdfMode = editorMode === 'pdf';
+
   return (
     <>
-      <div className={`document-editor-container ${isFullscreen ? 'fullscreen-mode' : ''} ${editorMode === 'pdf' ? 'pdf-mode' : ''}`}>
+      <div className={containerClass}>
         <Card className="editor-card" bordered={false}>
           {/* ============================================================ */}
           {/* HEADER */}
@@ -1098,11 +1099,11 @@ const DocumentEditor = ({
           {/* BODY */}
           {/* ============================================================ */}
           <div className="editor-body">
-            {/* Ribbon */}
+            {/* Ribbon — always visible */}
             {renderRibbon()}
 
             {/* Editor area — PDF or HTML */}
-            {editorMode === 'pdf' && (initialPdfUrl || documentId) ? (
+            {isPdfMode && (initialPdfUrl || documentId) ? (
               <PDFEditor
                 ref={pdfEditorRef}
                 pdfUrl={initialPdfUrl}
@@ -1128,44 +1129,44 @@ const DocumentEditor = ({
               </div>
             )}
 
-            {/* ---------- Status bar (Word-style) ---------- */}
-<EditorStatusBar
-  wordCount={wordCount}
-  charCount={charCount}
-  readTime={readTime}
-  mode={editorMode}
-  pageNumber={1}                 /* wired later when PDF thumbnails sync */
-  totalPages={1}                 /* wired later when PDF thumbnails sync */
-  onPageChange={() => {}}        /* wired later when PDF thumbnails sync */
-  zoom={zoom}
-  onZoomChange={setZoom}
-  language={language}
-  onLanguageChange={setLanguage}
-  pageSize={pageSize}
-  onPageSizeChange={setPageSize}
-  lastSaved={lastSaved}
-  isSaving={saving}
-  readingMode={readingMode}
-  focusMode={focusMode}
-  trackChangesEnabled={trackChangesEnabled}
-  currentSection={
-    outline.length > 0 && editor
-      ? (() => {
-          // Find the heading closest before the cursor
-          const pos = editor.state.selection.from;
-          let current = null;
-          for (const h of outline) {
-            if (h.pos <= pos) current = h.text;
-          }
-          return current;
-        })()
-      : null
-  }
-/>
+            {/* Status bar — HTML mode only */}
+            {!isPdfMode && (
+              <EditorStatusBar
+                wordCount={wordCount}
+                charCount={charCount}
+                readTime={readTime}
+                mode={editorMode}
+                zoom={zoom}
+                onZoomChange={setZoom}
+                language={language}
+                onLanguageChange={setLanguage}
+                pageSize={pageSize}
+                onPageSizeChange={setPageSize}
+                lastSaved={lastSaved}
+                isSaving={saving}
+                readingMode={readingMode}
+                focusMode={focusMode}
+                trackChangesEnabled={trackChangesEnabled}
+                currentSection={
+                  outline.length > 0 && editor
+                    ? (() => {
+                        const pos = editor.state.selection.from;
+                        let current = null;
+                        for (const h of outline) {
+                          if (h.pos <= pos) current = h.text;
+                        }
+                        return current;
+                      })()
+                    : null
+                }
+              />
+            )}
 
-            {/* Metadata */}
-            {!readingMode && !focusMode && (
-              <div className="editor-metadata-section">{renderMetadata()}</div>
+            {/* Metadata — HTML mode only */}
+            {!isPdfMode && !readingMode && !focusMode && (
+              <div className="editor-metadata-section">
+                {renderMetadata()}
+              </div>
             )}
           </div>
         </Card>
