@@ -4,8 +4,6 @@
    RIBBON CONTAINER
    ============================================================ */
 .editor-ribbon {
-  background: #fafafa;
-  border-bottom: 1px solid #e0e0e0;
   background: #f3f3f3;
   border-bottom: 1px solid #d6d6d6;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -20,11 +18,8 @@
   display: flex;
   align-items: center;
   gap: 2px;
-  padding: 6px 12px;
   padding: 5px 12px;
   background: #ffffff;
-  border-bottom: 1px solid #f0f0f0;
-  font-size: 14px;
   border-bottom: 1px solid #e6e6e6;
   font-size: 13.5px;
   height: 32px;
@@ -33,29 +28,22 @@
 
 .editor-menubar-item {
   padding: 5px 12px;
-  border-radius: 4px;
   border-radius: 3px;
   cursor: pointer;
-  color: #262626;
-  font-size: 14px;
   color: #1f1f1f;
   font-size: 13.5px;
   font-weight: 500;
-  transition: background 0.15s;
   transition: background 0.12s;
   white-space: nowrap;
 }
 
 .editor-menubar-item:hover {
-  background: #f0f0f0;
   background: #e6f4ff;
   color: #0050b3;
 }
 
 .editor-menubar-help {
   margin-left: auto;
-  color: #8c8c8c;
-  font-size: 13px;
   color: #595959;
   font-size: 12.5px;
   display: flex;
@@ -72,8 +60,6 @@
    ============================================================ */
 .editor-ribbon-tabs {
   display: flex;
-  gap: 4px;
-  padding: 6px 12px 0;
   gap: 1px;
   padding: 4px 12px 0;
   background: #ffffff;
@@ -82,17 +68,10 @@
 }
 
 .editor-ribbon-tab {
-  padding: 8px 18px;
   padding: 7px 16px 8px;
   border: none;
   background: transparent;
   cursor: pointer;
-  font-size: 14.5px;
-  font-weight: 600;
-  color: #595959;
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
-  transition: background 0.15s, color 0.15s;
   font-size: 13.5px;
   font-weight: 500;
   color: #404040;
@@ -104,14 +83,10 @@
 
 .editor-ribbon-tab:hover {
   background: #f0f0f0;
-  color: #262626;
   color: #1f1f1f;
 }
 
 .editor-ribbon-tab.active {
-  background: #fafafa;
-  color: #1890ff;
-  font-weight: 700;
   background: #f3f3f3;
   color: #0050b3;
   font-weight: 600;
@@ -120,13 +95,9 @@
 .editor-ribbon-tab.active::after {
   content: '';
   position: absolute;
-  bottom: -1px;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 3px;
-  background: #1890ff;
-  border-radius: 2px 2px 0 0;
   height: 2px;
   background: #1a6fc4;
 }
@@ -135,10 +106,6 @@
    RIBBON BODY
    ============================================================ */
 .editor-ribbon-body {
-  min-height: 104px;
-  padding: 10px 16px;
-  background: #fafafa;
-  border-top: 1px solid #e0e0e0;
   min-height: 92px;
   padding: 6px 10px;
   background: #f3f3f3;
@@ -159,23 +126,17 @@
 .editor-ribbon-content {
   display: flex;
   align-items: stretch;
-  gap: 8px;
-  height: 84px;
   gap: 0;
   height: 78px;
 }
 
 /* ============================================================
    GROUPS
-   GROUPS — vertical separator between them
    ============================================================ */
 .editor-ribbon-group {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 4px 12px;
-  border-right: 1px solid #e0e0e0;
-  min-width: 70px;
   padding: 3px 10px 0;
   border-right: 1px solid #d6d6d6;
   min-width: 60px;
@@ -189,20 +150,15 @@
 .editor-ribbon-group-content {
   display: flex;
   align-items: center;
-  gap: 6px;
   gap: 2px;
   flex: 1;
   min-height: 60px;
 }
 
 .editor-ribbon-group-label {
-  font-size: 11.5px;
   font-size: 10.5px;
   font-weight: 500;
   text-align: center;
-  color: #8c8c8c;
-  letter-spacing: 0.3px;
-  padding-top: 4px;
   color: #767676;
   letter-spacing: 0.2px;
   padding: 2px 0 3px;
@@ -211,17 +167,11 @@
 
 /* ============================================================
    BUTTONS — BIG (icon + label)
-   BUTTONS — BIG (icon + label) — PDF-XChange primary style
    ============================================================ */
 .editor-ribbon-btn-big {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-width: 66px;
-  min-height: 72px;
-  padding: 6px 12px;
   justify-content: flex-start;
   gap: 3px;
   min-width: 60px;
@@ -230,11 +180,8 @@
   padding: 5px 6px 4px;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 6px;
   border-radius: 3px;
   cursor: pointer;
-  color: #262626;
-  transition: all 0.15s;
   color: #1f1f1f;
   transition: background 0.12s, border-color 0.12s;
   font-family: inherit;
@@ -271,21 +218,16 @@
 }
 
 .editor-ribbon-btn-icon {
-  font-size: 26px;
   font-size: 24px;
   line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 28px;
   height: 26px;
   color: #1a6fc4;
 }
 
 .editor-ribbon-btn-label {
-  font-size: 12.5px;
-  font-weight: 500;
-  line-height: 1.25;
   font-size: 11.5px;
   font-weight: 400;
   line-height: 1.2;
@@ -295,30 +237,22 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #262626;
 }
 
 /* ============================================================
-   BUTTONS — SMALL (icon only)
-   BUTTONS — SMALL (icon-only) — secondary style
+   BUTTONS — SMALL (icon-only)
    ============================================================ */
 .editor-ribbon-btn-small {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 30px;
   width: 26px;
   height: 26px;
   padding: 0;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 4px;
   border-radius: 3px;
   cursor: pointer;
-  color: #262626;
-  font-size: 16px;
-  transition: all 0.15s;
   color: #1a6fc4;
   font-size: 15px;
   transition: background 0.12s, border-color 0.12s;
@@ -336,7 +270,6 @@
 }
 
 .editor-ribbon-btn-small:disabled {
-  opacity: 0.4;
   opacity: 0.35;
   cursor: not-allowed;
 }
@@ -347,23 +280,18 @@
 .editor-ribbon-stack {
   display: flex;
   flex-direction: column;
-  gap: 4px;
   gap: 2px;
   justify-content: center;
 }
 
 .editor-ribbon-row {
   display: flex;
-  gap: 4px;
   gap: 2px;
   align-items: center;
 }
 
-/* Fake circle icon (for ellipse) */
 .editor-ribbon-shape-circle {
   display: inline-block;
-  width: 16px;
-  height: 16px;
   width: 14px;
   height: 14px;
   border: 2px solid currentColor;
@@ -371,7 +299,7 @@
 }
 
 /* ============================================================
-   DARK MODE
+   DARK MODE — RIBBON
    ============================================================ */
 @media (prefers-color-scheme: dark) {
   .editor-ribbon {
@@ -386,7 +314,6 @@
     color: #e0e0e0;
   }
   .editor-menubar-item:hover {
-    background: #303030;
     background: #0a2a4a;
     color: #4fa8f5;
   }
@@ -448,17 +375,13 @@
 @media (max-width: 768px) {
   .editor-ribbon-body {
     min-height: auto;
-    padding: 6px 8px;
     padding: 4px 6px;
   }
   .editor-ribbon-content {
     height: auto;
     flex-wrap: wrap;
-    gap: 6px;
   }
   .editor-ribbon-btn-big {
-    min-width: 56px;
-    min-height: 60px;
     min-width: 52px;
     min-height: 54px;
     padding: 4px 4px 3px;
@@ -468,17 +391,13 @@
     height: 22px;
   }
   .editor-ribbon-btn-label {
-    font-size: 11px;
     font-size: 10.5px;
   }
   .editor-menubar-item {
     padding: 4px 8px;
-    font-size: 12.5px;
     font-size: 12px;
   }
   .editor-ribbon-tab {
-    padding: 6px 12px;
-    font-size: 13px;
     padding: 6px 10px;
     font-size: 12.5px;
   }
@@ -488,23 +407,41 @@
 }
 
 /* ============================================================
-   PDF TOOL PALETTE (left rail)
-   PDF TOOL PALETTE (left rail) — unchanged
+   EDITOR BODY — base layout for HTML and PDF modes
    ============================================================ */
 .editor-body {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-
-.editor-body.pdf-mode {
-  flex-direction: row;
-  align-items: stretch;
-  gap: 12px;
-  min-height: 500px;
+  min-height: 0;
   min-width: 0;
 }
 
+/* PDF mode: bounded height so children can scroll internally.
+   The `.pdf-mode` class is set by DocumentEditor.jsx when editorMode === 'pdf'.
+   Adjust the 180px offset to match your app chrome height. */
+.document-editor-container.pdf-mode {
+  height: calc(100vh - 180px);
+  min-height: 600px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+}
+
+.document-editor-container.pdf-mode .editor-card,
+.document-editor-container.pdf-mode .editor-card .ant-card-body,
+.document-editor-container.pdf-mode .editor-body {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================================
+   PDF TOOL PALETTE (left rail)
+   ============================================================ */
 .pdf-tool-palette {
   flex-shrink: 0;
   width: 48px;
@@ -554,29 +491,27 @@
 }
 
 .pdf-editor-host {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-width: 0;
-  min-height: 500px;
+  min-height: 0;
   border: 1px solid #f0f0f0;
   border-radius: 8px;
   overflow: hidden;
   background: #525659;
 }
 
+/* ============================================================
+   PDF FORM PANEL (right side)
+   ============================================================ */
 .pdf-form-panel {
   flex-shrink: 0;
   width: 240px;
   background: #fff;
-  border: 1px solid #f0f0f0;
-  border-radius: 8px;
-  padding: 12px;
+  border-left: 1px solid #e0e0e0;
   overflow-y: auto;
-  max-height: 640px;
+  min-height: 0;
 }
 
-/* ============================================================
-   FORM PANEL
-   ============================================================ */
 .pdf-form-panel-inner {
   display: flex;
   flex-direction: column;
@@ -584,9 +519,8 @@
 }
 
 .pdf-form-panel-header {
-  padding: 8px 4px;
+  padding: 8px 12px;
   border-bottom: 1px solid #f0f0f0;
-  margin-bottom: 8px;
   font-size: 13px;
   color: #262626;
 }
@@ -594,7 +528,7 @@
 .pdf-form-fields {
   flex: 1;
   overflow-y: auto;
-  padding-right: 4px;
+  padding: 12px;
 }
 
 .pdf-field-overlay {
@@ -606,9 +540,6 @@
   background: rgba(24, 144, 255, 0.12);
 }
 
-/* ============================================================
-   SIGNATURE PLACER
-   ============================================================ */
 .pdf-signature-overlay {
   position: absolute;
   border: 2px dashed #1890ff;
@@ -617,32 +548,69 @@
 }
 
 /* ============================================================
-   PDF EDITOR LAYOUT — thumbs + canvas + form panel
+   PDF EDITOR LAYOUT — bounded flex chain
    ============================================================ */
+.pdf-editor {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+  min-width: 0;
+}
+
 .pdf-editor-main {
+  flex: 1 1 0;
   display: flex;
   flex-direction: row;
-  flex: 1;
-  min-height: 0;
   overflow: hidden;
+  min-height: 0;
 }
 
 .pdf-editor-thumbs {
-  width: 200px;
+  width: 140px;
   flex-shrink: 0;
   border-right: 1px solid #e0e0e0;
   background: #f5f5f5;
   overflow-y: auto;
+  min-height: 0;
 }
 
 .pdf-editor-canvas-area {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-width: 0;
-  overflow: auto;
-  background: #525659;
-  padding: 24px;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: auto;
+  background: #3f4347;
+  padding: 32px 24px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+
+/* Pages: never compressed, always natural size */
+.pdf-editor-page {
+  flex-shrink: 0;
+  position: relative;
+  align-self: center;
+  background: #ffffff;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.3),
+    0 8px 24px rgba(0, 0, 0, 0.4);
+  border-radius: 2px;
+}
+
+/* Page number label under each page */
+.pdf-editor-page::after {
+  content: attr(data-page-num);
+  position: absolute;
+  bottom: -22px;
+  right: 0;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* ============================================================
@@ -767,36 +735,6 @@
 }
 
 /* ============================================================
-   DARK MODE — PDF SECTIONS
-   ============================================================ */
-@media (prefers-color-scheme: dark) {
-  .pdf-editor-thumbs {
-    background: #1a1a1a;
-    border-right-color: #303030;
-  }
-  .page-thumb-toolbar {
-    border-bottom-color: #303030;
-  }
-  .page-thumb-count {
-    color: #a0a0a0;
-  }
-  .page-thumb-item {
-    background: #262626;
-  }
-  .page-thumb-item.selected {
-    background: #0a2a4a;
-    border-color: #4fa8f5;
-  }
-  .page-thumb-header {
-    background: #1f1f1f;
-    border-bottom-color: #303030;
-  }
-  .page-thumb-num {
-    color: #808080;
-  }
-}
-
-/* ============================================================
    PDF TEXT LAYER (invisible, selectable)
    ============================================================ */
 .pdf-text-layer {
@@ -834,4 +772,37 @@
 .pdf-text-layer > span.pending-edit {
   background: rgba(250, 173, 20, 0.35);
   border-bottom: 2px solid #faad14;
+}
+
+/* ============================================================
+   DARK MODE — PDF SECTIONS
+   ============================================================ */
+@media (prefers-color-scheme: dark) {
+  .pdf-editor-thumbs {
+    background: #1a1a1a;
+    border-right-color: #303030;
+  }
+  .page-thumb-toolbar {
+    border-bottom-color: #303030;
+  }
+  .page-thumb-count {
+    color: #a0a0a0;
+  }
+  .page-thumb-item {
+    background: #262626;
+  }
+  .page-thumb-item.selected {
+    background: #0a2a4a;
+    border-color: #4fa8f5;
+  }
+  .page-thumb-header {
+    background: #1f1f1f;
+    border-bottom-color: #303030;
+  }
+  .page-thumb-num {
+    color: #808080;
+  }
+  .pdf-editor-page {
+    background: #1f1f1f;
+  }
 }
