@@ -27,7 +27,7 @@ const { Option } = Select;
 const { TextArea } = Input;
 const { Panel } = Collapse;
 const { Step } = Steps;
-
+const { TabPane } = Tabs;
 // ==================== REGULATORY AGENCIES ====================
 
 const REGULATORY_AGENCIES = {
