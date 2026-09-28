@@ -186,16 +186,15 @@ const STATUS_FLOW = {
 // ==================== INDUSTRY CONFIGURATIONS ====================
 
 const industries = [
-  { id: 'healthcare', name: 'Healthcare', icon: <MedicineBoxOutlined />, color: '#1890ff' },
-  { id: 'construction', name: 'Construction', icon: <ToolOutlined />, color: '#fa8c16' },
-  { id: 'oil_gas', name: 'Oil & Gas', icon: <EnvironmentOutlined />, color: '#52c41a' },
-  { id: 'aviation', name: 'Aviation', icon: <RocketOutlined />, color: '#722ed1' },
-  { id: 'manufacturing', name: 'Manufacturing', icon: <HomeOutlined />, color: '#fa541c' },
-  { id: 'transportation', name: 'Transportation', icon: <CarOutlined />, color: '#13c2c2' },
-  { id: 'mining', name: 'Mining', icon: <SafetyCertificateOutlined />, color: '#eb2f96' },
-  { id: 'hospitality', name: 'Hospitality', icon: <BankOutlined />, color: '#a0d911' }
+  { id: 1, code: 'healthcare',     name: 'Healthcare',     icon: <MedicineBoxOutlined />,        color: '#1890ff' },
+  { id: 2, code: 'construction',   name: 'Construction',   icon: <ToolOutlined />,               color: '#fa8c16' },
+  { id: 3, code: 'oil_gas',        name: 'Oil & Gas',      icon: <EnvironmentOutlined />,        color: '#52c41a' },
+  { id: 4, code: 'aviation',       name: 'Aviation',       icon: <RocketOutlined />,             color: '#722ed1' },
+  { id: 5, code: 'manufacturing',  name: 'Manufacturing',  icon: <HomeOutlined />,               color: '#fa541c' },
+  { id: 6, code: 'transportation', name: 'Transportation', icon: <CarOutlined />,                color: '#13c2c2' },
+  { id: 7, code: 'mining',         name: 'Mining',         icon: <SafetyCertificateOutlined />,  color: '#eb2f96' },
+  { id: 8, code: 'hospitality',    name: 'Hospitality',    icon: <BankOutlined />,               color: '#a0d911' }
 ];
-
 // ==================== INDUSTRY CONFIGS ====================
 
 const industryConfigs = {
@@ -1746,7 +1745,7 @@ function ReportsPage() {
   );
 
   const renderIncidentForm = () => {
-    const config = industryConfigs[selectedIndustry.id];
+    const config = industryConfigs[selectedIndustry.code];
     return (
       <Form form={form} layout="vertical" onFinish={handleIncidentSubmit} initialValues={{ severity: 'medium', date: null, time: null }}>
         <div style={{ marginBottom: '16px' }}><Button type="link" onClick={handleBackToIndustry} icon={<FileDoneOutlined />}>Change Industry</Button></div>
