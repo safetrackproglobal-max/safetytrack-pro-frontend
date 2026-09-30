@@ -19,7 +19,7 @@ import dayjs from 'dayjs';
 // ✅ SERVICE IMPORTS
 import notificationService from '../../services/notificationService';
 import { useAuth } from '../../context/AuthContext';
-
+const { Text, Paragraph, Title } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
