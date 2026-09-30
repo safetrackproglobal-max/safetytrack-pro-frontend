@@ -53,7 +53,6 @@ import {
   SearchOutlined,
   SortAscendingOutlined,
   SortDescendingOutlined,
-  // NEW icons for advanced features
   BranchesOutlined,
   RobotOutlined,
   CommentOutlined,
@@ -71,7 +70,7 @@ import CustomReportBuilder from '../components/reports/CustomReportBuilder';
 import { useIncidentNotifications } from '../context/NotificationContext';
 
 // ============================================================
-// NEW: Advanced Incident Components
+// Advanced Incident Components
 // ============================================================
 import FishboneDiagram from '../components/incident/FishboneDiagram';
 import AIInvestigationAssistant from '../components/incident/AIInvestigationAssistant.js';
@@ -82,8 +81,9 @@ import IncidentComments from '../components/incident/IncidentComments';
 import InvestigationAssignment from '../components/incident/InvestigationAssignment';
 import WitnessStatementForm from '../components/incident/WitnessStatementForm';
 import AuditTrailViewer from '../components/incident/AuditTrailViewer';
+
 // ============================================================
-// NEW: Analytics & Compliance Components
+// Analytics & Compliance Components
 // ============================================================
 import PredictiveAnalyticsDashboard from '../components/analytics/PredictiveAnalyticsDashboard';
 import SimilarIncidentDetection from '../components/analytics/SimilarIncidentDetection';
@@ -195,6 +195,7 @@ const industries = [
   { id: 7, code: 'mining',         name: 'Mining',         icon: <SafetyCertificateOutlined />,  color: '#eb2f96' },
   { id: 8, code: 'hospitality',    name: 'Hospitality',    icon: <BankOutlined />,               color: '#a0d911' }
 ];
+
 // ==================== INDUSTRY CONFIGS ====================
 
 const industryConfigs = {
@@ -511,7 +512,7 @@ const industryConfigs = {
               <Radio.Group>
                 <Radio value="yes">Yes</Radio>
                 <Radio value="no">No</Radio>
-                <Radio value="staff_only">Staff Only</Radio>
+                <Option value="staff_only">Staff Only</Option>
               </Radio.Group>
             </Form.Item>
           </Col>
@@ -816,15 +817,6 @@ const MediaUploadSection = ({
 
 // ==================== INCIDENT DETAILS MODAL ====================
 
-/**
- * Enhanced Incident Details Modal with tabs for:
- *  - Details (existing Descriptions)
- *  - Advanced Tools (Fishbone, AI, Timeline)
- *  - Corrective Actions
- *  - Discussion (Comments)
- *  - Team (Investigation Assignment)
- *  - Witness Statements
- */
 const IncidentDetailsModal = ({
   visible,
   incident,
@@ -869,6 +861,16 @@ const IncidentDetailsModal = ({
           onClick={() => onAuditTrail && onAuditTrail(incident)}
         >
           Audit Trail
+        </Button>,
+        <Button
+          key="actions"
+          icon={<ToolOutlined />}
+          onClick={() => {
+            onClose();
+            onCorrectiveActions && onCorrectiveActions(incident);
+          }}
+        >
+          Corrective Actions
         </Button>,
         canUpdateStatus && (
           <Button key="status" icon={<CheckCircleOutlined />} onClick={() => { onClose(); onStatusUpdate(incident); }}>
@@ -1046,15 +1048,6 @@ const IncidentDetailsModal = ({
           </Row>
         </TabPane>
 
-        {/* ---------- CORRECTIVE ACTIONS TAB ---------- */}
-        <TabPane tab={<span><ToolOutlined /> Corrective Actions</span>} key="actions">
-          <CorrectiveActionTracker
-            incident={incident}
-            visible={true}
-            onClose={() => {}}
-          />
-        </TabPane>
-
         {/* ---------- DISCUSSION TAB ---------- */}
         <TabPane tab={<span><CommentOutlined /> Discussion</span>} key="comments">
           <IncidentComments
@@ -1222,9 +1215,6 @@ const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
   });
   const [chartView, setChartView] = useState('severity');
 
-  // ============================================================
-  // NEW: Advanced Incident Modal States
-  // ============================================================
   const [fishboneVisible, setFishboneVisible] = useState(false);
   const [aiAssistantVisible, setAiAssistantVisible] = useState(false);
   const [timelineVisible, setTimelineVisible] = useState(false);
@@ -1384,9 +1374,6 @@ const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
     }
   };
 
-  // ============================================================
-  // NEW: Handlers for advanced tools
-  // ============================================================
   const handleOpenFishbone = (incident) => {
     setSelectedIncident(incident);
     setFishboneVisible(true);
@@ -1405,6 +1392,11 @@ const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
   const handleOpenAuditTrail = (incident) => {
     setSelectedIncident(incident);
     setAuditTrailVisible(true);
+  };
+
+  const handleOpenCorrectiveActions = (incident) => {
+    setSelectedIncident(incident);
+    setCorrectiveActionsVisible(true);
   };
 
   const columns = [
@@ -1572,12 +1564,13 @@ const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
         onOpenAI={handleOpenAI}
         onOpenTimeline={handleOpenTimeline}
         onAuditTrail={handleOpenAuditTrail}
+        onCorrectiveActions={handleOpenCorrectiveActions}
         canEdit={selectedIncident ? canEditIncident(selectedIncident) : false}
         canUpdateStatus={selectedIncident ? canUpdateStatus(selectedIncident) : false}
         currentUser={{ id: user?.id, name: user?.name, role: user?.role }}
       />
 
-      {/* ---------- Advanced Incident Modals ---------- */}
+      {/* ---------- Advanced Incident Modals (Standalone Drawers) ---------- */}
       <FishboneDiagram
         visible={fishboneVisible}
         incident={selectedIncident}
@@ -1598,6 +1591,14 @@ const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
         visible={auditTrailVisible}
         incident={selectedIncident}
         onClose={() => setAuditTrailVisible(false)}
+      />
+      <CorrectiveActionTracker
+        incident={selectedIncident}
+        visible={correctiveActionsVisible}
+        onClose={() => {
+          setCorrectiveActionsVisible(false);
+          setSelectedIncident(null);
+        }}
       />
 
       {/* ---------- Edit Incident Modal ---------- */}
@@ -1637,7 +1638,6 @@ function ReportsPage() {
   const [fileList, setFileList] = useState([]);
   const [uploading, setUploading] = useState(false);
 
-  // ✅ NEW: Fetch incidents at parent level so tabs can share data
   const [allIncidents, setAllIncidents] = useState([]);
   
   const { pushNotification } = useContext(NotificationContext);
@@ -1646,7 +1646,6 @@ function ReportsPage() {
   const isAdmin = isAnyAdmin();
   const isEmployeeUser = isEmployee();
 
-  // ✅ Load incidents once at the page level
   useEffect(() => {
     const fetchAll = async () => {
       try {
@@ -1795,41 +1794,34 @@ function ReportsPage() {
   return (
     <div style={{ padding: '24px' }}>
       <Tabs defaultActiveKey="incidents">
-        {/* ---------- REPORTS TAB ---------- */}
         <TabPane tab={<span><FileTextOutlined /> Safety Reports</span>} key="reports">
           <Row gutter={[24, 24]}><Col span={24}><Card><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}><h2 style={{ margin: 0 }}>Safety Reports & Incident Management</h2><Button type="primary" danger icon={<AlertOutlined />} onClick={showIncidentModal} size="large">Report Safety Incident</Button></div><Alert message="Multi-Industry Incident Reporting" description="Report safety incidents across all industries. Industry-specific forms ensure accurate data collection for proper investigation and compliance." type="info" showIcon style={{ marginBottom: '24px' }} /></Card></Col></Row>
           <ExportPanel />
           <CustomReportBuilder />
         </TabPane>
 
-        {/* ---------- INCIDENT DASHBOARD TAB ---------- */}
         <TabPane tab={<span><AlertOutlined /> Incident Dashboard</span>} key="incidents">
           <IncidentDashboard showIncidentModal={showIncidentModal} filterKey={filterKey} setFilterKey={setFilterKey} />
         </TabPane>
 
-        {/* ---------- PREDICTIVE ANALYTICS TAB ---------- */}
         <TabPane tab={<span><LineChartOutlined /> Predictive Analytics</span>} key="predictive">
           <PredictiveAnalyticsDashboard incidents={allIncidents} />
         </TabPane>
 
-        {/* ---------- COST ANALYSIS TAB ---------- */}
         <TabPane tab={<span><DollarOutlined /> Cost Analysis</span>} key="costs">
           <CostAnalysisModule incidents={allIncidents} />
         </TabPane>
 
-        {/* ---------- REGULATORY COMPLIANCE TAB ---------- */}
         <TabPane tab={<span><AuditOutlined /> Regulatory Compliance</span>} key="compliance">
           <RegulatoryReporting incidents={allIncidents} />
         </TabPane>
 
-        {/* ---------- ESCALATION MATRIX TAB ---------- */}
         <TabPane tab={<span><ThunderboltOutlined /> Escalation Matrix</span>} key="escalation">
           <EscalationMatrix incidents={allIncidents} onEscalate={(incident, rule) => {
             console.log('Escalating:', incident, rule);
           }} />
         </TabPane>
 
-        {/* ---------- SAFETY OBSERVATIONS TAB ---------- */}
         <TabPane
           tab={<span><EyeOutlined /> Safety Observations</span>}
           key="observations"
@@ -1851,7 +1843,6 @@ function ReportsPage() {
           />
         </TabPane>
 
-        {/* ---------- LESSONS LEARNED TAB ---------- */}
         <TabPane
           tab={<span><BulbOutlined /> Lessons Learned</span>}
           key="lessons"
