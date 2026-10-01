@@ -694,7 +694,7 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
         </>
       ) : null}
 
-      {/* What-if Scenario Modal */}
+            {/* What-if Scenario Modal */}
       <Modal
         title={<Space><QuestionCircleOutlined />What-If Scenario (AI)</Space>}
         open={scenarioVisible}
@@ -722,7 +722,9 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
                   renderItem={(r) => <List.Item>{r}</List.Item>} />
               </>
             )}
-          </Modal>
+          </Card>          {/* ← 1. close the Card */}
+        )}                 {/* ← 2. close the {scenarioResult && ...} block */}
+      </Modal>             {/* ← 3. close the Modal (correctly placed now) */}
     </div>
   );
 };
