@@ -13,10 +13,11 @@ import {
   FileImageOutlined, ReloadOutlined,
   CheckCircleOutlined, RobotOutlined, QuestionCircleOutlined,
   UndoOutlined, RedoOutlined, AimOutlined, FireOutlined,
-  StarOutlined, StarFilled, MessageOutlined, SendOutlined
+  StarOutlined, StarFilled, MessageOutlined,
+  HistoryOutlined
 } from '@ant-design/icons';
 
-// ✅ ONLY ONE SERVICE IMPORT — all AI calls go through the backend
+// ✅ SINGLE SERVICE IMPORT — all AI calls route through the backend
 import notificationService from '../../services/notificationService';
 import { useAuth } from '../../context/AuthContext';
 
@@ -139,7 +140,7 @@ const LIKELIHOODS = {
   low:    { color: 'green',  label: 'Low' }
 };
 
-// ==================== CATEGORY EDITOR (module-level helper) ====================
+// ==================== CATEGORY EDITOR ====================
 
 const CategoryEditor = ({ initial, onCreate, onSave }) => {
   const [form] = Form.useForm();
@@ -207,6 +208,7 @@ const FishboneDiagram = ({
   const [aiExpandingCat, setAiExpandingCat] = useState(null);
 
   const [versions, setVersions] = useState([]);
+  const [aiHistory, setAiHistory] = useState([]);
   const [aiStatus, setAiStatus] = useState({ available: false, totalKeys: 0, availableKeys: 0 });
 
   const [aiModalVisible, setAiModalVisible] = useState(false);
@@ -214,17 +216,12 @@ const FishboneDiagram = ({
     industry: 'general',
     depth: 'comprehensive',
     language: 'English',
+    modelPreference: 'auto',
     focusAreas: ''
   });
 
   const [fiveWhysModal, setFiveWhysModal] = useState({ open: false, cause: null, data: null, loading: false });
   const [actionsModal, setActionsModal] = useState({ open: false, cause: null, data: [], loading: false });
-
-  const [chatOpen, setChatOpen] = useState(false);
-  const [chatHistory, setChatHistory] = useState([]);
-  const [chatInput, setChatInput] = useState('');
-  const [chatLoading, setChatLoading] = useState(false);
-  const chatScrollRef = useRef(null);
 
   const historyRef = useRef({ past: [], future: [] });
   const svgRef = useRef(null);
@@ -241,7 +238,7 @@ const FishboneDiagram = ({
   const categoriesUsed = categories.filter(c => c.causes.length > 0).length;
   const highLikelihoodCount = allCauses.filter(c => c.likelihood === 'high').length;
 
-  // ==================== LOAD ====================
+  // ==================== DATA LOADING ====================
 
   const initializeDefaultCategories = useCallback(() => {
     if (!incident) return;
@@ -296,6 +293,16 @@ const FishboneDiagram = ({
     }
   }, [incident]);
 
+  const loadAIHistory = useCallback(async () => {
+    if (!incident) return;
+    try {
+      const res = await notificationService.getAIAnalysisHistory(incident.id);
+      setAiHistory(res?.history || res?.data || []);
+    } catch {
+      setAiHistory([]);
+    }
+  }, [incident]);
+
   const loadAIStatus = useCallback(async () => {
     try {
       const status = await notificationService.getAIStatus();
@@ -309,11 +316,12 @@ const FishboneDiagram = ({
   useEffect(() => {
     if (visible && incident) {
       loadVersions();
+      loadAIHistory();
       loadAIStatus();
     }
-  }, [visible, incident, loadVersions, loadAIStatus]);
+  }, [visible, incident, loadVersions, loadAIHistory, loadAIStatus]);
 
-  // ==================== HISTORY ====================
+  // ==================== HISTORY (UNDO/REDO) ====================
 
   const pushHistory = (newCategories, newProblem) => {
     const { past } = historyRef.current;
@@ -344,7 +352,7 @@ const FishboneDiagram = ({
     message.info('Redone');
   };
 
-  // ==================== AI CALLS ====================
+  // ==================== AI CALLS (aligned with AIInvestigationAssistant) ====================
 
   const handleAIGenerate = async () => {
     if (!incident) return;
@@ -356,12 +364,17 @@ const FishboneDiagram = ({
 
       const response = await notificationService.generateAIFishbone(incident.id, {
         industry: aiOptions.industry,
-        depth: aiOptions.depth,
-        language: aiOptions.language,
-        focusAreas
+        focusAreas,
+        ai_options: {
+          model_preference: aiOptions.modelPreference,
+          language: aiOptions.language,
+          depth: aiOptions.depth,
+          temperature: 0.7
+        }
       });
 
-      const result = response?.analysis || response?.data || response;
+      // Single canonical response path
+      const result = response?.analysis;
       if (!result?.categories) throw new Error('Invalid AI response');
 
       pushHistory(
@@ -370,15 +383,20 @@ const FishboneDiagram = ({
       );
       setSummary(result.summary || null);
       setAiMeta({
-        generatedAt: new Date().toISOString(),
+        generatedAt: response.generated_at || new Date().toISOString(),
         depth: aiOptions.depth,
         industry: aiOptions.industry,
         language: aiOptions.language,
-        methodology: result.methodology
+        modelPreference: aiOptions.modelPreference,
+        methodology: result.methodology,
+        modelInfo: response.model_info || null,
+        usage: response.usage || null
       });
 
       setAiModalVisible(false);
       message.success(`AI generated ${result.categories.length} categories`);
+      // Refresh AI history so the new generation appears
+      loadAIHistory();
     } catch (error) {
       message.error(error.message || 'AI generation failed');
     } finally {
@@ -393,7 +411,7 @@ const FishboneDiagram = ({
       const response = await notificationService.expandFishboneCategory(
         incident.id, category, category.causes, 5
       );
-      const newCauses = response?.causes || response?.data?.causes || [];
+      const newCauses = response?.analysis?.causes || response?.causes || [];
       const updated = categories.map(c =>
         c.id === category.id ? { ...c, causes: [...c.causes, ...newCauses] } : c
       );
@@ -409,8 +427,10 @@ const FishboneDiagram = ({
   const handleSuggestActions = async (cause, category) => {
     setActionsModal({ open: true, cause, data: [], loading: true });
     try {
-      const response = await notificationService.suggestCorrectiveActions(incident.id, category, cause);
-      const actions = response?.actions || response?.data?.actions || [];
+      const response = await notificationService.suggestCorrectiveActions(
+        incident.id, category, cause
+      );
+      const actions = response?.analysis?.actions || response?.actions || [];
       setActionsModal({ open: true, cause, data: actions, loading: false });
     } catch (error) {
       message.error(error.message || 'Failed to suggest actions');
@@ -438,7 +458,7 @@ const FishboneDiagram = ({
     setFiveWhysModal({ open: true, cause, data: null, loading: true });
     try {
       const response = await notificationService.runFiveWhys(incident.id, cause);
-      const data = response?.analysis || response?.data || response;
+      const data = response?.analysis || response;
       setFiveWhysModal({ open: true, cause, data, loading: false });
     } catch (error) {
       message.error(error.message || 'Failed to run 5-Why');
@@ -462,31 +482,6 @@ const FishboneDiagram = ({
       setFiveWhysModal({ open: false, cause: null, data: null, loading: false });
     } catch (error) {
       message.error(error.message || 'Failed to save 5-Why');
-    }
-  };
-
-  const handleAskAI = async () => {
-    if (!chatInput.trim()) return;
-    const question = chatInput.trim();
-    setChatInput('');
-    const nextHistory = [...chatHistory, { role: 'user', content: question }];
-    setChatHistory(nextHistory);
-    setChatLoading(true);
-
-    try {
-      const response = await notificationService.askAIFishbone(
-        incident.id,
-        question,
-        { problemStatement, categories },
-        chatHistory
-      );
-      const answer = response?.answer || response?.data?.answer || response?.response || 'No response';
-      setChatHistory([...nextHistory, { role: 'assistant', content: answer }]);
-      setTimeout(() => chatScrollRef.current?.scrollTo({ top: 999999, behavior: 'smooth' }), 50);
-    } catch (error) {
-      setChatHistory([...nextHistory, { role: 'assistant', content: `⚠️ ${error.message}` }]);
-    } finally {
-      setChatLoading(false);
     }
   };
 
@@ -646,7 +641,6 @@ const FishboneDiagram = ({
     const botCats = categories.filter((_, i) => i % 2 === 1);
     const slots = Math.max(topCats.length, botCats.length, 1);
 
-    // Dynamic sizing
     const SPINE_START_X = 60;
     const SPINE_END_X   = 1560;
     const AVAILABLE_W   = SPINE_END_X - SPINE_START_X - 80;
@@ -803,7 +797,6 @@ const FishboneDiagram = ({
           </linearGradient>
         </defs>
 
-        {/* Problem head */}
         <rect
           x={SPINE_END_X + 20}
           y={SPINE_Y - 55}
@@ -845,7 +838,6 @@ const FishboneDiagram = ({
           </div>
         </foreignObject>
 
-        {/* Spine */}
         <line
           x1={SPINE_START_X} y1={SPINE_Y}
           x2={SPINE_END_X + 20} y2={SPINE_Y}
@@ -854,11 +846,9 @@ const FishboneDiagram = ({
           markerEnd="url(#arrowhead)"
         />
 
-        {/* Bones */}
         {topCats.map((cat, i) => renderBone(cat, i, true))}
         {botCats.map((cat, i) => renderBone(cat, i, false))}
 
-        {/* Legend */}
         <g transform={`translate(20, ${HEIGHT - 24})`}>
           <circle cx={0} cy={0} r={5} fill="#f5222d" />
           <text x={12} y={4} fontSize={10} fill="#666">Root cause</text>
@@ -872,7 +862,7 @@ const FishboneDiagram = ({
     );
   };
 
-  // ==================== CAUSE ITEM ====================
+  // ==================== CAUSE LIST ITEM ====================
 
   const renderCauseItem = (cat, cause) => (
     <List.Item
@@ -1034,12 +1024,28 @@ const FishboneDiagram = ({
               type="success"
               showIcon
               icon={<RobotOutlined />}
-              message={`AI-generated • ${aiMeta.depth || 'comprehensive'} • ${aiMeta.industry || 'general'}`}
+              message={
+                <Space wrap>
+                  <span>AI-generated fishbone</span>
+                  {aiMeta.modelInfo?.name && (
+                    <Tag color="purple" style={{ marginLeft: 8 }}>
+                      {aiMeta.modelInfo.name}
+                    </Tag>
+                  )}
+                  {aiMeta.depth && <Tag>{aiMeta.depth}</Tag>}
+                  {aiMeta.industry && <Tag>{aiMeta.industry}</Tag>}
+                </Space>
+              }
               description={
                 <Space size="small" wrap>
                   <Text type="secondary" style={{ fontSize: 12 }}>
-                    Generated: {new Date(aiMeta.generatedAt).toLocaleString()}
+                    {new Date(aiMeta.generatedAt).toLocaleString()}
                   </Text>
+                  {aiMeta.usage && (aiMeta.usage.prompt_tokens || aiMeta.usage.completion_tokens) && (
+                    <Text type="secondary" style={{ fontSize: 12 }}>
+                      Tokens: {aiMeta.usage.prompt_tokens || 0} prompt / {aiMeta.usage.completion_tokens || 0} completion
+                    </Text>
+                  )}
                   {aiMeta.methodology?.frameworksApplied?.map(f => (
                     <Tag key={f} color="purple">{f}</Tag>
                   ))}
@@ -1204,9 +1210,7 @@ const FishboneDiagram = ({
                             title: 'Add a category',
                             width: 480,
                             content: (
-                              <CategoryEditor
-                                onCreate={(cat) => { tempCat = cat; }}
-                              />
+                              <CategoryEditor onCreate={(cat) => { tempCat = cat; }} />
                             ),
                             okText: 'Add',
                             onOk: () => {
@@ -1407,7 +1411,39 @@ const FishboneDiagram = ({
               />
             </TabPane>
 
-            <TabPane tab={`📜 Versions (${versions.length})`} key="versions">
+            <TabPane tab={<span><HistoryOutlined /> History</span>} key="history">
+              {aiHistory.length > 0 && (
+                <>
+                  <Divider orientation="left">🤖 AI Generations</Divider>
+                  <Timeline>
+                    {aiHistory.map(h => (
+                      <Timeline.Item key={h.id} color="purple">
+                        <Space direction="vertical" size={0}>
+                          <Text strong>
+                            {h.type || 'AI analysis'}
+                            {h.model_info?.name && (
+                              <Tag color="purple" style={{ marginLeft: 8 }}>
+                                {h.model_info.name}
+                              </Tag>
+                            )}
+                          </Text>
+                          <Text type="secondary" style={{ fontSize: 12 }}>
+                            {new Date(h.created_at || h.generated_at).toLocaleString()}
+                            {h.user_name ? ` • by ${h.user_name}` : ''}
+                          </Text>
+                          {h.usage && (
+                            <Text type="secondary" style={{ fontSize: 12 }}>
+                              {h.usage.total_tokens || 0} tokens
+                            </Text>
+                          )}
+                        </Space>
+                      </Timeline.Item>
+                    ))}
+                  </Timeline>
+                </>
+              )}
+
+              <Divider orientation="left">📜 Saved Versions ({versions.length})</Divider>
               {versions.length === 0 ? (
                 <Empty description="No versions" />
               ) : (
@@ -1421,6 +1457,9 @@ const FishboneDiagram = ({
                         <Text type="secondary" style={{ fontSize: 12 }}>
                           {v.created_by_name || 'Unknown'} • {new Date(v.created_at).toLocaleString()}
                         </Text>
+                        {v.ai_model && (
+                          <Tag color="purple">{v.ai_model}</Tag>
+                        )}
                         {!readOnly && !v.is_current && (
                           <Button
                             size="small"
@@ -1468,15 +1507,6 @@ const FishboneDiagram = ({
                   block
                 >
                   Generate Full Analysis with AI
-                </Button>
-                <Divider>Ask AI about this incident</Divider>
-                <Button
-                  icon={<MessageOutlined />}
-                  onClick={() => setChatOpen(true)}
-                  disabled={!aiStatus.available}
-                  block
-                >
-                  Open AI Chat
                 </Button>
               </Card>
             </TabPane>
@@ -1599,6 +1629,17 @@ const FishboneDiagram = ({
               <Option value="aviation">Aviation</Option>
               <Option value="chemical">Chemical</Option>
               <Option value="mining">Mining</Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item label="AI Model">
+            <Select
+              value={aiOptions.modelPreference}
+              onChange={(v) => setAiOptions({ ...aiOptions, modelPreference: v })}
+            >
+              <Option value="auto">Auto (fastest available)</Option>
+              <Option value="gemini-1.5-flash">Gemini 1.5 Flash (fast)</Option>
+              <Option value="gemini-1.5-pro">Gemini 1.5 Pro (deeper reasoning)</Option>
             </Select>
           </Form.Item>
 
@@ -1750,63 +1791,6 @@ const FishboneDiagram = ({
           </>
         )}
       </Modal>
-
-      {/* ============ AI Chat Drawer ============ */}
-      <Drawer
-        title={<Space><MessageOutlined /> Ask AI about this incident</Space>}
-        open={chatOpen}
-        onClose={() => setChatOpen(false)}
-        width={480}
-        placement="right"
-      >
-        <div
-          ref={chatScrollRef}
-          style={{ height: 'calc(100% - 80px)', overflowY: 'auto', paddingRight: 8 }}
-        >
-          {chatHistory.length === 0 ? (
-            <Empty description="Ask about causes, evidence, or next steps" />
-          ) : (
-            chatHistory.map((m, i) => (
-              <div
-                key={i}
-                style={{ marginBottom: 12, textAlign: m.role === 'user' ? 'right' : 'left' }}
-              >
-                <div
-                  style={{
-                    display: 'inline-block',
-                    padding: '8px 12px',
-                    borderRadius: 10,
-                    maxWidth: '85%',
-                    background: m.role === 'user' ? '#1890ff' : '#f0f0f0',
-                    color: m.role === 'user' ? '#fff' : '#000',
-                    textAlign: 'left'
-                  }}
-                >
-                  {m.content}
-                </div>
-              </div>
-            ))
-          )}
-          {chatLoading && <Spin size="small" />}
-        </div>
-        <div style={{ position: 'absolute', bottom: 16, left: 16, right: 16 }}>
-          <Space.Compact style={{ width: '100%' }}>
-            <Input
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              onPressEnter={handleAskAI}
-              placeholder="Ask a question..."
-              disabled={chatLoading}
-            />
-            <Button
-              type="primary"
-              icon={<SendOutlined />}
-              onClick={handleAskAI}
-              loading={chatLoading}
-            />
-          </Space.Compact>
-        </div>
-      </Drawer>
     </Drawer>
   );
 };
