@@ -202,11 +202,9 @@ const SimilarIncidentDetection = ({
     }
   }, [currentIncident, allIncidents, threshold, matchField, modelPreference, visible]);
 
-  useEffect(() => {
+    useEffect(() => {
     if (currentIncident && visible) findSimilar();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentIncident?.id, visible]);
-
+  }, [currentIncident?.id, visible]); // eslint-disable-line
   // ==================== COMPARE (AI) ====================
 
   const handleCompare = async (incident) => {
