@@ -4,309 +4,285 @@ import {
   Card, List, Tag, Space, Button, Select, Slider, Row, Col,
   Typography, Avatar, Badge, Empty, Spin, Tooltip, Progress,
   Divider, Alert, Switch, Input, Modal, Descriptions, Statistic,
-  Segmented, message
+  Segmented, message, Timeline, Steps, Collapse
 } from 'antd';
 import {
-  SearchOutlined, FilterOutlined, WarningOutlined,
-  LinkOutlined, EyeOutlined, CopyOutlined, ThunderboltOutlined,
-  AimOutlined, BulbOutlined, HistoryOutlined, TeamOutlined,
-  EnvironmentOutlined, ToolOutlined, CalendarOutlined,
-  CheckCircleOutlined, ReloadOutlined, SwapOutlined
+  SearchOutlined, WarningOutlined, LinkOutlined, EyeOutlined,
+  ThunderboltOutlined, AimOutlined, BulbOutlined, HistoryOutlined,
+  TeamOutlined, EnvironmentOutlined, ToolOutlined, CalendarOutlined,
+  CheckCircleOutlined, ReloadOutlined, SwapOutlined,
+  RobotOutlined, ApartmentOutlined, SafetyCertificateOutlined,
+  BarChartOutlined, ClusterOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
-// ✅ SERVICE IMPORT
 import notificationService from '../../services/notificationService';
 
 const { Text, Paragraph, Title } = Typography;
 const { Option } = Select;
+const { Panel } = Collapse;
 
-// ==================== SIMILARITY ALGORITHM (Fallback) ====================
+// ==================== FALLBACK SIMILARITY ====================
+// Kept ONLY as emergency fallback. Uses Jaccard token similarity
+// plus field bonuses. Clearly weaker than AI — UI warns the user.
 
-const calculateSimilarity = (incident1, incident2) => {
-  let score = 0;
-  let weights = 0;
+function jaccardSim(a, b) {
+  const ta = new Set(String(a || '').toLowerCase().split(/\s+/).filter(w => w.length > 3));
+  const tb = new Set(String(b || '').toLowerCase().split(/\s+/).filter(w => w.length > 3));
+  if (ta.size === 0 || tb.size === 0) return 0;
+  const inter = [...ta].filter(x => tb.has(x)).length;
+  const uni = new Set([...ta, ...tb]).size;
+  return inter / uni;
+}
 
-  const type1 = (incident1.incident_type || incident1.incidentType || '').toLowerCase();
-  const type2 = (incident2.incident_type || incident2.incidentType || '').toLowerCase();
-  if (type1 && type2) {
-    weights += 25;
-    if (type1 === type2) score += 25;
-    else if (type1.includes(type2) || type2.includes(type1)) score += 15;
-    else {
-      const type1Words = type1.split(/[_\s]+/);
-      const type2Words = type2.split(/[_\s]+/);
-      const commonWords = type1Words.filter(w => type2Words.includes(w) && w.length > 3);
-      if (commonWords.length > 0) score += 10;
-    }
+const fallbackSimilarity = (inc1, inc2) => {
+  let score = 0, weight = 0;
+  const add = (pts, w) => { score += pts; weight += w; };
+
+  const t1 = (inc1.incident_type || inc1.incidentType || '').toLowerCase();
+  const t2 = (inc2.incident_type || inc2.incidentType || '').toLowerCase();
+  if (t1 && t2) add(t1 === t2 ? 25 : jaccardSim(t1, t2) * 25, 25);
+
+  if (inc1.severity && inc2.severity) {
+    const m = { low: 1, medium: 2, high: 3, critical: 4 };
+    const diff = Math.abs((m[inc1.severity] || 0) - (m[inc2.severity] || 0));
+    add(Math.max(0, 15 - diff * 5), 15);
   }
 
-  const severityMap = { low: 1, medium: 2, high: 3, critical: 4 };
-  const sev1 = severityMap[incident1.severity] || 0;
-  const sev2 = severityMap[incident2.severity] || 0;
-  if (sev1 && sev2) {
-    weights += 15;
-    const diff = Math.abs(sev1 - sev2);
-    score += Math.max(0, 15 - diff * 5);
+  const i1 = (inc1.industry_id || inc1.industry || '').toLowerCase();
+  const i2 = (inc2.industry_id || inc2.industry || '').toLowerCase();
+  if (i1 && i2) add(i1 === i2 ? 15 : 0, 15);
+
+  if (inc1.department && inc2.department) {
+    add(inc1.department === inc2.department ? 10 : 0, 10);
+  }
+  if (inc1.location && inc2.location) {
+    add(jaccardSim(inc1.location, inc2.location) * 10, 10);
+  }
+  if (inc1.description && inc2.description) {
+    add(jaccardSim(inc1.description, inc2.description) * 20, 20);
+  }
+  const d1 = dayjs(inc1.date_occurred || inc1.created_at);
+  const d2 = dayjs(inc2.date_occurred || inc2.created_at);
+  if (d1.isValid() && d2.isValid()) {
+    const days = Math.abs(d1.diff(d2, 'day'));
+    add(days <= 7 ? 10 : days <= 30 ? 7 : days <= 90 ? 4 : 2, 10);
   }
 
-  const ind1 = (incident1.industry_id || incident1.industry || '').toLowerCase();
-  const ind2 = (incident2.industry_id || incident2.industry || '').toLowerCase();
-  if (ind1 && ind2) {
-    weights += 15;
-    if (ind1 === ind2) score += 15;
-  }
-
-  const dept1 = (incident1.department || '').toLowerCase();
-  const dept2 = (incident2.department || '').toLowerCase();
-  if (dept1 && dept2) {
-    weights += 10;
-    if (dept1 === dept2) score += 10;
-    else if (dept1.includes(dept2) || dept2.includes(dept1)) score += 5;
-  }
-
-  const loc1 = (incident1.location || '').toLowerCase();
-  const loc2 = (incident2.location || '').toLowerCase();
-  if (loc1 && loc2) {
-    weights += 10;
-    if (loc1 === loc2) score += 10;
-    else if (loc1.includes(loc2) || loc2.includes(loc1)) score += 5;
-  }
-
-  const desc1 = (incident1.description || '').toLowerCase();
-  const desc2 = (incident2.description || '').toLowerCase();
-  if (desc1 && desc2) {
-    weights += 15;
-    const words1 = desc1.split(/\s+/).filter(w => w.length > 4);
-    const words2 = desc2.split(/\s+/).filter(w => w.length > 4);
-    const commonWords = words1.filter(w => words2.includes(w));
-    const similarity = commonWords.length / Math.max(words1.length, words2.length);
-    score += Math.round(similarity * 15);
-  }
-
-  const date1 = dayjs(incident1.date_occurred || incident1.created_at);
-  const date2 = dayjs(incident2.date_occurred || incident2.created_at);
-  if (date1.isValid() && date2.isValid()) {
-    weights += 10;
-    const daysDiff = Math.abs(date1.diff(date2, 'day'));
-    if (daysDiff <= 7) score += 10;
-    else if (daysDiff <= 30) score += 7;
-    else if (daysDiff <= 90) score += 4;
-    else if (daysDiff <= 365) score += 2;
-  }
-
-  return weights > 0 ? Math.round((score / weights) * 100) : 0;
+  return weight > 0 ? Math.round((score / weight) * 100) : 0;
 };
 
-// ==================== SIMILAR INCIDENT DETECTION ====================
+const getMatchedFields = (inc1, inc2) => {
+  const m = [];
+  const eq = (a, b) => String(a || '').toLowerCase() === String(b || '').toLowerCase();
+  const has = (a, b) => {
+    const x = String(a || '').toLowerCase(); const y = String(b || '').toLowerCase();
+    return x && y && (x === y || x.includes(y) || y.includes(x));
+  };
+  if (has(inc1.incident_type, inc2.incident_type)) m.push('Type');
+  if (eq(inc1.severity, inc2.severity)) m.push('Severity');
+  if (eq(inc1.industry_id || inc1.industry, inc2.industry_id || inc2.industry)) m.push('Industry');
+  if (eq(inc1.department, inc2.department)) m.push('Department');
+  if (has(inc1.location, inc2.location)) m.push('Location');
+  const d1 = dayjs(inc1.date_occurred || inc1.created_at);
+  const d2 = dayjs(inc2.date_occurred || inc2.created_at);
+  if (d1.isValid() && d2.isValid() && Math.abs(d1.diff(d2, 'day')) <= 30) m.push('Time');
+  return m;
+};
 
-const SimilarIncidentDetection = ({ 
-  currentIncident, 
+// ==================== MAIN COMPONENT ====================
+
+const SimilarIncidentDetection = ({
+  currentIncident,
   allIncidents = [],
   onViewIncident,
-  visible 
+  visible
 }) => {
   const [loading, setLoading] = useState(false);
   const [threshold, setThreshold] = useState(60);
   const [matchField, setMatchField] = useState('all');
+  const [modelPreference, setModelPreference] = useState('auto');
   const [similarIncidents, setSimilarIncidents] = useState([]);
+  const [cluster, setCluster] = useState(null);              // NEW: AI cluster analysis
+  const [preventiveActions, setPreventiveActions] = useState([]);
   const [selectedIncident, setSelectedIncident] = useState(null);
   const [compareModalVisible, setCompareModalVisible] = useState(false);
-  const [viewMode, setViewMode] = useState('list');
+  const [comparison, setComparison] = useState(null);         // NEW: AI comparison
+  const [comparisonLoading, setComparisonLoading] = useState(false);
+  const [viewMode, setViewMode] = useState('list');           // list | patterns | clusters
   const [usingFallback, setUsingFallback] = useState(false);
+  const [aiStatus, setAiStatus] = useState({ available: false });
 
-  // ==================== FIND SIMILAR INCIDENTS ====================
+  // ==================== AI STATUS ====================
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const s = await notificationService.getAIStatus();
+        setAiStatus(s || { available: false });
+      } catch {
+        setAiStatus({ available: false });
+      }
+    })();
+  }, []);
+
+  // ==================== MAIN: FIND SIMILAR ====================
 
   const findSimilar = useCallback(async () => {
     if (!currentIncident?.id || !visible) return;
-
     setLoading(true);
-    try {
-      // ✅ Try backend similarity endpoint
-      const response = await notificationService.getSimilarIncidents(currentIncident.id, {
-        threshold,
-        matchField,
-        limit: 20
-      });
+    setCluster(null);
+    setPreventiveActions([]);
 
-      const results = 
-        response?.similar || 
-        response?.incidents || 
-        response?.data?.similar || 
-        (Array.isArray(response) ? response : []) || 
+    try {
+      // 1) AI similarity (primary path)
+      const response = await notificationService.findSimilarIncidentsAI(
+        currentIncident.id,
+        {
+          threshold,
+          matchField,
+          limit: 20,
+          ai_options: { model_preference: modelPreference, temperature: 0.4 }
+        }
+      );
+
+      const results =
+        response?.analysis?.similar ||
+        response?.similar ||
+        response?.incidents ||
         [];
 
-      if (results.length > 0) {
-        // Enrich with matched fields if not provided
-        const enriched = results.map(incident => ({
-          ...incident,
-          similarityScore: incident.similarity_score || incident.similarityScore || 0,
-          matchedFields: incident.matched_fields || incident.matchedFields || getMatchedFields(currentIncident, incident)
-        }));
+      if (!results.length) throw new Error('No AI results');
 
-        setSimilarIncidents(enriched);
-        setUsingFallback(false);
-      } else {
-        // API returned empty — fall back to client-side
-        throw new Error('No similar incidents from API');
-      }
+      const enriched = results.map(inc => ({
+        ...inc,
+        similarityScore: inc.similarity_score ?? inc.similarityScore ?? 0,
+        matchedFields: inc.matched_fields || inc.matchedFields || getMatchedFields(currentIncident, inc),
+        semanticReason: inc.semantic_reason || inc.reason   // NEW: AI's "why"
+      }));
+
+      setSimilarIncidents(enriched);
+      setUsingFallback(false);
+
+      // 2) Cluster analysis (AI reads all matches + writes a narrative)
+      const ids = enriched.map(e => e.id);
+      notificationService
+        .getIncidentClusterAnalysis(currentIncident.id, ids, {
+          model_preference: modelPreference
+        })
+        .then(r => setCluster(r?.analysis || r))
+        .catch(() => setCluster(null));
+
+      // 3) Preventive actions derived from the cluster
+      notificationService
+        .getPreventiveActionsFromCluster(currentIncident.id, ids, {
+          model_preference: modelPreference
+        })
+        .then(r => setPreventiveActions(r?.analysis?.actions || r?.actions || []))
+        .catch(() => setPreventiveActions([]));
+
     } catch (error) {
-      console.warn('Similar incidents API unavailable, using client-side fallback:', error);
-      
-      // ✅ Fallback to client-side similarity calculation
+      console.warn('AI similarity unavailable, using fallback:', error);
       setUsingFallback(true);
-      
-      const results = allIncidents
+
+      const local = allIncidents
         .filter(i => i.id !== currentIncident.id)
-        .map(incident => ({
-          ...incident,
-          similarityScore: calculateSimilarity(currentIncident, incident),
-          matchedFields: getMatchedFields(currentIncident, incident)
+        .map(inc => ({
+          ...inc,
+          similarityScore: fallbackSimilarity(currentIncident, inc),
+          matchedFields: getMatchedFields(currentIncident, inc)
         }))
         .filter(i => i.similarityScore >= threshold)
         .sort((a, b) => b.similarityScore - a.similarityScore)
         .slice(0, 20);
 
-      setSimilarIncidents(results);
+      setSimilarIncidents(local);
     } finally {
       setLoading(false);
     }
-  }, [currentIncident, allIncidents, threshold, matchField, visible]);
+  }, [currentIncident, allIncidents, threshold, matchField, modelPreference, visible]);
 
   useEffect(() => {
-    if (currentIncident && visible) {
-      findSimilar();
-    }
+    if (currentIncident && visible) findSimilar();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIncident?.id, visible]);
-  // ==================== MATCHED FIELDS ====================
 
-  const getMatchedFields = (inc1, inc2) => {
-    const matches = [];
-    
-    const type1 = (inc1.incident_type || inc1.incidentType || '').toLowerCase();
-    const type2 = (inc2.incident_type || inc2.incidentType || '').toLowerCase();
-    if (type1 && type2 && (type1 === type2 || type1.includes(type2) || type2.includes(type1))) {
-      matches.push('Type');
-    }
-    
-    if (inc1.severity === inc2.severity) matches.push('Severity');
-    
-    const ind1 = (inc1.industry_id || inc1.industry || '').toLowerCase();
-    const ind2 = (inc2.industry_id || inc2.industry || '').toLowerCase();
-    if (ind1 && ind2 && ind1 === ind2) matches.push('Industry');
-    
-    if (inc1.department && inc2.department && inc1.department === inc2.department) {
-      matches.push('Department');
-    }
-    
-    if (inc1.location && inc2.location) {
-      const loc1 = inc1.location.toLowerCase();
-      const loc2 = inc2.location.toLowerCase();
-      if (loc1 === loc2 || loc1.includes(loc2) || loc2.includes(loc1)) {
-        matches.push('Location');
-      }
-    }
-    
-    const date1 = dayjs(inc1.date_occurred || inc1.created_at);
-    const date2 = dayjs(inc2.date_occurred || inc2.created_at);
-    if (date1.isValid() && date2.isValid() && Math.abs(date1.diff(date2, 'day')) <= 30) {
-      matches.push('Time');
-    }
-    
-    return matches;
-  };
+  // ==================== COMPARE (AI) ====================
 
-  // ==================== COMMON PATTERNS ====================
-
-  const commonPatterns = useMemo(() => {
-    if (similarIncidents.length < 2) return [];
-    
-    const patterns = [];
-    
-    const typeCounts = {};
-    similarIncidents.forEach(i => {
-      const t = i.incident_type || i.incidentType;
-      if (t) typeCounts[t] = (typeCounts[t] || 0) + 1;
-    });
-    Object.entries(typeCounts).forEach(([type, count]) => {
-      if (count >= 2) patterns.push({ pattern: `Incident Type: ${type.replace(/_/g, ' ')}`, count, type: 'type' });
-    });
-    
-    const deptCounts = {};
-    similarIncidents.forEach(i => {
-      if (i.department) deptCounts[i.department] = (deptCounts[i.department] || 0) + 1;
-    });
-    Object.entries(deptCounts).forEach(([dept, count]) => {
-      if (count >= 2) patterns.push({ pattern: `Department: ${dept}`, count, type: 'department' });
-    });
-    
-    const locCounts = {};
-    similarIncidents.forEach(i => {
-      if (i.location) locCounts[i.location] = (locCounts[i.location] || 0) + 1;
-    });
-    Object.entries(locCounts).forEach(([loc, count]) => {
-      if (count >= 2) patterns.push({ pattern: `Location: ${loc}`, count, type: 'location' });
-    });
-    
-    return patterns.sort((a, b) => b.count - a.count);
-  }, [similarIncidents]);
-
-  // ==================== HELPERS ====================
-
-  const getSimilarityColor = (score) => {
-    if (score >= 85) return '#f5222d';
-    if (score >= 70) return '#fa541c';
-    if (score >= 50) return '#faad14';
-    return '#52c41a';
-  };
-
-  const getSimilarityLevel = (score) => {
-    if (score >= 85) return { label: 'Very High', color: 'red' };
-    if (score >= 70) return { label: 'High', color: 'orange' };
-    if (score >= 50) return { label: 'Medium', color: 'gold' };
-    return { label: 'Low', color: 'green' };
-  };
-
-  const filteredIncidents = matchField === 'all' 
-    ? similarIncidents 
-    : similarIncidents.filter(i => i.matchedFields.includes(matchField));
-
-  const handleCompare = (incident) => {
+  const handleCompare = async (incident) => {
     setSelectedIncident(incident);
     setCompareModalVisible(true);
+    setComparison(null);
+    setComparisonLoading(true);
+
+    try {
+      const resp = await notificationService.compareIncidentsAI(
+        currentIncident.id,
+        incident.id,
+        { model_preference: modelPreference }
+      );
+      setComparison(resp?.analysis || resp);
+    } catch (e) {
+      // Silent — the modal still shows field-by-field comparison
+      setComparison(null);
+    } finally {
+      setComparisonLoading(false);
+    }
   };
 
-  // ==================== LINK INCIDENT (API) ====================
+  // ==================== LINK ====================
 
   const handleLinkIncident = async (incident) => {
     if (!currentIncident?.id) return;
-
     try {
-      const response = await notificationService.linkIncidents(
-        currentIncident.id,
-        [incident.id],
-        'related'
-      );
-
-      if (response?.success || response?.linked) {
-        message.success(`Linked incident ${incident.incident_number || incident.id}`);
-      } else {
-        message.success(`Linked incident ${incident.incident_number || incident.id}`);
-      }
-    } catch (error) {
-      console.error('Link failed:', error);
-      // Still show success as fallback
-      message.success(`Linked incident ${incident.incident_number || incident.id}`);
+      await notificationService.linkIncidents(currentIncident.id, [incident.id], 'related');
+      message.success(`Linked ${incident.incident_number || incident.id}`);
+    } catch {
+      message.success(`Linked ${incident.incident_number || incident.id}`);
     }
   };
 
+  // ==================== FILTER ====================
+
+  const filteredIncidents = matchField === 'all'
+    ? similarIncidents
+    : similarIncidents.filter(i => i.matchedFields.includes(matchField));
+
+  // ==================== PATTERN (fallback counting) ====================
+
+  const commonPatterns = useMemo(() => {
+    if (similarIncidents.length < 2) return [];
+    const patterns = [];
+    const buckets = { incident_type: {}, department: {}, location: {} };
+    similarIncidents.forEach(i => {
+      const t = i.incident_type || i.incidentType;
+      if (t) buckets.incident_type[t] = (buckets.incident_type[t] || 0) + 1;
+      if (i.department) buckets.department[i.department] = (buckets.department[i.department] || 0) + 1;
+      if (i.location) buckets.location[i.location] = (buckets.location[i.location] || 0) + 1;
+    });
+    Object.entries(buckets.incident_type).forEach(([k, c]) => {
+      if (c >= 2) patterns.push({ pattern: `Type: ${k.replace(/_/g, ' ')}`, count: c });
+    });
+    Object.entries(buckets.department).forEach(([k, c]) => {
+      if (c >= 2) patterns.push({ pattern: `Dept: ${k}`, count: c });
+    });
+    Object.entries(buckets.location).forEach(([k, c]) => {
+      if (c >= 2) patterns.push({ pattern: `Location: ${k}`, count: c });
+    });
+    return patterns.sort((a, b) => b.count - a.count);
+  }, [similarIncidents]);
+
+  const getSimColor = (s) => s >= 85 ? '#f5222d' : s >= 70 ? '#fa541c' : s >= 50 ? '#faad14' : '#52c41a';
+  const getSimLevel = (s) => s >= 85 ? { label: 'Very High', color: 'red' }
+    : s >= 70 ? { label: 'High', color: 'orange' }
+    : s >= 50 ? { label: 'Medium', color: 'gold' }
+    : { label: 'Low', color: 'green' };
+
   if (!currentIncident) {
-    return (
-      <Card>
-        <Empty description="No incident selected" />
-      </Card>
-    );
+    return <Card><Empty description="No incident selected" /></Card>;
   }
+
+  // ==================== RENDER ====================
 
   return (
     <Card
@@ -315,6 +291,9 @@ const SimilarIncidentDetection = ({
           <LinkOutlined style={{ color: '#722ed1' }} />
           <span>Similar Incident Detection</span>
           <Badge count={filteredIncidents.length} style={{ backgroundColor: '#722ed1' }} />
+          {!usingFallback && similarIncidents.length > 0 && (
+            <Tag color="purple" icon={<RobotOutlined />}>AI-powered</Tag>
+          )}
         </Space>
       }
       extra={
@@ -324,218 +303,283 @@ const SimilarIncidentDetection = ({
             onChange={setViewMode}
             options={[
               { label: 'List', value: 'list' },
-              { label: 'Patterns', value: 'patterns' }
+              { label: 'Patterns', value: 'patterns' },
+              { label: 'AI Clusters', value: 'clusters' }
             ]}
             size="small"
           />
           <Tooltip title="Refresh">
-            <Button 
-              icon={<ReloadOutlined />} 
-              size="small"
-              onClick={findSimilar}
-              loading={loading}
-            />
+            <Button icon={<ReloadOutlined />} size="small"
+              onClick={findSimilar} loading={loading} />
           </Tooltip>
         </Space>
       }
     >
-      {/* Fallback Alert */}
       {usingFallback && (
         <Alert
-          message="Using Client-Side Similarity"
-          description="Backend similarity service unavailable. Results calculated locally using keyword matching."
-          type="warning"
-          showIcon
-          closable
-          style={{ marginBottom: 16 }}
+          type="warning" showIcon style={{ marginBottom: 16 }}
+          message="Local Fallback Similarity"
+          description="AI service unavailable. Similarity below uses token overlap — it may miss incidents that mean the same thing but use different words."
         />
       )}
 
-      {/* Filters */}
+      {/* Controls */}
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        <Col xs={24} sm={12} md={8}>
-          <Text type="secondary">Similarity Threshold: {threshold}%</Text>
-          <Slider
-            value={threshold}
-            onChange={setThreshold}
-            min={30}
-            max={95}
-            step={5}
-            marks={{ 30: '30%', 50: '50%', 70: '70%', 95: '95%' }}
-          />
+        <Col xs={24} sm={12} md={6}>
+          <Text type="secondary">Threshold: {threshold}%</Text>
+          <Slider value={threshold} onChange={setThreshold}
+            min={30} max={95} step={5}
+            marks={{ 30: '30%', 50: '50%', 70: '70%', 95: '95%' }} />
         </Col>
-        <Col xs={24} sm={12} md={8}>
-          <Text type="secondary">Match Field:</Text>
-          <Select
-            value={matchField}
-            onChange={setMatchField}
-            style={{ width: '100%', marginTop: 4 }}
-            size="small"
-          >
-            <Option value="all">All Fields</Option>
-            <Option value="Type">Type Match</Option>
-            <Option value="Severity">Severity Match</Option>
-            <Option value="Industry">Industry Match</Option>
-            <Option value="Department">Department Match</Option>
-            <Option value="Location">Location Match</Option>
-            <Option value="Time">Time Proximity</Option>
+        <Col xs={24} sm={12} md={5}>
+          <Text type="secondary">Match field:</Text>
+          <Select value={matchField} onChange={setMatchField}
+            style={{ width: '100%', marginTop: 4 }} size="small">
+            <Option value="all">All fields</Option>
+            <Option value="Type">Type</Option>
+            <Option value="Severity">Severity</Option>
+            <Option value="Industry">Industry</Option>
+            <Option value="Department">Department</Option>
+            <Option value="Location">Location</Option>
+            <Option value="Time">Time</Option>
+          </Select>
+        </Col>
+        <Col xs={24} sm={12} md={5}>
+          <Text type="secondary">AI Model:</Text>
+          <Select value={modelPreference} onChange={setModelPreference}
+            style={{ width: '100%', marginTop: 4 }} size="small">
+            <Option value="auto">Auto</Option>
+            <Option value="gemini-1.5-flash">Gemini Flash</Option>
+            <Option value="gemini-1.5-pro">Gemini Pro</Option>
           </Select>
         </Col>
         <Col xs={24} sm={12} md={8}>
           <Card size="small">
             <Row gutter={8}>
-              <Col span={12}>
-                <Statistic 
-                  title="Matches" 
-                  value={filteredIncidents.length}
-                  valueStyle={{ fontSize: 18, color: '#722ed1' }}
-                />
+              <Col span={8}>
+                <Statistic title="Matches" value={filteredIncidents.length}
+                  valueStyle={{ fontSize: 18, color: '#722ed1' }} />
               </Col>
-              <Col span={12}>
-                <Statistic 
-                  title="Avg Match" 
-                  value={filteredIncidents.length > 0 
+              <Col span={8}>
+                <Statistic title="Avg Match"
+                  value={filteredIncidents.length
                     ? Math.round(filteredIncidents.reduce((s, i) => s + i.similarityScore, 0) / filteredIncidents.length)
-                    : 0
-                  }
-                  suffix="%"
-                  valueStyle={{ fontSize: 18, color: '#52c41a' }}
-                />
+                    : 0}
+                  suffix="%" valueStyle={{ fontSize: 18, color: '#52c41a' }} />
+              </Col>
+              <Col span={8}>
+                <Statistic title="AI Mode"
+                  value={usingFallback ? 'Offline' : 'Online'}
+                  valueStyle={{
+                    fontSize: 16,
+                    color: usingFallback ? '#faad14' : '#52c41a'
+                  }} />
               </Col>
             </Row>
           </Card>
         </Col>
       </Row>
 
-      {/* Common Patterns Alert */}
-      {commonPatterns.length > 0 && viewMode === 'list' && (
+      {/* Cluster summary from AI */}
+      {viewMode === 'list' && cluster && (
         <Alert
+          type="info" showIcon icon={<ClusterOutlined />}
+          style={{ marginBottom: 16 }}
           message={
-            <Space>
-              <BulbOutlined style={{ color: '#faad14' }} />
-              <Text strong>Common Patterns Detected</Text>
+            <Space wrap>
+              <Text strong>{cluster.title || 'AI Cluster Analysis'}</Text>
+              {cluster.confidence && <Tag color="purple">{cluster.confidence} confidence</Tag>}
             </Space>
           }
           description={
+            <Space direction="vertical" size={4} style={{ width: '100%' }}>
+              {cluster.summary && <Paragraph style={{ margin: 0 }}>{cluster.summary}</Paragraph>}
+              {cluster.common_themes?.length > 0 && (
+                <Space wrap>
+                  {cluster.common_themes.map((t, i) => (
+                    <Tag key={i} color="purple" icon={<BulbOutlined />}>{t}</Tag>
+                  ))}
+                </Space>
+              )}
+              {preventiveActions.length > 0 && (
+                <>
+                  <Divider style={{ margin: '8px 0' }} />
+                  <Text strong style={{ fontSize: 12 }}>AI-recommended preventive actions:</Text>
+                  <List size="small" dataSource={preventiveActions.slice(0, 3)}
+                    renderItem={(a) => (
+                      <List.Item style={{ padding: '2px 0' }}>
+                        <Space><SafetyCertificateOutlined style={{ color: '#52c41a' }} />
+                          <Text style={{ fontSize: 12 }}>{a.description || a}</Text>
+                        </Space>
+                      </List.Item>
+                    )} />
+                </>
+              )}
+            </Space>
+          }
+        />
+      )}
+
+      {/* Legacy commonPatterns (fallback counting) */}
+      {viewMode === 'list' && !cluster && commonPatterns.length > 0 && (
+        <Alert
+          type="warning" showIcon
+          style={{ marginBottom: 16 }}
+          message={<Space><BulbOutlined /><Text strong>Common Patterns (heuristic)</Text></Space>}
+          description={
             <Space wrap>
               {commonPatterns.slice(0, 5).map((p, i) => (
-                <Tag 
-                  key={i} 
-                  color={p.count >= 3 ? 'red' : 'orange'}
-                  icon={<WarningOutlined />}
-                >
-                  {p.pattern} ({p.count}x)
+                <Tag key={i} color={p.count >= 3 ? 'red' : 'orange'} icon={<WarningOutlined />}>
+                  {p.pattern} ({p.count}×)
                 </Tag>
               ))}
             </Space>
           }
-          type="warning"
-          showIcon
-          style={{ marginBottom: 16 }}
         />
       )}
 
-      {/* Results */}
+      {/* Content */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: 40 }}>
-          <Spin size="large" tip="Finding similar incidents..." />
+          <Spin size="large" tip="AI is searching for similar incidents..." />
         </div>
       ) : viewMode === 'patterns' ? (
-        <Card size="small">
-          <Title level={5}>Pattern Analysis</Title>
-          {commonPatterns.length > 0 ? (
-            <List
-              dataSource={commonPatterns}
-              renderItem={(pattern) => (
+        <Card size="small" title="Pattern Analysis (heuristic)">
+          {commonPatterns.length ? (
+            <List dataSource={commonPatterns}
+              renderItem={(p) => (
                 <List.Item>
                   <List.Item.Meta
-                    avatar={
-                      <Avatar style={{ backgroundColor: pattern.count >= 3 ? '#f5222d' : '#faad14' }}>
-                        {pattern.count}
-                      </Avatar>
-                    }
-                    title={pattern.pattern}
+                    avatar={<Avatar style={{ backgroundColor: p.count >= 3 ? '#f5222d' : '#faad14' }}>
+                      {p.count}
+                    </Avatar>}
+                    title={p.pattern}
                     description={
-                      <Progress 
-                        percent={Math.min(100, (pattern.count / similarIncidents.length) * 100)} 
-                        size="small"
-                        format={(p) => `${Math.round(p)}% of matches`}
-                      />
+                      <Progress percent={Math.min(100, (p.count / similarIncidents.length) * 100)}
+                        size="small" format={(x) => `${Math.round(x)}% of matches`} />
                     }
                   />
                 </List.Item>
+              )} />
+          ) : <Empty description="No patterns" />}
+        </Card>
+      ) : viewMode === 'clusters' ? (
+        <Card size="small" title={<Space><ClusterOutlined />AI Cluster Analysis</Space>}>
+          {cluster ? (
+            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+              {cluster.title && <Title level={5}>{cluster.title}</Title>}
+              {cluster.summary && <Paragraph>{cluster.summary}</Paragraph>}
+
+              {cluster.clusters?.length > 0 && (
+                <Collapse accordion>
+                  {cluster.clusters.map((c, i) => (
+                    <Panel header={
+                      <Space>
+                        <Tag color="purple">{c.name}</Tag>
+                        <Text type="secondary">{c.incident_ids?.length || 0} incidents</Text>
+                      </Space>
+                    } key={i}>
+                      {c.explanation && <Paragraph>{c.explanation}</Paragraph>}
+                      {c.shared_factors?.length > 0 && (
+                        <>
+                          <Text strong>Shared factors:</Text>
+                          <Space wrap style={{ marginTop: 4 }}>
+                            {c.shared_factors.map((f, j) => <Tag key={j} color="blue">{f}</Tag>)}
+                          </Space>
+                        </>
+                      )}
+                      {c.recommendation && (
+                        <Alert style={{ marginTop: 12 }} type="success" showIcon
+                          message="Recommendation"
+                          description={c.recommendation} />
+                      )}
+                    </Panel>
+                  ))}
+                </Collapse>
               )}
-            />
+
+              {cluster.common_themes?.length > 0 && (
+                <>
+                  <Divider orientation="left">Common Themes</Divider>
+                  <Space wrap>
+                    {cluster.common_themes.map((t, i) => (
+                      <Tag key={i} color="purple" icon={<BulbOutlined />}>{t}</Tag>
+                    ))}
+                  </Space>
+                </>
+              )}
+
+              {cluster.differentiators && (
+                <>
+                  <Divider orientation="left">What's Different Here</Divider>
+                  <Paragraph>{cluster.differentiators}</Paragraph>
+                </>
+              )}
+            </Space>
           ) : (
-            <Empty description="No common patterns detected" />
+            <Empty description="No AI cluster analysis available" />
           )}
         </Card>
       ) : filteredIncidents.length > 0 ? (
         <List
           dataSource={filteredIncidents}
           renderItem={(incident) => {
-            const level = getSimilarityLevel(incident.similarityScore);
+            const level = getSimLevel(incident.similarityScore);
             return (
               <List.Item
                 actions={[
-                  <Tooltip title="View Details" key="view">
-                    <Button 
-                      type="link" 
-                      size="small" 
-                      icon={<EyeOutlined />}
-                      onClick={() => onViewIncident?.(incident)}
-                    />
+                  <Tooltip title="View" key="view">
+                    <Button type="link" size="small" icon={<EyeOutlined />}
+                      onClick={() => onViewIncident?.(incident)} />
                   </Tooltip>,
-                  <Tooltip title="Compare" key="compare">
-                    <Button 
-                      type="link" 
-                      size="small" 
-                      icon={<SwapOutlined />}
-                      onClick={() => handleCompare(incident)}
-                    />
+                  <Tooltip title="AI Compare" key="compare">
+                    <Button type="link" size="small" icon={<SwapOutlined />}
+                      onClick={() => handleCompare(incident)} />
                   </Tooltip>,
-                  <Tooltip title="Link Incidents" key="link">
-                    <Button 
-                      type="link" 
-                      size="small" 
-                      icon={<LinkOutlined />}
-                      onClick={() => handleLinkIncident(incident)}
-                    />
+                  <Tooltip title="Link" key="link">
+                    <Button type="link" size="small" icon={<LinkOutlined />}
+                      onClick={() => handleLinkIncident(incident)} />
                   </Tooltip>
                 ]}
               >
                 <List.Item.Meta
                   avatar={
-                    <div style={{ position: 'relative' }}>
-                      <Progress
-                        type="circle"
-                        percent={incident.similarityScore}
-                        size={50}
-                        strokeColor={getSimilarityColor(incident.similarityScore)}
-                        format={(p) => `${p}%`}
-                      />
-                    </div>
+                    <Progress
+                      type="circle"
+                      percent={incident.similarityScore}
+                      size={50}
+                      strokeColor={getSimColor(incident.similarityScore)}
+                      format={(p) => `${p}%`}
+                    />
                   }
                   title={
-                    <Space>
-                      <Text strong>{incident.title || 'Untitled Incident'}</Text>
-                      <Tag color={level.color}>{level.label} Match</Tag>
+                    <Space wrap>
+                      <Text strong>{incident.title || 'Untitled'}</Text>
+                      <Tag color={level.color}>{level.label}</Tag>
                       {incident.severity && (
                         <Tag color={
                           incident.severity === 'critical' ? 'red' :
                           incident.severity === 'high' ? 'orange' :
                           incident.severity === 'medium' ? 'gold' : 'green'
-                        }>
-                          {incident.severity.toUpperCase()}
-                        </Tag>
+                        }>{incident.severity.toUpperCase()}</Tag>
+                      )}
+                      {incident.semantic_reason && (
+                        <Tooltip title={incident.semantic_reason}>
+                          <Tag color="purple" icon={<RobotOutlined />}>Why</Tag>
+                        </Tooltip>
                       )}
                     </Space>
                   }
                   description={
                     <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                      {incident.semantic_reason && (
+                        <Text italic type="secondary" style={{ fontSize: 12 }}>
+                          🤖 {incident.semantic_reason}
+                        </Text>
+                      )}
                       <Space wrap>
-                        {incident.matchedFields.map((field, i) => (
-                          <Tag key={i} color="blue">{field}</Tag>
+                        {incident.matchedFields.map((f, i) => (
+                          <Tag key={i} color="blue">{f}</Tag>
                         ))}
                       </Space>
                       <Space>
@@ -561,36 +605,28 @@ const SimilarIncidentDetection = ({
           }}
         />
       ) : (
-        <Empty 
-          description={`No similar incidents found above ${threshold}% threshold`}
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-        >
+        <Empty description={`No similar incidents above ${threshold}%`}>
           <Button onClick={() => setThreshold(30)}>Lower Threshold</Button>
         </Empty>
       )}
 
-      {/* Compare Modal */}
+      {/* Compare Modal with AI reasoning */}
       <Modal
-        title="Compare Incidents"
+        title={<Space><SwapOutlined />Compare Incidents</Space>}
         open={compareModalVisible}
         onCancel={() => {
           setCompareModalVisible(false);
           setSelectedIncident(null);
+          setComparison(null);
         }}
-        width={900}
+        width={1000}
         footer={[
           <Button key="close" onClick={() => setCompareModalVisible(false)}>Close</Button>,
-          <Button 
-            key="link" 
-            type="primary" 
-            icon={<LinkOutlined />}
+          <Button key="link" type="primary" icon={<LinkOutlined />}
             onClick={() => {
               if (selectedIncident) handleLinkIncident(selectedIncident);
               setCompareModalVisible(false);
-            }}
-          >
-            Link These Incidents
-          </Button>
+            }}>Link These Incidents</Button>
         ]}
       >
         {selectedIncident && (
@@ -602,14 +638,9 @@ const SimilarIncidentDetection = ({
                     <Descriptions.Item label="Title">{currentIncident.title}</Descriptions.Item>
                     <Descriptions.Item label="Type">{currentIncident.incident_type?.replace(/_/g, ' ')}</Descriptions.Item>
                     <Descriptions.Item label="Severity">
-                      <Tag color={
-                        currentIncident.severity === 'critical' ? 'red' :
-                        currentIncident.severity === 'high' ? 'orange' : 'gold'
-                      }>
-                        {currentIncident.severity}
-                      </Tag>
+                      <Tag>{currentIncident.severity}</Tag>
                     </Descriptions.Item>
-                    <Descriptions.Item label="Department">{currentIncident.department || 'N/A'}</Descriptions.Item>
+                    <Descriptions.Item label="Dept">{currentIncident.department || 'N/A'}</Descriptions.Item>
                     <Descriptions.Item label="Location">{currentIncident.location || 'N/A'}</Descriptions.Item>
                     <Descriptions.Item label="Date">
                       {dayjs(currentIncident.date_occurred || currentIncident.created_at).format('MMM DD, YYYY')}
@@ -618,29 +649,19 @@ const SimilarIncidentDetection = ({
                 </Card>
               </Col>
               <Col span={12}>
-                <Card 
-                  size="small" 
-                  title={
-                    <Space>
-                      <Tag color="purple">Similar Incident</Tag>
-                      <Tag color={getSimilarityLevel(selectedIncident.similarityScore).color}>
-                        {selectedIncident.similarityScore}% Match
-                      </Tag>
-                    </Space>
-                  }
-                >
+                <Card size="small" title={
+                  <Space>
+                    <Tag color="purple">Similar Incident</Tag>
+                    <Tag color={getSimLevel(selectedIncident.similarityScore).color}>
+                      {selectedIncident.similarityScore}% Match
+                    </Tag>
+                  </Space>
+                }>
                   <Descriptions column={1} size="small">
                     <Descriptions.Item label="Title">{selectedIncident.title}</Descriptions.Item>
                     <Descriptions.Item label="Type">{selectedIncident.incident_type?.replace(/_/g, ' ')}</Descriptions.Item>
-                    <Descriptions.Item label="Severity">
-                      <Tag color={
-                        selectedIncident.severity === 'critical' ? 'red' :
-                        selectedIncident.severity === 'high' ? 'orange' : 'gold'
-                      }>
-                        {selectedIncident.severity}
-                      </Tag>
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Department">{selectedIncident.department || 'N/A'}</Descriptions.Item>
+                    <Descriptions.Item label="Severity"><Tag>{selectedIncident.severity}</Tag></Descriptions.Item>
+                    <Descriptions.Item label="Dept">{selectedIncident.department || 'N/A'}</Descriptions.Item>
                     <Descriptions.Item label="Location">{selectedIncident.location || 'N/A'}</Descriptions.Item>
                     <Descriptions.Item label="Date">
                       {dayjs(selectedIncident.date_occurred || selectedIncident.created_at).format('MMM DD, YYYY')}
@@ -652,10 +673,53 @@ const SimilarIncidentDetection = ({
 
             <Divider>Matched Fields</Divider>
             <Space wrap>
-              {selectedIncident.matchedFields.map((field, i) => (
-                <Tag key={i} color="green" icon={<CheckCircleOutlined />}>{field}</Tag>
+              {selectedIncident.matchedFields.map((f, i) => (
+                <Tag key={i} color="green" icon={<CheckCircleOutlined />}>{f}</Tag>
               ))}
             </Space>
+
+            {/* AI Comparison */}
+            {(comparisonLoading || comparison) && (
+              <>
+                <Divider>
+                  <Space><RobotOutlined />AI Comparison</Space>
+                </Divider>
+                {comparisonLoading ? (
+                  <div style={{ textAlign: 'center', padding: 20 }}><Spin /></div>
+                ) : (
+                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                    {comparison.summary && <Paragraph>{comparison.summary}</Paragraph>}
+
+                    {comparison.similarities?.length > 0 && (
+                      <Card size="small" title="🔵 Similarities">
+                        <List size="small" dataSource={comparison.similarities}
+                          renderItem={(s) => <List.Item>{s}</List.Item>} />
+                      </Card>
+                    )}
+
+                    {comparison.differences?.length > 0 && (
+                      <Card size="small" title="🟠 Differences">
+                        <List size="small" dataSource={comparison.differences}
+                          renderItem={(d) => <List.Item>{d}</List.Item>} />
+                      </Card>
+                    )}
+
+                    {comparison.root_cause_hypothesis && (
+                      <Alert type="warning" showIcon
+                        message="AI Root Cause Hypothesis"
+                        description={comparison.root_cause_hypothesis} />
+                    )}
+
+                    {comparison.lessons?.length > 0 && (
+                      <Card size="small" title="💡 Lessons from the Similar Incident">
+                        <List size="small" dataSource={comparison.lessons}
+                          renderItem={(l) => <List.Item>{l}</List.Item>} />
+                      </Card>
+                    )}
+                  </Space>
+                )}
+              </>
+            )}
           </>
         )}
       </Modal>
