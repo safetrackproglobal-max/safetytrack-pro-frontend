@@ -225,13 +225,13 @@ class NotificationService {
   }
 
   // Get fishbone analysis
-  async getFishboneAnalysis(incidentId) {
+    async getFishboneAnalysis(incidentId) {
     try {
       const response = await api.get(`/incidents/${incidentId}/fishbone`);
       return response.data;
     } catch (error) {
       console.error('Failed to fetch fishbone analysis:', error);
-      return { success: false, data: null };
+      return { success: false, analysis: null };
     }
   }
 
@@ -275,10 +275,16 @@ class NotificationService {
   // ==================== AI INVESTIGATION ASSISTANT ====================
 
   // Generate AI analysis
-  async generateAIAnalysis(incidentId, options = {}) {
+    async generateAIAnalysis(incidentId, options = {}) {
     try {
       const response = await api.post(`/incidents/${incidentId}/ai-analysis`, {
-        ...options,
+        analysis_type: options.analysis_type || 'full',
+        ai_options: {
+          model_preference: options.model_preference || options.ai_options?.model_preference || 'auto',
+          language: options.ai_options?.language || 'English',
+          depth: options.ai_options?.depth || 'comprehensive',
+          temperature: options.ai_options?.temperature ?? 0.7
+        },
         requestedBy: localStorage.getItem('userId'),
         requestedAt: new Date().toISOString()
       });
@@ -289,12 +295,17 @@ class NotificationService {
   }
 
   // Get AI analysis history
+    // Returns: { success: bool, history: [...] }
   async getAIAnalysisHistory(incidentId) {
     try {
       const response = await api.get(`/incidents/${incidentId}/ai-analysis/history`);
-      return response.data;
+      const d = response?.data || {};
+      // Backend may return { history: [...] } or { data: [...] } — normalize
+      const history = d.history || d.data || (Array.isArray(d) ? d : []);
+      return { success: d.success !== false, history };
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch AI analysis history');
+      console.warn('Failed to fetch AI analysis history:', error);
+      return { success: false, history: [] };
     }
   }
 
@@ -313,11 +324,16 @@ class NotificationService {
   }
 
   // Ask AI a question
-  async askAIInvestigation(incidentId, question, context = {}) {
+    async askAIInvestigation(incidentId, question, context = {}, aiOptions = {}) {
     try {
       const response = await api.post(`/incidents/${incidentId}/ai-analysis/ask`, {
         question,
         context,
+        ai_options: {
+          model_preference: aiOptions.model_preference || 'auto',
+          language: aiOptions.language || 'English',
+          temperature: aiOptions.temperature ?? 0.5
+        },
         askedBy: localStorage.getItem('userId'),
         askedAt: new Date().toISOString()
       });
@@ -340,14 +356,21 @@ class NotificationService {
     // ==================== AI FISHBONE (SERVER-SIDE GEMINI) ====================
 
   // Generate a full fishbone analysis using AI
+    // ==================== AI FISHBONE (SERVER-SIDE GEMINI) ====================
+
+  // Generate a full fishbone analysis using AI
   async generateAIFishbone(incidentId, options = {}) {
     try {
       const response = await api.post(`/incidents/${incidentId}/fishbone/ai-generate`, {
         industry: options.industry || 'general',
-        depth: options.depth || 'comprehensive',
-        language: options.language || 'English',
         focusAreas: options.focusAreas || [],
         customCategories: options.customCategories || null,
+        ai_options: {
+          model_preference: options.ai_options?.model_preference || 'auto',
+          language: options.ai_options?.language || 'English',
+          depth: options.ai_options?.depth || 'comprehensive',
+          temperature: options.ai_options?.temperature ?? 0.7
+        },
         requestedBy: localStorage.getItem('userId'),
         requestedAt: new Date().toISOString()
       });
@@ -358,7 +381,7 @@ class NotificationService {
   }
 
   // Expand an existing category with more AI-suggested causes
-  async expandFishboneCategory(incidentId, category, existingCauses = [], count = 5) {
+  async expandFishboneCategory(incidentId, category, existingCauses = [], count = 5, aiOptions = {}) {
     try {
       const response = await api.post(
         `/incidents/${incidentId}/fishbone/ai-expand-category`,
@@ -366,7 +389,13 @@ class NotificationService {
           category: { id: category.id, name: category.name, description: category.description },
           existingCauses: existingCauses.map(c => ({ description: c.description })),
           count,
-          requestedBy: localStorage.getItem('userId')
+          ai_options: {
+            model_preference: aiOptions.model_preference || 'auto',
+            language: aiOptions.language || 'English',
+            temperature: aiOptions.temperature ?? 0.7
+          },
+          requestedBy: localStorage.getItem('userId'),
+          requestedAt: new Date().toISOString()
         }
       );
       return response.data;
@@ -376,14 +405,20 @@ class NotificationService {
   }
 
   // Get AI-suggested corrective actions for a specific cause
-  async suggestCorrectiveActions(incidentId, category, cause) {
+  async suggestCorrectiveActions(incidentId, category, cause, aiOptions = {}) {
     try {
       const response = await api.post(
         `/incidents/${incidentId}/fishbone/ai-suggest-actions`,
         {
           category: { id: category.id, name: category.name },
           cause: { id: cause.id, description: cause.description },
-          requestedBy: localStorage.getItem('userId')
+          ai_options: {
+            model_preference: aiOptions.model_preference || 'auto',
+            language: aiOptions.language || 'English',
+            temperature: aiOptions.temperature ?? 0.7
+          },
+          requestedBy: localStorage.getItem('userId'),
+          requestedAt: new Date().toISOString()
         }
       );
       return response.data;
@@ -393,13 +428,19 @@ class NotificationService {
   }
 
   // Run 5-Why analysis on a specific cause
-  async runFiveWhys(incidentId, cause) {
+  async runFiveWhys(incidentId, cause, aiOptions = {}) {
     try {
       const response = await api.post(
         `/incidents/${incidentId}/fishbone/ai-five-whys`,
         {
           cause: { id: cause.id, description: cause.description },
-          requestedBy: localStorage.getItem('userId')
+          ai_options: {
+            model_preference: aiOptions.model_preference || 'auto',
+            language: aiOptions.language || 'English',
+            temperature: aiOptions.temperature ?? 0.7
+          },
+          requestedBy: localStorage.getItem('userId'),
+          requestedAt: new Date().toISOString()
         }
       );
       return response.data;
@@ -409,7 +450,7 @@ class NotificationService {
   }
 
   // Ask AI a question about the incident + current fishbone state
-  async askAIFishbone(incidentId, question, fishboneContext, history = []) {
+  async askAIFishbone(incidentId, question, fishboneContext, history = [], aiOptions = {}) {
     try {
       const response = await api.post(
         `/incidents/${incidentId}/fishbone/ai-chat`,
@@ -428,7 +469,13 @@ class NotificationService {
             }))
           },
           history: history.map(m => ({ role: m.role, content: m.content })),
-          requestedBy: localStorage.getItem('userId')
+          ai_options: {
+            model_preference: aiOptions.model_preference || 'auto',
+            language: aiOptions.language || 'English',
+            temperature: aiOptions.temperature ?? 0.5
+          },
+          requestedBy: localStorage.getItem('userId'),
+          requestedAt: new Date().toISOString()
         }
       );
       return response.data;
@@ -437,39 +484,37 @@ class NotificationService {
     }
   }
 
-  // Save 5-Why result against a cause
-  async saveFiveWhys(incidentId, causeId, fiveWhysData) {
-    try {
-      const response = await api.post(
-        `/incidents/${incidentId}/fishbone/causes/${causeId}/five-whys`,
-        {
-          ...fiveWhysData,
-          savedBy: localStorage.getItem('userId'),
-          savedAt: new Date().toISOString()
-        }
-      );
-      return response.data;
-    } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to save 5-Why');
-    }
-  }
+  // Save 5-Why result against a cause (single canonical version)
+  
 
   // Get AI key health (proxy to backend)
+    // Returns: { available: bool, totalKeys: int, availableKeys: int, models: [str] }
   async getAIStatus() {
     try {
       const response = await api.get('/ai/status');
-      return response.data;
+      const d = response?.data || {};
+      return {
+        available: !!d.available,
+        totalKeys: d.totalKeys ?? d.total_keys ?? 0,
+        availableKeys: d.availableKeys ?? d.available_keys ?? 0,
+        models: d.models || []
+      };
     } catch (error) {
       console.warn('AI status fetch failed:', error);
-      return { available: false, totalKeys: 0, availableKeys: 0 };
+      return { available: false, totalKeys: 0, availableKeys: 0, models: [] };
     }
   }
 
   // Generate AI investigation report
-  async generateAIInvestigationReport(incidentId, reportType = 'full') {
+    async generateAIInvestigationReport(incidentId, reportType = 'full', aiOptions = {}) {
     try {
       const response = await api.post(`/incidents/${incidentId}/ai-analysis/generate-report`, {
         reportType,
+        ai_options: {
+          model_preference: aiOptions.model_preference || 'auto',
+          language: aiOptions.language || 'English',
+          depth: aiOptions.depth || 'comprehensive'
+        },
         generatedBy: localStorage.getItem('userId'),
         generatedAt: new Date().toISOString()
       });
@@ -856,6 +901,113 @@ class NotificationService {
     }
   }
 
+    // ==================== AI PREDICTIVE ANALYTICS ====================
+
+  // AI-powered prediction (forecast + risk + narrative + insights)
+  async getAIPrediction(filters = {}, aiOptions = {}) {
+    try {
+      const response = await api.post('/analytics/predictive/ai', {
+        model: filters.model || 'ai_auto',
+        forecast_period: filters.forecast_period ?? 3,
+        confidence_level: filters.confidence_level ?? 95,
+        industry: filters.industry,
+        severity: filters.severity,
+        ai_options: {
+          model_preference: aiOptions.model_preference || 'auto',
+          language: aiOptions.language || 'English',
+          depth: aiOptions.depth || 'comprehensive',
+          temperature: aiOptions.temperature ?? 0.6
+        },
+        requestedBy: localStorage.getItem('userId'),
+        requestedAt: new Date().toISOString()
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'AI prediction failed');
+    }
+  }
+
+  // AI "what-if" scenario analysis — describe a change, get the projected impact
+  async getAIScenario(incidentId, scenario, aiOptions = {}) {
+    try {
+      const response = await api.post('/analytics/predictive/scenario', {
+        incident_id: incidentId || null,
+        scenario,
+        ai_options: {
+          model_preference: aiOptions.model_preference || 'auto',
+          language: aiOptions.language || 'English',
+          temperature: aiOptions.temperature ?? 0.6
+        },
+        requestedBy: localStorage.getItem('userId'),
+        requestedAt: new Date().toISOString()
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Scenario analysis failed');
+    }
+  }
+
+  // AI anomaly detection across recent incidents
+  async getAIAnomalies(filters = {}, aiOptions = {}) {
+    try {
+      const response = await api.post('/analytics/anomalies/ai', {
+        industry: filters.industry,
+        severity: filters.severity,
+        date_from: filters.date_from,
+        date_to: filters.date_to,
+        ai_options: {
+          model_preference: aiOptions.model_preference || 'auto',
+          language: aiOptions.language || 'English',
+          temperature: aiOptions.temperature ?? 0.4
+        },
+        requestedBy: localStorage.getItem('userId'),
+        requestedAt: new Date().toISOString()
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Anomaly detection failed');
+    }
+  }
+
+  // AI-written risk narrative — a human-style paragraph about current risk posture
+  async getAIRiskNarrative(filters = {}, aiOptions = {}) {
+    try {
+      const response = await api.post('/analytics/risk-narrative/ai', {
+        industry: filters.industry,
+        severity: filters.severity,
+        date_from: filters.date_from,
+        date_to: filters.date_to,
+        ai_options: {
+          model_preference: aiOptions.model_preference || 'auto',
+          language: aiOptions.language || 'English',
+          depth: aiOptions.depth || 'comprehensive',
+          temperature: aiOptions.temperature ?? 0.6
+        },
+        requestedBy: localStorage.getItem('userId'),
+        requestedAt: new Date().toISOString()
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Risk narrative failed');
+    }
+  }
+
+  // AI model recommendation — which forecasting model best fits this dataset
+  async getAIModelRecommendation(filters = {}) {
+    try {
+      const response = await api.post('/analytics/model-recommendation', {
+        industry: filters.industry,
+        severity: filters.severity,
+        date_from: filters.date_from,
+        date_to: filters.date_to,
+        requestedBy: localStorage.getItem('userId'),
+        requestedAt: new Date().toISOString()
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Model recommendation failed');
+    }
+  }
   // ==================== SIMILAR INCIDENT DETECTION ====================
 
   // Find similar incidents
@@ -907,6 +1059,86 @@ class NotificationService {
     }
   }
 
+    // ==================== AI SIMILAR INCIDENT DETECTION ====================
+
+  // AI semantic similarity search — understands meaning, not just keyword overlap
+  async findSimilarIncidentsAI(incidentId, options = {}) {
+    try {
+      const aiOptions = options.ai_options || {};
+      const response = await api.post(`/incidents/${incidentId}/similar/ai`, {
+        threshold: options.threshold ?? 60,
+        matchField: options.matchField || 'all',
+        limit: options.limit ?? 20,
+        ai_options: {
+          model_preference: aiOptions.model_preference || 'auto',
+          language: aiOptions.language || 'English',
+          temperature: aiOptions.temperature ?? 0.4
+        },
+        requestedBy: localStorage.getItem('userId'),
+        requestedAt: new Date().toISOString()
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'AI similarity search failed');
+    }
+  }
+
+  // AI cluster analysis — groups similar incidents into themes and writes a narrative
+  async getIncidentClusterAnalysis(incidentId, similarIds = [], aiOptions = {}) {
+    try {
+      const response = await api.post(`/incidents/${incidentId}/similar/cluster-analysis`, {
+        similar_incident_ids: similarIds,
+        ai_options: {
+          model_preference: aiOptions.model_preference || 'auto',
+          language: aiOptions.language || 'English',
+          temperature: aiOptions.temperature ?? 0.4
+        },
+        requestedBy: localStorage.getItem('userId'),
+        requestedAt: new Date().toISOString()
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Cluster analysis failed');
+    }
+  }
+
+  // AI comparison between two incidents — similarities, differences, RCA hypothesis
+  async compareIncidentsAI(incidentId, otherIncidentId, aiOptions = {}) {
+    try {
+      const response = await api.post(`/incidents/${incidentId}/similar/compare`, {
+        other_incident_id: otherIncidentId,
+        ai_options: {
+          model_preference: aiOptions.model_preference || 'auto',
+          language: aiOptions.language || 'English',
+          temperature: aiOptions.temperature ?? 0.4
+        },
+        requestedBy: localStorage.getItem('userId'),
+        requestedAt: new Date().toISOString()
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'AI comparison failed');
+    }
+  }
+
+  // AI-derived preventive actions from a whole cluster of similar incidents
+  async getPreventiveActionsFromCluster(incidentId, similarIds = [], aiOptions = {}) {
+    try {
+      const response = await api.post(`/incidents/${incidentId}/similar/preventive-actions`, {
+        similar_incident_ids: similarIds,
+        ai_options: {
+          model_preference: aiOptions.model_preference || 'auto',
+          language: aiOptions.language || 'English',
+          temperature: aiOptions.temperature ?? 0.6
+        },
+        requestedBy: localStorage.getItem('userId'),
+        requestedAt: new Date().toISOString()
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Preventive actions failed');
+    }
+  }
   // ==================== COST ANALYSIS ====================
 
   // Get cost analysis for incident
