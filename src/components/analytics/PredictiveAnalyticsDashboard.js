@@ -1,38 +1,28 @@
 // src/components/analytics/PredictiveAnalyticsDashboard.js
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Card, Row, Col, Statistic, Progress, Tag, Space, Button,
-  Select, DatePicker, Tooltip, Alert, Divider, Table, Badge,
+  Select, Tooltip, Alert, Divider, Table, Badge,
   Timeline, List, Avatar, Typography, Spin, Empty, Radio,
-  Slider, Switch, InputNumber, message, Descriptions, Modal
+  Slider, InputNumber, message, Descriptions, Modal, Steps
 } from 'antd';
 import {
   RiseOutlined, FallOutlined, WarningOutlined, ThunderboltOutlined,
   LineChartOutlined, AreaChartOutlined, RadarChartOutlined,
-  DashboardOutlined, BulbOutlined, AimOutlined, FireOutlined,
-  SafetyCertificateOutlined, ClockCircleOutlined, TeamOutlined,
-  EnvironmentOutlined, ToolOutlined, ExperimentOutlined,
-  ReloadOutlined, InfoCircleOutlined, ArrowUpOutlined,
-  ArrowDownOutlined, MinusOutlined, CalendarOutlined
+  BulbOutlined, AimOutlined, FireOutlined,
+  SafetyCertificateOutlined, ReloadOutlined, InfoCircleOutlined,
+  ArrowUpOutlined, ArrowDownOutlined, MinusOutlined,
+  RobotOutlined, ExperimentOutlined, AlertOutlined,
+  SearchOutlined, QuestionCircleOutlined
 } from '@ant-design/icons';
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  RadialLinearScale,
-  Title,
-  Tooltip as ChartTooltip,
-  Legend,
-  Filler
+  Chart as ChartJS, CategoryScale, LinearScale, PointElement,
+  LineElement, BarElement, ArcElement, RadialLinearScale,
+  Title, Tooltip as ChartTooltip, Legend, Filler
 } from 'chart.js';
-import { Line, Bar, Radar, Scatter, Doughnut } from 'react-chartjs-2';
+import { Line, Radar } from 'react-chartjs-2';
 import dayjs from 'dayjs';
 
-// ✅ SERVICE IMPORT
 import notificationService from '../../services/notificationService';
 
 ChartJS.register(
@@ -41,25 +31,27 @@ ChartJS.register(
   ChartTooltip, Legend, Filler
 );
 
-const { Text, Title: AntTitle } = Typography;
+const { Text } = Typography;
 const { Option } = Select;
-const { RangePicker } = DatePicker;
 
-// ==================== PREDICTION MODELS ====================
-
+// ==================== MODEL CATALOG ====================
+// accuracy figures are DISPLAY-ONLY placeholders; the real accuracy
+// comes back from the backend per run.
 const PREDICTION_MODELS = {
-  linear_regression: { name: 'Linear Regression', description: 'Simple trend-based prediction', accuracy: 0.72, icon: <LineChartOutlined /> },
-  arima: { name: 'ARIMA', description: 'Time-series forecasting with seasonality', accuracy: 0.81, icon: <AreaChartOutlined /> },
-  prophet: { name: 'Prophet', description: 'Facebook\'s forecasting for business metrics', accuracy: 0.85, icon: <RiseOutlined /> },
-  lstm: { name: 'LSTM Neural Network', description: 'Deep learning for complex patterns', accuracy: 0.89, icon: <ExperimentOutlined /> },
-  ensemble: { name: 'Ensemble (Recommended)', description: 'Combines multiple models for best accuracy', accuracy: 0.92, icon: <SafetyCertificateOutlined /> }
+  linear_regression: { name: 'Linear Regression', description: 'Simple trend-based prediction', icon: <LineChartOutlined /> },
+  arima:             { name: 'ARIMA',             description: 'Time-series with seasonality', icon: <AreaChartOutlined /> },
+  prophet:           { name: 'Prophet',           description: 'Business-metric forecasting', icon: <RiseOutlined /> },
+  lstm:              { name: 'LSTM Neural Net',   description: 'Deep learning for complex patterns', icon: <ExperimentOutlined /> },
+  ensemble:          { name: 'Ensemble (Recommended)', description: 'Combines multiple models', icon: <SafetyCertificateOutlined /> },
+  ai_auto:           { name: 'AI Auto (Gemini)', description: 'AI picks method + reasons about data', icon: <RobotOutlined /> }
 };
 
-// ==================== PREDICTIVE ANALYTICS DASHBOARD ====================
+// ==================== COMPONENT ====================
 
 const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
   const [loading, setLoading] = useState(false);
-  const [selectedModel, setSelectedModel] = useState('ensemble');
+  const [selectedModel, setSelectedModel] = useState('ai_auto');
+  const [modelPreference, setModelPreference] = useState('auto'); // auto | flash | pro
   const [forecastPeriod, setForecastPeriod] = useState(3);
   const [confidenceLevel, setConfidenceLevel] = useState(95);
   const [selectedIndustry, setSelectedIndustry] = useState('all');
@@ -67,60 +59,112 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
   const [predictions, setPredictions] = useState(null);
   const [insights, setInsights] = useState([]);
   const [riskFactors, setRiskFactors] = useState([]);
+  const [narrative, setNarrative] = useState(null);       // NEW: AI narrative
+  const [anomalies, setAnomalies] = useState([]);          // NEW: AI anomalies
+  const [modelRecommendation, setModelRecommendation] = useState(null);
   const [modelDetailsVisible, setModelDetailsVisible] = useState(false);
+  const [scenarioVisible, setScenarioVisible] = useState(false);
+  const [scenarioInput, setScenarioInput] = useState('');
+  const [scenarioResult, setScenarioResult] = useState(null);
+  const [scenarioLoading, setScenarioLoading] = useState(false);
   const [usingFallback, setUsingFallback] = useState(false);
+  const [aiStatus, setAiStatus] = useState({ available: false });
 
-  // ==================== FETCH PREDICTIONS FROM API ====================
+  // ==================== FILTER PAYLOAD ====================
+
+  const filters = useMemo(() => ({
+    model: selectedModel,
+    forecast_period: forecastPeriod,
+    confidence_level: confidenceLevel,
+    industry: selectedIndustry !== 'all' ? selectedIndustry : undefined,
+    severity: selectedSeverity !== 'all' ? selectedSeverity : undefined
+  }), [selectedModel, forecastPeriod, confidenceLevel, selectedIndustry, selectedSeverity]);
+
+  const aiOptions = useMemo(() => ({
+    model_preference: modelPreference,
+    language: 'English',
+    depth: 'comprehensive',
+    temperature: 0.6
+  }), [modelPreference]);
+
+  // ==================== AI STATUS ====================
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const s = await notificationService.getAIStatus();
+        setAiStatus(s || { available: false });
+      } catch {
+        setAiStatus({ available: false });
+      }
+    })();
+  }, []);
+
+  // ==================== MAIN: FETCH PREDICTIONS ====================
 
   const generatePredictions = useCallback(async () => {
     setLoading(true);
+    setUsingFallback(false);
+    setNarrative(null);
+    setAnomalies([]);
 
     try {
-      // ✅ Try backend AI prediction endpoint first
-      const response = await notificationService.getPredictiveAnalytics({
-        model: selectedModel,
-        forecast_period: forecastPeriod,
-        confidence_level: confidenceLevel,
-        industry: selectedIndustry !== 'all' ? selectedIndustry : undefined,
-        severity: selectedSeverity !== 'all' ? selectedSeverity : undefined
+      // 1) AI prediction (primary path)
+      const aiResp = await notificationService.getAIPrediction(filters, aiOptions);
+      const aiData = aiResp?.analysis || aiResp?.predictions || aiResp?.data || aiResp;
+
+      if (!aiData?.forecast) throw new Error('AI response missing forecast');
+
+      setPredictions({
+        historical: aiData.historical || { labels: [], values: [] },
+        forecast: aiData.forecast,
+        riskScore: aiData.risk_score ?? 50,
+        trend: aiData.trend || 'stable',
+        trendPercentage: aiData.trend_percentage ?? 0,
+        averageMonthly: aiData.average_monthly ?? 0,
+        predictedTotal: aiData.predicted_total ?? 0,
+        modelAccuracy: aiData.model_accuracy,
+        modelUsed: aiResp.model_info?.name || aiData.model_used || 'AI',
+        methodology: aiData.methodology || null
       });
 
-      const data = response?.predictions || response?.data || response;
+      setInsights(aiData.insights || []);
+      setRiskFactors(aiData.risk_factors || []);
+      setNarrative(aiData.narrative || null);
+      setModelRecommendation(aiData.model_recommendation || null);
 
-      if (data && data.forecast) {
-        // ✅ Use backend predictions
-        setPredictions({
-          historical: data.historical || { labels: [], values: [] },
-          forecast: data.forecast || { labels: [], values: [], upperBound: [], lowerBound: [] },
-          riskScore: data.risk_score || 50,
-          trend: data.trend || 'stable',
-          trendPercentage: data.trend_percentage || 0,
-          averageMonthly: data.average_monthly || 0,
-          predictedTotal: data.predicted_total || 0,
-          modelAccuracy: data.model_accuracy || PREDICTION_MODELS[selectedModel].accuracy * 100
-        });
+      // 2) Fire-and-forget: anomaly detection in parallel
+      notificationService
+        .getAIAnomalies(filters, aiOptions)
+        .then(r => setAnomalies(r?.analysis?.anomalies || r?.anomalies || []))
+        .catch(() => setAnomalies([]));
 
-        setInsights(data.insights || []);
-        setRiskFactors(data.risk_factors || []);
-        setUsingFallback(false);
-      } else {
-        throw new Error('No prediction data received');
-      }
+      // 3) Optional: AI narrative separately for richer text
+      notificationService
+        .getAIRiskNarrative(filters, aiOptions)
+        .then(r => {
+          const n = r?.analysis?.narrative || r?.narrative;
+          if (n && !aiData.narrative) setNarrative(n);
+        })
+        .catch(() => {});
     } catch (error) {
-      console.warn('AI prediction API unavailable, using client-side fallback:', error);
-      
-      // ✅ Fallback to client-side calculation
+      console.warn('AI prediction failed, using client fallback:', error);
+      message.warning('AI service unavailable — using local estimate');
       setUsingFallback(true);
       calculateClientSidePredictions();
     } finally {
       setLoading(false);
     }
-  }, [incidents, selectedModel, forecastPeriod, confidenceLevel, selectedIndustry, selectedSeverity]);
+  }, [filters, aiOptions]);
+
+  useEffect(() => {
+    if (incidents.length > 0) generatePredictions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [incidents.length]);
 
   // ==================== CLIENT-SIDE FALLBACK ====================
 
   const calculateClientSidePredictions = () => {
-    // Filter incidents
     let filtered = [...incidents];
     if (selectedIndustry !== 'all') {
       filtered = filtered.filter(i => (i.industry_id || i.industry) === selectedIndustry);
@@ -129,7 +173,6 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
       filtered = filtered.filter(i => i.severity === selectedSeverity);
     }
 
-    // Monthly data for past 12 months
     const monthlyData = {};
     const now = dayjs();
     for (let i = 11; i >= 0; i--) {
@@ -138,197 +181,137 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
     }
 
     filtered.forEach(incident => {
-      const date = dayjs(incident.date_occurred || incident.created_at);
-      const month = date.format('YYYY-MM');
+      const d = dayjs(incident.date_occurred || incident.created_at);
+      const month = d.format('YYYY-MM');
       if (monthlyData[month] !== undefined) monthlyData[month]++;
     });
 
-    const historicalMonths = Object.keys(monthlyData);
-    const historicalValues = Object.values(monthlyData);
-
-    // Linear regression
-    const n = historicalValues.length;
+    const labels = Object.keys(monthlyData);
+    const values = Object.values(monthlyData);
+    const n = values.length;
     const sumX = (n * (n - 1)) / 2;
-    const sumY = historicalValues.reduce((a, b) => a + b, 0);
-    const sumXY = historicalValues.reduce((sum, y, x) => sum + x * y, 0);
+    const sumY = values.reduce((a, b) => a + b, 0);
+    const sumXY = values.reduce((sum, y, x) => sum + x * y, 0);
     const sumX2 = (n * (n - 1) * (2 * n - 1)) / 6;
-
     const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
     const intercept = (sumY - slope * sumX) / n;
 
-    const forecastMonths = [];
-    const forecastValues = [];
-    const upperBound = [];
-    const lowerBound = [];
-
+    const futureLabels = [];
+    const futureValues = [];
+    const upper = [];
+    const lower = [];
     for (let i = 1; i <= forecastPeriod; i++) {
-      const futureMonth = now.add(i, 'month').format('YYYY-MM');
-      const predictedValue = Math.max(0, intercept + slope * (n + i - 1));
+      const m = now.add(i, 'month').format('YYYY-MM');
+      const predicted = Math.max(0, intercept + slope * (n + i - 1));
       const stdDev = Math.sqrt(
-        historicalValues.reduce((sum, y, x) => sum + Math.pow(y - (intercept + slope * x), 2), 0) / n
+        values.reduce((sum, y, x) => sum + Math.pow(y - (intercept + slope * x), 2), 0) / n
       );
       const margin = stdDev * (confidenceLevel / 100) * 1.96;
-
-      forecastMonths.push(futureMonth);
-      forecastValues.push(Math.round(predictedValue));
-      upperBound.push(Math.round(predictedValue + margin));
-      lowerBound.push(Math.max(0, Math.round(predictedValue - margin)));
+      futureLabels.push(m);
+      futureValues.push(Math.round(predicted));
+      upper.push(Math.round(predicted + margin));
+      lower.push(Math.max(0, Math.round(predicted - margin)));
     }
 
-    const avgHistorical = sumY / n;
-    const avgForecast = forecastValues.reduce((a, b) => a + b, 0) / Math.max(1, forecastValues.length);
-    const riskScore = Math.min(100, Math.round((avgForecast / Math.max(1, avgHistorical)) * 50));
+    const avgHist = sumY / n;
+    const avgFc = futureValues.reduce((a, b) => a + b, 0) / Math.max(1, futureValues.length);
+    const riskScore = Math.min(100, Math.round((avgFc / Math.max(1, avgHist)) * 50));
 
     setPredictions({
-      historical: { labels: historicalMonths, values: historicalValues },
-      forecast: { labels: forecastMonths, values: forecastValues, upperBound, lowerBound },
+      historical: { labels, values },
+      forecast: { labels: futureLabels, values: futureValues, upperBound: upper, lowerBound: lower },
       riskScore,
       trend: slope > 0.1 ? 'increasing' : slope < -0.1 ? 'decreasing' : 'stable',
-      trendPercentage: Math.round((slope / Math.max(1, avgHistorical)) * 100),
-      averageMonthly: Math.round(avgHistorical),
-      predictedTotal: forecastValues.reduce((a, b) => a + b, 0),
-      modelAccuracy: PREDICTION_MODELS[selectedModel].accuracy * 100
+      trendPercentage: Math.round((slope / Math.max(1, avgHist)) * 100),
+      averageMonthly: Math.round(avgHist),
+      predictedTotal: futureValues.reduce((a, b) => a + b, 0),
+      modelAccuracy: null,
+      modelUsed: 'Local Estimate (linear regression)',
+      methodology: { frameworksApplied: ['Linear Regression'] }
     });
 
-    setInsights(generateInsights(historicalValues, forecastValues, slope, riskScore, filtered));
-    setRiskFactors(generateRiskFactors(filtered, forecastValues));
+    setInsights(generateFallbackInsights(values, futureValues, slope, riskScore, filtered));
+    setRiskFactors(generateFallbackRiskFactors(filtered, futureValues));
+    setNarrative({
+      summary: 'Local fallback estimate — no AI model available. Numbers are rough.',
+      keyRisks: [],
+      recommendations: []
+    });
   };
 
-  useEffect(() => {
-    if (incidents.length > 0) {
-      generatePredictions();
-    }
-  }, [incidents.length]);
-  // ==================== INSIGHTS GENERATOR ====================
+  // ==================== FALLBACK INSIGHTS (clearly labelled) ====================
 
-  const generateInsights = (historical, forecast, slope, riskScore, data) => {
-    const insights = [];
-
-    if (slope > 0.5) {
-      insights.push({
-        type: 'warning',
-        title: 'Increasing Incident Trend',
-        description: `Incident rate is trending upward. Forecast shows ${Math.abs(Math.round(slope * 100))}% increase per month.`,
-        priority: 'high',
-        icon: <RiseOutlined />
-      });
-    } else if (slope < -0.5) {
-      insights.push({
-        type: 'success',
-        title: 'Decreasing Incident Trend',
-        description: 'Incident rate is decreasing. Current safety measures appear effective.',
-        priority: 'low',
-        icon: <FallOutlined />
-      });
-    }
-
-    if (riskScore > 70) {
-      insights.push({
-        type: 'error',
-        title: 'High Risk Period Detected',
-        description: `Risk score is ${riskScore}/100. Recommend increasing safety measures.`,
-        priority: 'critical',
-        icon: <WarningOutlined />
-      });
-    }
-
-    const criticalCount = data.filter(i => i.severity === 'critical').length;
-    if (criticalCount > 0) {
-      insights.push({
-        type: 'warning',
-        title: `${criticalCount} Critical Incidents`,
-        description: 'Critical incidents require immediate attention and root cause analysis.',
-        priority: 'high',
-        icon: <FireOutlined />
-      });
-    }
-
-    const typeCount = {};
-    data.forEach(i => {
-      const type = i.incident_type || i.incidentType;
-      if (type) typeCount[type] = (typeCount[type] || 0) + 1;
+  const generateFallbackInsights = (hist, forecast, slope, riskScore, data) => {
+    const out = [{
+      type: 'warning',
+      title: 'Local Estimate (No AI)',
+      description: 'The AI prediction service was unavailable. Insights below are rule-based heuristics.',
+      priority: 'medium',
+      icon: <InfoCircleOutlined />
+    }];
+    if (slope > 0.5) out.push({
+      type: 'warning', title: 'Rising Trend (heuristic)',
+      description: `Average slope +${slope.toFixed(2)} incidents/month.`,
+      priority: 'high', icon: <RiseOutlined />
     });
-
-    Object.entries(typeCount).filter(([_, count]) => count >= 3).forEach(([type, count]) => {
-      insights.push({
-        type: 'info',
-        title: `Repeat Incident Pattern: ${type.replace(/_/g, ' ')}`,
-        description: `${count} incidents of this type detected.`,
-        priority: 'medium',
-        icon: <ReloadOutlined />
-      });
+    if (riskScore > 70) out.push({
+      type: 'error', title: 'High Risk (heuristic)',
+      description: `Risk score ${riskScore}/100.`,
+      priority: 'critical', icon: <WarningOutlined />
     });
-
-    return insights;
+    return out;
   };
 
-  // ==================== RISK FACTORS ====================
-
-  const generateRiskFactors = (data, forecast) => {
-    const factors = [];
-    const hourCounts = {};
-    const dayCounts = {};
-
+  const generateFallbackRiskFactors = (data, forecast) => {
+    const hourCounts = {}, dayCounts = {}, deptCounts = {};
     data.forEach(i => {
-      const date = new Date(i.date_occurred || i.created_at);
-      if (!isNaN(date)) {
-        const hour = date.getHours();
-        const day = date.getDay();
-        hourCounts[hour] = (hourCounts[hour] || 0) + 1;
-        dayCounts[day] = (dayCounts[day] || 0) + 1;
+      const d = new Date(i.date_occurred || i.created_at);
+      if (!isNaN(d)) {
+        hourCounts[d.getHours()] = (hourCounts[d.getHours()] || 0) + 1;
+        dayCounts[d.getDay()] = (dayCounts[d.getDay()] || 0) + 1;
       }
-    });
-
-    const peakHour = Object.entries(hourCounts).sort((a, b) => b[1] - a[1])[0];
-    if (peakHour) {
-      factors.push({
-        factor: 'Peak Incident Hour',
-        value: `${peakHour[0]}:00`,
-        impact: peakHour[1],
-        risk: peakHour[1] >= 5 ? 'high' : 'medium',
-        recommendation: 'Increase staffing during this hour'
-      });
-    }
-
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const peakDay = Object.entries(dayCounts).sort((a, b) => b[1] - a[1])[0];
-    if (peakDay) {
-      factors.push({
-        factor: 'Highest Risk Day',
-        value: days[peakDay[0]],
-        impact: peakDay[1],
-        risk: peakDay[1] >= 10 ? 'high' : 'medium',
-        recommendation: 'Schedule additional briefings'
-      });
-    }
-
-    const deptCounts = {};
-    data.forEach(i => {
       if (i.department) deptCounts[i.department] = (deptCounts[i.department] || 0) + 1;
     });
-    const topDept = Object.entries(deptCounts).sort((a, b) => b[1] - a[1])[0];
-    if (topDept) {
-      factors.push({
-        factor: 'Highest Risk Department',
-        value: topDept[0],
-        impact: topDept[1],
-        risk: 'high',
-        recommendation: 'Conduct targeted safety audit'
-      });
-    }
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const out = [];
+    const peakHour = Object.entries(hourCounts).sort((a,b) => b[1]-a[1])[0];
+    if (peakHour) out.push({
+      factor: 'Peak Hour', value: `${peakHour[0]}:00`, impact: peakHour[1],
+      risk: peakHour[1] >= 5 ? 'high' : 'medium',
+      recommendation: 'Increase staffing'
+    });
+    const peakDay = Object.entries(dayCounts).sort((a,b) => b[1]-a[1])[0];
+    if (peakDay) out.push({
+      factor: 'Peak Day', value: days[peakDay[0]], impact: peakDay[1],
+      risk: peakDay[1] >= 10 ? 'high' : 'medium',
+      recommendation: 'Schedule briefings'
+    });
+    const topDept = Object.entries(deptCounts).sort((a,b) => b[1]-a[1])[0];
+    if (topDept) out.push({
+      factor: 'Top Department', value: topDept[0], impact: topDept[1],
+      risk: 'high', recommendation: 'Targeted audit'
+    });
+    return out;
+  };
 
-    const forecastAvg = forecast.reduce((a, b) => a + b, 0) / Math.max(1, forecast.length);
-    if (forecastAvg > 5) {
-      factors.push({
-        factor: 'Predicted Incident Volume',
-        value: `${Math.round(forecastAvg)}/month`,
-        impact: forecastAvg,
-        risk: 'high',
-        recommendation: 'Prepare additional resources'
-      });
-    }
+  // ==================== SCENARIO ("What-if") ====================
 
-    return factors;
+  const runScenario = async () => {
+    if (!scenarioInput.trim()) return;
+    setScenarioLoading(true);
+    try {
+      const resp = await notificationService.getAIScenario(
+        incidents[0]?.id,
+        scenarioInput,
+        aiOptions
+      );
+      const result = resp?.analysis || resp;
+      setScenarioResult(result);
+    } catch (e) {
+      message.error(e.message || 'Scenario analysis failed');
+    } finally {
+      setScenarioLoading(false);
+    }
   };
 
   // ==================== CHART DATA ====================
@@ -338,43 +321,33 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
     datasets: [
       {
         label: 'Historical',
-        data: [...predictions.historical.values, ...new Array(predictions.forecast.labels.length).fill(null)],
+        data: [...predictions.historical.values, ...Array(predictions.forecast.labels.length).fill(null)],
         borderColor: '#1890ff',
-        backgroundColor: 'rgba(24, 144, 255, 0.1)',
-        fill: true,
-        tension: 0.4,
-        pointRadius: 3
+        backgroundColor: 'rgba(24,144,255,0.1)',
+        fill: true, tension: 0.4, pointRadius: 3
       },
       {
         label: 'Forecast',
         data: [
-          ...new Array(Math.max(0, predictions.historical.values.length - 1)).fill(null),
+          ...Array(Math.max(0, predictions.historical.values.length - 1)).fill(null),
           predictions.historical.values[predictions.historical.values.length - 1],
           ...predictions.forecast.values
         ],
         borderColor: '#722ed1',
-        backgroundColor: 'rgba(114, 46, 209, 0.1)',
-        borderDash: [5, 5],
-        fill: true,
-        tension: 0.4,
-        pointRadius: 4
+        backgroundColor: 'rgba(114,46,209,0.1)',
+        borderDash: [5,5], fill: true, tension: 0.4, pointRadius: 4
       },
       {
-        label: 'Upper Bound',
-        data: [...new Array(predictions.historical.values.length).fill(null), ...predictions.forecast.upperBound],
-        borderColor: 'rgba(114, 46, 209, 0.3)',
-        borderDash: [2, 2],
-        fill: false,
-        pointRadius: 0
+        label: 'Upper',
+        data: [...Array(predictions.historical.values.length).fill(null), ...predictions.forecast.upperBound],
+        borderColor: 'rgba(114,46,209,0.3)', borderDash: [2,2],
+        fill: false, pointRadius: 0
       },
       {
-        label: 'Lower Bound',
-        data: [...new Array(predictions.historical.values.length).fill(null), ...predictions.forecast.lowerBound],
-        borderColor: 'rgba(114, 46, 209, 0.3)',
-        borderDash: [2, 2],
-        fill: '-1',
-        backgroundColor: 'rgba(114, 46, 209, 0.05)',
-        pointRadius: 0
+        label: 'Lower',
+        data: [...Array(predictions.historical.values.length).fill(null), ...predictions.forecast.lowerBound],
+        borderColor: 'rgba(114,46,209,0.3)', borderDash: [2,2],
+        fill: '-1', backgroundColor: 'rgba(114,46,209,0.05)', pointRadius: 0
       }
     ]
   } : null;
@@ -382,16 +355,16 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
   const riskRadarData = {
     labels: ['Frequency', 'Severity', 'Recurrence', 'Spread', 'Impact', 'Control'],
     datasets: [{
-      label: 'Current Risk Profile',
+      label: 'Risk Profile',
       data: predictions ? [
         Math.min(100, predictions.averageMonthly * 10),
         predictions.riskScore,
         Math.min(100, insights.filter(i => i.type === 'info').length * 20),
-        Math.min(100, 60),
+        60,
         Math.min(100, predictions.riskScore * 0.9),
         Math.max(20, 100 - predictions.riskScore)
-      ] : [0, 0, 0, 0, 0, 0],
-      backgroundColor: 'rgba(114, 46, 209, 0.2)',
+      ] : [0,0,0,0,0,0],
+      backgroundColor: 'rgba(114,46,209,0.2)',
       borderColor: '#722ed1',
       pointBackgroundColor: '#722ed1',
       pointBorderColor: '#fff'
@@ -399,20 +372,12 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
   };
 
   const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { position: 'bottom' },
-      tooltip: { mode: 'index', intersect: false }
-    },
-    scales: {
-      y: { beginAtZero: true, title: { display: true, text: 'Number of Incidents' } }
-    }
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom' }, tooltip: { mode: 'index', intersect: false } },
+    scales: { y: { beginAtZero: true, title: { display: true, text: 'Incidents' } } }
   };
-
   const radarOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
+    responsive: true, maintainAspectRatio: false,
     scales: { r: { beginAtZero: true, max: 100, ticks: { stepSize: 20 } } },
     plugins: { legend: { position: 'bottom' } }
   };
@@ -422,35 +387,41 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
     if (trend === 'decreasing') return <ArrowDownOutlined style={{ color: '#52c41a' }} />;
     return <MinusOutlined style={{ color: '#faad14' }} />;
   };
-
-  const getRiskColor = (score) => {
-    if (score >= 70) return '#f5222d';
-    if (score >= 40) return '#faad14';
-    return '#52c41a';
-  };
+  const getRiskColor = (s) => s >= 70 ? '#f5222d' : s >= 40 ? '#faad14' : '#52c41a';
 
   if (incidents.length === 0) {
     return (
       <Card>
-        <Empty 
-          description="No incident data available for predictions"
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-        />
+        <Empty description="No incident data available" image={Empty.PRESENTED_IMAGE_SIMPLE} />
       </Card>
     );
   }
 
   return (
     <div>
-      {/* Fallback Alert */}
+      {/* Status banners */}
       {usingFallback && (
         <Alert
-          message="Using Client-Side Predictions"
-          description="AI prediction service is unavailable. Predictions shown are calculated locally using linear regression."
-          type="warning"
-          showIcon
-          closable
-          style={{ marginBottom: 16 }}
+          type="warning" showIcon style={{ marginBottom: 16 }}
+          message="Local Estimate Mode (No AI)"
+          description="The AI service didn't respond. Numbers below are a rough linear-regression guess — do not treat them as model-grade predictions."
+        />
+      )}
+      {!usingFallback && predictions?.modelUsed && (
+        <Alert
+          type="success" showIcon icon={<RobotOutlined />} style={{ marginBottom: 16 }}
+          message={
+            <Space wrap>
+              <span>AI prediction ready</span>
+              <Tag color="purple">{predictions.modelUsed}</Tag>
+              {predictions.modelAccuracy != null && (
+                <Tag color="green">{Math.round(predictions.modelAccuracy)}% accuracy</Tag>
+              )}
+            </Space>
+          }
+          description={predictions.methodology?.frameworksApplied?.length
+            ? <Space wrap>{predictions.methodology.frameworksApplied.map(f => <Tag key={f} color="purple">{f}</Tag>)}</Space>
+            : null}
         />
       )}
 
@@ -458,96 +429,64 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
       <Card size="small" style={{ marginBottom: 16 }}>
         <Row gutter={[16, 16]} align="middle">
           <Col xs={24} sm={12} md={5}>
-            <Text type="secondary">Prediction Model:</Text>
-            <Select
-              value={selectedModel}
-              onChange={setSelectedModel}
-              style={{ width: '100%', marginTop: 4 }}
-              size="small"
-            >
-              {Object.entries(PREDICTION_MODELS).map(([key, model]) => (
-                <Option key={key} value={key}>
-                  <Space>
-                    {model.icon}
-                    {model.name}
-                    <Tag color="green">{Math.round(model.accuracy * 100)}%</Tag>
-                  </Space>
+            <Text type="secondary">Prediction Method:</Text>
+            <Select value={selectedModel} onChange={setSelectedModel}
+              style={{ width: '100%', marginTop: 4 }} size="small">
+              {Object.entries(PREDICTION_MODELS).map(([k, m]) => (
+                <Option key={k} value={k}>
+                  <Space>{m.icon}{m.name}</Space>
                 </Option>
               ))}
             </Select>
           </Col>
-          
           <Col xs={24} sm={12} md={4}>
-            <Text type="secondary">Forecast Period:</Text>
-            <Select
-              value={forecastPeriod}
-              onChange={setForecastPeriod}
-              style={{ width: '100%', marginTop: 4 }}
-              size="small"
-            >
-              <Option value={1}>1 Month</Option>
-              <Option value={3}>3 Months</Option>
-              <Option value={6}>6 Months</Option>
-              <Option value={12}>12 Months</Option>
+            <Text type="secondary">AI Model:</Text>
+            <Select value={modelPreference} onChange={setModelPreference}
+              style={{ width: '100%', marginTop: 4 }} size="small">
+              <Option value="auto">Auto</Option>
+              <Option value="gemini-1.5-flash">Gemini Flash</Option>
+              <Option value="gemini-1.5-pro">Gemini Pro</Option>
             </Select>
           </Col>
-          
+          <Col xs={24} sm={12} md={3}>
+            <Text type="secondary">Horizon:</Text>
+            <Select value={forecastPeriod} onChange={setForecastPeriod}
+              style={{ width: '100%', marginTop: 4 }} size="small">
+              <Option value={1}>1 mo</Option>
+              <Option value={3}>3 mo</Option>
+              <Option value={6}>6 mo</Option>
+              <Option value={12}>12 mo</Option>
+            </Select>
+          </Col>
           <Col xs={24} sm={12} md={4}>
             <Text type="secondary">Confidence: {confidenceLevel}%</Text>
-            <Slider
-              value={confidenceLevel}
-              onChange={setConfidenceLevel}
-              min={80}
-              max={99}
-              style={{ marginTop: 8 }}
-              tooltip={{ formatter: (v) => `${v}%` }}
-            />
+            <Slider value={confidenceLevel} onChange={setConfidenceLevel}
+              min={80} max={99} style={{ marginTop: 8 }} />
           </Col>
-          
-          <Col xs={24} sm={12} md={5}>
-            <Text type="secondary">Industry Filter:</Text>
-            <Select
-              value={selectedIndustry}
-              onChange={setSelectedIndustry}
-              style={{ width: '100%', marginTop: 4 }}
-              size="small"
-              allowClear
-            >
-              <Option value="all">All Industries</Option>
+          <Col xs={24} sm={12} md={4}>
+            <Text type="secondary">Industry:</Text>
+            <Select value={selectedIndustry} onChange={setSelectedIndustry}
+              style={{ width: '100%', marginTop: 4 }} size="small">
+              <Option value="all">All</Option>
               <Option value="healthcare">Healthcare</Option>
               <Option value="construction">Construction</Option>
               <Option value="oil_gas">Oil & Gas</Option>
               <Option value="aviation">Aviation</Option>
               <Option value="manufacturing">Manufacturing</Option>
-              <Option value="transportation">Transportation</Option>
               <Option value="mining">Mining</Option>
-              <Option value="hospitality">Hospitality</Option>
             </Select>
           </Col>
-          
-          <Col xs={24} sm={12} md={3}>
-            <Button
-              type="primary"
-              icon={<ThunderboltOutlined />}
-              onClick={generatePredictions}
-              loading={loading}
-              style={{ marginTop: 20 }}
-              block
-            >
-              Predict
-            </Button>
+          <Col xs={24} sm={12} md={2}>
+            <Button type="primary" icon={<ThunderboltOutlined />}
+              onClick={generatePredictions} loading={loading}
+              disabled={!aiStatus.available && !incidents.length}
+              style={{ marginTop: 20 }} block>Run</Button>
           </Col>
-          
-          <Col xs={24} sm={12} md={3}>
-            <Tooltip title="View model details">
-              <Button
-                icon={<InfoCircleOutlined />}
-                onClick={() => setModelDetailsVisible(true)}
-                style={{ marginTop: 20 }}
-                block
-              >
-                Model Info
-              </Button>
+          <Col xs={24} sm={12} md={2}>
+            <Tooltip title="What-if scenario">
+              <Button icon={<QuestionCircleOutlined />}
+                onClick={() => setScenarioVisible(true)}
+                style={{ marginTop: 20 }} block>What-If</Button>
             </Tooltip>
           </Col>
         </Row>
@@ -555,104 +494,113 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
 
       {loading ? (
         <Card>
-          <div style={{ textAlign: 'center', padding: '60px' }}>
+          <div style={{ textAlign: 'center', padding: 60 }}>
             <Spin size="large" />
             <div style={{ marginTop: 16 }}>
-              <Text>Running {PREDICTION_MODELS[selectedModel].name}...</Text>
+              <Text>Running AI prediction ({modelPreference})...</Text>
             </div>
-            <Progress 
-              percent={100} 
-              status="active" 
-              style={{ maxWidth: 300, marginTop: 16 }}
-              showInfo={false}
-            />
           </div>
         </Card>
       ) : predictions ? (
         <>
-          {/* Key Metrics */}
+          {/* KPI Row */}
           <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
             <Col xs={24} sm={12} md={6}>
               <Card size="small">
-                <Statistic
-                  title={<Space><AimOutlined />Predicted Total</Space>}
-                  value={predictions.predictedTotal}
-                  suffix={`in ${forecastPeriod}mo`}
-                  valueStyle={{ color: '#722ed1', fontSize: 24 }}
-                />
+                <Statistic title={<Space><AimOutlined />Predicted Total</Space>}
+                  value={predictions.predictedTotal} suffix={`in ${forecastPeriod}mo`}
+                  valueStyle={{ color: '#722ed1', fontSize: 24 }} />
                 <Text type="secondary" style={{ fontSize: 11 }}>
-                  {predictions.averageMonthly}/month average
+                  {predictions.averageMonthly}/month avg
                 </Text>
               </Card>
             </Col>
-            
             <Col xs={24} sm={12} md={6}>
               <Card size="small">
-                <Statistic
-                  title={<Space><WarningOutlined />Risk Score</Space>}
-                  value={predictions.riskScore}
-                  suffix="/100"
-                  valueStyle={{ color: getRiskColor(predictions.riskScore), fontSize: 24 }}
-                />
-                <Progress 
-                  percent={predictions.riskScore} 
-                  size="small" 
-                  showInfo={false}
-                  strokeColor={getRiskColor(predictions.riskScore)}
-                />
+                <Statistic title={<Space><WarningOutlined />Risk Score</Space>}
+                  value={predictions.riskScore} suffix="/100"
+                  valueStyle={{ color: getRiskColor(predictions.riskScore), fontSize: 24 }} />
+                <Progress percent={predictions.riskScore} size="small" showInfo={false}
+                  strokeColor={getRiskColor(predictions.riskScore)} />
               </Card>
             </Col>
-            
             <Col xs={24} sm={12} md={6}>
               <Card size="small">
-                <Statistic
-                  title={<Space>{getTrendIcon(predictions.trend)}Trend</Space>}
+                <Statistic title={<Space>{getTrendIcon(predictions.trend)}Trend</Space>}
                   value={predictions.trend.charAt(0).toUpperCase() + predictions.trend.slice(1)}
-                  valueStyle={{ 
-                    color: predictions.trend === 'increasing' ? '#f5222d' : 
-                           predictions.trend === 'decreasing' ? '#52c41a' : '#faad14',
+                  valueStyle={{
+                    color: predictions.trend === 'increasing' ? '#f5222d'
+                      : predictions.trend === 'decreasing' ? '#52c41a' : '#faad14',
                     fontSize: 20
-                  }}
-                />
+                  }} />
                 <Text type="secondary" style={{ fontSize: 11 }}>
-                  {predictions.trendPercentage > 0 ? '+' : ''}{predictions.trendPercentage}% per month
+                  {predictions.trendPercentage > 0 ? '+' : ''}{predictions.trendPercentage}% /mo
                 </Text>
               </Card>
             </Col>
-            
             <Col xs={24} sm={12} md={6}>
               <Card size="small">
-                <Statistic
-                  title={<Space><SafetyCertificateOutlined />Model Accuracy</Space>}
-                  value={Math.round(predictions.modelAccuracy)}
-                  suffix="%"
-                  valueStyle={{ color: '#52c41a', fontSize: 24 }}
-                />
-                <Text type="secondary" style={{ fontSize: 11 }}>
-                  {PREDICTION_MODELS[selectedModel].name}
-                </Text>
+                <Statistic title={<Space><SafetyCertificateOutlined />Accuracy</Space>}
+                  value={predictions.modelAccuracy != null ? Math.round(predictions.modelAccuracy) : '—'}
+                  suffix={predictions.modelAccuracy != null ? '%' : ''}
+                  valueStyle={{ color: '#52c41a', fontSize: 24 }} />
+                <Text type="secondary" style={{ fontSize: 11 }}>{predictions.modelUsed}</Text>
               </Card>
             </Col>
           </Row>
 
-          {/* Forecast Chart */}
-          <Card 
-            title={
-              <Space>
-                <LineChartOutlined />
-                Incident Forecast
-                <Tag color="purple">{forecastPeriod} months</Tag>
-              </Space>
-            }
-            style={{ marginBottom: 16 }}
-          >
+          {/* AI Narrative + Model Recommendation */}
+          {(narrative || modelRecommendation) && (
+            <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+              {narrative && (
+                <Col xs={24} lg={16}>
+                  <Card size="small"
+                    title={<Space><RobotOutlined style={{ color: '#722ed1' }} />AI Analysis</Space>}>
+                    {narrative.summary && (
+                      <Typography.Paragraph>{narrative.summary}</Typography.Paragraph>
+                    )}
+                    {narrative.keyRisks?.length > 0 && (
+                      <>
+                        <Divider orientation="left" plain>Key Risks</Divider>
+                        <List size="small" dataSource={narrative.keyRisks}
+                          renderItem={(r, i) => <List.Item><Tag color="red">{i+1}</Tag>{r}</List.Item>} />
+                      </>
+                    )}
+                    {narrative.recommendations?.length > 0 && (
+                      <>
+                        <Divider orientation="left" plain>Recommendations</Divider>
+                        <List size="small" dataSource={narrative.recommendations}
+                          renderItem={(r, i) => <List.Item><Tag color="green">{i+1}</Tag>{r}</List.Item>} />
+                      </>
+                    )}
+                  </Card>
+                </Col>
+              )}
+              {modelRecommendation && (
+                <Col xs={24} lg={8}>
+                  <Card size="small" title={<Space><BulbOutlined />AI Model Recommendation</Space>}>
+                    <Typography.Paragraph>{modelRecommendation.reasoning}</Typography.Paragraph>
+                    <Space wrap>
+                      <Tag color="purple">Recommended: {modelRecommendation.recommended_model}</Tag>
+                      {modelRecommendation.confidence && (
+                        <Tag color="green">{modelRecommendation.confidence} confidence</Tag>
+                      )}
+                    </Space>
+                  </Card>
+                </Col>
+              )}
+            </Row>
+          )}
+
+          {/* Forecast chart */}
+          <Card title={<Space><LineChartOutlined />Forecast<Tag color="purple">{forecastPeriod} mo</Tag></Space>}
+            style={{ marginBottom: 16 }}>
             <div style={{ height: 350 }}>
               {forecastChartData && <Line data={forecastChartData} options={chartOptions} />}
             </div>
           </Card>
 
           <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-            {/* Risk Radar */}
             <Col xs={24} lg={12}>
               <Card title={<Space><RadarChartOutlined />Risk Profile</Space>}>
                 <div style={{ height: 300 }}>
@@ -660,155 +608,121 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
                 </div>
               </Card>
             </Col>
-
-            {/* AI Insights */}
             <Col xs={24} lg={12}>
-              <Card 
-                title={
-                  <Space>
-                    <BulbOutlined style={{ color: '#faad14' }} />
-                    AI Insights
-                    <Badge count={insights.length} style={{ backgroundColor: '#faad14' }} />
-                  </Space>
-                }
-                bodyStyle={{ maxHeight: 300, overflow: 'auto' }}
-              >
-                {insights.length > 0 ? (
-                  <List
-                    size="small"
-                    dataSource={insights}
-                    renderItem={(insight) => (
+              <Card title={
+                <Space>
+                  <BulbOutlined style={{ color: '#faad14' }} />Insights
+                  <Badge count={insights.length} style={{ backgroundColor: '#faad14' }} />
+                </Space>
+              } bodyStyle={{ maxHeight: 300, overflow: 'auto' }}>
+                {insights.length ? (
+                  <List size="small" dataSource={insights}
+                    renderItem={(i) => (
                       <List.Item>
                         <List.Item.Meta
-                          avatar={
-                            <Avatar 
-                              style={{ 
-                                backgroundColor: 
-                                  insight.priority === 'critical' ? '#f5222d' :
-                                  insight.priority === 'high' ? '#fa541c' :
-                                  insight.priority === 'medium' ? '#faad14' : '#52c41a'
-                              }}
-                              icon={insight.icon}
-                            />
-                          }
-                          title={
-                            <Space>
-                              <Text strong>{insight.title}</Text>
-                              <Tag color={
-                                insight.priority === 'critical' ? 'red' :
-                                insight.priority === 'high' ? 'orange' :
-                                insight.priority === 'medium' ? 'gold' : 'green'
-                              }>
-                                {insight.priority}
-                              </Tag>
-                            </Space>
-                          }
-                          description={insight.description}
+                          avatar={<Avatar style={{
+                            backgroundColor:
+                              i.priority === 'critical' ? '#f5222d' :
+                              i.priority === 'high' ? '#fa541c' :
+                              i.priority === 'medium' ? '#faad14' : '#52c41a'
+                          }} icon={i.icon || <InfoCircleOutlined />} />}
+                          title={<Space>
+                            <Text strong>{i.title}</Text>
+                            <Tag color={
+                              i.priority === 'critical' ? 'red' :
+                              i.priority === 'high' ? 'orange' :
+                              i.priority === 'medium' ? 'gold' : 'green'
+                            }>{i.priority}</Tag>
+                          </Space>}
+                          description={i.description}
                         />
                       </List.Item>
-                    )}
-                  />
-                ) : (
-                  <Empty description="No insights available" />
-                )}
+                    )} />
+                ) : <Empty description="No insights" />}
               </Card>
             </Col>
           </Row>
 
-          {/* Risk Factors */}
-          <Card 
-            title={
-              <Space>
-                <WarningOutlined style={{ color: '#f5222d' }} />
-                Risk Factor Analysis
-                <Badge count={riskFactors.length} style={{ backgroundColor: '#f5222d' }} />
-              </Space>
-            }
-          >
+          {/* Anomalies (AI) */}
+          {anomalies.length > 0 && (
+            <Card style={{ marginBottom: 16 }}
+              title={<Space><AlertOutlined style={{ color: '#f5222d' }} />Anomalies Detected by AI
+                <Badge count={anomalies.length} style={{ backgroundColor: '#f5222d' }} /></Space>}>
+              <Timeline>
+                {anomalies.map((a, i) => (
+                  <Timeline.Item key={i} color={a.severity === 'high' ? 'red' : 'orange'}>
+                    <Text strong>{a.title || a.description}</Text>
+                    <div><Text type="secondary" style={{ fontSize: 12 }}>{a.explanation}</Text></div>
+                  </Timeline.Item>
+                ))}
+              </Timeline>
+            </Card>
+          )}
+
+          {/* Risk factors table */}
+          <Card title={
+            <Space>
+              <WarningOutlined style={{ color: '#f5222d' }} />Risk Factors
+              <Badge count={riskFactors.length} style={{ backgroundColor: '#f5222d' }} />
+            </Space>
+          }>
             <Table
               dataSource={riskFactors}
               columns={[
-                { title: 'Risk Factor', dataIndex: 'factor', key: 'factor', render: (text) => <Text strong>{text}</Text> },
-                { title: 'Value', dataIndex: 'value', key: 'value', render: (text) => <Tag color="blue">{text}</Tag> },
-                {
-                  title: 'Impact',
-                  dataIndex: 'impact',
-                  key: 'impact',
-                  render: (impact) => (
+                { title: 'Factor', dataIndex: 'factor', render: t => <Text strong>{t}</Text> },
+                { title: 'Value', dataIndex: 'value', render: t => <Tag color="blue">{t}</Tag> },
+                { title: 'Impact', dataIndex: 'impact',
+                  render: imp => (
                     <Space>
-                      <Progress percent={Math.min(100, impact * 5)} size="small" style={{ width: 60 }} showInfo={false} />
-                      <Text>{Math.round(impact)}</Text>
+                      <Progress percent={Math.min(100, imp * 5)} size="small"
+                        style={{ width: 60 }} showInfo={false} />
+                      <Text>{Math.round(imp)}</Text>
                     </Space>
                   ),
                   sorter: (a, b) => a.impact - b.impact
                 },
-                {
-                  title: 'Risk Level',
-                  dataIndex: 'risk',
-                  key: 'risk',
-                  render: (risk) => (
-                    <Tag color={risk === 'high' ? 'red' : risk === 'medium' ? 'orange' : 'green'}>
-                      {risk?.toUpperCase()}
-                    </Tag>
-                  )
+                { title: 'Risk', dataIndex: 'risk',
+                  render: r => <Tag color={r === 'high' ? 'red' : r === 'medium' ? 'orange' : 'green'}>
+                    {r?.toUpperCase()}
+                  </Tag>
                 },
-                { title: 'Recommendation', dataIndex: 'recommendation', key: 'recommendation', render: (text) => <Text type="secondary">{text}</Text> }
+                { title: 'Recommendation', dataIndex: 'recommendation',
+                  render: t => <Text type="secondary">{t}</Text> }
               ]}
-              rowKey="factor"
-              pagination={false}
-              size="small"
-            />
+              rowKey="factor" pagination={false} size="small" />
           </Card>
         </>
       ) : null}
 
-      {/* Model Details Modal */}
+      {/* What-if Scenario Modal */}
       <Modal
-        title="Prediction Model Details"
-        open={modelDetailsVisible}
-        onCancel={() => setModelDetailsVisible(false)}
+        title={<Space><QuestionCircleOutlined />What-If Scenario (AI)</Space>}
+        open={scenarioVisible}
+        onCancel={() => { setScenarioVisible(false); setScenarioResult(null); setScenarioInput(''); }}
         footer={[
-          <Button key="close" onClick={() => setModelDetailsVisible(false)}>Close</Button>
+          <Button key="close" onClick={() => { setScenarioVisible(false); setScenarioResult(null); setScenarioInput(''); }}>Close</Button>,
+          <Button key="run" type="primary" loading={scenarioLoading} onClick={runScenario}>Run Scenario</Button>
         ]}
+        width={640}
       >
-        <Descriptions column={1} bordered size="small">
-          <Descriptions.Item label="Model">{PREDICTION_MODELS[selectedModel].name}</Descriptions.Item>
-          <Descriptions.Item label="Description">{PREDICTION_MODELS[selectedModel].description}</Descriptions.Item>
-          <Descriptions.Item label="Accuracy">
-            <Progress percent={Math.round(PREDICTION_MODELS[selectedModel].accuracy * 100)} strokeColor="#52c41a" />
-          </Descriptions.Item>
-          <Descriptions.Item label="Data Points">{incidents.length} incidents</Descriptions.Item>
-          <Descriptions.Item label="Forecast Period">{forecastPeriod} months</Descriptions.Item>
-          <Descriptions.Item label="Confidence Level">{confidenceLevel}%</Descriptions.Item>
-        </Descriptions>
-
-        <Divider>Model Comparison</Divider>
-        
-        <Table
-          dataSource={Object.entries(PREDICTION_MODELS).map(([key, model]) => ({
-            key,
-            name: model.name,
-            accuracy: `${Math.round(model.accuracy * 100)}%`,
-            selected: key === selectedModel
-          }))}
-          columns={[
-            {
-              title: 'Model',
-              dataIndex: 'name',
-              key: 'name',
-              render: (text, record) => (
-                <Space>
-                  {record.selected && <SafetyCertificateOutlined style={{ color: '#52c41a' }} />}
-                  {text}
-                </Space>
-              )
-            },
-            { title: 'Accuracy', dataIndex: 'accuracy', key: 'accuracy' }
-          ]}
-          pagination={false}
-          size="small"
-        />
-      </Modal>
+        <Text type="secondary">Describe a change — e.g. "If we cut night-shift staffing by 30% for Q2" — and the AI will forecast the impact.</Text>
+        <Input.TextArea rows={3} value={scenarioInput}
+          onChange={(e) => setScenarioInput(e.target.value)}
+          placeholder="If we implement corrective action X..." style={{ marginTop: 12 }} />
+        {scenarioResult && (
+          <Card size="small" style={{ marginTop: 16 }}>
+            <Typography.Paragraph>{scenarioResult.summary || scenarioResult.narrative}</Typography.Paragraph>
+            {scenarioResult.predicted_change != null && (
+              <Statistic title="Predicted Change" value={scenarioResult.predicted_change} suffix="%" />
+            )}
+            {scenarioResult.risks?.length > 0 && (
+              <>
+                <Divider orientation="left" plain>Risks</Divider>
+                <List size="small" dataSource={scenarioResult.risks}
+                  renderItem={(r) => <List.Item>{r}</List.Item>} />
+              </>
+            )}
+          </Modal>
     </div>
   );
 };
