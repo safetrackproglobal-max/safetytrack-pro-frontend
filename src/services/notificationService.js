@@ -337,6 +337,134 @@ class NotificationService {
     }
   }
 
+    // ==================== AI FISHBONE (SERVER-SIDE GEMINI) ====================
+
+  // Generate a full fishbone analysis using AI
+  async generateAIFishbone(incidentId, options = {}) {
+    try {
+      const response = await api.post(`/incidents/${incidentId}/fishbone/ai-generate`, {
+        industry: options.industry || 'general',
+        depth: options.depth || 'comprehensive',
+        language: options.language || 'English',
+        focusAreas: options.focusAreas || [],
+        customCategories: options.customCategories || null,
+        requestedBy: localStorage.getItem('userId'),
+        requestedAt: new Date().toISOString()
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'AI generation failed');
+    }
+  }
+
+  // Expand an existing category with more AI-suggested causes
+  async expandFishboneCategory(incidentId, category, existingCauses = [], count = 5) {
+    try {
+      const response = await api.post(
+        `/incidents/${incidentId}/fishbone/ai-expand-category`,
+        {
+          category: { id: category.id, name: category.name, description: category.description },
+          existingCauses: existingCauses.map(c => ({ description: c.description })),
+          count,
+          requestedBy: localStorage.getItem('userId')
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Category expansion failed');
+    }
+  }
+
+  // Get AI-suggested corrective actions for a specific cause
+  async suggestCorrectiveActions(incidentId, category, cause) {
+    try {
+      const response = await api.post(
+        `/incidents/${incidentId}/fishbone/ai-suggest-actions`,
+        {
+          category: { id: category.id, name: category.name },
+          cause: { id: cause.id, description: cause.description },
+          requestedBy: localStorage.getItem('userId')
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Action suggestion failed');
+    }
+  }
+
+  // Run 5-Why analysis on a specific cause
+  async runFiveWhys(incidentId, cause) {
+    try {
+      const response = await api.post(
+        `/incidents/${incidentId}/fishbone/ai-five-whys`,
+        {
+          cause: { id: cause.id, description: cause.description },
+          requestedBy: localStorage.getItem('userId')
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || '5-Why analysis failed');
+    }
+  }
+
+  // Ask AI a question about the incident + current fishbone state
+  async askAIFishbone(incidentId, question, fishboneContext, history = []) {
+    try {
+      const response = await api.post(
+        `/incidents/${incidentId}/fishbone/ai-chat`,
+        {
+          question,
+          fishboneContext: {
+            problemStatement: fishboneContext.problemStatement,
+            categories: fishboneContext.categories?.map(c => ({
+              id: c.id,
+              name: c.name,
+              causes: (c.causes || []).map(x => ({
+                description: x.description,
+                likelihood: x.likelihood,
+                isRootCause: x.isRootCause
+              }))
+            }))
+          },
+          history: history.map(m => ({ role: m.role, content: m.content })),
+          requestedBy: localStorage.getItem('userId')
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'AI chat failed');
+    }
+  }
+
+  // Save 5-Why result against a cause
+  async saveFiveWhys(incidentId, causeId, fiveWhysData) {
+    try {
+      const response = await api.post(
+        `/incidents/${incidentId}/fishbone/causes/${causeId}/five-whys`,
+        {
+          ...fiveWhysData,
+          savedBy: localStorage.getItem('userId'),
+          savedAt: new Date().toISOString()
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to save 5-Why');
+    }
+  }
+
+  // Get AI key health (proxy to backend)
+  async getAIStatus() {
+    try {
+      const response = await api.get('/ai/status');
+      return response.data;
+    } catch (error) {
+      console.warn('AI status fetch failed:', error);
+      return { available: false, totalKeys: 0, availableKeys: 0 };
+    }
+  }
+
   // Generate AI investigation report
   async generateAIInvestigationReport(incidentId, reportType = 'full') {
     try {
