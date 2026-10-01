@@ -791,6 +791,79 @@ class NotificationService {
     }
   }
 
+    // ==================== FISHBONE: VERSIONS & EXPORT ====================
+
+  // Get fishbone version history
+  async getFishboneVersions(incidentId) {
+    try {
+      const response = await api.get(`/incidents/${incidentId}/fishbone/versions`);
+      return response.data;
+    } catch (error) {
+      console.warn('Failed to fetch fishbone versions:', error);
+      return { versions: [] };
+    }
+  }
+
+  // Restore a specific fishbone version
+  async restoreFishboneVersion(incidentId, versionId) {
+    try {
+      const response = await api.post(
+        `/incidents/${incidentId}/fishbone/versions/${versionId}/restore`,
+        { restoredBy: localStorage.getItem('userId'), restoredAt: new Date().toISOString() }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to restore version');
+    }
+  }
+
+  // ==================== AI ANALYSIS ====================
+
+  // Save AI-generated fishbone analysis (adds AI metadata + versioning)
+  async saveAIFishboneAnalysis(incidentId, aiData, meta = {}) {
+    try {
+      const response = await api.post(`/incidents/${incidentId}/fishbone/ai-save`, {
+        ...aiData,
+        ai_metadata: {
+          ...meta,
+          generatedAt: new Date().toISOString(),
+          generatedBy: localStorage.getItem('userId')
+        }
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to save AI analysis');
+    }
+  }
+
+  // Log AI generation event (usage analytics)
+  async logAIGeneration(incidentId, payload) {
+    try {
+      const response = await api.post(`/incidents/${incidentId}/ai-analysis/log`, {
+        ...payload,
+        requestedBy: localStorage.getItem('userId'),
+        requestedAt: new Date().toISOString()
+      });
+      return response.data;
+    } catch (error) {
+      console.warn('Failed to log AI generation:', error);
+      return { success: false };
+    }
+  }
+
+  // Save 5-Why analysis result
+  async saveFiveWhys(incidentId, causeId, fiveWhys) {
+    try {
+      const response = await api.post(
+        `/incidents/${incidentId}/fishbone/causes/${causeId}/five-whys`,
+        { ...fiveWhys, savedBy: localStorage.getItem('userId'), savedAt: new Date().toISOString() }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to save 5-Why analysis');
+    }
+  }
+
   // Update incident costs
   async updateIncidentCosts(incidentId, costData) {
     try {
