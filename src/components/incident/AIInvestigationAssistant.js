@@ -25,6 +25,7 @@ const { Text, Title, Paragraph } = Typography;
 const { Panel } = Collapse;
 const { Option } = Select;
 const { Step } = Steps;
+const { TabPane } = Tabs;
 
 // ==================== AI KNOWLEDGE BASE (Fallback) ====================
 // Used only when API fails — the real analysis comes from your pre-trained models
