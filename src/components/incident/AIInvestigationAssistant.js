@@ -343,54 +343,62 @@ const AIInvestigationAssistant = ({
   // ==================== CHAT WITH AI ====================
 
   const handleSendMessage = async () => {
-    if (!customQuestion.trim() || sendingMessage) return;
+  if (!customQuestion.trim() || sendingMessage) return;
 
-    const userMessage = {
-      role: 'user',
-      content: customQuestion,
-      timestamp: new Date().toISOString()
-    };
+  const userMessage = {
+    role: 'user',
+    content: customQuestion,
+    timestamp: new Date().toISOString()
+  };
 
-    const updatedConversation = [...conversation, userMessage];
-    setConversation(updatedConversation);
-    const question = customQuestion;
-    setCustomQuestion('');
-    setSendingMessage(true);
+  const updatedConversation = [...conversation, userMessage];
+  setConversation(updatedConversation);
+  const question = customQuestion;
+  setCustomQuestion('');
+  setSendingMessage(true);
 
-    try {
-      // ✅ Call backend AI chat endpoint
-      const response = await notificationService.askAIInvestigation(
-        incident.id,
-        question,
-        { context: { conversation: updatedConversation.slice(-5) } }
-      );
+  try {
+    // ✅ Call backend AI chat endpoint
+    const response = await notificationService.askAIInvestigation(
+      incident.id,
+      question,
+      { context: { conversation: updatedConversation.slice(-5) } }
+    );
 
-      const aiContent = response?.answer || response?.response || response?.data?.answer;
+    // ✅ FIX: read the answer from every possible path the backend may use.
+    //    Backend envelope:  { success, analysis: { answer: "..." }, model_info, ... }
+    const aiContent =
+      response?.analysis?.answer ||          // canonical path
+      response?.answer ||                    // legacy/fallback path
+      response?.response ||                  // alternate name
+      response?.data?.analysis?.answer ||    // nested response.data
+      response?.data?.answer ||              // nested response.data
+      null;
 
-      if (aiContent) {
-        setConversation(prev => [...prev, {
-          role: 'assistant',
-          content: aiContent,
-          timestamp: new Date().toISOString(),
-          modelInfo: response?.model_info
-        }]);
-      } else {
-        throw new Error('No response from AI');
-      }
-    } catch (error) {
-      console.error('AI chat failed:', error);
-      
-      // Fallback to local response
+    if (aiContent) {
       setConversation(prev => [...prev, {
         role: 'assistant',
-        content: generateFallbackResponse(question, incident),
+        content: aiContent,
         timestamp: new Date().toISOString(),
-        isFallback: true
+        modelInfo: response?.model_info || response?.data?.model_info || null
       }]);
-    } finally {
-      setSendingMessage(false);
+    } else {
+      throw new Error('No answer in AI response');
     }
-  };
+  } catch (error) {
+    console.error('AI chat failed:', error);
+
+    // Fallback to local response
+    setConversation(prev => [...prev, {
+      role: 'assistant',
+      content: generateFallbackResponse(question, incident),
+      timestamp: new Date().toISOString(),
+      isFallback: true
+    }]);
+  } finally {
+    setSendingMessage(false);
+  }
+};
 
   const generateFallbackResponse = (question, inc) => {
     const lower = question.toLowerCase();
@@ -1050,35 +1058,49 @@ To provide more specific guidance, could you clarify what aspect of the investig
 
   // Helper for quick question sending
   function handleSendMessageWithText(text) {
-    if (!text?.trim() || !incident) return;
-    
-    const userMessage = { role: 'user', content: text, timestamp: new Date().toISOString() };
-    const updated = [...conversation, userMessage];
-    setConversation(updated);
-    setSendingMessage(true);
+  if (!text?.trim() || !incident) return;
 
-    notificationService.askAIInvestigation(incident.id, text, {
-      context: { conversation: updated.slice(-5) }
+  const userMessage = {
+    role: 'user',
+    content: text,
+    timestamp: new Date().toISOString()
+  };
+  const updated = [...conversation, userMessage];
+  setConversation(updated);
+  setSendingMessage(true);
+
+  notificationService.askAIInvestigation(incident.id, text, {
+    context: { conversation: updated.slice(-5) }
+  })
+    .then(response => {
+      // ✅ FIX: read the answer from every possible path the backend may use.
+      //    Backend envelope: { success, analysis: { answer: "..." }, model_info, ... }
+      const content =
+        response?.analysis?.answer ||
+        response?.answer ||
+        response?.response ||
+        response?.data?.analysis?.answer ||
+        response?.data?.answer ||
+        null;
+
+      setConversation(prev => [...prev, {
+        role: 'assistant',
+        content: content || generateFallbackResponse(text, incident),
+        timestamp: new Date().toISOString(),
+        modelInfo: response?.model_info || response?.data?.model_info || null,
+        isFallback: !content
+      }]);
     })
-      .then(response => {
-        const content = response?.answer || response?.response || response?.data?.answer;
-        setConversation(prev => [...prev, {
-          role: 'assistant',
-          content: content || generateFallbackResponse(text, incident),
-          timestamp: new Date().toISOString(),
-          isFallback: !content
-        }]);
-      })
-      .catch(() => {
-        setConversation(prev => [...prev, {
-          role: 'assistant',
-          content: generateFallbackResponse(text, incident),
-          timestamp: new Date().toISOString(),
-          isFallback: true
-        }]);
-      })
-      .finally(() => setSendingMessage(false));
-  }
-};
+    .catch((error) => {
+      console.error('AI chat failed:', error);
+      setConversation(prev => [...prev, {
+        role: 'assistant',
+        content: generateFallbackResponse(text, incident),
+        timestamp: new Date().toISOString(),
+        isFallback: true
+      }]);
+    })
+    .finally(() => setSendingMessage(false));
+}
 
 export default AIInvestigationAssistant;
