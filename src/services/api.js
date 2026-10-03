@@ -85,7 +85,7 @@ console.log('[API] Using baseURL:', baseURL, isDevelopment ? '(dev)' : '(prod)')
 
 const api = axios.create({
   baseURL,
-  timeout: 30000,
+  timeout: 120000,
   headers: {
     'Content-Type': 'application/json',
   },
