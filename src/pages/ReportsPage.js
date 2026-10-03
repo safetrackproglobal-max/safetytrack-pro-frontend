@@ -1,5 +1,5 @@
 // src/pages/ReportsPage.js - Complete with Enhanced Media Upload & Incident Details
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useMemo, useCallback } from 'react';
 import {
   Card, Row, Col, Button, Modal, Form, Input, Select, DatePicker,
   Upload, message, Alert, Tabs, TimePicker, InputNumber,
@@ -537,7 +537,7 @@ const combineDateTime = (date, time) => {
   if (!date || !time) return new Date().toISOString();
   const dateStr = date.format('YYYY-MM-DD');
   const timeStr = time.format('HH:mm:ss');
-  return new Date(`${dateStr}T${timeStr}Z`).toISOString();
+  return new Date(`${dateStr}T${timeStr}`).toISOString();
 };
 
 const formatDate = (dateString) => {
@@ -565,6 +565,19 @@ const getStatusTag = (status) => {
   return <Tag color={config.color}>{config.icon} {config.label}</Tag>;
 };
 
+// Resolve the best display name for "Reported By"
+const getReporterName = (incident) => {
+  if (!incident) return 'Unknown';
+  return (
+    incident.reported_by_name ||
+    incident.reporter_name ||
+    incident.reporter?.name ||
+    incident.reporter?.email ||
+    incident.created_by_name ||
+    null
+  );
+};
+
 // ==================== MEDIA UPLOAD COMPONENT ====================
 
 const MediaUploadSection = ({
@@ -583,7 +596,7 @@ const MediaUploadSection = ({
   const getFileIcon = (file) => {
     const type = file.type || '';
     const name = file.name || '';
-    
+
     if (type.startsWith('image/')) return <FileImageOutlined style={{ color: '#1890ff', fontSize: '24px' }} />;
     if (type.startsWith('video/')) return <FileImageOutlined style={{ color: '#722ed1', fontSize: '24px' }} />;
     if (type.startsWith('audio/')) return <AudioOutlined style={{ color: '#fa541c', fontSize: '24px' }} />;
@@ -615,7 +628,7 @@ const MediaUploadSection = ({
       'application/xml'
     ].includes(file.type);
     const isArchive = file.name?.endsWith('.zip') || file.name?.endsWith('.rar') || file.name?.endsWith('.7z');
-    
+
     const isValidType = isImage || isVideo || isDocument || isArchive;
     if (!isValidType) {
       message.error(`${file.name} is not a supported file type.`);
@@ -636,10 +649,10 @@ const MediaUploadSection = ({
 
     setUploading(true);
     const uploadId = `${file.uid}-${Date.now()}`;
-    
+
     try {
       setUploadProgress(prev => ({ ...prev, [uploadId]: 0 }));
-      
+
       let progress = 0;
       const interval = setInterval(() => {
         progress += 5;
@@ -654,6 +667,8 @@ const MediaUploadSection = ({
             size: file.size,
             type: file.type,
             status: 'done',
+            // Keep the actual File so we can upload it AFTER the incident is created
+            originFileObj: file,
             url: URL.createObjectURL(file),
             thumbUrl: file.type?.startsWith('image/') ? URL.createObjectURL(file) : null,
             uploadId: uploadId,
@@ -661,13 +676,13 @@ const MediaUploadSection = ({
           };
           setFileList(prev => [...prev, newFile]);
           setUploading(false);
-          message.success(`${file.name} uploaded successfully`);
+          message.success(`${file.name} ready to upload`);
         }
       }, 200);
-      
+
     } catch (error) {
       console.error('Upload error:', error);
-      message.error(`Failed to upload ${file.name}`);
+      message.error(`Failed to process ${file.name}`);
       setUploading(false);
       return false;
     }
@@ -677,8 +692,8 @@ const MediaUploadSection = ({
   const handleRemove = (file) => {
     const newFileList = fileList.filter(f => f.uid !== file.uid);
     setFileList(newFileList);
-    if (file.url) URL.revokeObjectURL(file.url);
-    if (file.thumbUrl) URL.revokeObjectURL(file.thumbUrl);
+    if (file.url && file.url.startsWith('blob:')) URL.revokeObjectURL(file.url);
+    if (file.thumbUrl && file.thumbUrl.startsWith('blob:')) URL.revokeObjectURL(file.thumbUrl);
     message.info(`${file.name} removed`);
   };
 
@@ -738,7 +753,7 @@ const MediaUploadSection = ({
               Uploaded Files ({fileList.length})
             </Space>
           </Divider>
-          
+
           <Row gutter={[12, 12]}>
             {fileList.map((file) => (
               <Col xs={24} sm={12} md={8} lg={6} key={file.uid}>
@@ -747,8 +762,8 @@ const MediaUploadSection = ({
                   cover={
                     file.type?.startsWith('image/') ? (
                       <div style={{ height: '150px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f5f5', cursor: 'pointer' }} onClick={() => handlePreview(file)}>
-                        <img 
-                          src={file.thumbUrl || file.url} 
+                        <img
+                          src={file.thumbUrl || file.url}
                           alt={file.name}
                           style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
                         />
@@ -763,14 +778,14 @@ const MediaUploadSection = ({
                     )
                   }
                   actions={[
-                    <Tooltip title="Preview">
-                      <EyeOutlined key="preview" onClick={() => handlePreview(file)} />
+                    <Tooltip title="Preview" key="preview">
+                      <EyeOutlined onClick={() => handlePreview(file)} />
                     </Tooltip>,
-                    <Tooltip title="Download">
-                      <DownloadOutlined key="download" onClick={() => file.url && window.open(file.url, '_blank')} />
+                    <Tooltip title="Download" key="download">
+                      <DownloadOutlined onClick={() => file.url && window.open(file.url, '_blank')} />
                     </Tooltip>,
-                    <Tooltip title="Remove">
-                      <DeleteOutlined key="delete" onClick={() => handleRemove(file)} style={{ color: '#f5222d' }} />
+                    <Tooltip title="Remove" key="delete">
+                      <DeleteOutlined onClick={() => handleRemove(file)} style={{ color: '#f5222d' }} />
                     </Tooltip>
                   ]}
                 >
@@ -788,7 +803,7 @@ const MediaUploadSection = ({
                           {formatFileSize(file.size)}
                         </Text>
                         {file.type && (
-                          <Tag size="small" style={{ fontSize: '10px' }}>
+                          <Tag style={{ fontSize: '10px' }}>
                             {file.type.split('/')[0]}
                           </Tag>
                         )}
@@ -815,7 +830,7 @@ const MediaUploadSection = ({
   );
 };
 
-// ==================== INCIDENT DETAILS MODAL ====================
+// ==================== INCIDENT DETAILS MODAL (kept as-is) ====================
 
 const IncidentDetailsModal = ({
   visible,
@@ -885,7 +900,6 @@ const IncidentDetailsModal = ({
       ]}
     >
       <Tabs activeKey={activeTab} onChange={setActiveTab}>
-        {/* ---------- DETAILS TAB ---------- */}
         <TabPane tab={<span><FileTextOutlined /> Details</span>} key="details">
           <Descriptions bordered column={2} size="small">
             <Descriptions.Item label="Incident #" span={2}>
@@ -901,7 +915,11 @@ const IncidentDetailsModal = ({
             <Descriptions.Item label="Industry">{incident.industryName || incident.industry_id || 'N/A'}</Descriptions.Item>
             <Descriptions.Item label="Location">{incident.location || 'N/A'}</Descriptions.Item>
             <Descriptions.Item label="Date Occurred">{formatDate(incident.date_occurred)}</Descriptions.Item>
-            <Descriptions.Item label="Reported By">{incident.reported_by_name || incident.reported_by || 'Unknown'}</Descriptions.Item>
+            <Descriptions.Item label="Reported By">
+              {getReporterName(incident) || (
+                <Text type="secondary">User #{incident.reported_by ?? 'Unknown'}</Text>
+              )}
+            </Descriptions.Item>
             <Descriptions.Item label="Reported At">{formatDate(incident.created_at || incident.reported_at)}</Descriptions.Item>
           </Descriptions>
 
@@ -960,10 +978,10 @@ const IncidentDetailsModal = ({
                         )
                       }
                       actions={[
-                        <Tooltip title="View">
+                        <Tooltip title="View" key="view">
                           <EyeOutlined onClick={() => file.url && window.open(file.url, '_blank')} />
                         </Tooltip>,
-                        <Tooltip title="Download">
+                        <Tooltip title="Download" key="download">
                           <DownloadOutlined onClick={() => file.url && window.open(file.url, '_blank')} />
                         </Tooltip>
                       ]}
@@ -981,7 +999,7 @@ const IncidentDetailsModal = ({
                             <Text type="secondary" style={{ fontSize: '11px' }}>
                               {file.size ? `${(file.size / 1024).toFixed(1)} KB` : 'Unknown size'}
                             </Text>
-                            {file.type && <Tag size="small" style={{ fontSize: '10px' }}>{file.type.split('/')[0]}</Tag>}
+                            {file.type && <Tag style={{ fontSize: '10px' }}>{file.type.split('/')[0]}</Tag>}
                           </Space>
                         }
                       />
@@ -1006,7 +1024,6 @@ const IncidentDetailsModal = ({
             </>
           )}
 
-          {/* ---------- ADVANCED TOOLS (quick actions) ---------- */}
           <Divider orientation="left">Advanced Tools</Divider>
           <Row gutter={[16, 16]}>
             <Col span={8}>
@@ -1048,7 +1065,6 @@ const IncidentDetailsModal = ({
           </Row>
         </TabPane>
 
-        {/* ---------- DISCUSSION TAB ---------- */}
         <TabPane tab={<span><CommentOutlined /> Discussion</span>} key="comments">
           <IncidentComments
             incident={incident}
@@ -1056,7 +1072,6 @@ const IncidentDetailsModal = ({
           />
         </TabPane>
 
-        {/* ---------- TEAM TAB ---------- */}
         <TabPane tab={<span><TeamOutlined /> Team</span>} key="team">
           <InvestigationAssignment
             incident={incident}
@@ -1064,7 +1079,6 @@ const IncidentDetailsModal = ({
           />
         </TabPane>
 
-        {/* ---------- WITNESS STATEMENTS TAB ---------- */}
         <TabPane tab={<span><FileTextOutlined /> Witness Statements</span>} key="witnesses">
           <WitnessStatementForm
             incident={incident}
@@ -1082,16 +1096,20 @@ const StatusUpdateModal = ({ visible, incident, onClose, onUpdate, isSuperAdmin,
 
   if (!incident) return null;
 
+  const isAdminUser = isSuperAdmin || isCompanyAdmin;
+
   const getAvailableStatuses = () => {
     const currentStatus = incident.status;
     const flow = STATUS_FLOW[currentStatus];
-    
-    if (isSuperAdmin || isCompanyAdmin) {
-      return Object.entries(STATUS_CONFIG);
+
+    if (isAdminUser) {
+      // Admins see everything, but non-valid transitions are disabled
+      const validSet = new Set(flow?.allowed || []);
+      return Object.entries(STATUS_CONFIG).map(([value, config]) => [value, config, validSet.has(value)]);
     }
-    
+
     if (!flow) return [];
-    return flow.allowed.map(status => [status, STATUS_CONFIG[status]]);
+    return flow.allowed.map(status => [status, STATUS_CONFIG[status], true]);
   };
 
   const availableStatuses = getAvailableStatuses();
@@ -1122,7 +1140,7 @@ const StatusUpdateModal = ({ visible, incident, onClose, onUpdate, isSuperAdmin,
                 <p style={{ marginTop: '8px', color: '#666', fontSize: '12px' }}>{STATUS_FLOW[incident.status].description}</p>
               </>
             )}
-            {(isSuperAdmin || isCompanyAdmin) && (
+            {isAdminUser && (
               <div style={{ marginTop: '8px' }}>
                 <Tag color="blue">🔑 Admin Access</Tag>
                 <span style={{ fontSize: '12px', color: '#666', marginLeft: '8px' }}>You can bypass status flow restrictions</span>
@@ -1138,15 +1156,16 @@ const StatusUpdateModal = ({ visible, incident, onClose, onUpdate, isSuperAdmin,
       <Form form={form} layout="vertical" onFinish={(values) => onUpdate(incident.id, values.status, values.notes)}>
         <Form.Item name="status" label="New Status" rules={[{ required: true, message: 'Please select a status' }]}>
           <Select placeholder="Select new status">
-            {availableStatuses.map(([value, config]) => {
-              const isAllowed = isSuperAdmin || isCompanyAdmin || STATUS_FLOW[incident.status]?.allowed?.includes(value);
-              return (
-                <Option key={value} value={value} disabled={!isAllowed}>
-                  <Tag color={config.color}>{config.icon} {config.label}</Tag>
-                  {!isAllowed && <span style={{ color: '#999', fontSize: '11px', marginLeft: '8px' }}>(Not allowed from current status)</span>}
-                </Option>
-              );
-            })}
+            {availableStatuses.map(([value, config, isValid]) => (
+              <Option key={value} value={value} disabled={isAdminUser && !isValid && false}>
+                <Tag color={config.color}>{config.icon} {config.label}</Tag>
+                {isAdminUser && !isValid && (
+                  <span style={{ color: '#999', fontSize: '11px', marginLeft: '8px' }}>
+                    (normally not allowed)
+                  </span>
+                )}
+              </Option>
+            ))}
           </Select>
         </Form.Item>
         <Form.Item name="notes" label="Status Update Notes">
@@ -1174,7 +1193,15 @@ const StatusDetailsModal = ({ visible, status, incidents, onClose, onViewInciden
     { title: 'Title', dataIndex: 'title', key: 'title', ellipsis: true },
     { title: 'Severity', dataIndex: 'severity', key: 'severity', render: (severity) => getSeverityTag(severity) },
     { title: 'Department', dataIndex: 'department', key: 'department', render: (text) => text || 'N/A' },
-    { title: 'Reported By', dataIndex: 'reported_by_name', key: 'reported_by_name', render: (text) => text || 'Unknown' },
+    {
+      title: 'Reported By',
+      dataIndex: 'reported_by_name',
+      key: 'reported_by_name',
+      render: (_, record) => {
+        const name = getReporterName(record);
+        return name || <Text type="secondary">User #{record.reported_by ?? 'Unknown'}</Text>;
+      }
+    },
     { title: 'Date', dataIndex: 'date_occurred', key: 'date_occurred', render: (date) => formatDate(date) }
   ];
 
@@ -1196,11 +1223,10 @@ const StatusDetailsModal = ({ visible, status, incidents, onClose, onViewInciden
 
 const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
   const { user, isSuperAdmin, isRegularAdmin, isAnyAdmin, isEmployee } = useAuth();
-  
+
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState(filterKey || null);
-  const [filteredIncidents, setFilteredIncidents] = useState([]);
   const [editingIncident, setEditingIncident] = useState(null);
   const [statusModalVisible, setStatusModalVisible] = useState(false);
   const [statusDetailsModalVisible, setStatusDetailsModalVisible] = useState(false);
@@ -1218,7 +1244,6 @@ const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
   const [fishboneVisible, setFishboneVisible] = useState(false);
   const [aiAssistantVisible, setAiAssistantVisible] = useState(false);
   const [timelineVisible, setTimelineVisible] = useState(false);
-  const [timelineEvents, setTimelineEvents] = useState([]);
 
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [correctiveActionsVisible, setCorrectiveActionsVisible] = useState(false);
@@ -1232,33 +1257,40 @@ const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
   const isSuperAdminUser = isSuperAdmin();
   const isEmployeeUser = isEmployee();
 
-  useEffect(() => { fetchIncidents(); }, []);
-  useEffect(() => { if (filterKey) { setSelectedFilter(filterKey); applyFilter(filterKey); } }, [filterKey]);
-
-  const fetchIncidents = async () => {
+  // ---- Fetch ----
+  const fetchIncidents = useCallback(async () => {
     setLoading(true);
     try {
       const response = await notificationService.getIncidents();
-      let incidentsList = response?.incidents || (Array.isArray(response) ? response : []);
-      let filteredList = filterIncidentsByRole(incidentsList);
+      const incidentsList = response?.incidents || (Array.isArray(response) ? response : []);
+      const filteredList = filterIncidentsByRole(incidentsList);
       setIncidents(filteredList);
-      setFilteredIncidents(filteredList);
       calculateStats(filteredList);
     } catch (error) {
       console.error('Error fetching incidents:', error);
       message.error('Failed to load incidents');
       setIncidents([]);
-      setFilteredIncidents([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, isSuperAdminUser, isCompanyAdmin, isEmployeeUser]);
+
+  useEffect(() => {
+    fetchIncidents();
+  }, [fetchIncidents]);
+
+  // Filter key from parent
+  useEffect(() => {
+    if (filterKey) {
+      setSelectedFilter(filterKey);
+    }
+  }, [filterKey]);
 
   const filterIncidentsByRole = (incidentList) => {
     if (!user) return [];
     if (isSuperAdminUser) return incidentList;
     if (isCompanyAdmin) return incidentList.filter(inc => inc.company_id === user.company_id);
-    if (isEmployeeUser) return incidentList.filter(inc => inc.reported_by === user.id || inc.company_id === user.company_id);
+    if (isEmployeeUser) return incidentList.filter(inc => inc.company_id === user.company_id);
     return incidentList.filter(inc => inc.reported_by === user.id);
   };
 
@@ -1279,26 +1311,39 @@ const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
       statsData.byIndustry[inc.industryName || inc.industry_id || 'Unknown'] = (statsData.byIndustry[inc.industryName || inc.industry_id || 'Unknown'] || 0) + 1;
       statsData.byType[inc.incident_type || 'Other'] = (statsData.byType[inc.incident_type || 'Other'] || 0) + 1;
       const date = new Date(inc.date_occurred);
-      if (!isNaN(date)) { const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`; statsData.byMonth[monthYear] = (statsData.byMonth[monthYear] || 0) + 1; }
+      if (!isNaN(date)) {
+        const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`;
+        statsData.byMonth[monthYear] = (statsData.byMonth[monthYear] || 0) + 1;
+      }
       statsData.byDepartment[inc.department || 'Unknown'] = (statsData.byDepartment[inc.department || 'Unknown'] || 0) + 1;
     });
     setStats(statsData);
   };
 
+  // ---- Derived: filtered list ----
+  const displayIncidents = useMemo(() => {
+    if (!selectedFilter || selectedFilter === 'all') return incidents;
+    switch (selectedFilter) {
+      case 'critical':
+        return incidents.filter(i => i.severity === 'critical' || i.severity === 'high');
+      case 'pending':
+        return incidents.filter(i => !['resolved', 'closed', 'verified'].includes(i.status));
+      case 'resolved':
+        return incidents.filter(i => ['resolved', 'closed', 'verified'].includes(i.status));
+      default:
+        return incidents;
+    }
+  }, [incidents, selectedFilter]);
+
   const applyFilter = (filterType) => {
     setSelectedFilter(filterType);
-    setFilterKey(filterType);
-    let filtered = [...incidents];
-    switch(filterType) {
-      case 'critical': filtered = incidents.filter(i => i.severity === 'critical' || i.severity === 'high'); break;
-      case 'pending': filtered = incidents.filter(i => !['resolved', 'closed', 'verified'].includes(i.status)); break;
-      case 'resolved': filtered = incidents.filter(i => ['resolved', 'closed', 'verified'].includes(i.status)); break;
-      default: filtered = [...incidents];
-    }
-    setFilteredIncidents(filtered);
+    if (setFilterKey) setFilterKey(filterType);
   };
 
-  const resetFilter = () => { setSelectedFilter(null); setFilterKey(null); setFilteredIncidents(incidents); };
+  const resetFilter = () => {
+    setSelectedFilter(null);
+    if (setFilterKey) setFilterKey(null);
+  };
 
   const showStatusDetails = (status) => {
     const filtered = incidents.filter(i => i.status === status);
@@ -1307,18 +1352,20 @@ const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
     setStatusDetailsModalVisible(true);
   };
 
+  // ---- Permissions ----
   const canEditIncident = (incident) => {
     if (!user) return false;
     if (isSuperAdminUser) return true;
     if (isCompanyAdmin) return incident.company_id === user.company_id;
-    if (isEmployeeUser) return incident.reported_by === user.id;
+    // Employees and everyone else: read-only
     return false;
   };
 
   const canUpdateStatus = (incident) => {
     if (!user) return false;
-    if (isSuperAdminUser || isCompanyAdmin) return true;
-    if (isEmployeeUser) return incident.reported_by === user.id && ['draft', 'reported'].includes(incident.status);
+    if (isSuperAdminUser) return true;
+    if (isCompanyAdmin) return incident.company_id === user.company_id;
+    // Employees cannot update status
     return false;
   };
 
@@ -1329,6 +1376,7 @@ const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
     return false;
   };
 
+  // ---- Handlers ----
   const viewIncidentDetails = (incident) => {
     setSelectedIncident(incident);
     setDetailsModalVisible(true);
@@ -1359,7 +1407,12 @@ const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
 
   const updateIncidentStatus = async (incidentId, newStatus, notes = '') => {
     try {
-      const response = await notificationService.updateIncidentStatus(incidentId, { status: newStatus, notes, updatedBy: user?.id, updatedAt: new Date().toISOString() });
+      const response = await notificationService.updateIncidentStatus(incidentId, {
+        status: newStatus,
+        notes,
+        updatedBy: user?.id,
+        updatedAt: new Date().toISOString()
+      });
       if (response.success) {
         message.success(`Status updated to ${STATUS_CONFIG[newStatus]?.label || newStatus}`);
         fetchIncidents();
@@ -1399,59 +1452,240 @@ const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
     setCorrectiveActionsVisible(true);
   };
 
+  // ---- Columns ----
   const columns = [
-    { title: 'Incident #', dataIndex: 'incident_number', key: 'incident_number', render: (text, record) => <a onClick={() => viewIncidentDetails(record)} style={{ fontWeight: 'bold' }}>{text || `INC-${record.id}`}</a>, sorter: (a, b) => (a.incident_number || a.id) - (b.incident_number || b.id) },
-    { title: 'Title', dataIndex: 'title', key: 'title', ellipsis: true, sorter: (a, b) => a.title?.localeCompare(b.title) },
-    { title: 'Type', dataIndex: 'incident_type', key: 'incident_type', render: (text) => <Tag>{text?.replace(/_/g, ' ')}</Tag> },
-    { title: 'Severity', dataIndex: 'severity', key: 'severity', render: (severity) => getSeverityTag(severity), filters: [{ text: 'Critical', value: 'critical' }, { text: 'High', value: 'high' }, { text: 'Medium', value: 'medium' }, { text: 'Low', value: 'low' }], onFilter: (value, record) => record.severity === value },
-    { title: 'Status', dataIndex: 'status', key: 'status', render: (status, record) => <Space><Tag color={STATUS_CONFIG[status]?.color || 'default'}>{STATUS_CONFIG[status]?.icon || ''} {STATUS_CONFIG[status]?.label || status}</Tag>{canUpdateStatus(record) && <Button type="link" size="small" onClick={() => { setEditingIncident(record); setStatusModalVisible(true); }}>Update</Button>}</Space>, filters: Object.entries(STATUS_CONFIG).map(([value, config]) => ({ text: config.label, value })), onFilter: (value, record) => record.status === value },
-    { title: 'Department', dataIndex: 'department', key: 'department', render: (text) => text || 'N/A' },
-    { title: 'Reported By', dataIndex: 'reported_by_name', key: 'reported_by_name', render: (text, record) => text || record.reported_by || 'Unknown' },
-    { title: 'Date', dataIndex: 'date_occurred', key: 'date_occurred', render: (date) => formatDate(date), sorter: (a, b) => new Date(a.date_occurred) - new Date(b.date_occurred) },
-    { title: 'Actions', key: 'actions', render: (_, record) => <Space>
-        <Tooltip title="View Details"><Button type="link" icon={<EyeOutlined />} onClick={() => viewIncidentDetails(record)} /></Tooltip>
-        {canEditIncident(record) && <Tooltip title="Edit Incident"><Button type="link" icon={<EditOutlined />} onClick={() => handleEditIncident(record)} /></Tooltip>}
-        {canUpdateStatus(record) && <Tooltip title="Update Status"><Button type="link" icon={<CheckCircleOutlined />} onClick={() => { setEditingIncident(record); setStatusModalVisible(true); }} /></Tooltip>}
-        {canDeleteIncident(record) && <Tooltip title="Delete Incident"><Button type="link" danger icon={<DeleteOutlined />} onClick={() => handleDeleteIncident(record)} /></Tooltip>}
-      </Space> }
+    {
+      title: 'Incident #',
+      dataIndex: 'incident_number',
+      key: 'incident_number',
+      width: 160,
+      fixed: 'left',
+      render: (text, record) => (
+        <a onClick={() => viewIncidentDetails(record)} style={{ fontWeight: 'bold' }}>
+          {text || `INC-${record.id}`}
+        </a>
+      ),
+      sorter: (a, b) => (a.incident_number || a.id) - (b.incident_number || b.id)
+    },
+    {
+      title: 'Title',
+      dataIndex: 'title',
+      key: 'title',
+      width: 260,
+      ellipsis: true,
+      sorter: (a, b) => a.title?.localeCompare(b.title)
+    },
+    {
+      title: 'Type',
+      dataIndex: 'incident_type',
+      key: 'incident_type',
+      width: 140,
+      render: (text) => <Tag>{text?.replace(/_/g, ' ')}</Tag>
+    },
+    {
+      title: 'Severity',
+      dataIndex: 'severity',
+      key: 'severity',
+      width: 120,
+      align: 'center',
+      render: (severity) => getSeverityTag(severity),
+      filters: [
+        { text: 'Critical', value: 'critical' },
+        { text: 'High', value: 'high' },
+        { text: 'Medium', value: 'medium' },
+        { text: 'Low', value: 'low' }
+      ],
+      onFilter: (value, record) => record.severity === value
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      width: 160,
+      align: 'center',
+      render: (status) => {
+        const config = STATUS_CONFIG[status] || { color: 'default', label: status, icon: '', description: '' };
+        return (
+          <Tooltip title={config.description}>
+            <Tag color={config.color} style={{ padding: '4px 10px', fontSize: 13 }}>
+              {config.icon} {config.label}
+            </Tag>
+          </Tooltip>
+        );
+      },
+      filters: Object.entries(STATUS_CONFIG).map(([value, config]) => ({ text: config.label, value })),
+      onFilter: (value, record) => record.status === value
+    },
+    // ⬇️ Separate "Update" column — right-pinned
+    {
+      title: 'Update',
+      key: 'update',
+      width: 110,
+      align: 'center',
+      fixed: 'right',
+      render: (_, record) =>
+        canUpdateStatus(record) ? (
+          <Tooltip title="Update status">
+            <Button
+              type="primary"
+              size="small"
+              icon={<CheckCircleOutlined />}
+              onClick={() => {
+                setEditingIncident(record);
+                setStatusModalVisible(true);
+              }}
+            >
+              Update
+            </Button>
+          </Tooltip>
+        ) : (
+          <Text type="secondary" style={{ fontSize: 12 }}>—</Text>
+        )
+    },
+    {
+      title: 'Department',
+      dataIndex: 'department',
+      key: 'department',
+      width: 160,
+      ellipsis: true,
+      render: (text) => text || 'N/A'
+    },
+    // ⬇️ Fixed "Reported By" — shows name, never a bare DB id
+    {
+      title: 'Reported By',
+      dataIndex: 'reported_by_name',
+      key: 'reported_by_name',
+      width: 180,
+      ellipsis: true,
+      render: (_, record) => {
+        const name = getReporterName(record);
+        if (!name) {
+          return (
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              User #{record.reported_by ?? 'Unknown'}
+            </Text>
+          );
+        }
+        return <Text>{name}</Text>;
+      }
+    },
+    {
+      title: 'Date',
+      dataIndex: 'date_occurred',
+      key: 'date_occurred',
+      width: 180,
+      render: (date) => formatDate(date),
+      sorter: (a, b) => new Date(a.date_occurred) - new Date(b.date_occurred)
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      width: 140,
+      fixed: 'right',
+      render: (_, record) => (
+        <Space size="small">
+          <Tooltip title="View Details">
+            <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => viewIncidentDetails(record)} />
+          </Tooltip>
+          {canEditIncident(record) && (
+            <Tooltip title="Edit Incident">
+              <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEditIncident(record)} />
+            </Tooltip>
+          )}
+          {canDeleteIncident(record) && (
+            <Popconfirm title="Delete this incident?" onConfirm={() => handleDeleteIncident(record)}>
+              <Tooltip title="Delete">
+                <Button type="link" size="small" danger icon={<DeleteOutlined />} />
+              </Tooltip>
+            </Popconfirm>
+          )}
+        </Space>
+      )
+    }
   ];
 
-  // Chart Data
+  // ---- Chart Data ----
   const severityChartData = {
     labels: ['Critical', 'High', 'Medium', 'Low'],
-    datasets: [{ label: 'Incidents by Severity', data: [stats.critical, stats.high, stats.medium, stats.low], backgroundColor: ['#f5222d', '#fa541c', '#faad14', '#52c41a'], borderColor: ['#cf1322', '#d4380d', '#d4b106', '#389e0d'], borderWidth: 1 }]
+    datasets: [{
+      label: 'Incidents by Severity',
+      data: [stats.critical, stats.high, stats.medium, stats.low],
+      backgroundColor: ['#f5222d', '#fa541c', '#faad14', '#52c41a'],
+      borderColor: ['#cf1322', '#d4380d', '#d4b106', '#389e0d'],
+      borderWidth: 1
+    }]
   };
 
   const statusChartData = {
     labels: Object.keys(stats.byStatus).map(s => STATUS_CONFIG[s]?.label || s),
-    datasets: [{ label: 'Incidents by Status', data: Object.values(stats.byStatus), backgroundColor: Object.keys(stats.byStatus).map(s => STATUS_CONFIG[s]?.color || '#d9d9d9'), borderColor: '#fff', borderWidth: 2 }]
+    datasets: [{
+      label: 'Incidents by Status',
+      data: Object.values(stats.byStatus),
+      backgroundColor: Object.keys(stats.byStatus).map(s => STATUS_CONFIG[s]?.color || '#d9d9d9'),
+      borderColor: '#fff',
+      borderWidth: 2
+    }]
   };
 
   const industryChartData = {
     labels: Object.keys(stats.byIndustry),
-    datasets: [{ label: 'Incidents by Industry', data: Object.values(stats.byIndustry), backgroundColor: ['#1890ff', '#fa8c16', '#52c41a', '#722ed1', '#fa541c', '#13c2c2', '#eb2f96', '#a0d911'], borderColor: '#fff', borderWidth: 2 }]
+    datasets: [{
+      label: 'Incidents by Industry',
+      data: Object.values(stats.byIndustry),
+      backgroundColor: ['#1890ff', '#fa8c16', '#52c41a', '#722ed1', '#fa541c', '#13c2c2', '#eb2f96', '#a0d911'],
+      borderColor: '#fff',
+      borderWidth: 2
+    }]
   };
 
   const monthlyTrendData = {
     labels: Object.keys(stats.byMonth),
-    datasets: [{ label: 'Monthly Incident Trend', data: Object.values(stats.byMonth), borderColor: '#1890ff', backgroundColor: 'rgba(24, 144, 255, 0.1)', fill: true, tension: 0.4 }]
+    datasets: [{
+      label: 'Monthly Incident Trend',
+      data: Object.values(stats.byMonth),
+      borderColor: '#1890ff',
+      backgroundColor: 'rgba(24, 144, 255, 0.1)',
+      fill: true,
+      tension: 0.4
+    }]
   };
 
   const departmentChartData = {
     labels: Object.keys(stats.byDepartment),
-    datasets: [{ label: 'Incidents by Department', data: Object.values(stats.byDepartment), backgroundColor: '#1890ff', borderColor: '#096dd9', borderWidth: 1 }]
+    datasets: [{
+      label: 'Incidents by Department',
+      data: Object.values(stats.byDepartment),
+      backgroundColor: '#1890ff',
+      borderColor: '#096dd9',
+      borderWidth: 1
+    }]
   };
 
   const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } };
 
-  const displayIncidents = selectedFilter && selectedFilter !== 'all' ? filteredIncidents : incidents;
-
   if (loading) {
-    return <div style={{ textAlign: 'center', padding: '60px' }}><Spin size="large" /><p style={{ marginTop: '16px' }}>Loading incidents...</p></div>;
+    return (
+      <div style={{ textAlign: 'center', padding: '60px' }}>
+        <Spin size="large" />
+        <p style={{ marginTop: '16px' }}>Loading incidents...</p>
+      </div>
+    );
   }
 
   if (incidents.length === 0) {
-    return <div style={{ textAlign: 'center', padding: '60px' }}><Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={<div><p>No incidents reported yet</p><Button type="primary" onClick={showIncidentModal}>Report Your First Incident</Button></div>} /></div>;
+    return (
+      <div style={{ textAlign: 'center', padding: '60px' }}>
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          description={
+            <div>
+              <p>No incidents reported yet</p>
+              <Button type="primary" onClick={showIncidentModal}>Report Your First Incident</Button>
+            </div>
+          }
+        />
+      </div>
+    );
   }
 
   const resolvedPercent = stats.total > 0 ? (stats.resolved / stats.total) * 100 : 0;
@@ -1459,6 +1693,7 @@ const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
 
   return (
     <div>
+      {/* KPI CARDS */}
       <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
         <Col xs={24} sm={12} md={6}>
           <Card hoverable onClick={() => applyFilter('all')} style={{ cursor: 'pointer', border: selectedFilter === 'all' ? '3px solid #1890ff' : '1px solid #f0f0f0' }}>
@@ -1488,8 +1723,23 @@ const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
         </Col>
       </Row>
 
-      {selectedFilter && selectedFilter !== 'all' && <Alert message={<Space><FilterOutlined /> Showing {selectedFilter.charAt(0).toUpperCase() + selectedFilter.slice(1)} Incidents <Tag color="blue">{filteredIncidents.length} found</Tag></Space>} type="info" closable onClose={resetFilter} style={{ marginBottom: '24px' }} />}
+      {selectedFilter && selectedFilter !== 'all' && (
+        <Alert
+          message={
+            <Space>
+              <FilterOutlined />
+              Showing {selectedFilter.charAt(0).toUpperCase() + selectedFilter.slice(1)} Incidents
+              <Tag color="blue">{displayIncidents.length} found</Tag>
+            </Space>
+          }
+          type="info"
+          closable
+          onClose={resetFilter}
+          style={{ marginBottom: '24px' }}
+        />
+      )}
 
+      {/* CHARTS ROW 1 */}
       <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
         <Col xs={24} lg={12}>
           <Card title={<Space><PieChartOutlined /> Severity Distribution <Tooltip title="Click on chart segments to filter"><InfoCircleOutlined style={{ color: '#1890ff' }} /></Tooltip></Space>} extra={<Space><Button type={chartView === 'severity' ? 'primary' : 'default'} size="small" onClick={() => setChartView('severity')}>Pie</Button><Button type={chartView === 'severityBar' ? 'primary' : 'default'} size="small" onClick={() => setChartView('severityBar')}>Bar</Button><Tooltip title="Refresh data"><Button icon={<ReloadOutlined />} size="small" onClick={fetchIncidents} /></Tooltip></Space>}>
@@ -1505,6 +1755,7 @@ const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
         </Col>
       </Row>
 
+      {/* CHARTS ROW 2 */}
       <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
         <Col xs={24} lg={12}>
           <Card title={<Space><PieChartOutlined /> Incidents by Industry <Tooltip title="Click on chart segments to filter by industry"><InfoCircleOutlined style={{ color: '#1890ff' }} /></Tooltip></Space>}>
@@ -1528,32 +1779,79 @@ const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
         </Row>
       )}
 
+      {/* STATUS BREAKDOWN */}
       <Card title={<Space><ReconciliationOutlined /> Status Breakdown <Tooltip title="Click on any status card to view details"><InfoCircleOutlined style={{ color: '#1890ff' }} /></Tooltip></Space>} style={{ marginBottom: '24px' }}>
         <Row gutter={[12, 12]}>
           {Object.entries(stats.byStatus).map(([status, count]) => {
             const config = STATUS_CONFIG[status];
             if (!config) return null;
-            return <Col xs={12} sm={8} md={6} lg={4} key={status}>
-              <Card hoverable size="small" onClick={() => showStatusDetails(status)} style={{ textAlign: 'center', cursor: 'pointer', borderLeft: `4px solid ${config.color}`, height: '100%' }}>
-                <div style={{ fontSize: '24px' }}>{config.icon}</div>
-                <Text strong>{config.label}</Text><br />
-                <Badge count={count} style={{ backgroundColor: config.color, marginTop: '4px' }} />
-                <div style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>{config.description}</div>
-              </Card>
-            </Col>;
+            return (
+              <Col xs={12} sm={8} md={6} lg={4} key={status}>
+                <Card hoverable size="small" onClick={() => showStatusDetails(status)} style={{ textAlign: 'center', cursor: 'pointer', borderLeft: `4px solid ${config.color}`, height: '100%' }}>
+                  <div style={{ fontSize: '24px' }}>{config.icon}</div>
+                  <Text strong>{config.label}</Text><br />
+                  <Badge count={count} style={{ backgroundColor: config.color, marginTop: '4px' }} />
+                  <div style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>{config.description}</div>
+                </Card>
+              </Col>
+            );
           })}
         </Row>
       </Card>
 
-      <Card title={<Space><FileTextOutlined /> {selectedFilter && selectedFilter !== 'all' ? `${selectedFilter.charAt(0).toUpperCase() + selectedFilter.slice(1)} Incidents` : 'All Incidents'} <Tag color="blue">{displayIncidents.length} records</Tag></Space>} extra={<Space>{selectedFilter && selectedFilter !== 'all' && <Button onClick={resetFilter} size="small">Clear Filter</Button>}<Button type="primary" onClick={showIncidentModal} icon={<AlertOutlined />} size="small">Report New Incident</Button></Space>}>
-        <Table columns={columns} dataSource={displayIncidents} rowKey="id" pagination={{ pageSize: 10, showTotal: (total) => `Total ${total} incidents`, showSizeChanger: true, showQuickJumper: true }} scroll={{ x: 1200 }} rowClassName={(record) => { if (record.severity === 'critical') return 'critical-row'; if (record.severity === 'high') return 'high-row'; return ''; }} />
+      {/* MAIN TABLE */}
+      <Card
+        title={
+          <Space>
+            <FileTextOutlined />
+            {selectedFilter && selectedFilter !== 'all'
+              ? `${selectedFilter.charAt(0).toUpperCase() + selectedFilter.slice(1)} Incidents`
+              : 'All Incidents'}
+            <Tag color="blue">{displayIncidents.length} records</Tag>
+          </Space>
+        }
+        extra={
+          <Space>
+            {selectedFilter && selectedFilter !== 'all' && <Button onClick={resetFilter} size="small">Clear Filter</Button>}
+            <Button type="primary" onClick={showIncidentModal} icon={<AlertOutlined />} size="small">Report New Incident</Button>
+          </Space>
+        }
+      >
+        <Table
+          columns={columns}
+          dataSource={displayIncidents}
+          rowKey="id"
+          pagination={{
+            pageSize: 10,
+            showTotal: (total) => `Total ${total} incidents`,
+            showSizeChanger: true,
+            showQuickJumper: true
+          }}
+          scroll={{ x: 1600 }}
+          rowClassName={(record) => {
+            if (record.severity === 'critical') return 'critical-row';
+            if (record.severity === 'high') return 'high-row';
+            return '';
+          }}
+        />
       </Card>
 
-      {/* ============================================================ */}
       {/* MODALS */}
-      {/* ============================================================ */}
-      <StatusUpdateModal visible={statusModalVisible} incident={editingIncident} onClose={() => { setStatusModalVisible(false); setEditingIncident(null); }} onUpdate={updateIncidentStatus} isSuperAdmin={isSuperAdminUser} isCompanyAdmin={isCompanyAdmin} />
-      <StatusDetailsModal visible={statusDetailsModalVisible} status={selectedStatus} incidents={statusIncidents} onClose={() => { setStatusDetailsModalVisible(false); setSelectedStatus(null); setStatusIncidents([]); }} onViewIncident={viewIncidentDetails} />
+      <StatusUpdateModal
+        visible={statusModalVisible}
+        incident={editingIncident}
+        onClose={() => { setStatusModalVisible(false); setEditingIncident(null); }}
+        onUpdate={updateIncidentStatus}
+        isSuperAdmin={isSuperAdminUser}
+        isCompanyAdmin={isCompanyAdmin}
+      />
+      <StatusDetailsModal
+        visible={statusDetailsModalVisible}
+        status={selectedStatus}
+        incidents={statusIncidents}
+        onClose={() => { setStatusDetailsModalVisible(false); setSelectedStatus(null); setStatusIncidents([]); }}
+        onViewIncident={viewIncidentDetails}
+      />
       <IncidentDetailsModal
         visible={detailsModalVisible}
         incident={selectedIncident}
@@ -1570,7 +1868,7 @@ const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
         currentUser={{ id: user?.id, name: user?.name, role: user?.role }}
       />
 
-      {/* ---------- Advanced Incident Modals (Standalone Drawers) ---------- */}
+      {/* ADVANCED DRAWERS */}
       <FishboneDiagram
         visible={fishboneVisible}
         incident={selectedIncident}
@@ -1581,12 +1879,32 @@ const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
         incident={selectedIncident}
         onClose={() => setAiAssistantVisible(false)}
       />
-      <IncidentTimeline
-        visible={timelineVisible}
-        incident={selectedIncident}
-        events={timelineEvents}
+
+      {/* Incident Timeline — wrapped in a Drawer, no props passed that don't exist */}
+      <Drawer
+        title={
+          <Space>
+            <ClockCircleOutlined />
+            Incident Timeline
+            {selectedIncident && (
+              <Tag color="blue">{selectedIncident.incident_number || `#${selectedIncident.id}`}</Tag>
+            )}
+          </Space>
+        }
+        placement="right"
+        width={720}
+        open={timelineVisible}
         onClose={() => setTimelineVisible(false)}
-      />
+        destroyOnClose
+      >
+        {selectedIncident && (
+          <IncidentTimeline
+            incident={selectedIncident}
+            onAddEvent={() => { /* optional: refresh incidents list */ }}
+          />
+        )}
+      </Drawer>
+
       <AuditTrailViewer
         visible={auditTrailVisible}
         incident={selectedIncident}
@@ -1601,7 +1919,7 @@ const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
         }}
       />
 
-      {/* ---------- Edit Incident Modal ---------- */}
+      {/* EDIT INCIDENT */}
       <EditIncidentModal
         visible={editModalVisible}
         incident={editingIncident}
@@ -1628,7 +1946,7 @@ const IncidentDashboard = ({ showIncidentModal, filterKey, setFilterKey }) => {
 
 function ReportsPage() {
   const { user, isAnyAdmin, isEmployee } = useAuth();
-  
+
   const [incidentModalVisible, setIncidentModalVisible] = useState(false);
   const [selectedIndustry, setSelectedIndustry] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
@@ -1639,24 +1957,38 @@ function ReportsPage() {
   const [uploading, setUploading] = useState(false);
 
   const [allIncidents, setAllIncidents] = useState([]);
-  
+
   const { pushNotification } = useContext(NotificationContext);
   const { notifyIncidentReportSuccess, notifyIncidentReportError } = useIncidentNotifications();
 
   const isAdmin = isAnyAdmin();
   const isEmployeeUser = isEmployee();
 
+  // ---- Fetch incidents for the tab-level components ----
+  const reloadIncidents = useCallback(async () => {
+    try {
+      const response = await notificationService.getIncidents();
+      const list = response?.incidents || (Array.isArray(response) ? response : []);
+      setAllIncidents(list);
+    } catch (error) {
+      console.error('Failed to load incidents for tabs:', error);
+    }
+  }, []);
+
   useEffect(() => {
+    let cancelled = false;
     const fetchAll = async () => {
       try {
         const response = await notificationService.getIncidents();
+        if (cancelled) return;
         const list = response?.incidents || (Array.isArray(response) ? response : []);
         setAllIncidents(list);
       } catch (error) {
-        console.error('Failed to load incidents for tabs:', error);
+        if (!cancelled) console.error('Failed to load incidents for tabs:', error);
       }
     };
     if (user) fetchAll();
+    return () => { cancelled = true; };
   }, [user]);
 
   const showIncidentModal = () => {
@@ -1699,28 +2031,69 @@ function ReportsPage() {
         reported_by_name: user?.name || user?.email || values.reporter_name,
         status: initialStatus,
         evidence_description: values.evidence_description || '',
-        evidence_files: fileList.map(file => ({ name: file.name, size: file.size, type: file.type, url: file.url })),
-        custom_data: { reporter_name: values.reporter_name, injured_persons: values.injured_persons, witnesses: values.witnesses, persons_involved: values.persons_involved, immediate_actions: values.immediate_actions, additional_notes: values.additional_notes, evidence_description: values.evidence_description, ...values }
+        custom_data: {
+          reporter_name: values.reporter_name,
+          injured_persons: values.injured_persons,
+          witnesses: values.witnesses,
+          persons_involved: values.persons_involved,
+          immediate_actions: values.immediate_actions,
+          additional_notes: values.additional_notes,
+          evidence_description: values.evidence_description,
+          ...values
+        }
       };
 
       const result = await notificationService.reportIncident(incidentData);
-      
-      if (result.success) {
-        notifyIncidentReportSuccess(selectedIndustry.name);
-        pushNotification({ id: `incident-${Date.now()}`, title: '✅ Incident Reported Successfully', message: `Your ${selectedIndustry.name} incident report has been submitted.`, type: 'success', read: false, date: new Date().toISOString(), data: incidentData });
-        message.success(`Incident reported successfully! ${isEmployeeUser || isAdmin ? 'Manager has been notified.' : 'You can track it in your dashboard.'}`);
-        setIncidentModalVisible(false);
-        form.resetFields();
-        setSelectedIndustry(null);
-        setCurrentStep(0);
-        setFileList([]);
-        window.location.reload();
-      } else {
+
+      if (!result.success) {
         throw new Error(result.error || 'Failed to submit incident report');
       }
+
+      const incidentId = result.incident?.id;
+
+      // Upload evidence AFTER the incident exists
+      if (incidentId && fileList.length > 0) {
+        const uploadResults = await Promise.allSettled(
+          fileList.map(f => {
+            const rawFile = f.originFileObj || f;
+            return notificationService.uploadEvidence(incidentId, rawFile);
+          })
+        );
+        const failed = uploadResults.filter(r => r.status === 'rejected');
+        if (failed.length > 0) {
+          message.warning(`${failed.length} file(s) failed to upload. You can retry from the incident detail page.`);
+        }
+      }
+
+      notifyIncidentReportSuccess(selectedIndustry.name);
+      pushNotification({
+        id: `incident-${Date.now()}`,
+        title: '✅ Incident Reported Successfully',
+        message: `Your ${selectedIndustry.name} incident report has been submitted.`,
+        type: 'success',
+        read: false,
+        date: new Date().toISOString(),
+        data: incidentData
+      });
+      message.success(`Incident reported successfully! ${isEmployeeUser || isAdmin ? 'Manager has been notified.' : 'You can track it in your dashboard.'}`);
+
+      setIncidentModalVisible(false);
+      form.resetFields();
+      setSelectedIndustry(null);
+      setCurrentStep(0);
+      setFileList([]);
+      // Refresh instead of hard reload
+      reloadIncidents();
     } catch (error) {
       notifyIncidentReportError(error.message);
-      pushNotification({ id: `error-${Date.now()}`, title: '❌ Incident Report Failed', message: 'There was an error submitting your incident report. Please try again.', type: 'error', read: false, date: new Date().toISOString() });
+      pushNotification({
+        id: `error-${Date.now()}`,
+        title: '❌ Incident Report Failed',
+        message: 'There was an error submitting your incident report. Please try again.',
+        type: 'error',
+        read: false,
+        date: new Date().toISOString()
+      });
       message.error(error.message || 'Failed to submit incident report. Please try again.');
       console.error('Incident submission error:', error);
     } finally {
@@ -1733,12 +2106,14 @@ function ReportsPage() {
       <h3>Select Industry</h3>
       <p style={{ color: '#666', marginBottom: '20px' }}>Choose the industry where the incident occurred to access industry-specific reporting forms.</p>
       <Row gutter={[16, 16]}>
-        {industries.map(industry => <Col xs={12} sm={8} md={6} key={industry.id}>
-          <Card hoverable onClick={() => handleIndustrySelect(industry)} style={{ textAlign: 'center', border: `2px solid ${industry.color}20`, height: '140px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div style={{ fontSize: '28px', color: industry.color, marginBottom: '8px' }}>{industry.icon}</div>
-            <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{industry.name}</div>
-          </Card>
-        </Col>)}
+        {industries.map(industry => (
+          <Col xs={12} sm={8} md={6} key={industry.id}>
+            <Card hoverable onClick={() => handleIndustrySelect(industry)} style={{ textAlign: 'center', border: `2px solid ${industry.color}20`, height: '140px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <div style={{ fontSize: '28px', color: industry.color, marginBottom: '8px' }}>{industry.icon}</div>
+              <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{industry.name}</div>
+            </Card>
+          </Col>
+        ))}
       </Row>
     </div>
   );
@@ -1747,41 +2122,138 @@ function ReportsPage() {
     const config = industryConfigs[selectedIndustry.code];
     return (
       <Form form={form} layout="vertical" onFinish={handleIncidentSubmit} initialValues={{ severity: 'medium', date: null, time: null }}>
-        <div style={{ marginBottom: '16px' }}><Button type="link" onClick={handleBackToIndustry} icon={<FileDoneOutlined />}>Change Industry</Button></div>
+        <div style={{ marginBottom: '16px' }}>
+          <Button type="link" onClick={handleBackToIndustry} icon={<FileDoneOutlined />}>Change Industry</Button>
+        </div>
         <h3>{selectedIndustry.icon} Report {selectedIndustry.name} Incident</h3>
         <Divider />
         <Row gutter={16}>
-          <Col span={12}><Form.Item name="incidentType" label="Incident Type" rules={[{ required: true, message: 'Please select incident type' }]}><Select placeholder="Select incident type">{config.incidentTypes.map(type => <Option key={type.value} value={type.value}>{type.label} {type.severity === 'critical' ? '🚨' : type.severity === 'high' ? '⚠️' : ''}</Option>)}</Select></Form.Item></Col>
-          <Col span={12}><Form.Item name="severity" label="Severity Level" rules={[{ required: true, message: 'Please select severity' }]}><Select placeholder="Select severity"><Option value="low"><span style={{ color: '#52c41a' }}>Low</span></Option><Option value="medium"><span style={{ color: '#faad14' }}>Medium</span></Option><Option value="high"><span style={{ color: '#fa541c' }}>High</span></Option><Option value="critical"><span style={{ color: '#f5222d' }}>Critical 🚨</span></Option></Select></Form.Item></Col>
+          <Col span={12}>
+            <Form.Item name="incidentType" label="Incident Type" rules={[{ required: true, message: 'Please select incident type' }]}>
+              <Select placeholder="Select incident type">
+                {config.incidentTypes.map(type => (
+                  <Option key={type.value} value={type.value}>
+                    {type.label} {type.severity === 'critical' ? '🚨' : type.severity === 'high' ? '⚠️' : ''}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="severity" label="Severity Level" rules={[{ required: true, message: 'Please select severity' }]}>
+              <Select placeholder="Select severity">
+                <Option value="low"><span style={{ color: '#52c41a' }}>Low</span></Option>
+                <Option value="medium"><span style={{ color: '#faad14' }}>Medium</span></Option>
+                <Option value="high"><span style={{ color: '#fa541c' }}>High</span></Option>
+                <Option value="critical"><span style={{ color: '#f5222d' }}>Critical 🚨</span></Option>
+              </Select>
+            </Form.Item>
+          </Col>
         </Row>
-        <Form.Item name="description" label="Incident Description" rules={[{ required: true, message: 'Please describe the incident' }]}><TextArea rows={4} placeholder="Provide detailed description of what happened..." /></Form.Item>
+        <Form.Item name="description" label="Incident Description" rules={[{ required: true, message: 'Please describe the incident' }]}>
+          <TextArea rows={4} placeholder="Provide detailed description of what happened..." />
+        </Form.Item>
         <Row gutter={16}>
-          <Col span={8}><Form.Item name="date" label="Date of Incident" rules={[{ required: true, message: 'Please select date' }]}><DatePicker style={{ width: '100%' }} /></Form.Item></Col>
-          <Col span={8}><Form.Item name="time" label="Time of Incident" rules={[{ required: true, message: 'Please select time' }]}><TimePicker style={{ width: '100%' }} format="HH:mm" /></Form.Item></Col>
-          <Col span={8}><Form.Item name="location" label="Exact Location" rules={[{ required: true, message: 'Please specify location' }]}><Input prefix={<EnvironmentOutlined />} placeholder="Building, floor, room, area..." /></Form.Item></Col>
+          <Col span={8}>
+            <Form.Item name="date" label="Date of Incident" rules={[{ required: true, message: 'Please select date' }]}>
+              <DatePicker style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item name="time" label="Time of Incident" rules={[{ required: true, message: 'Please select time' }]}>
+              <TimePicker style={{ width: '100%' }} format="HH:mm" />
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item name="location" label="Exact Location" rules={[{ required: true, message: 'Please specify location' }]}>
+              <Input prefix={<EnvironmentOutlined />} placeholder="Building, floor, room, area..." />
+            </Form.Item>
+          </Col>
         </Row>
         <Divider orientation="left">Department Details</Divider>
         <Row gutter={16}>
-          <Col span={12}><Form.Item name="department" label="Department" rules={[{ required: true, message: 'Please select department' }]}><Select placeholder="Select department">{config.departments.map(dept => <Option key={dept} value={dept}>{dept}</Option>)}</Select></Form.Item></Col>
-          <Col span={12}><Form.Item name="incident_category" label="Incident Category"><Select placeholder="Select category"><Option value="accident">Accident</Option><Option value="incident">Incident</Option><Option value="near_miss">Near Miss</Option><Option value="occupational_illness">Occupational Illness</Option><Option value="safety_hazard">Safety Hazard</Option><Option value="health_hazard">Health Hazard</Option><Option value="environmental">Environmental</Option></Select></Form.Item></Col>
+          <Col span={12}>
+            <Form.Item name="department" label="Department" rules={[{ required: true, message: 'Please select department' }]}>
+              <Select placeholder="Select department">
+                {config.departments.map(dept => <Option key={dept} value={dept}>{dept}</Option>)}
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="incident_category" label="Incident Category">
+              <Select placeholder="Select category">
+                <Option value="accident">Accident</Option>
+                <Option value="incident">Incident</Option>
+                <Option value="near_miss">Near Miss</Option>
+                <Option value="occupational_illness">Occupational Illness</Option>
+                <Option value="safety_hazard">Safety Hazard</Option>
+                <Option value="health_hazard">Health Hazard</Option>
+                <Option value="environmental">Environmental</Option>
+              </Select>
+            </Form.Item>
+          </Col>
         </Row>
         <Divider orientation="left">Industry-Specific Details</Divider>
         {config.customFields(form)}
         <Divider orientation="left">People Information</Divider>
         <Row gutter={16}>
-          <Col span={8}><Form.Item name="reporter_name" label="Your Name"><Input prefix={<UserOutlined />} /></Form.Item></Col>
-          <Col span={8}><Form.Item name="injured_persons" label="Injured Persons"><InputNumber min={0} max={100} placeholder="Number" style={{ width: '100%' }} /></Form.Item></Col>
-          <Col span={8}><Form.Item name="witnesses" label="Witnesses Present"><InputNumber min={0} max={100} placeholder="Number" style={{ width: '100%' }} /></Form.Item></Col>
+          <Col span={8}>
+            <Form.Item name="reporter_name" label="Your Name">
+              <Input prefix={<UserOutlined />} />
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item name="injured_persons" label="Injured Persons">
+              <InputNumber min={0} max={100} placeholder="Number" style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item name="witnesses" label="Witnesses Present">
+              <InputNumber min={0} max={100} placeholder="Number" style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
         </Row>
-        <Form.Item name="persons_involved" label="Names of Persons Involved"><TextArea rows={2} placeholder="List names and roles of all persons involved..." /></Form.Item>
-        <Form.Item name="immediate_actions" label="Immediate Actions Taken" rules={[{ required: true, message: 'Please describe immediate actions taken' }]}><TextArea rows={3} placeholder="First aid, area secured, emergency services, shutdown..." /></Form.Item>
+        <Form.Item name="persons_involved" label="Names of Persons Involved">
+          <TextArea rows={2} placeholder="List names and roles of all persons involved..." />
+        </Form.Item>
+        <Form.Item name="immediate_actions" label="Immediate Actions Taken" rules={[{ required: true, message: 'Please describe immediate actions taken' }]}>
+          <TextArea rows={3} placeholder="First aid, area secured, emergency services, shutdown..." />
+        </Form.Item>
         <Divider orientation="left">Evidence & Documentation</Divider>
-        <MediaUploadSection fileList={fileList} setFileList={setFileList} uploading={uploading} setUploading={setUploading} maxFiles={10} maxSizeMB={50} />
-        <Form.Item name="evidence_description" label="Evidence Description" extra="Provide context for the uploaded evidence"><TextArea rows={2} placeholder="Describe the evidence you've uploaded..." /></Form.Item>
-        <Form.Item name="additional_notes" label="Additional Notes"><TextArea rows={2} placeholder="Any other relevant information..." /></Form.Item>
-        <Alert message={isEmployeeUser || isAdmin ? "📋 Manager Notification" : "📝 Draft Mode"} description={isEmployeeUser || isAdmin ? "Your manager will be automatically notified via email and will review this incident promptly." : "Your incident report will be saved as a draft. You can submit it for review once complete."} type={isEmployeeUser || isAdmin ? "info" : "warning"} showIcon style={{ marginBottom: '16px' }} />
-        <Form.Item><Button type="primary" htmlType="submit" loading={loading} block size="large" style={{ height: '50px', fontSize: '16px' }}>{loading ? 'Submitting Incident Report...' : (isEmployeeUser || isAdmin ? 'Submit Incident Report & Notify Manager' : 'Save as Draft')}</Button></Form.Item>
-        {(isEmployeeUser || isAdmin) && <Alert message="Email Notification" description="A notification email will be sent to your manager/department head for review." type="info" showIcon />}
+        <MediaUploadSection
+          fileList={fileList}
+          setFileList={setFileList}
+          uploading={uploading}
+          setUploading={setUploading}
+          maxFiles={10}
+          maxSizeMB={50}
+        />
+        <Form.Item name="evidence_description" label="Evidence Description" extra="Provide context for the uploaded evidence">
+          <TextArea rows={2} placeholder="Describe the evidence you've uploaded..." />
+        </Form.Item>
+        <Form.Item name="additional_notes" label="Additional Notes">
+          <TextArea rows={2} placeholder="Any other relevant information..." />
+        </Form.Item>
+        <Alert
+          message={isEmployeeUser || isAdmin ? "📋 Manager Notification" : "📝 Draft Mode"}
+          description={isEmployeeUser || isAdmin ? "Your manager will be automatically notified via email and will review this incident promptly." : "Your incident report will be saved as a draft. You can submit it for review once complete."}
+          type={isEmployeeUser || isAdmin ? "info" : "warning"}
+          showIcon
+          style={{ marginBottom: '16px' }}
+        />
+        <Form.Item>
+          <Button type="primary" htmlType="submit" loading={loading} block size="large" style={{ height: '50px', fontSize: '16px' }}>
+            {loading ? 'Submitting Incident Report...' : (isEmployeeUser || isAdmin ? 'Submit Incident Report & Notify Manager' : 'Save as Draft')}
+          </Button>
+        </Form.Item>
+        {(isEmployeeUser || isAdmin) && (
+          <Alert
+            message="Email Notification"
+            description="A notification email will be sent to your manager/department head for review."
+            type="info"
+            showIcon
+          />
+        )}
       </Form>
     );
   };
@@ -1795,7 +2267,25 @@ function ReportsPage() {
     <div style={{ padding: '24px' }}>
       <Tabs defaultActiveKey="incidents">
         <TabPane tab={<span><FileTextOutlined /> Safety Reports</span>} key="reports">
-          <Row gutter={[24, 24]}><Col span={24}><Card><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}><h2 style={{ margin: 0 }}>Safety Reports & Incident Management</h2><Button type="primary" danger icon={<AlertOutlined />} onClick={showIncidentModal} size="large">Report Safety Incident</Button></div><Alert message="Multi-Industry Incident Reporting" description="Report safety incidents across all industries. Industry-specific forms ensure accurate data collection for proper investigation and compliance." type="info" showIcon style={{ marginBottom: '24px' }} /></Card></Col></Row>
+          <Row gutter={[24, 24]}>
+            <Col span={24}>
+              <Card>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h2 style={{ margin: 0 }}>Safety Reports & Incident Management</h2>
+                  <Button type="primary" danger icon={<AlertOutlined />} onClick={showIncidentModal} size="large">
+                    Report Safety Incident
+                  </Button>
+                </div>
+                <Alert
+                  message="Multi-Industry Incident Reporting"
+                  description="Report safety incidents across all industries. Industry-specific forms ensure accurate data collection for proper investigation and compliance."
+                  type="info"
+                  showIcon
+                  style={{ marginBottom: '24px' }}
+                />
+              </Card>
+            </Col>
+          </Row>
           <ExportPanel />
           <CustomReportBuilder />
         </TabPane>
@@ -1822,10 +2312,7 @@ function ReportsPage() {
           }} />
         </TabPane>
 
-        <TabPane
-          tab={<span><EyeOutlined /> Safety Observations</span>}
-          key="observations"
-        >
+        <TabPane tab={<span><EyeOutlined /> Safety Observations</span>} key="observations">
           <SafetyObservations
             observations={[]}
             currentUser={{ id: user?.id, name: user?.name, role: user?.role }}
@@ -1843,10 +2330,7 @@ function ReportsPage() {
           />
         </TabPane>
 
-        <TabPane
-          tab={<span><BulbOutlined /> Lessons Learned</span>}
-          key="lessons"
-        >
+        <TabPane tab={<span><BulbOutlined /> Lessons Learned</span>} key="lessons">
           <LessonsLearned
             lessons={[]}
             incidents={allIncidents}
@@ -1858,7 +2342,26 @@ function ReportsPage() {
         </TabPane>
       </Tabs>
 
-      <Modal title={<span><AlertOutlined /> Report Safety Incident {selectedIndustry && <Tag color={selectedIndustry.color} style={{ marginLeft: '8px' }}>{selectedIndustry.name}</Tag>}</span>} open={incidentModalVisible} onCancel={() => { setIncidentModalVisible(false); setSelectedIndustry(null); setCurrentStep(0); form.resetFields(); setFileList([]); }} footer={null} width={800} style={{ top: 20 }} destroyOnClose>
+      <Modal
+        title={
+          <span>
+            <AlertOutlined /> Report Safety Incident
+            {selectedIndustry && <Tag color={selectedIndustry.color} style={{ marginLeft: '8px' }}>{selectedIndustry.name}</Tag>}
+          </span>
+        }
+        open={incidentModalVisible}
+        onCancel={() => {
+          setIncidentModalVisible(false);
+          setSelectedIndustry(null);
+          setCurrentStep(0);
+          form.resetFields();
+          setFileList([]);
+        }}
+        footer={null}
+        width={800}
+        style={{ top: 20 }}
+        destroyOnClose
+      >
         {renderIncidentModalContent()}
       </Modal>
     </div>
