@@ -1,5 +1,5 @@
 // src/components/incidents/AIInvestigationAssistant.js
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Card, Button, Input, Space, Tag, message, Row, Col,
   List, Avatar, Typography, Divider, Alert, Spin, Progress,
@@ -13,7 +13,8 @@ import {
   CopyOutlined, SaveOutlined, ShareAltOutlined, DownloadOutlined,
   ExperimentOutlined, ApartmentOutlined, BranchesOutlined,
   ClockCircleOutlined, TeamOutlined, ToolOutlined,
-  BookOutlined, LinkOutlined, RiseOutlined, FallOutlined
+  BookOutlined, LinkOutlined, RiseOutlined, FallOutlined,
+  MessageOutlined, SendOutlined
 } from '@ant-design/icons';
 
 // ✅ SERVICE IMPORT
@@ -25,10 +26,51 @@ const { Text, Title, Paragraph } = Typography;
 const { Panel } = Collapse;
 const { Option } = Select;
 const { Step } = Steps;
-const { TabPane } = Tabs;
+
+// ==================== HELPERS ====================
+
+/**
+ * Extract the answer text from any of the response envelope shapes the
+ * backend might use. The canonical path is `response.analysis.answer`.
+ */
+const extractAnswer = (response) => {
+  if (!response) return null;
+  return (
+    response?.analysis?.answer ||          // canonical
+    response?.answer ||                    // legacy
+    response?.response ||                  // alternate
+    response?.data?.analysis?.answer ||    // nested
+    response?.data?.answer ||              // nested legacy
+    null
+  );
+};
+
+/**
+ * Extract the full analysis object from the response.
+ */
+const extractAnalysis = (response) => {
+  if (!response) return null;
+  return (
+    response?.analysis ||                  // canonical
+    response?.data?.analysis ||            // nested
+    response?.data ||                      // direct data
+    response                              // raw
+  );
+};
+
+/**
+ * Extract model info from any envelope shape.
+ */
+const extractModelInfo = (response) => {
+  if (!response) return null;
+  return (
+    response?.model_info ||
+    response?.data?.model_info ||
+    null
+  );
+};
 
 // ==================== AI KNOWLEDGE BASE (Fallback) ====================
-// Used only when API fails — the real analysis comes from your pre-trained models
 
 const AI_KNOWLEDGE_BASE = {
   investigationPrompts: {
@@ -104,13 +146,12 @@ const AI_KNOWLEDGE_BASE = {
 
 // ==================== AI INVESTIGATION ASSISTANT ====================
 
-const AIInvestigationAssistant = ({ 
-  incident, 
-  visible, 
+const AIInvestigationAssistant = ({
+  incident,
+  visible,
   onClose,
-  onSave 
+  onSave
 }) => {
-  // ✅ Get user from auth context
   const { user: currentUser } = useAuth();
 
   const [loading, setLoading] = useState(false);
@@ -126,6 +167,38 @@ const AIInvestigationAssistant = ({
   const [generatingReport, setGeneratingReport] = useState(false);
   const [sendingMessage, setSendingMessage] = useState(false);
   const [modelInfo, setModelInfo] = useState(null);
+  const [chatLoading, setChatLoading] = useState(false);
+
+  const chatScrollRef = useRef(null);
+
+  // ==================== LOAD PERSISTED CHAT ====================
+
+  const loadChatHistory = useCallback(async () => {
+    if (!incident?.id) return;
+    setChatLoading(true);
+    try {
+      const res = await notificationService.getAIAssistantMessages(incident.id);
+      const msgs = res?.messages || [];
+      if (msgs.length > 0) {
+        setConversation(msgs.map(m => ({
+          role: m.role,
+          content: m.content,
+          timestamp: m.created_at,
+          modelInfo: m.model_used ? { name: m.model_used } : null,
+        })));
+        // Auto-scroll to bottom
+        setTimeout(() => {
+          if (chatScrollRef.current) {
+            chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+          }
+        }, 100);
+      }
+    } catch (e) {
+      console.warn('Could not load chat history:', e);
+    } finally {
+      setChatLoading(false);
+    }
+  }, [incident?.id]);
 
   // ==================== GENERATE AI ANALYSIS ====================
 
@@ -138,14 +211,18 @@ const AIInvestigationAssistant = ({
     try {
       // ✅ Call backend AI endpoint
       const response = await notificationService.generateAIAnalysis(incident.id, {
-        model_preference: 'auto',   // Let backend choose the best model
-        analysis_type: 'full'
+        analysis_type: 'full',
+        ai_options: {
+          model_preference: 'auto',
+          language: 'English',
+          depth: 'comprehensive',
+          temperature: 0.7
+        }
       });
 
-      const analysisData = response?.analysis || response?.data?.analysis || response;
+      const analysisData = extractAnalysis(response);
 
       if (analysisData) {
-        // Map backend response to component state
         const mapped = {
           summary: analysisData.summary || generateFallbackSummary(incident),
           riskFactors: analysisData.risk_factors || generateFallbackRiskFactors(incident),
@@ -157,31 +234,30 @@ const AIInvestigationAssistant = ({
           rootCauses: analysisData.root_causes || [],
           insights: analysisData.insights || [],
           trend: analysisData.trend_analysis || 'stable',
-          modelInfo: analysisData.model_info || null,
-          analysisDate: analysisData.created_at || new Date().toISOString()
+          modelInfo: extractModelInfo(response),
+          analysisDate: response?.generated_at || new Date().toISOString()
         };
 
         setAnalysis(mapped);
         setSuggestedActions(mapped.suggestedActions);
         setModelInfo(mapped.modelInfo);
 
-        // Initialize conversation
-        setConversation([
-          {
+        // Initialize conversation only if it's empty (don't wipe persisted chat)
+        setConversation(prev => {
+          if (prev.length > 0) return prev;
+          return [{
             role: 'assistant',
             content: `I've analyzed incident ${incident.incident_number || incident.id}. Based on the details provided, I've identified ${mapped.riskFactors.length} risk factors and ${mapped.investigationQuestions.length} investigation questions to consider. How would you like to proceed?`,
             timestamp: new Date().toISOString()
-          }
-        ]);
+          }];
+        });
       } else {
         throw new Error('No analysis data received');
       }
     } catch (error) {
       console.error('AI analysis failed:', error);
-      
-      // ✅ Fallback to client-side analysis
       message.warning('AI service unavailable — using fallback analysis');
-      
+
       const fallback = {
         summary: generateFallbackSummary(incident),
         riskFactors: generateFallbackRiskFactors(incident),
@@ -201,25 +277,28 @@ const AIInvestigationAssistant = ({
       setAnalysis(fallback);
       setSuggestedActions(fallback.suggestedActions);
       setModelInfo(fallback.modelInfo);
-      
-      setConversation([
-        {
+
+      setConversation(prev => {
+        if (prev.length > 0) return prev;
+        return [{
           role: 'assistant',
           content: `I've analyzed incident ${incident.incident_number || incident.id} using local rules. I've identified ${fallback.riskFactors.length} risk factors and ${fallback.investigationQuestions.length} investigation questions. How can I help?`,
           timestamp: new Date().toISOString()
-        }
-      ]);
+        }];
+      });
     } finally {
       setLoading(false);
     }
   }, [incident]);
 
-  // Auto-load analysis when drawer opens
+  // Auto-load analysis + chat history when drawer opens
   useEffect(() => {
     if (incident && visible) {
       generateAnalysis();
+      loadChatHistory();
     }
-  }, [incident, visible, generateAnalysis]);
+    // eslint-disable-next-line
+  }, [incident?.id, visible]);
 
   // ==================== FALLBACK HELPERS ====================
 
@@ -266,7 +345,7 @@ const AIInvestigationAssistant = ({
     const industry = inc?.industry_id || inc?.industry;
     const prompts = AI_KNOWLEDGE_BASE.investigationPrompts[industry] || [];
     const questions = [];
-    
+
     prompts.forEach(category => {
       category.prompts.forEach(prompt => {
         questions.push({ category: category.category, question: prompt, answered: false });
@@ -343,62 +422,92 @@ const AIInvestigationAssistant = ({
   // ==================== CHAT WITH AI ====================
 
   const handleSendMessage = async () => {
-  if (!customQuestion.trim() || sendingMessage) return;
+    if (!customQuestion.trim() || sendingMessage || !incident) return;
 
-  const userMessage = {
-    role: 'user',
-    content: customQuestion,
-    timestamp: new Date().toISOString()
-  };
+    const question = customQuestion.trim();
+    const userMessage = {
+      role: 'user',
+      content: question,
+      timestamp: new Date().toISOString()
+    };
 
-  const updatedConversation = [...conversation, userMessage];
-  setConversation(updatedConversation);
-  const question = customQuestion;
-  setCustomQuestion('');
-  setSendingMessage(true);
+    const updatedConversation = [...conversation, userMessage];
+    setConversation(updatedConversation);
+    setCustomQuestion('');
+    setSendingMessage(true);
 
-  try {
-    // ✅ Call backend AI chat endpoint
-    const response = await notificationService.askAIInvestigation(
-      incident.id,
-      question,
-      { context: { conversation: updatedConversation.slice(-5) } }
-    );
+    // Persist user message (fire-and-forget)
+    notificationService.saveAIAssistantMessage(incident.id, {
+      role: 'user',
+      content: question,
+    }).catch(() => {});
 
-    // ✅ FIX: read the answer from every possible path the backend may use.
-    //    Backend envelope:  { success, analysis: { answer: "..." }, model_info, ... }
-    const aiContent =
-      response?.analysis?.answer ||          // canonical path
-      response?.answer ||                    // legacy/fallback path
-      response?.response ||                  // alternate name
-      response?.data?.analysis?.answer ||    // nested response.data
-      response?.data?.answer ||              // nested response.data
-      null;
+    try {
+      // ✅ FIXED: pass the conversation directly, no outer wrapping
+      const response = await notificationService.askAIInvestigation(
+        incident.id,
+        question,
+        { conversation: updatedConversation.slice(-5) }
+      );
 
-    if (aiContent) {
+      const answerText = extractAnswer(response);
+
+      if (!answerText) {
+        console.warn('Empty AI answer. Raw response:', response);
+        throw new Error('No answer in AI response');
+      }
+
+      const newMessage = {
+        role: 'assistant',
+        content: answerText,
+        timestamp: new Date().toISOString(),
+        modelInfo: extractModelInfo(response)
+      };
+      setConversation(prev => [...prev, newMessage]);
+
+      // Persist assistant message (fire-and-forget)
+      notificationService.saveAIAssistantMessage(incident.id, {
+        role: 'assistant',
+        content: answerText,
+        model_used: extractModelInfo(response)?.name,
+        total_tokens: response?.usage?.total_tokens,
+        is_fallback: false,
+      }).catch(() => {});
+
+      // Auto-scroll
+      setTimeout(() => {
+        if (chatScrollRef.current) {
+          chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+        }
+      }, 100);
+    } catch (error) {
+      console.error('AI chat failed:', error);
+      const fallbackText = generateFallbackResponse(question, incident);
+
       setConversation(prev => [...prev, {
         role: 'assistant',
-        content: aiContent,
+        content: fallbackText,
         timestamp: new Date().toISOString(),
-        modelInfo: response?.model_info || response?.data?.model_info || null
+        isFallback: true
       }]);
-    } else {
-      throw new Error('No answer in AI response');
-    }
-  } catch (error) {
-    console.error('AI chat failed:', error);
 
-    // Fallback to local response
-    setConversation(prev => [...prev, {
-      role: 'assistant',
-      content: generateFallbackResponse(question, incident),
-      timestamp: new Date().toISOString(),
-      isFallback: true
-    }]);
-  } finally {
-    setSendingMessage(false);
-  }
-};
+      // Persist fallback message
+      notificationService.saveAIAssistantMessage(incident.id, {
+        role: 'assistant',
+        content: fallbackText,
+        is_fallback: true,
+      }).catch(() => {});
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  const handleSendMessageWithText = (text) => {
+    if (!text?.trim() || !incident) return;
+    setCustomQuestion(text);
+    // Trigger handleSendMessage on next tick
+    setTimeout(() => handleSendMessage(), 0);
+  };
 
   const generateFallbackResponse = (question, inc) => {
     const lower = question.toLowerCase();
@@ -464,9 +573,9 @@ To provide more specific guidance, could you clarify what aspect of the investig
   const handleAddWhy = (answer) => {
     if (!answer?.trim()) return;
     if (whysAnswers.length < 5) {
-      setWhysAnswers([...whysAnswers, { 
-        question: `Why ${whysAnswers.length + 1}?`, 
-        answer: answer.trim() 
+      setWhysAnswers([...whysAnswers, {
+        question: `Why ${whysAnswers.length + 1}?`,
+        answer: answer.trim()
       }]);
     }
   };
@@ -478,16 +587,10 @@ To provide more specific guidance, could you clarify what aspect of the investig
     setGeneratingReport(true);
 
     try {
-      // ✅ Call backend to generate report
-      const response = await notificationService.generateAIInvestigationReport(
-        incident.id,
-        'full'
-      );
+      const response = await notificationService.generateAIInvestigationReport(incident.id, 'full');
 
       if (response?.success || response?.report) {
         message.success('Investigation report generated successfully');
-        
-        // If report comes back as a URL, open it
         if (response?.report_url) {
           window.open(response.report_url, '_blank');
         }
@@ -506,10 +609,8 @@ To provide more specific guidance, could you clarify what aspect of the investig
 
   const handleSave = async () => {
     if (!analysis) return;
-
     setSaving(true);
     try {
-      // ✅ Save to backend
       const response = await notificationService.saveAIAnalysis(incident.id, {
         analysis_type: 'investigation',
         summary: analysis.summary,
@@ -567,22 +668,22 @@ To provide more specific guidance, could you clarify what aspect of the investig
       extra={
         <Space>
           <Tooltip title="Regenerate Analysis">
-            <Button 
-              icon={<ReloadOutlined />} 
+            <Button
+              icon={<ReloadOutlined />}
               onClick={generateAnalysis}
               loading={loading}
             />
           </Tooltip>
-          <Button 
-            icon={<SaveOutlined />} 
+          <Button
+            icon={<SaveOutlined />}
             onClick={handleSave}
             loading={saving}
             disabled={!analysis}
           >
             Save
           </Button>
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             icon={<FileSearchOutlined />}
             onClick={handleGenerateReport}
             loading={generatingReport}
@@ -599,9 +700,9 @@ To provide more specific guidance, could you clarify what aspect of the investig
           <div style={{ marginTop: 16 }}>
             <Text>Analyzing incident data with AI models...</Text>
           </div>
-          <Progress 
-            percent={100} 
-            status="active" 
+          <Progress
+            percent={100}
+            status="active"
             style={{ maxWidth: 300, marginTop: 16 }}
             showInfo={false}
           />
@@ -609,7 +710,6 @@ To provide more specific guidance, could you clarify what aspect of the investig
       ) : analysis ? (
         <Tabs activeKey={activeTab} onChange={setActiveTab}>
           <TabPane tab={<span><BulbOutlined /> Analysis</span>} key="analysis">
-            {/* Model Info Banner */}
             {modelInfo && (
               <Alert
                 message={`Powered by ${modelInfo.name || 'AI Model'}`}
@@ -621,7 +721,6 @@ To provide more specific guidance, could you clarify what aspect of the investig
               />
             )}
 
-            {/* Incident Summary */}
             <Card size="small" style={{ marginBottom: 16 }}>
               <Title level={5}>
                 <SearchOutlined /> Incident Summary
@@ -629,9 +728,8 @@ To provide more specific guidance, could you clarify what aspect of the investig
               <Paragraph>{analysis.summary}</Paragraph>
             </Card>
 
-            {/* Risk Factors */}
-            <Card 
-              size="small" 
+            <Card
+              size="small"
               title={<Space><WarningOutlined /> Identified Risk Factors</Space>}
               style={{ marginBottom: 16 }}
             >
@@ -642,7 +740,7 @@ To provide more specific guidance, could you clarify what aspect of the investig
                     <List.Item.Meta
                       avatar={
                         <Tag color={
-                          factor.level === 'high' ? 'red' : 
+                          factor.level === 'high' ? 'red' :
                           factor.level === 'medium' ? 'orange' : 'green'
                         }>
                           {factor.level?.toUpperCase()}
@@ -656,9 +754,8 @@ To provide more specific guidance, could you clarify what aspect of the investig
               />
             </Card>
 
-            {/* Investigation Questions */}
-            <Card 
-              size="small" 
+            <Card
+              size="small"
               title={<Space><FileSearchOutlined /> Suggested Investigation Questions</Space>}
               style={{ marginBottom: 16 }}
             >
@@ -678,8 +775,8 @@ To provide more specific guidance, could you clarify what aspect of the investig
                         <List.Item
                           actions={[
                             <Tooltip title="Copy question" key="copy">
-                              <Button 
-                                type="link" 
+                              <Button
+                                type="link"
                                 size="small"
                                 icon={<CopyOutlined />}
                                 onClick={() => {
@@ -699,10 +796,9 @@ To provide more specific guidance, could you clarify what aspect of the investig
               </Collapse>
             </Card>
 
-            {/* Similar Patterns */}
             {analysis.similarPatterns?.length > 0 && (
-              <Card 
-                size="small" 
+              <Card
+                size="small"
                 title={<Space><LinkOutlined /> Similar Incident Patterns</Space>}
                 style={{ marginBottom: 16 }}
               >
@@ -725,15 +821,14 @@ To provide more specific guidance, could you clarify what aspect of the investig
               </Card>
             )}
 
-            {/* Confidence Score */}
             <Card size="small">
               <Row gutter={16} align="middle">
                 <Col>
                   <Text type="secondary">Analysis Confidence:</Text>
                 </Col>
                 <Col flex="auto">
-                  <Progress 
-                    percent={analysis.confidence} 
+                  <Progress
+                    percent={analysis.confidence}
                     status={analysis.confidence >= 80 ? 'success' : 'normal'}
                     strokeColor={analysis.confidence >= 80 ? '#52c41a' : '#faad14'}
                   />
@@ -746,8 +841,8 @@ To provide more specific guidance, could you clarify what aspect of the investig
             <Card size="small" style={{ marginBottom: 16 }}>
               <Space>
                 <Text strong>Analysis Method:</Text>
-                <Select 
-                  value={selectedFramework} 
+                <Select
+                  value={selectedFramework}
                   onChange={setSelectedFramework}
                   style={{ width: 200 }}
                 >
@@ -765,7 +860,7 @@ To provide more specific guidance, could you clarify what aspect of the investig
                     <Text strong>Problem Statement</Text>
                     <Paragraph>{incident?.description?.substring(0, 100)}...</Paragraph>
                   </Timeline.Item>
-                  
+
                   {whysAnswers.map((why, index) => (
                     <Timeline.Item key={index} color={index === 4 ? 'green' : 'blue'}>
                       <Text strong>{why.question}</Text>
@@ -777,20 +872,20 @@ To provide more specific guidance, could you clarify what aspect of the investig
                       )}
                     </Timeline.Item>
                   ))}
-                  
+
                   {whysAnswers.length < 5 && (
                     <Timeline.Item color="gray">
                       <Text type="secondary">Why {whysAnswers.length + 1}? (Pending)</Text>
                       <div style={{ marginTop: 8 }}>
                         <Space.Compact style={{ width: '100%' }}>
-                          <Input 
+                          <Input
                             placeholder="Enter your answer..."
                             onPressEnter={(e) => {
                               handleAddWhy(e.target.value);
                               e.target.value = '';
                             }}
                           />
-                          <Button 
+                          <Button
                             type="primary"
                             onClick={(e) => {
                               const input = e.target.closest('.ant-space-compact')?.querySelector('input');
@@ -819,8 +914,8 @@ To provide more specific guidance, could you clarify what aspect of the investig
                   showIcon
                   style={{ marginBottom: 16 }}
                 />
-                <Button 
-                  type="primary" 
+                <Button
+                  type="primary"
                   icon={<BranchesOutlined />}
                   onClick={() => message.info('Use the Fishbone Diagram button from the incident view')}
                 >
@@ -846,16 +941,16 @@ To provide more specific guidance, could you clarify what aspect of the investig
 
                 return (
                   <Col span={24} key={type}>
-                    <Card 
-                      size="small" 
+                    <Card
+                      size="small"
                       title={
                         <Space>
                           {type === 'immediate' && <ThunderboltOutlined style={{ color: '#f5222d' }} />}
                           {type === 'investigation' && <SearchOutlined style={{ color: '#1890ff' }} />}
                           {type === 'corrective' && <ToolOutlined style={{ color: '#52c41a' }} />}
                           <span>
-                            {type === 'immediate' ? 'Immediate Actions' : 
-                             type === 'investigation' ? 'Investigation Actions' : 
+                            {type === 'immediate' ? 'Immediate Actions' :
+                             type === 'investigation' ? 'Investigation Actions' :
                              'Corrective Actions'}
                           </span>
                           <Badge count={typeActions.length} />
@@ -867,7 +962,7 @@ To provide more specific guidance, could you clarify what aspect of the investig
                         renderItem={(action) => (
                           <List.Item
                             actions={[
-                              <Switch 
+                              <Switch
                                 key="toggle"
                                 checked={selectedActions.includes(action.action)}
                                 onChange={(checked) => {
@@ -907,8 +1002,8 @@ To provide more specific guidance, could you clarify what aspect of the investig
             </Row>
 
             {selectedActions.length > 0 && (
-              <Card 
-                size="small" 
+              <Card
+                size="small"
                 style={{ marginTop: 16 }}
                 title={
                   <Space>
@@ -931,71 +1026,90 @@ To provide more specific guidance, could you clarify what aspect of the investig
           </TabPane>
 
           <TabPane tab={<span><RobotOutlined /> AI Chat</span>} key="chat">
-            <div style={{ 
-              height: 400, 
-              overflow: 'auto', 
-              marginBottom: 16, 
-              padding: 16, 
-              background: '#fafafa', 
-              borderRadius: 8 
-            }}>
-              {conversation.map((msg, index) => (
-                <div 
-                  key={index}
-                  style={{
-                    display: 'flex',
-                    justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                    marginBottom: 16
-                  }}
-                >
-                  <Card 
-                    size="small"
-                    style={{ 
-                      maxWidth: '80%',
-                      background: msg.role === 'user' ? '#1890ff' : '#fff',
-                      color: msg.role === 'user' ? '#fff' : '#000'
-                    }}
-                  >
-                    <Space align="start">
-                      {msg.role === 'assistant' && (
-                        <Avatar icon={<RobotOutlined />} style={{ backgroundColor: '#722ed1' }} />
-                      )}
-                      <div>
-                        <Text style={{ 
-                          color: msg.role === 'user' ? '#fff' : '#000', 
-                          whiteSpace: 'pre-wrap' 
-                        }}>
-                          {msg.content}
-                        </Text>
-                        <div style={{ 
-                          fontSize: 10, 
-                          color: msg.role === 'user' ? 'rgba(255,255,255,0.7)' : '#999', 
-                          marginTop: 4 
-                        }}>
-                          {new Date(msg.timestamp).toLocaleTimeString()}
-                          {msg.isFallback && ' • fallback'}
-                        </div>
-                      </div>
-                      {msg.role === 'user' && (
-                        <Avatar icon={<TeamOutlined />} style={{ backgroundColor: '#1890ff' }} />
-                      )}
-                    </Space>
-                  </Card>
-                </div>
-              ))}
+            {chatLoading && conversation.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: 40 }}>
+                <Spin tip="Loading chat history..." />
+              </div>
+            ) : (
+              <div
+                ref={chatScrollRef}
+                style={{
+                  height: 400,
+                  overflow: 'auto',
+                  marginBottom: 16,
+                  padding: 16,
+                  background: '#fafafa',
+                  borderRadius: 8
+                }}
+              >
+                {conversation.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: 60 }}>
+                    <Text type="secondary">No messages yet. Ask a question below.</Text>
+                  </div>
+                ) : (
+                  conversation.map((msg, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        display: 'flex',
+                        justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                        marginBottom: 16
+                      }}
+                    >
+                      <Card
+                        size="small"
+                        style={{
+                          maxWidth: '80%',
+                          background: msg.role === 'user' ? '#1890ff' : '#fff',
+                          color: msg.role === 'user' ? '#fff' : '#000'
+                        }}
+                      >
+                        <Space align="start">
+                          {msg.role === 'assistant' && (
+                            <Avatar icon={<RobotOutlined />} style={{ backgroundColor: '#722ed1' }} />
+                          )}
+                          <div>
+                            <Text
+                              style={{
+                                color: msg.role === 'user' ? '#fff' : '#000',
+                                whiteSpace: 'pre-wrap'
+                              }}
+                            >
+                              {msg.content}
+                            </Text>
+                            <div
+                              style={{
+                                fontSize: 10,
+                                color: msg.role === 'user' ? 'rgba(255,255,255,0.7)' : '#999',
+                                marginTop: 4
+                              }}
+                            >
+                              {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : ''}
+                              {msg.isFallback && ' • fallback'}
+                            </div>
+                          </div>
+                          {msg.role === 'user' && (
+                            <Avatar icon={<TeamOutlined />} style={{ backgroundColor: '#1890ff' }} />
+                          )}
+                        </Space>
+                      </Card>
+                    </div>
+                  ))
+                )}
 
-              {sendingMessage && (
-                <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 16 }}>
-                  <Space>
-                    <Spin size="small" />
-                    <Text type="secondary">AI is thinking...</Text>
-                  </Space>
-                </div>
-              )}
-            </div>
+                {sendingMessage && (
+                  <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 16 }}>
+                    <Space>
+                      <Spin size="small" />
+                      <Text type="secondary">AI is thinking...</Text>
+                    </Space>
+                  </div>
+                )}
+              </div>
+            )}
 
             <Space.Compact style={{ width: '100%' }}>
-              <Input 
+              <Input
                 placeholder="Ask me anything about the investigation..."
                 value={customQuestion}
                 onChange={(e) => setCustomQuestion(e.target.value)}
@@ -1003,9 +1117,9 @@ To provide more specific guidance, could you clarify what aspect of the investig
                 prefix={<RobotOutlined style={{ color: '#722ed1' }} />}
                 disabled={sendingMessage}
               />
-              <Button 
-                type="primary" 
-                icon={<ThunderboltOutlined />}
+              <Button
+                type="primary"
+                icon={<SendOutlined />}
                 onClick={handleSendMessage}
                 loading={sendingMessage}
               >
@@ -1021,19 +1135,11 @@ To provide more specific guidance, could you clarify what aspect of the investig
                 'What regulatory reporting is required?',
                 'What investigation questions should I ask?'
               ].map((q, i) => (
-                <Tag 
-                  key={i} 
-                  color="blue" 
+                <Tag
+                  key={i}
+                  color="blue"
                   style={{ cursor: 'pointer', padding: '4px 8px' }}
-                  onClick={() => {
-                    setCustomQuestion(q);
-                    // Trigger send
-                    setTimeout(() => {
-                      const event = { target: { value: q } };
-                      setCustomQuestion('');
-                      handleSendMessageWithText(q);
-                    }, 0);
-                  }}
+                  onClick={() => handleSendMessageWithText(q)}
                 >
                   {q}
                 </Tag>
@@ -1055,52 +1161,6 @@ To provide more specific guidance, could you clarify what aspect of the investig
       )}
     </Drawer>
   );
-
-  // Helper for quick question sending
-  function handleSendMessageWithText(text) {
-  if (!text?.trim() || !incident) return;
-
-  const userMessage = {
-    role: 'user',
-    content: text,
-    timestamp: new Date().toISOString()
-  };
-  const updated = [...conversation, userMessage];
-  setConversation(updated);
-  setSendingMessage(true);
-
-  notificationService.askAIInvestigation(incident.id, text, {
-    context: { conversation: updated.slice(-5) }
-  })
-    .then(response => {
-      // ✅ FIX: read the answer from every possible path the backend may use.
-      //    Backend envelope: { success, analysis: { answer: "..." }, model_info, ... }
-      const content =
-        response?.analysis?.answer ||
-        response?.answer ||
-        response?.response ||
-        response?.data?.analysis?.answer ||
-        response?.data?.answer ||
-        null;
-
-      setConversation(prev => [...prev, {
-        role: 'assistant',
-        content: content || generateFallbackResponse(text, incident),
-        timestamp: new Date().toISOString(),
-        modelInfo: response?.model_info || response?.data?.model_info || null,
-        isFallback: !content
-      }]);
-    })
-    .catch((error) => {
-      console.error('AI chat failed:', error);
-      setConversation(prev => [...prev, {
-        role: 'assistant',
-        content: generateFallbackResponse(text, incident),
-        timestamp: new Date().toISOString(),
-        isFallback: true
-      }]);
-    })
-    .finally(() => setSendingMessage(false));
-}
+};
 
 export default AIInvestigationAssistant;
