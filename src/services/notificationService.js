@@ -210,6 +210,39 @@ class NotificationService {
 
   // ==================== FISHBONE ANALYSIS ====================
 
+
+  // ==================== AI ASSISTANT CHAT PERSISTENCE ====================
+
+async getAIAssistantSession(incidentId) {
+  try {
+    const response = await api.post(`/incidents/${incidentId}/ai-assistant/session`);
+    return response.data;
+  } catch (error) {
+    console.warn('getAIAssistantSession failed:', error);
+    return { success: false, session: null };
+  }
+}
+
+async getAIAssistantMessages(incidentId) {
+  try {
+    const response = await api.get(`/incidents/${incidentId}/ai-assistant/messages`);
+    return response.data;
+  } catch (error) {
+    console.warn('getAIAssistantMessages failed:', error);
+    return { success: false, messages: [] };
+  }
+}
+
+async saveAIAssistantMessage(incidentId, message) {
+  try {
+    const response = await api.post(`/incidents/${incidentId}/ai-assistant/messages`, message);
+    return response.data;
+  } catch (error) {
+    console.warn('saveAIAssistantMessage failed:', error);
+    return { success: false };
+  }
+}
+  
   // Save fishbone analysis
   async saveFishboneAnalysis(incidentId, fishboneData) {
     try {
