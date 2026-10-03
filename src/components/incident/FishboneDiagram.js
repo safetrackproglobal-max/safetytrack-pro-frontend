@@ -13,7 +13,7 @@ import {
   FileImageOutlined, ReloadOutlined,
   CheckCircleOutlined, RobotOutlined, QuestionCircleOutlined,
   UndoOutlined, RedoOutlined, AimOutlined, FireOutlined,
-  StarOutlined, StarFilled, MessageOutlined,
+  StarOutlined, StarFilled,
   HistoryOutlined
 } from '@ant-design/icons';
 
@@ -216,7 +216,6 @@ const FishboneDiagram = ({
     industry: 'general',
     depth: 'comprehensive',
     language: 'English',
-    modelPreference: 'auto',
     focusAreas: ''
   });
 
@@ -352,7 +351,8 @@ const FishboneDiagram = ({
     message.info('Redone');
   };
 
-  // ==================== AI CALLS (aligned with AIInvestigationAssistant) ====================
+  // ==================== AI: FULL GENERATE ====================
+  // The backend always uses gemini-flash-latest. No model picker in the UI.
 
   const handleAIGenerate = async () => {
     if (!incident) return;
@@ -366,43 +366,62 @@ const FishboneDiagram = ({
         industry: aiOptions.industry,
         focusAreas,
         ai_options: {
-          model_preference: aiOptions.modelPreference,
+          model_preference: 'auto',
           language: aiOptions.language,
           depth: aiOptions.depth,
           temperature: 0.7
         }
       });
 
-      // Single canonical response path
-      const result = response?.analysis;
-      if (!result?.categories) throw new Error('Invalid AI response');
+      // Robust response shape — accept multiple envelopes
+      const result =
+        response?.analysis ||
+        response?.data?.analysis ||
+        response?.data ||
+        response;
 
+      if (!result?.categories || !Array.isArray(result.categories)) {
+        console.warn('Unexpected AI response shape:', response);
+        throw new Error('AI returned an unexpected shape');
+      }
+
+      // ─── 1. Categories + causes ───
       pushHistory(
         result.categories,
         result.problemStatement || result.problem_statement || incident.title
       );
+
+      // ─── 2. Summary (root cause, contributing factors, immediate actions, confidence) ───
       setSummary(result.summary || null);
+
+      // ─── 3. AI metadata (model, usage, methodology) ───
       setAiMeta({
         generatedAt: response.generated_at || new Date().toISOString(),
         depth: aiOptions.depth,
         industry: aiOptions.industry,
         language: aiOptions.language,
-        modelPreference: aiOptions.modelPreference,
-        methodology: result.methodology,
+        methodology: result.methodology || null,
         modelInfo: response.model_info || null,
         usage: response.usage || null
       });
 
       setAiModalVisible(false);
-      message.success(`AI generated ${result.categories.length} categories`);
-      // Refresh AI history so the new generation appears
+      message.success(
+        `AI generated ${result.categories.length} categories, ` +
+        `${result.categories.reduce((s, c) => s + (c.causes?.length || 0), 0)} causes`
+      );
+
+      // Refresh AI history so the new generation appears in the History tab
       loadAIHistory();
     } catch (error) {
+      console.error('AI generation failed:', error);
       message.error(error.message || 'AI generation failed');
     } finally {
       setAiGenerating(false);
     }
   };
+
+  // ==================== AI: EXPAND A CATEGORY ====================
 
   const handleExpandCategory = async (category) => {
     if (!incident) return;
@@ -411,7 +430,17 @@ const FishboneDiagram = ({
       const response = await notificationService.expandFishboneCategory(
         incident.id, category, category.causes, 5
       );
-      const newCauses = response?.analysis?.causes || response?.causes || [];
+      const newCauses =
+        response?.analysis?.causes ||
+        response?.causes ||
+        response?.data?.causes ||
+        [];
+
+      if (!Array.isArray(newCauses) || newCauses.length === 0) {
+        message.warning('AI did not return any new causes');
+        return;
+      }
+
       const updated = categories.map(c =>
         c.id === category.id ? { ...c, causes: [...c.causes, ...newCauses] } : c
       );
@@ -424,13 +453,19 @@ const FishboneDiagram = ({
     }
   };
 
+  // ==================== AI: SUGGEST CORRECTIVE ACTIONS ====================
+
   const handleSuggestActions = async (cause, category) => {
     setActionsModal({ open: true, cause, data: [], loading: true });
     try {
       const response = await notificationService.suggestCorrectiveActions(
         incident.id, category, cause
       );
-      const actions = response?.analysis?.actions || response?.actions || [];
+      const actions =
+        response?.analysis?.actions ||
+        response?.actions ||
+        response?.data?.actions ||
+        [];
       setActionsModal({ open: true, cause, data: actions, loading: false });
     } catch (error) {
       message.error(error.message || 'Failed to suggest actions');
@@ -445,7 +480,11 @@ const FishboneDiagram = ({
       ...c,
       causes: c.causes.map(x =>
         x.id === cause.id
-          ? { ...x, correctiveAction: action.description, controlLevel: action.controlLevel }
+          ? {
+              ...x,
+              correctiveAction: action.description,
+              controlLevel: action.controlLevel || 'administrative'
+            }
           : x
       )
     }));
@@ -454,11 +493,17 @@ const FishboneDiagram = ({
     setActionsModal({ open: false, cause: null, data: [], loading: false });
   };
 
+  // ==================== AI: 5-WHY ====================
+
   const handleFiveWhys = async (cause) => {
     setFiveWhysModal({ open: true, cause, data: null, loading: true });
     try {
       const response = await notificationService.runFiveWhys(incident.id, cause);
-      const data = response?.analysis || response;
+      const data =
+        response?.analysis ||
+        response?.data?.analysis ||
+        response?.data ||
+        response;
       setFiveWhysModal({ open: true, cause, data, loading: false });
     } catch (error) {
       message.error(error.message || 'Failed to run 5-Why');
@@ -956,7 +1001,7 @@ const FishboneDiagram = ({
       title={
         <Space>
           <BranchesOutlined style={{ color: '#722ed1' }} />
-          <span>Fishbone (Ishikawa) Analysis</span>
+          <span>Fishbone Analysis</span>
           {incident && <Tag color="blue">{incident.incident_number || `#${incident.id}`}</Tag>}
           <Badge count={totalCauses} style={{ backgroundColor: '#722ed1' }} />
           {aiMeta && <Tag color="purple" icon={<RobotOutlined />}>AI-generated</Tag>}
@@ -1013,12 +1058,11 @@ const FishboneDiagram = ({
         <>
           <Alert
             message="Root Cause Analysis"
-            description="Use the fishbone diagram to systematically identify causes. Click 🤖 AI Generate to auto-populate."
+            description="Use the fishbone diagram to systematically identify causes. Click 🤖 AI Generate to auto-populate categories, causes, evidence, root causes, corrective actions, and summary."
             type="info"
             showIcon
             style={{ marginBottom: 16 }}
           />
-
           {aiMeta && (
             <Alert
               type="success"
@@ -1131,7 +1175,7 @@ const FishboneDiagram = ({
                       extra={
                         !readOnly && (
                           <Space size="small">
-                            <Tooltip title="AI: add more">
+                            <Tooltip title="AI: add more causes">
                               <Button
                                 type="link"
                                 size="small"
@@ -1388,7 +1432,7 @@ const FishboneDiagram = ({
                   )}
                 </Space>
               ) : (
-                <Empty description="No summary yet." />
+                <Empty description="No summary yet. Run AI Generate to see the summary." />
               )}
 
               <Divider orientation="left">Identified Root Causes ({rootCauses.length})</Divider>
@@ -1457,9 +1501,7 @@ const FishboneDiagram = ({
                         <Text type="secondary" style={{ fontSize: 12 }}>
                           {v.created_by_name || 'Unknown'} • {new Date(v.created_at).toLocaleString()}
                         </Text>
-                        {v.ai_model && (
-                          <Tag color="purple">{v.ai_model}</Tag>
-                        )}
+                        {v.ai_model && <Tag color="purple">{v.ai_model}</Tag>}
                         {!readOnly && !v.is_current && (
                           <Button
                             size="small"
@@ -1493,7 +1535,7 @@ const FishboneDiagram = ({
                   message={aiStatus.available ? 'AI Ready' : 'AI Unavailable'}
                   description={
                     aiStatus.available
-                      ? `${aiStatus.availableKeys} of ${aiStatus.totalKeys} API keys available`
+                      ? `${aiStatus.availableKeys} of ${aiStatus.totalKeys} API keys available • model: gemini-flash-latest`
                       : 'Configure GEMINI_API_KEY on the backend'
                   }
                   style={{ marginBottom: 16 }}
@@ -1615,6 +1657,15 @@ const FishboneDiagram = ({
           style={{ marginBottom: 16 }}
         />
 
+        <Alert
+          type="info"
+          showIcon
+          icon={<RobotOutlined />}
+          message="Powered by Gemini Flash (latest)"
+          description="The backend chooses the fastest available Gemini model automatically. Categories, causes, evidence, root causes, corrective actions, and the summary are all generated."
+          style={{ marginBottom: 16 }}
+        />
+
         <Form layout="vertical">
           <Form.Item label="Industry">
             <Select
@@ -1629,17 +1680,6 @@ const FishboneDiagram = ({
               <Option value="aviation">Aviation</Option>
               <Option value="chemical">Chemical</Option>
               <Option value="mining">Mining</Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item label="AI Model">
-            <Select
-              value={aiOptions.modelPreference}
-              onChange={(v) => setAiOptions({ ...aiOptions, modelPreference: v })}
-            >
-              <Option value="auto">Auto (fastest available)</Option>
-              <Option value="gemini-1.5-flash">Gemini 1.5 Flash (fast)</Option>
-              <Option value="gemini-1.5-pro">Gemini 1.5 Pro (deeper reasoning)</Option>
             </Select>
           </Form.Item>
 
