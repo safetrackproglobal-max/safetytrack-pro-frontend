@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Card, Row, Col, Statistic, Progress, Tag, Space, Button,
   Select, Tooltip, Alert, Divider, Table, Badge,
-  Timeline, List, Avatar, Typography, Spin, Empty, Input, 
+  Timeline, List, Avatar, Typography, Spin, Empty, Input,
   Slider, message, Modal
 } from 'antd';
 import {
@@ -34,23 +34,10 @@ ChartJS.register(
 const { Text } = Typography;
 const { Option } = Select;
 
-// ==================== MODEL CATALOG ====================
-
-const PREDICTION_MODELS = {
-  linear_regression: { name: 'Linear Regression', description: 'Simple trend-based prediction', icon: <LineChartOutlined /> },
-  arima:             { name: 'ARIMA',             description: 'Time-series with seasonality', icon: <AreaChartOutlined /> },
-  prophet:           { name: 'Prophet',           description: 'Business-metric forecasting', icon: <RiseOutlined /> },
-  lstm:              { name: 'LSTM Neural Net',   description: 'Deep learning for complex patterns', icon: <ExperimentOutlined /> },
-  ensemble:          { name: 'Ensemble (Recommended)', description: 'Combines multiple models', icon: <SafetyCertificateOutlined /> },
-  ai_auto:           { name: 'AI Auto (Gemini)', description: 'AI picks method + reasons about data', icon: <RobotOutlined /> }
-};
-
 // ==================== COMPONENT ====================
 
 const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
   const [loading, setLoading] = useState(false);
-  const [selectedModel, setSelectedModel] = useState('ai_auto');
-  const [modelPreference, setModelPreference] = useState('auto');
   const [forecastPeriod, setForecastPeriod] = useState(3);
   const [confidenceLevel, setConfidenceLevel] = useState(95);
   const [selectedIndustry, setSelectedIndustry] = useState('all');
@@ -71,19 +58,17 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
   // ==================== FILTER / AI OPTIONS ====================
 
   const filters = useMemo(() => ({
-    model: selectedModel,
     forecast_period: forecastPeriod,
     confidence_level: confidenceLevel,
     industry: selectedIndustry !== 'all' ? selectedIndustry : undefined,
     severity: selectedSeverity !== 'all' ? selectedSeverity : undefined
-  }), [selectedModel, forecastPeriod, confidenceLevel, selectedIndustry, selectedSeverity]);
+  }), [forecastPeriod, confidenceLevel, selectedIndustry, selectedSeverity]);
 
   const aiOptions = useMemo(() => ({
-    model_preference: modelPreference,
     language: 'English',
     depth: 'comprehensive',
     temperature: 0.6
-  }), [modelPreference]);
+  }), []);
 
   // ==================== AI STATUS ====================
 
@@ -482,34 +467,6 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
       <Card size="small" style={{ marginBottom: 16 }}>
         <Row gutter={[16, 16]} align="middle">
           <Col xs={24} sm={12} md={5}>
-            <Text type="secondary">Prediction Method:</Text>
-            <Select
-              value={selectedModel}
-              onChange={setSelectedModel}
-              style={{ width: '100%', marginTop: 4 }}
-              size="small"
-            >
-              {Object.entries(PREDICTION_MODELS).map(([k, m]) => (
-                <Option key={k} value={k}>
-                  <Space>{m.icon}{m.name}</Space>
-                </Option>
-              ))}
-            </Select>
-          </Col>
-          <Col xs={24} sm={12} md={4}>
-            <Text type="secondary">AI Model:</Text>
-            <Select
-              value={modelPreference}
-              onChange={setModelPreference}
-              style={{ width: '100%', marginTop: 4 }}
-              size="small"
-            >
-              <Option value="auto">Auto</Option>
-              <Option value="gemini-1.5-flash">Gemini Flash</Option>
-              <Option value="gemini-1.5-pro">Gemini Pro</Option>
-            </Select>
-          </Col>
-          <Col xs={24} sm={12} md={3}>
             <Text type="secondary">Horizon:</Text>
             <Select
               value={forecastPeriod}
@@ -523,7 +480,7 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
               <Option value={12}>12 mo</Option>
             </Select>
           </Col>
-          <Col xs={24} sm={12} md={4}>
+          <Col xs={24} sm={12} md={5}>
             <Text type="secondary">Confidence: {confidenceLevel}%</Text>
             <Slider
               value={confidenceLevel}
@@ -533,7 +490,7 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
               style={{ marginTop: 8 }}
             />
           </Col>
-          <Col xs={24} sm={12} md={4}>
+          <Col xs={24} sm={12} md={5}>
             <Text type="secondary">Industry:</Text>
             <Select
               value={selectedIndustry}
@@ -550,7 +507,22 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
               <Option value="mining">Mining</Option>
             </Select>
           </Col>
-          <Col xs={24} sm={12} md={2}>
+          <Col xs={24} sm={12} md={4}>
+            <Text type="secondary">Severity:</Text>
+            <Select
+              value={selectedSeverity}
+              onChange={setSelectedSeverity}
+              style={{ width: '100%', marginTop: 4 }}
+              size="small"
+            >
+              <Option value="all">All</Option>
+              <Option value="low">Low</Option>
+              <Option value="medium">Medium</Option>
+              <Option value="high">High</Option>
+              <Option value="critical">Critical</Option>
+            </Select>
+          </Col>
+          <Col xs={24} sm={12} md={3}>
             <Button
               type="primary"
               icon={<ThunderboltOutlined />}
@@ -583,7 +555,7 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
           <div style={{ textAlign: 'center', padding: 60 }}>
             <Spin size="large" />
             <div style={{ marginTop: 16 }}>
-              <Text>Running AI prediction ({modelPreference})...</Text>
+              <Text>Running AI prediction...</Text>
             </div>
           </div>
         </Card>
