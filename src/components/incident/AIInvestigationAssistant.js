@@ -4,7 +4,7 @@ import {
   Card, Button, Input, Space, Tag, message, Row, Col,
   List, Avatar, Typography, Divider, Alert, Spin, Progress,
   Collapse, Tooltip, Badge, Tabs, Select, Switch, Slider,
-  Timeline, Steps, Result, Modal, Drawer, Form, InputNumber, TabPane
+  Timeline, Steps, Result, Modal, Drawer, Form, InputNumber, 
 } from 'antd';
 import {
   RobotOutlined, BulbOutlined, ThunderboltOutlined,
