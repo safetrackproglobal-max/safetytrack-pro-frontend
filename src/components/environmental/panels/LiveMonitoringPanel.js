@@ -1,11 +1,21 @@
 // src/components/environmental/panels/LiveMonitoringPanel.jsx
+
+/* ============================================================
+   IMPORTS
+   ============================================================ */
+
+// --- React ---
 import React, { useState, useEffect, useRef } from 'react';
+
+// --- Ant Design Components ---
 import {
   Row, Col, Card, Statistic, Tag, Button, Space, Spin, Alert,
   List, Avatar, Badge, Divider, Progress, Tooltip, message,
   Modal, Descriptions, Table, Switch, Select, Tabs, Empty,
   Timeline, Collapse, DatePicker, Drawer, Input, Popconfirm
 } from 'antd';
+
+// --- Ant Design Icons ---
 import {
   EnvironmentOutlined,
   CameraOutlined,
@@ -37,14 +47,22 @@ import {
   SaveOutlined,
   DeleteOutlined
 } from '@ant-design/icons';
+
+// --- Leaflet & React-Leaflet ---
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+
+// --- Services & Utilities ---
 import advancedEnvironmentalService from '../../../services/advancedEnvironmentalService';
-import './LiveMonitoringPanel.css';
 import html2canvas from 'html2canvas';
 
-// Fix for default marker icons in Leaflet
+// --- Styles ---
+import './LiveMonitoringPanel.css';
+
+/* ============================================================
+   LEAFLET ICON FIX
+   ============================================================ */
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -52,10 +70,17 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
+/* ============================================================
+   ANT DESIGN DESTRUCTURED CONSTANTS
+   ============================================================ */
 const { Option } = Select;
 const { TabPane } = Tabs;
 const { Panel } = Collapse;
 const { Search } = Input;
+
+/* ============================================================
+   CONFIGURATION CONSTANTS
+   ============================================================ */
 
 // Detection type configuration
 const DETECTION_TYPES = {
@@ -69,6 +94,17 @@ const DETECTION_TYPES = {
   flood: { label: 'Flooding', icon: <GlobalOutlined />, color: '#096dd9' },
   accident: { label: 'Accident/Incident', icon: <AlertFilled />, color: '#f5222d' }
 };
+
+// Neutral default location (center of the world, not country-specific)
+const NEUTRAL_LOCATION = {
+  lat: 0,
+  lng: 0,
+  name: 'Global View'
+};
+
+/* ============================================================
+   HELPER FUNCTIONS
+   ============================================================ */
 
 // Custom marker icons
 const createCustomIcon = (status, size = 32) => {
@@ -111,51 +147,29 @@ const createCustomIcon = (status, size = 32) => {
   });
 };
 
-// =============================================================
-// NEUTRAL DEFAULT LOCATION (Center of the world, not country-specific)
-// =============================================================
-const NEUTRAL_LOCATION = {
-  lat: 0,
-  lng: 0,
-  name: 'Global View'
-};
+/* ============================================================
+   SUB-COMPONENTS
+   ============================================================ */
 
 // =============================================================
 // SAFE MAP CONTAINER
 // =============================================================
-const SafeMapContainer = ({ children, ...props }) => {
+const SafeMapContainer = ({ children, onMapReady, ...props }) => {
   const [isMounted, setIsMounted] = useState(false);
-  const [isReady, setIsReady] = useState(false);
   const mapRef = useRef(null);
 
   useEffect(() => {
     setIsMounted(true);
-    const timer = setTimeout(() => {
-      setIsReady(true);
-    }, 100);
-
-    return () => {
-      clearTimeout(timer);
-      setIsMounted(false);
-      setIsReady(false);
-      if (mapRef.current) {
-        try {
-          mapRef.current.invalidateSize();
-        } catch (e) {
-          // Ignore
-        }
-      }
-    };
   }, []);
 
-  if (!isMounted || !isReady) {
+  if (!isMounted) {
     return (
-      <div style={{ 
-        height: '100%', 
-        width: '100%', 
-        background: '#1a1a2e', 
-        display: 'flex', 
-        alignItems: 'center', 
+      <div style={{
+        height: '100%',
+        width: '100%',
+        background: '#1a1a2e',
+        display: 'flex',
+        alignItems: 'center',
         justifyContent: 'center',
         borderRadius: '8px'
       }}>
@@ -175,9 +189,10 @@ const SafeMapContainer = ({ children, ...props }) => {
           try {
             if (mapRef.current) {
               mapRef.current.invalidateSize();
+              if (onMapReady) onMapReady(mapRef.current);
             }
           } catch (e) {
-            console.warn('Map invalidateSize error:', e);
+            console.warn('Map whenReady error:', e);
           }
         }, 200);
       }}
@@ -288,44 +303,59 @@ const MapControls = ({ onReset }) => {
 const MapSearch = ({ onSearch, analyzing }) => {
   const map = useMap();
   const [searching, setSearching] = useState(false);
-  
-  const handleSearch = async (value) => {
-    if (!value) return;
-    
+  const [value, setValue] = useState('');
+
+  const handleSearch = async (query) => {
+    const q = (query ?? value ?? '').trim();
+    if (!q) return;
+
+    if (!map) {
+      message.warning('Map is still loading — try again in a moment');
+      return;
+    }
+
     setSearching(true);
     try {
+      const coordMatch = q.match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/);
+      if (coordMatch) {
+        const lat = parseFloat(coordMatch[1]);
+        const lng = parseFloat(coordMatch[2]);
+        if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+          map.setView([lat, lng], 15);
+          if (onSearch) onSearch({ lat, lng, name: `${lat.toFixed(4)}, ${lng.toFixed(4)}` });
+          message.success(`📍 ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+          return;
+        }
+      }
+
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(value)}&limit=1`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`,
+        { headers: { 'Accept-Language': 'en' } }
       );
       const data = await response.json();
-      
-      if (data && data.length > 0) {
-        const { lat, lon } = data[0];
-        try {
-          map.setView([parseFloat(lat), parseFloat(lon)], 15);
-          if (onSearch) {
-            onSearch({ 
-              lat: parseFloat(lat), 
-              lng: parseFloat(lon), 
-              name: data[0].display_name 
-            });
-          }
-          message.success(`📍 Navigated to ${data[0].display_name}`);
-        } catch (e) {
-          console.warn('Map setView error:', e);
-          message.error('Failed to navigate to location');
+
+      if (Array.isArray(data) && data.length > 0) {
+        const { lat, lon, display_name } = data[0];
+        map.setView([parseFloat(lat), parseFloat(lon)], 15);
+        if (onSearch) {
+          onSearch({
+            lat: parseFloat(lat),
+            lng: parseFloat(lon),
+            name: display_name
+          });
         }
+        message.success(`📍 ${display_name}`);
       } else {
-        message.warning('Location not found');
+        message.warning(`Location not found: ${q}`);
       }
     } catch (error) {
       console.error('Search error:', error);
-      message.error('Failed to search location');
+      message.error('Search failed — check your connection');
     } finally {
       setSearching(false);
     }
   };
-  
+
   return (
     <div style={{
       position: 'absolute',
@@ -333,16 +363,19 @@ const MapSearch = ({ onSearch, analyzing }) => {
       left: '50%',
       transform: 'translateX(-50%)',
       zIndex: 1000,
-      width: '400px',
-      maxWidth: '90%'
+      width: '440px',
+      maxWidth: '92%'
     }}>
       <Search
-        placeholder="Search any location worldwide..."
-        onSearch={handleSearch}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder="Search city, address, or paste coordinates..."
+        onSearch={(v) => handleSearch(v ?? value)}
         enterButton={<SearchOutlined />}
         loading={searching}
-        size="middle"
-        style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+        size="large"
+        allowClear
+        style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.2)', borderRadius: '8px' }}
       />
     </div>
   );
@@ -484,10 +517,14 @@ const HeatmapLayer = ({ data }) => {
   return null;
 };
 
-// =============================================================
-// MAIN COMPONENT
-// =============================================================
+/* ============================================================
+   MAIN COMPONENT
+   ============================================================ */
 const LiveMonitoringPanel = () => {
+
+  /* ------------------------------------------------------------
+     STATE
+     ------------------------------------------------------------ */
   const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState(null);
@@ -517,6 +554,10 @@ const LiveMonitoringPanel = () => {
   const [userLocation, setUserLocation] = useState(null);
   const [isLocationDetected, setIsLocationDetected] = useState(false);
   const [mapKey, setMapKey] = useState(0);
+  const [mapReady, setMapReady] = useState(false);
+  const [locationModalVisible, setLocationModalVisible] = useState(false);
+  const [locationError, setLocationError] = useState(null);
+  const [retryingLocation, setRetryingLocation] = useState(false);
   const [currentLocation, setCurrentLocation] = useState({
     lat: NEUTRAL_LOCATION.lat,
     lng: NEUTRAL_LOCATION.lng,
@@ -533,9 +574,9 @@ const LiveMonitoringPanel = () => {
   const mapRef = useRef(null);
   const intervalRef = useRef(null);
 
-  // =============================================================
-  // LOAD SAVED PREFERENCE FROM localStorage
-  // =============================================================
+  /* ------------------------------------------------------------
+     PREFERENCES (localStorage)
+     ------------------------------------------------------------ */
   const loadSavedPreference = () => {
     try {
       const saved = localStorage.getItem('userLocationPreference');
@@ -573,37 +614,41 @@ const LiveMonitoringPanel = () => {
     }
   };
 
-  // =============================================================
-  // CAPTURE MAP IMAGE
-  // =============================================================
+  /* ------------------------------------------------------------
+     MAP IMAGE CAPTURE
+     ------------------------------------------------------------ */
   const captureMapImage = async () => {
     try {
-      const mapContainer = mapRef.current?.getContainer();
-      if (!mapContainer) {
-        console.warn('Map container not found');
-        return null;
-      }
-      
-      const canvas = await html2canvas(mapContainer, {
-        useCORS: true,
-        allowTaint: true,
-        scale: 1.2,
-        backgroundColor: '#1a1a2e',
-        logging: false,
-        width: 800,
-        height: 600
-      });
-      
-      return canvas.toDataURL('image/jpeg', 0.85);
+      if (!mapReady) return null;
+      const mapContainer = mapRef.current?.getContainer?.();
+      if (!mapContainer) return null;
+
+      const canvas = await Promise.race([
+        html2canvas(mapContainer, {
+          useCORS: true,
+          allowTaint: false,
+          scale: 1,
+          backgroundColor: '#1a1a2e',
+          logging: false,
+          ignoreElements: (el) =>
+            el.classList?.contains('leaflet-tile') ||
+            el.classList?.contains('leaflet-tile-container')
+        }),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('html2canvas timeout')), 3000)
+        )
+      ]);
+
+      return canvas.toDataURL('image/jpeg', 0.8);
     } catch (error) {
-      console.error('Failed to capture map image:', error);
+      console.warn('Map capture skipped (non-fatal):', error.message);
       return null;
     }
   };
 
-  // =============================================================
-  // LOAD MONITORING DATA
-  // =============================================================
+  /* ------------------------------------------------------------
+     DATA LOADING
+     ------------------------------------------------------------ */
   const loadMonitoringData = async (lat, lng, locationName = null) => {
     setLoading(true);
     setError(null);
@@ -702,9 +747,32 @@ const LiveMonitoringPanel = () => {
     }
   };
 
-  // =============================================================
-  // LOCATION HANDLERS
-  // =============================================================
+  const loadSiteDetails = async (siteId) => {
+    try {
+      const response = await advancedEnvironmentalService.getSiteDetails(siteId);
+      setSiteDetails(response);
+      if (response?.cameras) {
+        setCameraFeeds(response.cameras);
+      }
+    } catch (err) {
+      console.error('Failed to load site details:', err);
+      message.error('Failed to load site details');
+    }
+  };
+
+  const loadCameraFeeds = async (siteId) => {
+    try {
+      const response = await advancedEnvironmentalService.getCameraFeeds(siteId);
+      setCameraFeeds(response?.feeds || []);
+    } catch (err) {
+      console.error('Failed to load camera feeds:', err);
+      message.error('Failed to load camera feeds');
+    }
+  };
+
+  /* ------------------------------------------------------------
+     LOCATION HANDLERS
+     ------------------------------------------------------------ */
   
   // Auto-detect location
   const handleLocationFound = (location) => {
@@ -793,32 +861,9 @@ const LiveMonitoringPanel = () => {
     message.info('🌍 Reset to global view');
   };
 
-  // =============================================================
-  // SITE DETAILS
-  // =============================================================
-  const loadSiteDetails = async (siteId) => {
-    try {
-      const response = await advancedEnvironmentalService.getSiteDetails(siteId);
-      setSiteDetails(response);
-      if (response?.cameras) {
-        setCameraFeeds(response.cameras);
-      }
-    } catch (err) {
-      console.error('Failed to load site details:', err);
-      message.error('Failed to load site details');
-    }
-  };
-
-  const loadCameraFeeds = async (siteId) => {
-    try {
-      const response = await advancedEnvironmentalService.getCameraFeeds(siteId);
-      setCameraFeeds(response?.feeds || []);
-    } catch (err) {
-      console.error('Failed to load camera feeds:', err);
-      message.error('Failed to load camera feeds');
-    }
-  };
-
+  /* ------------------------------------------------------------
+     SITE / ALERT / DETECTION HANDLERS
+     ------------------------------------------------------------ */
   const handleViewSite = async (site) => {
     setSelectedSite(site);
     setDetailsVisible(true);
@@ -850,60 +895,91 @@ const LiveMonitoringPanel = () => {
     setDrawerVisible(true);
   };
 
-  // =============================================================
-  // EFFECTS
-  // =============================================================
+  /* ------------------------------------------------------------
+     EFFECTS
+     ------------------------------------------------------------ */
   
   // Auto-detect on mount
   useEffect(() => {
-    // Check for saved preference first
     const saved = loadSavedPreference();
-    
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          // Reverse geocode to get name
-          fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&zoom=10`)
-            .then(res => res.json())
-            .then(data => {
-              const displayName = data.display_name || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-              handleLocationFound({ lat: latitude, lng: longitude, name: displayName });
-            })
-            .catch(() => {
-              handleLocationFound({ lat: latitude, lng: longitude, name: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}` });
-            });
-        },
-        (error) => {
-          console.log('Auto-location failed:', error);
-          if (saved) {
-            // Use saved preference
-            handleUseSavedLocation();
-          } else {
-            // Use neutral default
-            loadMonitoringData(NEUTRAL_LOCATION.lat, NEUTRAL_LOCATION.lng, NEUTRAL_LOCATION.name);
-            message.info('🌍 Please search for a location or click on the map');
-          }
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 60000
-        }
-      );
-    } else if (saved) {
-      // Use saved preference
-      handleUseSavedLocation();
+    let decided = false;
+
+    const fallback = (reason) => {
+      if (decided) return;
+      decided = true;
+
+      if (saved) {
+        setCurrentLocation({
+          lat: saved.lat,
+          lng: saved.lng,
+          name: saved.name || 'Saved Location',
+          source: 'saved'
+        });
+        setMapCenter([saved.lat, saved.lng]);
+        setMapZoom(13);
+        setMapKey(prev => prev + 1);
+        loadMonitoringData(saved.lat, saved.lng, saved.name);
+      } else {
+        setCurrentLocation({
+          lat: NEUTRAL_LOCATION.lat,
+          lng: NEUTRAL_LOCATION.lng,
+          name: NEUTRAL_LOCATION.name,
+          source: 'neutral'
+        });
+        setMapCenter([NEUTRAL_LOCATION.lat, NEUTRAL_LOCATION.lng]);
+        setMapZoom(2);
+        setMapKey(prev => prev + 1);
+        setLocationError(reason);
+        setLocationModalVisible(true);
+      }
+    };
+
+    if (!navigator.geolocation || !navigator.geolocation.getCurrentPosition) {
+      fallback('unsupported');
     } else {
-      // Use neutral default
-      loadMonitoringData(NEUTRAL_LOCATION.lat, NEUTRAL_LOCATION.lng, NEUTRAL_LOCATION.name);
-      message.info('🌍 Search for a location or click on the map to get started');
+      const safetyTimer = setTimeout(() => fallback('timeout'), 8000);
+
+      try {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            if (decided) return;
+            decided = true;
+            clearTimeout(safetyTimer);
+
+            const { latitude, longitude } = position.coords;
+            fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&zoom=10`)
+              .then(res => res.json())
+              .then(data => {
+                const displayName = data.display_name || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+                handleLocationFound({ lat: latitude, lng: longitude, name: displayName });
+              })
+              .catch(() => {
+                handleLocationFound({ lat: latitude, lng: longitude, name: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}` });
+              });
+          },
+          (error) => {
+            console.log('Auto-location failed:', error?.code, error?.message);
+            clearTimeout(safetyTimer);
+            const reasonMap = { 1: 'denied', 2: 'unavailable', 3: 'timeout' };
+            fallback(reasonMap[error?.code] || 'error');
+          },
+          {
+            enableHighAccuracy: false,
+            timeout: 6000,
+            maximumAge: 60000
+          }
+        );
+      } catch (e) {
+        console.warn('Geolocation threw synchronously:', e);
+        clearTimeout(safetyTimer);
+        fallback('sync-throw');
+      }
     }
 
     // Auto-refresh
     if (autoRefresh) {
       intervalRef.current = setInterval(() => {
-        if (currentLocation.lat || currentLocation.lng) {
+        if (currentLocation.source !== 'neutral' && (currentLocation.lat || currentLocation.lng)) {
           loadMonitoringData(currentLocation.lat, currentLocation.lng, currentLocation.name);
         }
       }, refreshInterval * 1000);
@@ -914,7 +990,12 @@ const LiveMonitoringPanel = () => {
         clearInterval(intervalRef.current);
       }
     };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Reset mapReady whenever the map remounts
+  useEffect(() => {
+    setMapReady(false);
+  }, [mapKey]);
 
   // Update auto-refresh
   useEffect(() => {
@@ -933,9 +1014,9 @@ const LiveMonitoringPanel = () => {
     };
   }, [autoRefresh, refreshInterval, currentLocation]);
 
-  // =============================================================
-  // HELPER FUNCTIONS
-  // =============================================================
+  /* ------------------------------------------------------------
+     HELPER FUNCTIONS
+     ------------------------------------------------------------ */
   const getStatusColor = (status) => {
     const colors = {
       'normal': '#52c41a',
@@ -997,11 +1078,13 @@ const LiveMonitoringPanel = () => {
     return { value: val, label, color };
   };
 
-  // =============================================================
-  // RENDER FUNCTIONS
-  // =============================================================
+  /* ============================================================
+     RENDER FUNCTIONS
+     ============================================================ */
 
-  // Render ESG Scorecard
+  /* ------------------------------------------------------------
+     RENDER: ESG Scorecard
+     ------------------------------------------------------------ */
   const renderESGScorecard = () => {
     if (!esgData) {
       return <Empty description="No ESG data available" />;
@@ -1223,7 +1306,9 @@ const LiveMonitoringPanel = () => {
     );
   };
 
-  // Render Detection Drawer
+  /* ------------------------------------------------------------
+     RENDER: Detection Drawer
+     ------------------------------------------------------------ */
   const renderDetectionDrawer = () => {
     if (!selectedDetection) return null;
     
@@ -1308,7 +1393,9 @@ const LiveMonitoringPanel = () => {
     );
   };
 
-  // Render site details modal
+  /* ------------------------------------------------------------
+     RENDER: Site Details Modal
+     ------------------------------------------------------------ */
   const renderSiteDetailsModal = () => {
     if (!selectedSite) return null;
 
@@ -1685,7 +1772,9 @@ const LiveMonitoringPanel = () => {
     );
   };
 
-  // Render detection cards
+  /* ------------------------------------------------------------
+     RENDER: Detection Cards
+     ------------------------------------------------------------ */
   const renderDetectionCards = () => {
     const allDetections = sites.flatMap(site => 
       (site.detections || []).map(d => ({
@@ -1768,7 +1857,9 @@ const LiveMonitoringPanel = () => {
     );
   };
 
-  // Render predictive analysis
+  /* ------------------------------------------------------------
+     RENDER: Predictive Analysis
+     ------------------------------------------------------------ */
   const renderPredictiveAnalysis = () => {
     if (!predictions.length) {
       return <Empty description="No predictive analysis available" />;
@@ -1854,7 +1945,9 @@ const LiveMonitoringPanel = () => {
     );
   };
 
-  // Render historical data
+  /* ------------------------------------------------------------
+     RENDER: Historical Data
+     ------------------------------------------------------------ */
   const renderHistoricalData = () => {
     if (!historicalData.length) {
       return <Empty description="No historical data available" />;
@@ -1906,9 +1999,9 @@ const LiveMonitoringPanel = () => {
     );
   };
 
-  // =============================================================
-  // RENDER MAP - UPDATED WITH LOCATION INDICATOR
-  // =============================================================
+  /* ------------------------------------------------------------
+     RENDER: Map (with location indicator)
+     ------------------------------------------------------------ */
   const renderMap = () => {
     const filteredSites = filterStatus === 'all' 
       ? sites 
@@ -1926,6 +2019,7 @@ const LiveMonitoringPanel = () => {
           key={mapKey}
           center={mapCenter}
           zoom={mapZoom}
+          onMapReady={() => setMapReady(true)}
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -2244,12 +2338,15 @@ const LiveMonitoringPanel = () => {
     );
   };
 
-  // =============================================================
-  // MAIN RENDER
-  // =============================================================
+  /* ============================================================
+     MAIN RENDER
+     ============================================================ */
   return (
     <div className="live-monitoring-panel">
-      {/* Header */}
+
+      {/* --------------------------------------------------------
+         HEADER
+         -------------------------------------------------------- */}
       <div style={{ marginBottom: 16 }}>
         <Row gutter={[16, 16]} align="middle">
           <Col xs={24} sm={12}>
@@ -2307,7 +2404,9 @@ const LiveMonitoringPanel = () => {
         </Row>
       </div>
 
-      {/* Current Location Indicator */}
+      {/* --------------------------------------------------------
+         CURRENT LOCATION INDICATOR
+         -------------------------------------------------------- */}
       <div style={{ marginBottom: 16 }}>
         <Card size="small" style={{ background: '#f0f5ff' }}>
           <Space>
@@ -2328,7 +2427,9 @@ const LiveMonitoringPanel = () => {
         </Card>
       </div>
 
-      {/* Statistics */}
+      {/* --------------------------------------------------------
+         STATISTICS
+         -------------------------------------------------------- */}
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
         <Col xs={24} sm={6}>
           <Card size="small">
@@ -2357,12 +2458,16 @@ const LiveMonitoringPanel = () => {
         </Col>
       </Row>
 
-      {/* ESG Scorecard */}
+      {/* --------------------------------------------------------
+         ESG SCORECARD
+         -------------------------------------------------------- */}
       <div style={{ marginBottom: 16 }}>
         {renderESGScorecard()}
       </div>
 
-      {/* Main Tabs */}
+      {/* --------------------------------------------------------
+         MAIN TABS
+         -------------------------------------------------------- */}
       <Tabs activeKey={activeTab} onChange={setActiveTab}>
         <TabPane 
           tab={<span><GlobalOutlined /> Live Map</span>} 
@@ -2488,10 +2593,176 @@ const LiveMonitoringPanel = () => {
         </TabPane>
       </Tabs>
 
-      {/* Site Details Modal */}
+      {/* --------------------------------------------------------
+         SITE DETAILS MODAL
+         -------------------------------------------------------- */}
       {renderSiteDetailsModal()}
 
-      {/* Detection Drawer */}
+      {/* --------------------------------------------------------
+         LOCATION PROMPT MODAL (shown when auto-location fails)
+         -------------------------------------------------------- */}
+      <Modal
+        title={
+          <Space>
+            <AimOutlined style={{ color: '#1890ff', fontSize: 20 }} />
+            <span style={{ fontSize: 16 }}>
+              {locationError === 'denied'
+                ? '📍 Location Access Denied'
+                : locationError === 'unavailable'
+                ? '📍 Location Unavailable'
+                : locationError === 'timeout'
+                ? '📍 Location Request Timed Out'
+                : locationError === 'unsupported'
+                ? '📍 Location Not Supported'
+                : '📍 Set Your Location'}
+            </span>
+          </Space>
+        }
+        open={locationModalVisible}
+        onCancel={() => setLocationModalVisible(false)}
+        footer={null}
+        width={520}
+        maskClosable={false}
+        closable={true}
+      >
+        <div style={{ padding: '8px 0' }}>
+          <Alert
+            type={locationError === 'denied' ? 'warning' : 'info'}
+            showIcon
+            message={
+              locationError === 'denied'
+                ? 'You did not allow access to your location. To use auto-location, enable it in your browser settings. Or simply search for a city below.'
+                : locationError === 'unavailable'
+                ? 'Your device location could not be determined. Make sure location services are turned ON in your device settings, or search for a city below.'
+                : locationError === 'timeout'
+                ? 'Detecting your location took too long. Try again with location services enabled, or search for a city below.'
+                : locationError === 'unsupported'
+                ? 'Your browser does not support geolocation. Please search for a city or click on the map to select a location.'
+                : 'We need a location to show environmental monitoring data. Allow location access, or search for a city below.'
+            }
+            style={{ marginBottom: 20, borderRadius: 8 }}
+          />
+
+          <Space direction="vertical" style={{ width: '100%' }} size="middle">
+            <Button
+              type="primary"
+              block
+              size="large"
+              icon={<SearchOutlined />}
+              onClick={() => {
+                setLocationModalVisible(false);
+                setTimeout(() => {
+                  const el = document.querySelector('.leaflet-container .ant-input');
+                  if (el) el.focus();
+                }, 200);
+              }}
+            >
+              Search a City or Address
+            </Button>
+
+            <Button
+              block
+              size="large"
+              icon={retryingLocation ? <LoadingOutlined /> : <AimOutlined />}
+              loading={retryingLocation}
+              onClick={async () => {
+                setRetryingLocation(true);
+                try {
+                  await new Promise((resolve, reject) => {
+                    if (!navigator.geolocation) {
+                      reject(new Error('Geolocation not supported'));
+                      return;
+                    }
+                    navigator.geolocation.getCurrentPosition(
+                      (position) => {
+                        const { latitude, longitude } = position.coords;
+                        fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&zoom=10`)
+                          .then(res => res.json())
+                          .then(data => {
+                            const name = data.display_name || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+                            handleLocationFound({ lat: latitude, lng: longitude, name });
+                            resolve();
+                          })
+                          .catch(() => {
+                            handleLocationFound({ lat: latitude, lng: longitude, name: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}` });
+                            resolve();
+                          });
+                      },
+                      (err) => reject(err),
+                      { enableHighAccuracy: false, timeout: 6000, maximumAge: 0 }
+                    );
+                  });
+                  setLocationModalVisible(false);
+                  setLocationError(null);
+                } catch (err) {
+                  console.warn('Retry geolocation failed:', err);
+                  message.warning('Still cannot detect your location. Please search for a city instead.');
+                } finally {
+                  setRetryingLocation(false);
+                }
+              }}
+            >
+              Try My Location Again
+            </Button>
+
+            <Button block size="large" onClick={() => setLocationModalVisible(false)}>
+              Continue with World Map
+            </Button>
+          </Space>
+
+          <div style={{
+            marginTop: 20,
+            padding: 12,
+            background: '#f0f5ff',
+            borderRadius: 8,
+            fontSize: 12,
+            color: '#595959'
+          }}>
+            <div style={{ fontWeight: 600, marginBottom: 6 }}>
+              <InfoCircleOutlined style={{ color: '#1890ff', marginRight: 6 }} />
+              How to enable location in your browser
+            </div>
+            <div style={{ lineHeight: 1.7 }}>
+              <div><strong>Chrome / Edge:</strong> Click the lock icon left of the URL → Site settings → Location → Allow</div>
+              <div><strong>Firefox:</strong> Click the lock icon → Clear permissions → Reload and allow location</div>
+              <div><strong>Safari:</strong> Safari menu → Settings for this website → Location → Allow</div>
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* --------------------------------------------------------
+         PERSISTENT WARNING WHEN NO LOCATION SET
+         -------------------------------------------------------- */}
+      {currentLocation.source === 'neutral' && !locationModalVisible && (
+        <div style={{ marginBottom: 16 }}>
+          <Alert
+            type="warning"
+            showIcon
+            icon={<AimOutlined />}
+            message="No location selected yet"
+            description={
+              <Space wrap>
+                <span>Enable location services and click</span>
+                <Button
+                  type="link"
+                  size="small"
+                  style={{ padding: 0, height: 'auto' }}
+                  onClick={() => setLocationModalVisible(true)}
+                >
+                  use my location
+                </Button>
+                <span>or search for any city using the search bar on the map.</span>
+              </Space>
+            }
+            style={{ borderRadius: 8 }}
+          />
+        </div>
+      )}
+
+      {/* --------------------------------------------------------
+         DETECTION DRAWER
+         -------------------------------------------------------- */}
       {renderDetectionDrawer()}
     </div>
   );
