@@ -26,7 +26,7 @@ const { Text, Title, Paragraph } = Typography;
 const { Panel } = Collapse;
 const { Option } = Select;
 const { Step } = Steps;
-
+const { TabPane } = Tabs;
 // ==================== HELPERS ====================
 
 /**
