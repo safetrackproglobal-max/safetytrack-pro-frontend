@@ -242,57 +242,51 @@ const PredictiveAnalyticsDashboard = ({ incidents = [] }) => {
   // ==================== MAIN: FETCH PREDICTIONS ====================
 
   const generatePredictions = useCallback(async () => {
-    setLoading(true);
-    setUsingFallback(false);
-    setNarrative(null);
-    setAnomalies([]);
+  setLoading(true);
+  setUsingFallback(false);
+  setNarrative(null);
+  setAnomalies([]);
 
+  try {
+    const aiResp = await notificationService.getAIPrediction(filters, aiOptions);
+    const aiData = aiResp?.analysis || aiResp?.predictions || aiResp?.data || aiResp;
+
+    if (!aiData?.forecast) throw new Error('AI response missing forecast');
+
+    setPredictions({
+      historical: aiData.historical || { labels: [], values: [] },
+      forecast: aiData.forecast,
+      riskScore: aiData.risk_score ?? 50,
+      trend: aiData.trend || 'stable',
+      trendPercentage: aiData.trend_percentage ?? 0,
+      averageMonthly: aiData.average_monthly ?? 0,
+      predictedTotal: aiData.predicted_total ?? 0,
+      modelAccuracy: aiData.model_accuracy,
+      modelUsed: aiResp.model_info?.name || aiData.model_used || 'AI',
+      methodology: aiData.methodology || null
+    });
+
+    setInsights(aiData.insights || []);
+    setRiskFactors(aiData.risk_factors || []);
+    setNarrative(aiData.narrative || null);
+    setModelRecommendation(aiData.model_recommendation || null);
+
+    // Anomalies now come back inside the main response — no extra call needed.
+    setAnomalies(aiData.anomalies || []);
+  } catch (error) {
+    console.warn('AI prediction failed, using client fallback:', error);
+    message.warning('AI service unavailable — using local estimate');
+    setUsingFallback(true);
     try {
-      const aiResp = await notificationService.getAIPrediction(filters, aiOptions);
-      const aiData = aiResp?.analysis || aiResp?.predictions || aiResp?.data || aiResp;
-
-      if (!aiData?.forecast) throw new Error('AI response missing forecast');
-
-      setPredictions({
-        historical: aiData.historical || { labels: [], values: [] },
-        forecast: aiData.forecast,
-        riskScore: aiData.risk_score ?? 50,
-        trend: aiData.trend || 'stable',
-        trendPercentage: aiData.trend_percentage ?? 0,
-        averageMonthly: aiData.average_monthly ?? 0,
-        predictedTotal: aiData.predicted_total ?? 0,
-        modelAccuracy: aiData.model_accuracy,
-        modelUsed: aiResp.model_info?.name || aiData.model_used || 'AI',
-        methodology: aiData.methodology || null
-      });
-
-      setInsights(aiData.insights || []);
-      setRiskFactors(aiData.risk_factors || []);
-      setNarrative(aiData.narrative || null);
-      setModelRecommendation(aiData.model_recommendation || null);
-
-      // Fire-and-forget parallel calls
-      notificationService
-        .getAIAnomalies(filters, aiOptions)
-        .then(r => setAnomalies(r?.analysis?.anomalies || r?.anomalies || []))
-        .catch(() => setAnomalies([]));
-
-      notificationService
-        .getAIRiskNarrative(filters, aiOptions)
-        .then(r => {
-          const n = r?.analysis?.narrative || r?.narrative;
-          if (n && !aiData.narrative) setNarrative(n);
-        })
-        .catch(() => {});
-    } catch (error) {
-      console.warn('AI prediction failed, using client fallback:', error);
-      message.warning('AI service unavailable — using local estimate');
-      setUsingFallback(true);
       calculateClientSidePredictions();
-    } finally {
-      setLoading(false);
+    } catch (fallbackErr) {
+      console.error('Client fallback also failed:', fallbackErr);
+      message.error('Prediction unavailable');
     }
-  }, [filters, aiOptions, calculateClientSidePredictions]);
+  } finally {
+    setLoading(false);
+  }
+}, [filters, aiOptions, calculateClientSidePredictions]);
 
   useEffect(() => {
     if (incidents.length > 0) generatePredictions();
