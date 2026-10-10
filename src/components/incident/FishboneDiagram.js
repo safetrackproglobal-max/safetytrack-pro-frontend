@@ -14,7 +14,8 @@ import {
   CheckCircleOutlined, RobotOutlined, QuestionCircleOutlined,
   UndoOutlined, RedoOutlined, AimOutlined, FireOutlined,
   StarOutlined, StarFilled,
-  HistoryOutlined
+  HistoryOutlined,
+  ZoomInOutlined, ZoomOutOutlined
 } from '@ant-design/icons';
 
 // ✅ SINGLE SERVICE IMPORT — all AI calls route through the backend
@@ -202,6 +203,7 @@ const FishboneDiagram = ({
   const [causeForm] = Form.useForm();
 
   const [expandedView, setExpandedView] = useState(false);
+  const [zoom, setZoom] = useState(1);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [aiGenerating, setAiGenerating] = useState(false);
@@ -352,7 +354,6 @@ const FishboneDiagram = ({
   };
 
   // ==================== AI: FULL GENERATE ====================
-  // The backend always uses gemini-flash-latest. No model picker in the UI.
 
   const handleAIGenerate = async () => {
     if (!incident) return;
@@ -373,7 +374,6 @@ const FishboneDiagram = ({
         }
       });
 
-      // Robust response shape — accept multiple envelopes
       const result =
         response?.analysis ||
         response?.data?.analysis ||
@@ -385,16 +385,13 @@ const FishboneDiagram = ({
         throw new Error('AI returned an unexpected shape');
       }
 
-      // ─── 1. Categories + causes ───
       pushHistory(
         result.categories,
         result.problemStatement || result.problem_statement || incident.title
       );
 
-      // ─── 2. Summary (root cause, contributing factors, immediate actions, confidence) ───
       setSummary(result.summary || null);
 
-      // ─── 3. AI metadata (model, usage, methodology) ───
       setAiMeta({
         generatedAt: response.generated_at || new Date().toISOString(),
         depth: aiOptions.depth,
@@ -411,7 +408,6 @@ const FishboneDiagram = ({
         `${result.categories.reduce((s, c) => s + (c.causes?.length || 0), 0)} causes`
       );
 
-      // Refresh AI history so the new generation appears in the History tab
       loadAIHistory();
     } catch (error) {
       console.error('AI generation failed:', error);
@@ -678,7 +674,7 @@ const FishboneDiagram = ({
     }
   };
 
-  // ==================== SVG: DYNAMIC LAYOUT ====================
+  // ==================== SVG: DYNAMIC LAYOUT (READABILITY-OPTIMIZED) ====================
 
   const renderFishboneSVG = () => {
     const catCount = categories.length;
@@ -686,24 +682,25 @@ const FishboneDiagram = ({
     const botCats = categories.filter((_, i) => i % 2 === 1);
     const slots = Math.max(topCats.length, botCats.length, 1);
 
+    // ── Layout constants (bumped for readability) ──
     const SPINE_START_X = 60;
-    const SPINE_END_X   = 1560;
+    const SPINE_END_X   = 1680;
     const AVAILABLE_W   = SPINE_END_X - SPINE_START_X - 80;
-    const SLOT_W        = Math.max(180, AVAILABLE_W / slots);
-    const WIDTH         = SPINE_END_X + 260 + 40;
+    const SLOT_W        = Math.max(240, AVAILABLE_W / slots);
+    const WIDTH         = SPINE_END_X + 340 + 40;
 
     const maxCauses = Math.max(...categories.map(c => c.causes.length), 0);
-    const BONE_LEN  = maxCauses > 5 ? 200 : 160;
+    const BONE_LEN  = maxCauses > 5 ? 250 : 200;
 
-    const V_PADDING = 80;
-    const HEIGHT    = (BONE_LEN + V_PADDING) * 2 + 120;
+    const V_PADDING = 100;
+    const HEIGHT    = (BONE_LEN + V_PADDING) * 2 + 140;
     const SPINE_Y   = HEIGHT / 2;
 
     const renderCause = (cause, cx, cy, isTop, color) => {
       const dir = isTop ? -1 : 1;
-      const armLen = 55;
-      const boxH = 40;
-      const boxW = 100;
+      const armLen = 70;       // longer arm
+      const boxH = 58;         // taller box
+      const boxW = 150;        // wider box
 
       return (
         <g key={cause.id}>
@@ -711,37 +708,40 @@ const FishboneDiagram = ({
             x1={cx} y1={cy}
             x2={cx + 12} y2={cy + dir * armLen}
             stroke={cause.isRootCause ? '#f5222d' : color}
-            strokeWidth={cause.isRootCause ? 2.2 : 1.2}
+            strokeWidth={cause.isRootCause ? 2.4 : 1.4}
             strokeDasharray={cause.isRootCause ? '' : '3,2'}
           />
           {cause.isRootCause && (
-            <circle cx={cx + 12} cy={cy + dir * armLen} r={4.5} fill="#f5222d" />
+            <circle cx={cx + 12} cy={cy + dir * armLen} r={5} fill="#f5222d" />
           )}
           <foreignObject
             x={cx + 12 - boxW / 2}
-            y={isTop ? cy + dir * armLen - boxH - 4 : cy + dir * armLen + 4}
+            y={isTop ? cy + dir * armLen - boxH - 6 : cy + dir * armLen + 6}
             width={boxW}
             height={boxH}
           >
             <div
               style={{
-                fontSize: 9.5,
-                fontWeight: cause.isRootCause ? 600 : 400,
-                color: cause.isRootCause ? '#cf1322' : '#555',
+                fontSize: 13,
+                fontWeight: cause.isRootCause ? 600 : 500,
+                color: cause.isRootCause ? '#cf1322' : '#333',
                 textAlign: 'center',
-                padding: '4px 5px',
+                padding: '6px 8px',
                 background: cause.isRootCause ? '#fff1f0' : '#fafafa',
-                border: `1px solid ${cause.isRootCause ? '#ffa39e' : '#e8e8e8'}`,
-                borderRadius: 4,
-                lineHeight: 1.2,
-                wordWrap: 'break-word',
-                overflow: 'hidden',
+                border: `1.5px solid ${cause.isRootCause ? '#ffa39e' : '#d9d9d9'}`,
+                borderRadius: 5,
+                lineHeight: 1.25,
                 height: '100%',
-                boxSizing: 'border-box'
+                boxSizing: 'border-box',
+                display: '-webkit-box',
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                wordBreak: 'break-word'
               }}
               title={cause.description}
             >
-              {cause.description?.substring(0, 55)}
+              {cause.description}
             </div>
           </foreignObject>
         </g>
@@ -751,13 +751,13 @@ const FishboneDiagram = ({
     const renderBone = (cat, idx, isTop) => {
       const startX = SPINE_START_X + 50 + idx * SLOT_W;
       const tipY = isTop ? SPINE_Y - BONE_LEN : SPINE_Y + BONE_LEN;
-      const labelW = Math.min(SLOT_W - 40, 200);
+      const labelW = Math.min(SLOT_W - 40, 260);
       const labelX = startX + 30;
 
-      const causes = cat.causes.slice(0, 6);
+      const causes = cat.causes.slice(0, 8);
       const railStart = labelX + labelW + 10;
       const railEnd = startX + SLOT_W - 20;
-      const railLen = Math.max(railEnd - railStart, 40);
+      const railLen = Math.max(railEnd - railStart, 60);
       const step = causes.length > 0 ? railLen / causes.length : 0;
 
       return (
@@ -776,21 +776,21 @@ const FishboneDiagram = ({
           />
           <rect
             x={labelX}
-            y={isTop ? tipY - 30 : tipY + 6}
+            y={isTop ? tipY - 36 : tipY + 6}
             width={labelW}
-            height={24}
-            rx={4}
+            height={30}
+            rx={5}
             fill={cat.color}
           />
           <text
             x={labelX + labelW / 2}
-            y={isTop ? tipY - 13 : tipY + 23}
+            y={isTop ? tipY - 15 : tipY + 27}
             textAnchor="middle"
             fill="#fff"
-            fontSize={11}
+            fontSize={14}
             fontWeight="bold"
           >
-            {cat.icon} {cat.name.length > 22 ? cat.name.substring(0, 22) + '…' : cat.name}
+            {cat.icon} {cat.name.length > 30 ? cat.name.substring(0, 30) + '…' : cat.name}
           </text>
 
           {causes.map((cause, i) => {
@@ -798,25 +798,26 @@ const FishboneDiagram = ({
             return renderCause(cause, cx, tipY, isTop, cat.color);
           })}
 
-          {cat.causes.length > 6 && (
+          {cat.causes.length > 8 && (
             <g>
               <rect
-                x={startX + SLOT_W - 32}
-                y={isTop ? tipY - 12 : tipY + 4}
-                width={26}
-                height={16}
-                rx={8}
+                x={startX + SLOT_W - 42}
+                y={isTop ? tipY - 14 : tipY + 4}
+                width={34}
+                height={20}
+                rx={10}
                 fill="#f0f0f0"
+                stroke="#d9d9d9"
               />
               <text
-                x={startX + SLOT_W - 19}
-                y={isTop ? tipY + 0.5 : tipY + 15}
+                x={startX + SLOT_W - 25}
+                y={isTop ? tipY + 0.5 : tipY + 18}
                 textAnchor="middle"
-                fontSize={9}
-                fill="#666"
+                fontSize={12}
+                fill="#555"
                 fontWeight="bold"
               >
-                +{cat.causes.length - 6}
+                +{cat.causes.length - 8}
               </text>
             </g>
           )}
@@ -828,7 +829,7 @@ const FishboneDiagram = ({
       <svg
         ref={svgRef}
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-        style={{ width: '100%', height: 'auto', background: '#fff', minWidth: 1000 }}
+        style={{ width: '100%', height: 'auto', background: '#fff', minWidth: 1600 }}
         xmlns="http://www.w3.org/2000/svg"
         preserveAspectRatio="xMidYMid meet"
       >
@@ -842,22 +843,23 @@ const FishboneDiagram = ({
           </linearGradient>
         </defs>
 
+        {/* Problem / Effect box — wider + larger text */}
         <rect
           x={SPINE_END_X + 20}
-          y={SPINE_Y - 55}
-          width={220}
-          height={110}
+          y={SPINE_Y - 60}
+          width={280}
+          height={120}
           rx={10}
           fill="url(#headGrad)"
           stroke="#a8071a"
           strokeWidth={2}
         />
         <text
-          x={SPINE_END_X + 130}
-          y={SPINE_Y - 32}
+          x={SPINE_END_X + 160}
+          y={SPINE_Y - 34}
           textAnchor="middle"
           fill="#fff"
-          fontSize={12}
+          fontSize={14}
           fontWeight="bold"
           letterSpacing="1"
         >
@@ -866,23 +868,24 @@ const FishboneDiagram = ({
         <foreignObject
           x={SPINE_END_X + 30}
           y={SPINE_Y - 22}
-          width={200}
-          height={70}
+          width={260}
+          height={80}
         >
           <div
             style={{
               color: '#fff',
-              fontSize: 11,
+              fontSize: 13,
               textAlign: 'center',
               padding: '6px',
               lineHeight: 1.35
             }}
           >
-            {problemStatement?.substring(0, 140) || 'Describe the problem'}
-            {problemStatement?.length > 140 ? '…' : ''}
+            {problemStatement?.substring(0, 180) || 'Describe the problem'}
+            {problemStatement?.length > 180 ? '…' : ''}
           </div>
         </foreignObject>
 
+        {/* Spine */}
         <line
           x1={SPINE_START_X} y1={SPINE_Y}
           x2={SPINE_END_X + 20} y2={SPINE_Y}
@@ -894,12 +897,13 @@ const FishboneDiagram = ({
         {topCats.map((cat, i) => renderBone(cat, i, true))}
         {botCats.map((cat, i) => renderBone(cat, i, false))}
 
-        <g transform={`translate(20, ${HEIGHT - 24})`}>
-          <circle cx={0} cy={0} r={5} fill="#f5222d" />
-          <text x={12} y={4} fontSize={10} fill="#666">Root cause</text>
-          <circle cx={110} cy={0} r={4} fill="none" stroke="#999" strokeDasharray="3,2" />
-          <text x={122} y={4} fontSize={10} fill="#666">Contributing</text>
-          <text x={240} y={4} fontSize={10} fill="#999">
+        {/* Legend */}
+        <g transform={`translate(20, ${HEIGHT - 26})`}>
+          <circle cx={0} cy={0} r={6} fill="#f5222d" />
+          <text x={14} y={5} fontSize={13} fill="#444">Root cause</text>
+          <circle cx={128} cy={0} r={5} fill="none" stroke="#999" strokeDasharray="3,2" />
+          <text x={142} y={5} fontSize={13} fill="#444">Contributing</text>
+          <text x={280} y={5} fontSize={13} fill="#888">
             {catCount} categories · {totalCauses} causes
           </text>
         </g>
@@ -1154,8 +1158,50 @@ const FishboneDiagram = ({
 
           <Tabs defaultActiveKey="diagram">
             <TabPane tab="📊 Diagram" key="diagram">
-              <Card bodyStyle={{ padding: 12, overflow: 'auto' }}>
-                {categories.length > 0 ? renderFishboneSVG() : <Empty description="No categories" />}
+              {/* ── Zoom + view controls ── */}
+              <Space style={{ marginBottom: 8 }} wrap>
+                <Tooltip title="Zoom out">
+                  <Button
+                    size="small"
+                    icon={<ZoomOutOutlined />}
+                    onClick={() => setZoom(z => Math.max(0.5, +(z - 0.1).toFixed(2)))}
+                  />
+                </Tooltip>
+                <Text type="secondary" style={{ minWidth: 48, textAlign: 'center' }}>
+                  {Math.round(zoom * 100)}%
+                </Text>
+                <Tooltip title="Zoom in">
+                  <Button
+                    size="small"
+                    icon={<ZoomInOutlined />}
+                    onClick={() => setZoom(z => Math.min(3, +(z + 0.1).toFixed(2)))}
+                  />
+                </Tooltip>
+                <Button size="small" onClick={() => setZoom(1)}>Reset</Button>
+                <Button
+                  size="small"
+                  onClick={() => setExpandedView(v => !v)}
+                  icon={expandedView ? <CompressOutlined /> : <ExpandOutlined />}
+                >
+                  {expandedView ? 'Compact' : 'Full Screen'}
+                </Button>
+              </Space>
+
+              <Card bodyStyle={{ padding: 12, overflowX: 'auto', overflowY: 'hidden' }}>
+                {categories.length > 0 ? (
+                  <div
+                    style={{
+                      transform: `scale(${zoom})`,
+                      transformOrigin: 'top left',
+                      // Reserve visual space so scrollbars appear correctly when zoomed
+                      width: `${100 / zoom}%`
+                    }}
+                  >
+                    {renderFishboneSVG()}
+                  </div>
+                ) : (
+                  <Empty description="No categories" />
+                )}
               </Card>
             </TabPane>
 
