@@ -10,10 +10,16 @@ import {
   EnvironmentOutlined,
   SendOutlined
 } from '@ant-design/icons';
+import axios from 'axios';
 import './ContactBrandInfo.css';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
+
+// API base URL — reuse your existing config or fall back to the prod URL
+const API_BASE =
+  process.env.REACT_APP_API_BASE_URL ||
+  'https://safetrackproglobal-backend-production.up.railway.app';
 
 // Contact constants
 const CONTACT = {
@@ -34,15 +40,58 @@ const ContactBrandInfo = () => {
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log('Contact form submitted:', values);
-      message.success(
-        'Your message has been sent successfully! We will get back to you within 24 hours.'
+      const { data } = await axios.post(
+        `${API_BASE}/api/contact`,
+        {
+          name: values.name,
+          email: values.email,
+          subject: values.subject,
+          message: values.message,
+          // Honeypot — always empty for real users
+          website: values.website || ''
+        },
+        {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 20000
+        }
       );
-      form.resetFields();
+
+      if (data?.success) {
+        message.success(
+          data.message ||
+            'Your message has been sent successfully! We will get back to you within 24 hours.'
+        );
+        form.resetFields();
+      } else {
+        // Field-level validation errors from the backend
+        if (data?.fields) {
+          form.setFields(
+            Object.entries(data.fields).map(([field, err]) => ({
+              name: field,
+              errors: [err]
+            }))
+          );
+        }
+        message.error(data?.error || 'Failed to send message. Please try again.');
+      }
     } catch (error) {
-      message.error('Failed to send message. Please try again.');
+      const errData = error?.response?.data;
+
+      // Map backend field errors onto the form
+      if (errData?.fields) {
+        form.setFields(
+          Object.entries(errData.fields).map(([field, err]) => ({
+            name: field,
+            errors: [err]
+          }))
+        );
+      }
+
+      // Rate limit or send failure
+      message.error(
+        errData?.error ||
+          'Failed to send message. Please try again or email us directly.'
+      );
     } finally {
       setLoading(false);
     }
@@ -156,13 +205,15 @@ const ContactBrandInfo = () => {
             layout="vertical"
             className="contact-form"
             requiredMark="optional"
+            disabled={loading}
           >
             <Form.Item
               name="name"
               label="Full Name"
               rules={[
                 { required: true, message: 'Please enter your name' },
-                { min: 2, message: 'Name must be at least 2 characters' }
+                { min: 2, message: 'Name must be at least 2 characters' },
+                { max: 100, message: 'Name must be under 100 characters' }
               ]}
             >
               <Input
@@ -170,6 +221,7 @@ const ContactBrandInfo = () => {
                 placeholder="Your full name"
                 size="large"
                 autoComplete="name"
+                maxLength={100}
               />
             </Form.Item>
 
@@ -178,7 +230,8 @@ const ContactBrandInfo = () => {
               label="Email Address"
               rules={[
                 { required: true, message: 'Please enter your email' },
-                { type: 'email', message: 'Please enter a valid email' }
+                { type: 'email', message: 'Please enter a valid email' },
+                { max: 254, message: 'Email is too long' }
               ]}
             >
               <Input
@@ -186,6 +239,7 @@ const ContactBrandInfo = () => {
                 placeholder="your.email@company.com"
                 size="large"
                 autoComplete="email"
+                maxLength={254}
               />
             </Form.Item>
 
@@ -194,13 +248,15 @@ const ContactBrandInfo = () => {
               label="Subject"
               rules={[
                 { required: true, message: 'Please enter a subject' },
-                { min: 3, message: 'Subject must be at least 3 characters' }
+                { min: 3, message: 'Subject must be at least 3 characters' },
+                { max: 150, message: 'Subject must be under 150 characters' }
               ]}
             >
               <Input
                 placeholder="What is this regarding?"
                 size="large"
                 prefix={<SendOutlined />}
+                maxLength={150}
               />
             </Form.Item>
 
@@ -220,6 +276,24 @@ const ContactBrandInfo = () => {
                 showCount
                 maxLength={2000}
               />
+            </Form.Item>
+
+            {/* Honeypot — hidden from humans, filled by bots.
+                If this field has a value, the backend silently drops the message. */}
+            <Form.Item
+              name="website"
+              style={{
+                position: 'absolute',
+                left: '-9999px',
+                width: '1px',
+                height: '1px',
+                overflow: 'hidden'
+              }}
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+            >
+              <Input type="text" name="website" tabIndex={-1} autoComplete="off" />
             </Form.Item>
 
             <Form.Item style={{ marginBottom: 0 }}>
