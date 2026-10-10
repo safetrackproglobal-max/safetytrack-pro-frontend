@@ -6777,7 +6777,7 @@ const renderHistoryTab = () => (
     <Card>
       <Tabs activeKey={activeTab} onChange={setActiveTab} type="card" tabBarExtraContent={
         <Space>
-          <Badge status="processing" text={`AI: ${aiSystemStatus?.status || 'unknown'}`} />
+         
           <Button icon={<SyncOutlined />} onClick={checkAISystemStatus} size="small">Refresh</Button>
         </Space>
       }>
