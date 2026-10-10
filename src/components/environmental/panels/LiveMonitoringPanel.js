@@ -990,7 +990,7 @@ const LiveMonitoringPanel = () => {
         clearInterval(intervalRef.current);
       }
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   // Reset mapReady whenever the map remounts
   useEffect(() => {
