@@ -677,239 +677,306 @@ const FishboneDiagram = ({
   // ==================== SVG: DYNAMIC LAYOUT (READABILITY-OPTIMIZED) ====================
 
   const renderFishboneSVG = () => {
-    const catCount = categories.length;
-    const topCats = categories.filter((_, i) => i % 2 === 0);
-    const botCats = categories.filter((_, i) => i % 2 === 1);
-    const slots = Math.max(topCats.length, botCats.length, 1);
+  const catCount = categories.length;
+  const topCats = categories.filter((_, i) => i % 2 === 0);
+  const botCats = categories.filter((_, i) => i % 2 === 1);
+  const slots = Math.max(topCats.length, botCats.length, 1);
 
-    // ── Layout constants (bumped for readability) ──
-    const SPINE_START_X = 60;
-    const SPINE_END_X   = 1680;
-    const AVAILABLE_W   = SPINE_END_X - SPINE_START_X - 80;
-    const SLOT_W        = Math.max(240, AVAILABLE_W / slots);
-    const WIDTH         = SPINE_END_X + 340 + 40;
+  // ── Per-cause box sizing ──
+  const BOX_W         = 170;   // fixed cause box width (readable at 13px)
+  const BOX_H         = 62;    // fixed cause box height (3 lines at 13px)
+  const BOX_GAP_X     = 10;    // horizontal gap between boxes in the same row
+  const BOX_GAP_Y     = 14;    // vertical gap between rows
+  const ROW_MAX       = 4;     // max boxes per row before wrapping
 
-    const maxCauses = Math.max(...categories.map(c => c.causes.length), 0);
-    const BONE_LEN  = maxCauses > 5 ? 250 : 200;
+  // ── Category banner sizing ──
+  const BANNER_W      = 240;
+  const BANNER_H      = 32;
+  const BANNER_GAP_TO_FIRST_ROW = 22;   // gap between rail and first row
 
-    const V_PADDING = 100;
-    const HEIGHT    = (BONE_LEN + V_PADDING) * 2 + 140;
-    const SPINE_Y   = HEIGHT / 2;
+  // ── How many rows does the busiest category need? ──
+  const maxRowsPerBone = Math.max(
+    ...categories.map(c => Math.max(1, Math.ceil(c.causes.length / ROW_MAX))),
+    1
+  );
 
-    const renderCause = (cause, cx, cy, isTop, color) => {
-      const dir = isTop ? -1 : 1;
-      const armLen = 70;       // longer arm
-      const boxH = 58;         // taller box
-      const boxW = 150;        // wider box
+  // ── Layout ──
+  const SPINE_START_X = 60;
+  const SPINE_END_X   = 2200;
+  const AVAILABLE_W   = SPINE_END_X - SPINE_START_X - 80;
 
-      return (
-        <g key={cause.id}>
-          <line
-            x1={cx} y1={cy}
-            x2={cx + 12} y2={cy + dir * armLen}
-            stroke={cause.isRootCause ? '#f5222d' : color}
-            strokeWidth={cause.isRootCause ? 2.4 : 1.4}
-            strokeDasharray={cause.isRootCause ? '' : '3,2'}
-          />
-          {cause.isRootCause && (
-            <circle cx={cx + 12} cy={cy + dir * armLen} r={5} fill="#f5222d" />
-          )}
-          <foreignObject
-            x={cx + 12 - boxW / 2}
-            y={isTop ? cy + dir * armLen - boxH - 6 : cy + dir * armLen + 6}
-            width={boxW}
-            height={boxH}
-          >
-            <div
-              style={{
-                fontSize: 13,
-                fontWeight: cause.isRootCause ? 600 : 500,
-                color: cause.isRootCause ? '#cf1322' : '#333',
-                textAlign: 'center',
-                padding: '6px 8px',
-                background: cause.isRootCause ? '#fff1f0' : '#fafafa',
-                border: `1.5px solid ${cause.isRootCause ? '#ffa39e' : '#d9d9d9'}`,
-                borderRadius: 5,
-                lineHeight: 1.25,
-                height: '100%',
-                boxSizing: 'border-box',
-                display: '-webkit-box',
-                WebkitLineClamp: 3,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                wordBreak: 'break-word'
-              }}
-              title={cause.description}
-            >
-              {cause.description}
-            </div>
-          </foreignObject>
-        </g>
-      );
-    };
+  // Each bone needs: banner + a full row of boxes + padding
+  const ROW_W   = ROW_MAX * BOX_W + (ROW_MAX - 1) * BOX_GAP_X;
+  const SLOT_W  = Math.max(BANNER_W + ROW_W + 60, AVAILABLE_W / slots);
 
-    const renderBone = (cat, idx, isTop) => {
-      const startX = SPINE_START_X + 50 + idx * SLOT_W;
-      const tipY = isTop ? SPINE_Y - BONE_LEN : SPINE_Y + BONE_LEN;
-      const labelW = Math.min(SLOT_W - 40, 260);
-      const labelX = startX + 30;
+  const WIDTH   = SPINE_START_X + SLOT_W * slots + 80 + 340 + 40;
 
-      const causes = cat.causes.slice(0, 8);
-      const railStart = labelX + labelW + 10;
-      const railEnd = startX + SLOT_W - 20;
-      const railLen = Math.max(railEnd - railStart, 60);
-      const step = causes.length > 0 ? railLen / causes.length : 0;
+  // ── Vertical layout: banner row + N cause rows ──
+  const ROW_PITCH = BOX_H + BOX_GAP_Y;
+  const BONE_LEN  = BANNER_H + BANNER_GAP_TO_FIRST_ROW + maxRowsPerBone * ROW_PITCH + 40;
 
-      return (
-        <g key={cat.id}>
-          <line
-            x1={startX} y1={SPINE_Y}
-            x2={startX + 30} y2={tipY}
-            stroke={cat.color}
-            strokeWidth={2.5}
-          />
-          <line
-            x1={startX + 30} y1={tipY}
-            x2={startX + SLOT_W - 20} y2={tipY}
-            stroke={cat.color}
-            strokeWidth={2.5}
-          />
-          <rect
-            x={labelX}
-            y={isTop ? tipY - 36 : tipY + 6}
-            width={labelW}
-            height={30}
-            rx={5}
-            fill={cat.color}
-          />
-          <text
-            x={labelX + labelW / 2}
-            y={isTop ? tipY - 15 : tipY + 27}
-            textAnchor="middle"
-            fill="#fff"
-            fontSize={14}
-            fontWeight="bold"
-          >
-            {cat.icon} {cat.name.length > 30 ? cat.name.substring(0, 30) + '…' : cat.name}
-          </text>
+  const V_PADDING = 60;
+  const HEIGHT    = BONE_LEN * 2 + V_PADDING * 2 + 60;
+  const SPINE_Y   = HEIGHT / 2;
 
-          {causes.map((cause, i) => {
-            const cx = railStart + step * (i + 0.5);
-            return renderCause(cause, cx, tipY, isTop, cat.color);
-          })}
+  // ── Shared cause box renderer ──
+  const renderCauseBox = (cause, x, y, boxW) => (
+    <foreignObject
+      key={cause.id}
+      x={x}
+      y={y}
+      width={boxW}
+      height={BOX_H}
+    >
+      <div
+        style={{
+          fontSize: 13,
+          fontWeight: cause.isRootCause ? 600 : 500,
+          color: cause.isRootCause ? '#cf1322' : '#333',
+          textAlign: 'center',
+          padding: '6px 8px',
+          background: cause.isRootCause ? '#fff1f0' : '#fafafa',
+          border: `1.5px solid ${cause.isRootCause ? '#ffa39e' : '#d9d9d9'}`,
+          borderRadius: 5,
+          lineHeight: 1.25,
+          height: '100%',
+          boxSizing: 'border-box',
+          display: '-webkit-box',
+          WebkitLineClamp: 3,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          wordBreak: 'break-word'
+        }}
+        title={cause.description}
+      >
+        {cause.description}
+      </div>
+    </foreignObject>
+  );
 
-          {cat.causes.length > 8 && (
-            <g>
-              <rect
-                x={startX + SLOT_W - 42}
-                y={isTop ? tipY - 14 : tipY + 4}
-                width={34}
-                height={20}
-                rx={10}
-                fill="#f0f0f0"
-                stroke="#d9d9d9"
-              />
-              <text
-                x={startX + SLOT_W - 25}
-                y={isTop ? tipY + 0.5 : tipY + 18}
-                textAnchor="middle"
-                fontSize={12}
-                fill="#555"
-                fontWeight="bold"
-              >
-                +{cat.causes.length - 8}
-              </text>
-            </g>
-          )}
-        </g>
-      );
-    };
+  // ── Render one bone (category) ──
+  const renderBone = (cat, idx, isTop) => {
+    const dir = isTop ? -1 : 1;   // top bones point up, bottom point down
+
+    // Where this bone attaches to the spine
+    const spineAttachX = SPINE_START_X + 80 + idx * SLOT_W;
+
+    // The horizontal rail sits at the outer tip of the bone
+    const railY = SPINE_Y + dir * BONE_LEN;
+
+    // Right edge of this bone's slot
+    const railEndX = spineAttachX + SLOT_W - 20;
+    const railStartX = spineAttachX + 40;   // after the diagonal
+
+    // ── Banner sits at the LEFT of the rail ──
+    const bannerX = railStartX;
+    const bannerY = isTop ? railY - BANNER_H / 2 : railY - BANNER_H / 2;
+
+    // ── Cause area starts AFTER the banner ──
+    const causesStartX = bannerX + BANNER_W + 20;
+    const causesAreaW  = Math.max(railEndX - causesStartX, ROW_W);
+
+    // Split causes into rows of ROW_MAX
+    const causes = cat.causes;   // show ALL (no slice)
+    const rows = [];
+    for (let i = 0; i < causes.length; i += ROW_MAX) {
+      rows.push(causes.slice(i, i + ROW_MAX));
+    }
+    if (rows.length === 0) rows.push([]);   // keep an empty row for layout
 
     return (
-      <svg
-        ref={svgRef}
-        viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-        style={{ width: '100%', height: 'auto', background: '#fff', minWidth: 1600 }}
-        xmlns="http://www.w3.org/2000/svg"
-        preserveAspectRatio="xMidYMid meet"
-      >
-        <defs>
-          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-            <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
-          </marker>
-          <linearGradient id="headGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#f5222d" />
-            <stop offset="100%" stopColor="#cf1322" />
-          </linearGradient>
-        </defs>
+      <g key={cat.id}>
+        {/* Bone diagonal (spine → tip) */}
+        <line
+          x1={spineAttachX}
+          y1={SPINE_Y}
+          x2={railStartX}
+          y2={railY}
+          stroke={cat.color}
+          strokeWidth={2.5}
+        />
 
-        {/* Problem / Effect box — wider + larger text */}
+        {/* Horizontal rail */}
+        <line
+          x1={railStartX}
+          y1={railY}
+          x2={railEndX}
+          y2={railY}
+          stroke={cat.color}
+          strokeWidth={2.5}
+        />
+
+        {/* Category banner */}
         <rect
-          x={SPINE_END_X + 20}
-          y={SPINE_Y - 60}
-          width={280}
-          height={120}
-          rx={10}
-          fill="url(#headGrad)"
-          stroke="#a8071a"
-          strokeWidth={2}
+          x={bannerX}
+          y={bannerY}
+          width={BANNER_W}
+          height={BANNER_H}
+          rx={6}
+          fill={cat.color}
         />
         <text
-          x={SPINE_END_X + 160}
-          y={SPINE_Y - 34}
+          x={bannerX + BANNER_W / 2}
+          y={bannerY + 21}
           textAnchor="middle"
           fill="#fff"
           fontSize={14}
           fontWeight="bold"
-          letterSpacing="1"
         >
-          PROBLEM / EFFECT
+          {cat.icon}{' '}
+          {cat.name.length > 26 ? cat.name.substring(0, 26) + '…' : cat.name}
         </text>
-        <foreignObject
-          x={SPINE_END_X + 30}
-          y={SPINE_Y - 22}
-          width={260}
-          height={80}
-        >
-          <div
-            style={{
-              color: '#fff',
-              fontSize: 13,
-              textAlign: 'center',
-              padding: '6px',
-              lineHeight: 1.35
-            }}
-          >
-            {problemStatement?.substring(0, 180) || 'Describe the problem'}
-            {problemStatement?.length > 180 ? '…' : ''}
-          </div>
-        </foreignObject>
 
-        {/* Spine */}
-        <line
-          x1={SPINE_START_X} y1={SPINE_Y}
-          x2={SPINE_END_X + 20} y2={SPINE_Y}
-          stroke="#333"
-          strokeWidth={4}
-          markerEnd="url(#arrowhead)"
-        />
+        {/* Cause rows */}
+        {rows.map((row, rowIdx) => {
+          // Row 0 is closest to the rail.
+          // Subsequent rows sit FURTHER from the rail.
+          const rowOffset = BANNER_GAP_TO_FIRST_ROW + rowIdx * ROW_PITCH;
 
-        {topCats.map((cat, i) => renderBone(cat, i, true))}
-        {botCats.map((cat, i) => renderBone(cat, i, false))}
+          // Center of this row (in bone-local coords, out from the rail)
+          const rowCenterY = railY + dir * (rowOffset + BOX_H / 2);
+          const boxTopY    = rowCenterY - BOX_H / 2;
 
-        {/* Legend */}
-        <g transform={`translate(20, ${HEIGHT - 26})`}>
-          <circle cx={0} cy={0} r={6} fill="#f5222d" />
-          <text x={14} y={5} fontSize={13} fill="#444">Root cause</text>
-          <circle cx={128} cy={0} r={5} fill="none" stroke="#999" strokeDasharray="3,2" />
-          <text x={142} y={5} fontSize={13} fill="#444">Contributing</text>
-          <text x={280} y={5} fontSize={13} fill="#888">
-            {catCount} categories · {totalCauses} causes
-          </text>
-        </g>
-      </svg>
+          // Distribute this row's boxes evenly across causesAreaW
+          const count = Math.max(row.length, 1);
+          const slotW = causesAreaW / count;
+          const actualBoxW = Math.min(BOX_W, slotW - BOX_GAP_X);
+
+          return (
+            <g key={`${cat.id}-row-${rowIdx}`}>
+              {row.map((cause, colIdx) => {
+                const slotCenterX = causesStartX + colIdx * slotW + slotW / 2;
+                const boxX = slotCenterX - actualBoxW / 2;
+
+                // Where the drop line connects on the box (nearest edge to rail)
+                const attachY = isTop ? boxTopY + BOX_H : boxTopY;
+
+                return (
+                  <g key={cause.id}>
+                    {/* Dashed drop line from rail to the box */}
+                    <line
+                      x1={slotCenterX}
+                      y1={railY}
+                      x2={slotCenterX}
+                      y2={attachY}
+                      stroke={cause.isRootCause ? '#f5222d' : cat.color}
+                      strokeWidth={cause.isRootCause ? 2 : 1.2}
+                      strokeDasharray={cause.isRootCause ? '' : '4,3'}
+                    />
+                    {/* Root-cause dot at the rail end of the drop line */}
+                    {cause.isRootCause && (
+                      <circle
+                        cx={slotCenterX}
+                        cy={railY}
+                        r={4.5}
+                        fill="#f5222d"
+                      />
+                    )}
+                    {/* The cause box */}
+                    {renderCauseBox(cause, boxX, boxTopY, actualBoxW)}
+                  </g>
+                );
+              })}
+            </g>
+          );
+        })}
+      </g>
     );
   };
+
+  return (
+    <svg
+      ref={svgRef}
+      viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+      style={{
+        width: '100%',
+        height: 'auto',
+        background: '#fff',
+        minWidth: WIDTH
+      }}
+      xmlns="http://www.w3.org/2000/svg"
+      preserveAspectRatio="xMidYMid meet"
+    >
+      <defs>
+        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+        </marker>
+        <linearGradient id="headGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#f5222d" />
+          <stop offset="100%" stopColor="#cf1322" />
+        </linearGradient>
+      </defs>
+
+      {/* ── Problem / Effect box ── */}
+      <rect
+        x={SPINE_END_X + 20}
+        y={SPINE_Y - 60}
+        width={280}
+        height={120}
+        rx={10}
+        fill="url(#headGrad)"
+        stroke="#a8071a"
+        strokeWidth={2}
+      />
+      <text
+        x={SPINE_END_X + 160}
+        y={SPINE_Y - 34}
+        textAnchor="middle"
+        fill="#fff"
+        fontSize={14}
+        fontWeight="bold"
+        letterSpacing="1"
+      >
+        PROBLEM / EFFECT
+      </text>
+      <foreignObject
+        x={SPINE_END_X + 30}
+        y={SPINE_Y - 22}
+        width={260}
+        height={80}
+      >
+        <div
+          style={{
+            color: '#fff',
+            fontSize: 13,
+            textAlign: 'center',
+            padding: '6px',
+            lineHeight: 1.35
+          }}
+        >
+          {problemStatement?.substring(0, 180) || 'Describe the problem'}
+          {problemStatement?.length > 180 ? '…' : ''}
+        </div>
+      </foreignObject>
+
+      {/* ── Spine ── */}
+      <line
+        x1={SPINE_START_X}
+        y1={SPINE_Y}
+        x2={SPINE_END_X + 20}
+        y2={SPINE_Y}
+        stroke="#333"
+        strokeWidth={4}
+        markerEnd="url(#arrowhead)"
+      />
+
+      {/* ── Bones ── */}
+      {topCats.map((cat, i) => renderBone(cat, i, true))}
+      {botCats.map((cat, i) => renderBone(cat, i, false))}
+
+      {/* ── Legend ── */}
+      <g transform={`translate(20, ${HEIGHT - 26})`}>
+        <circle cx={0} cy={0} r={6} fill="#f5222d" />
+        <text x={14} y={5} fontSize={13} fill="#444">Root cause</text>
+        <circle cx={128} cy={0} r={5} fill="none" stroke="#999" strokeDasharray="3,2" />
+        <text x={142} y={5} fontSize={13} fill="#444">Contributing</text>
+        <text x={280} y={5} fontSize={13} fill="#888">
+          {catCount} categories · {totalCauses} causes
+        </text>
+      </g>
+    </svg>
+  );
+};
 
   // ==================== CAUSE LIST ITEM ====================
 
