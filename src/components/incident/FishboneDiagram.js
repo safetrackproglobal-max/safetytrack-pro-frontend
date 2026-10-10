@@ -678,15 +678,15 @@ const FishboneDiagram = ({
 
   const renderFishboneSVG = () => {
   const catCount = categories.length;
-  const topCats = categories.filter((_, i) => i % 2 === 0);
-  const botCats = categories.filter((_, i) => i % 2 === 1);
+  const topCats = categories.filter((_, i) => i % 2 === 0).slice(0, 4);
+  const botCats = categories.filter((_, i) => i % 2 === 1).slice(0, 4);
   const slots = Math.max(topCats.length, botCats.length, 1);
 
-  // ── Original tight layout ──
+  // ── Layout — wider slots for readable 8-category layout ──
   const SPINE_START_X = 60;
-  const SPINE_END_X   = 1680;
+  const SPINE_END_X   = 2100;                                   // was 1680
   const AVAILABLE_W   = SPINE_END_X - SPINE_START_X - 80;
-  const SLOT_W        = Math.max(240, AVAILABLE_W / slots);
+  const SLOT_W        = Math.max(320, AVAILABLE_W / slots);     // was 240
   const WIDTH         = SPINE_END_X + 340 + 40;
 
   const maxCauses = Math.max(...categories.map(c => c.causes.length), 0);
@@ -696,41 +696,43 @@ const FishboneDiagram = ({
   const HEIGHT    = (BONE_LEN + V_PADDING) * 2 + 140;
   const SPINE_Y   = HEIGHT / 2;
 
-  // ── Two-row stagger ──
-  // Row A (even index) sits CLOSER to the rail.
-  // Row B (odd index) sits FURTHER from the rail.
-  const ARM_A = 62;      // short arms → Row A
-  const ARM_B = 148;     // long arms → Row B
-  const CARD_H = 58;
-  const CARD_W_MAX = 150;
-  const CARD_W_MIN = 96;
-  const ROW_GAP = 10;    // min vertical gap between Row A and Row B boxes
+  // ── Cause card layout (two-row stagger) ──
+  const ARM_A       = 62;      // even-index causes — nearer to rail
+  const ARM_B       = 150;     // odd-index causes — farther from rail
+  const CARD_H      = 58;
+  const CARD_W_MAX  = 150;
+  const CARD_W_MIN  = 108;
+  const ROW_GAP     = 10;
 
-  // Sanity: ARM_B - ARM_A must be > CARD_H + ROW_GAP
-  // 148 - 62 = 86.  CARD_H + ROW_GAP = 68.  OK.
+  // How many causes per wing do we show inline?
+  const VISIBLE_PER_WING = 4;
+
+  // ── Sort so the most important 4 land on the wing ──
+  const sortByImportance = (list) => {
+    const order = { high: 0, medium: 1, low: 2 };
+    return [...list].sort((a, b) => {
+      if (a.isRootCause !== b.isRootCause) return a.isRootCause ? -1 : 1;
+      return (order[a.likelihood] ?? 1) - (order[b.likelihood] ?? 1);
+    });
+  };
 
   const renderCause = (cause, cx, cy, isTop, color, index, step) => {
     const dir = isTop ? -1 : 1;
     const onRowB = index % 2 === 1;
     const armLen = onRowB ? ARM_B : ARM_A;
 
-    // Card width adapts to the rail spacing so same-row cards don't collide.
-    // Same-row cards are (2 * step) apart. Reserve ROW_GAP.
+    // Card width adapts to same-row spacing so neighbours don't collide.
     const sameRowSpacing = 2 * Math.max(step, 1);
     const cardW = Math.max(
       CARD_W_MIN,
       Math.min(CARD_W_MAX, sameRowSpacing - ROW_GAP)
     );
 
-    // Card center is directly above/below the rail point.
-    const cardCx = cx + 12;                        // tiny offset from rail
+    const cardCx  = cx + 12;
     const armEndY = cy + dir * armLen;
-
-    // Card top-left (top wing) or top-left (bottom wing) Y.
-    // Card is drawn with its NEAREST edge anchored at armEndY ± 6.
-    const cardY = isTop
-      ? armEndY - CARD_H - 6    // top wing: card sits above the arm end
-      : armEndY + 6;            // bottom wing: card sits below the arm end
+    const cardY   = isTop
+      ? armEndY - CARD_H - 6
+      : armEndY + 6;
 
     return (
       <g key={cause.id}>
@@ -745,7 +747,7 @@ const FishboneDiagram = ({
           strokeDasharray={cause.isRootCause ? '' : '3,2'}
         />
 
-        {/* Root-cause dot at the arm/rail junction */}
+        {/* Root-cause dot at the rail */}
         {cause.isRootCause && (
           <circle cx={cardCx} cy={armEndY} r={4.5} fill="#f5222d" />
         )}
@@ -779,7 +781,7 @@ const FishboneDiagram = ({
             title={cause.description}
           >
             {cause.description}
-          </div>
+          </foreignObject>
         </foreignObject>
       </g>
     );
@@ -787,30 +789,36 @@ const FishboneDiagram = ({
 
   const renderBone = (cat, idx, isTop) => {
     const startX = SPINE_START_X + 50 + idx * SLOT_W;
-    const tipY = isTop ? SPINE_Y - BONE_LEN : SPINE_Y + BONE_LEN;
+    const tipY   = isTop ? SPINE_Y - BONE_LEN : SPINE_Y + BONE_LEN;
     const labelW = Math.min(SLOT_W - 40, 260);
     const labelX = startX + 30;
 
-    const causes = cat.causes.slice(0, 8);
+    // Visible causes: top 4 by importance
+    const visibleCauses = sortByImportance(cat.causes).slice(0, VISIBLE_PER_WING);
+    const hiddenCount   = Math.max(cat.causes.length - VISIBLE_PER_WING, 0);
+
     const railStart = labelX + labelW + 10;
-    const railEnd = startX + SLOT_W - 20;
-    const railLen = Math.max(railEnd - railStart, 60);
-    const step = causes.length > 0 ? railLen / causes.length : 0;
+    const railEnd   = startX + SLOT_W - 20;
+    const railLen   = Math.max(railEnd - railStart, 60);
+    const step      = visibleCauses.length > 0 ? railLen / visibleCauses.length : 0;
 
     return (
       <g key={cat.id}>
+        {/* Bone diagonal */}
         <line
           x1={startX} y1={SPINE_Y}
           x2={startX + 30} y2={tipY}
           stroke={cat.color}
           strokeWidth={2.5}
         />
+        {/* Rail */}
         <line
           x1={startX + 30} y1={tipY}
           x2={startX + SLOT_W - 20} y2={tipY}
           stroke={cat.color}
           strokeWidth={2.5}
         />
+        {/* Banner */}
         <rect
           x={labelX}
           y={isTop ? tipY - 36 : tipY + 6}
@@ -831,31 +839,33 @@ const FishboneDiagram = ({
           {cat.name.length > 30 ? cat.name.substring(0, 30) + '…' : cat.name}
         </text>
 
-        {causes.map((cause, i) => {
+        {/* Visible causes */}
+        {visibleCauses.map((cause, i) => {
           const cx = railStart + step * (i + 0.5);
           return renderCause(cause, cx, tipY, isTop, cat.color, i, step);
         })}
 
-        {cat.causes.length > 8 && (
+        {/* "+N more" badge */}
+        {hiddenCount > 0 && (
           <g>
             <rect
-              x={startX + SLOT_W - 42}
-              y={isTop ? tipY - 14 : tipY + 4}
-              width={34}
-              height={20}
-              rx={10}
+              x={startX + SLOT_W - 46}
+              y={isTop ? tipY - 15 : tipY + 5}
+              width={38}
+              height={22}
+              rx={11}
               fill="#f0f0f0"
               stroke="#d9d9d9"
             />
             <text
-              x={startX + SLOT_W - 25}
-              y={isTop ? tipY + 0.5 : tipY + 18}
+              x={startX + SLOT_W - 27}
+              y={isTop ? tipY + 0.5 : tipY + 20}
               textAnchor="middle"
               fontSize={12}
               fill="#555"
               fontWeight="bold"
             >
-              +{cat.causes.length - 8}
+              +{hiddenCount}
             </text>
           </g>
         )}
