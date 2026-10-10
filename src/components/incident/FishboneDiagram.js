@@ -717,76 +717,72 @@ const FishboneDiagram = ({
   };
 
   const renderCause = (cause, cx, cy, isTop, color, index, step) => {
-    const dir = isTop ? -1 : 1;
-    const onRowB = index % 2 === 1;
-    const armLen = onRowB ? ARM_B : ARM_A;
+  const dir = isTop ? -1 : 1;
+  const onRowB = index % 2 === 1;
+  const armLen = onRowB ? ARM_B : ARM_A;
 
-    // Card width adapts to same-row spacing so neighbours don't collide.
-    const sameRowSpacing = 2 * Math.max(step, 1);
-    const cardW = Math.max(
-      CARD_W_MIN,
-      Math.min(CARD_W_MAX, sameRowSpacing - ROW_GAP)
-    );
+  const sameRowSpacing = 2 * Math.max(step, 1);
+  const cardW = Math.max(
+    CARD_W_MIN,
+    Math.min(CARD_W_MAX, sameRowSpacing - ROW_GAP)
+  );
 
-    const cardCx  = cx + 12;
-    const armEndY = cy + dir * armLen;
-    const cardY   = isTop
-      ? armEndY - CARD_H - 6
-      : armEndY + 6;
+  const cardCx  = cx + 12;
+  const armEndY = cy + dir * armLen;
+  const cardY   = isTop ? armEndY - CARD_H - 6 : armEndY + 6;
 
-    return (
-      <g key={cause.id}>
-        {/* Arm from rail to the card's nearest edge */}
-        <line
-          x1={cx}
-          y1={cy}
-          x2={cardCx}
-          y2={armEndY}
-          stroke={cause.isRootCause ? '#f5222d' : color}
-          strokeWidth={cause.isRootCause ? 2.4 : 1.4}
-          strokeDasharray={cause.isRootCause ? '' : '3,2'}
-        />
+  return (
+    <g key={cause.id}>
+      {/* Arm from rail to the card's nearest edge */}
+      <line
+        x1={cx}
+        y1={cy}
+        x2={cardCx}
+        y2={armEndY}
+        stroke={cause.isRootCause ? '#f5222d' : color}
+        strokeWidth={cause.isRootCause ? 2.4 : 1.4}
+        strokeDasharray={cause.isRootCause ? '' : '3,2'}
+      />
 
-        {/* Root-cause dot at the rail */}
-        {cause.isRootCause && (
-          <circle cx={cardCx} cy={armEndY} r={4.5} fill="#f5222d" />
-        )}
+      {/* Root-cause dot at the rail */}
+      {cause.isRootCause && (
+        <circle cx={cardCx} cy={armEndY} r={4.5} fill="#f5222d" />
+      )}
 
-        {/* Card */}
-        <foreignObject
-          x={cardCx - cardW / 2}
-          y={cardY}
-          width={cardW}
-          height={CARD_H}
+      {/* Card */}
+      <foreignObject
+        x={cardCx - cardW / 2}
+        y={cardY}
+        width={cardW}
+        height={CARD_H}
+      >
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: cause.isRootCause ? 600 : 500,
+            color: cause.isRootCause ? '#cf1322' : '#333',
+            textAlign: 'center',
+            padding: '6px 8px',
+            background: cause.isRootCause ? '#fff1f0' : '#fafafa',
+            border: `1.5px solid ${cause.isRootCause ? '#ffa39e' : '#d9d9d9'}`,
+            borderRadius: 5,
+            lineHeight: 1.25,
+            height: '100%',
+            boxSizing: 'border-box',
+            display: '-webkit-box',
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            wordBreak: 'break-word'
+          }}
+          title={cause.description}
         >
-          <div
-            style={{
-              fontSize: 13,
-              fontWeight: cause.isRootCause ? 600 : 500,
-              color: cause.isRootCause ? '#cf1322' : '#333',
-              textAlign: 'center',
-              padding: '6px 8px',
-              background: cause.isRootCause ? '#fff1f0' : '#fafafa',
-              border: `1.5px solid ${cause.isRootCause ? '#ffa39e' : '#d9d9d9'}`,
-              borderRadius: 5,
-              lineHeight: 1.25,
-              height: '100%',
-              boxSizing: 'border-box',
-              display: '-webkit-box',
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              wordBreak: 'break-word'
-            }}
-            title={cause.description}
-          >
-            {cause.description}
-          </foreignObject>
-        </foreignObject>
-      </g>
-    );
-  };
-
+          {cause.description}
+        </div>
+      </foreignObject>
+    </g>
+  );
+};
   const renderBone = (cat, idx, isTop) => {
     const startX = SPINE_START_X + 50 + idx * SLOT_W;
     const tipY   = isTop ? SPINE_Y - BONE_LEN : SPINE_Y + BONE_LEN;
