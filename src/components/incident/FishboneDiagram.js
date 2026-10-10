@@ -682,7 +682,7 @@ const FishboneDiagram = ({
   const botCats = categories.filter((_, i) => i % 2 === 1);
   const slots = Math.max(topCats.length, botCats.length, 1);
 
-  // ── Layout constants — SAME AS YOUR ORIGINAL ──
+  // ── Original tight layout ──
   const SPINE_START_X = 60;
   const SPINE_END_X   = 1680;
   const AVAILABLE_W   = SPINE_END_X - SPINE_START_X - 80;
@@ -696,42 +696,66 @@ const FishboneDiagram = ({
   const HEIGHT    = (BONE_LEN + V_PADDING) * 2 + 140;
   const SPINE_Y   = HEIGHT / 2;
 
-  // ── Staggered-arm constants ──
-  const ARM_NEAR = 60;    // short arm (odd-index causes)
-  const ARM_FAR  = 130;   // long arm (even-index causes)
-  const BOX_W    = 150;
-  const BOX_H    = 58;
+  // ── Two-row stagger ──
+  // Row A (even index) sits CLOSER to the rail.
+  // Row B (odd index) sits FURTHER from the rail.
+  const ARM_A = 62;      // short arms → Row A
+  const ARM_B = 148;     // long arms → Row B
+  const CARD_H = 58;
+  const CARD_W_MAX = 150;
+  const CARD_W_MIN = 96;
+  const ROW_GAP = 10;    // min vertical gap between Row A and Row B boxes
 
-  const renderCause = (cause, cx, cy, isTop, color, index) => {
+  // Sanity: ARM_B - ARM_A must be > CARD_H + ROW_GAP
+  // 148 - 62 = 86.  CARD_H + ROW_GAP = 68.  OK.
+
+  const renderCause = (cause, cx, cy, isTop, color, index, step) => {
     const dir = isTop ? -1 : 1;
-    // Alternate: even index = long arm, odd = short arm.
-    const armLen = index % 2 === 0 ? ARM_FAR : ARM_NEAR;
+    const onRowB = index % 2 === 1;
+    const armLen = onRowB ? ARM_B : ARM_A;
+
+    // Card width adapts to the rail spacing so same-row cards don't collide.
+    // Same-row cards are (2 * step) apart. Reserve ROW_GAP.
+    const sameRowSpacing = 2 * Math.max(step, 1);
+    const cardW = Math.max(
+      CARD_W_MIN,
+      Math.min(CARD_W_MAX, sameRowSpacing - ROW_GAP)
+    );
+
+    // Card center is directly above/below the rail point.
+    const cardCx = cx + 12;                        // tiny offset from rail
+    const armEndY = cy + dir * armLen;
+
+    // Card top-left (top wing) or top-left (bottom wing) Y.
+    // Card is drawn with its NEAREST edge anchored at armEndY ± 6.
+    const cardY = isTop
+      ? armEndY - CARD_H - 6    // top wing: card sits above the arm end
+      : armEndY + 6;            // bottom wing: card sits below the arm end
 
     return (
       <g key={cause.id}>
-        {/* Arm from rail to the cause box */}
+        {/* Arm from rail to the card's nearest edge */}
         <line
           x1={cx}
           y1={cy}
-          x2={cx + 12}
-          y2={cy + dir * armLen}
+          x2={cardCx}
+          y2={armEndY}
           stroke={cause.isRootCause ? '#f5222d' : color}
           strokeWidth={cause.isRootCause ? 2.4 : 1.4}
           strokeDasharray={cause.isRootCause ? '' : '3,2'}
         />
+
+        {/* Root-cause dot at the arm/rail junction */}
         {cause.isRootCause && (
-          <circle
-            cx={cx + 12}
-            cy={cy + dir * armLen}
-            r={5}
-            fill="#f5222d"
-          />
+          <circle cx={cardCx} cy={armEndY} r={4.5} fill="#f5222d" />
         )}
+
+        {/* Card */}
         <foreignObject
-          x={cx + 12 - BOX_W / 2}
-          y={isTop ? cy + dir * armLen - BOX_H - 6 : cy + dir * armLen + 6}
-          width={BOX_W}
-          height={BOX_H}
+          x={cardCx - cardW / 2}
+          y={cardY}
+          width={cardW}
+          height={CARD_H}
         >
           <div
             style={{
@@ -775,21 +799,18 @@ const FishboneDiagram = ({
 
     return (
       <g key={cat.id}>
-        {/* Bone diagonal */}
         <line
           x1={startX} y1={SPINE_Y}
           x2={startX + 30} y2={tipY}
           stroke={cat.color}
           strokeWidth={2.5}
         />
-        {/* Rail */}
         <line
           x1={startX + 30} y1={tipY}
           x2={startX + SLOT_W - 20} y2={tipY}
           stroke={cat.color}
           strokeWidth={2.5}
         />
-        {/* Banner */}
         <rect
           x={labelX}
           y={isTop ? tipY - 36 : tipY + 6}
@@ -810,13 +831,11 @@ const FishboneDiagram = ({
           {cat.name.length > 30 ? cat.name.substring(0, 30) + '…' : cat.name}
         </text>
 
-        {/* Causes — staggered by index so adjacent boxes never share a Y band */}
         {causes.map((cause, i) => {
           const cx = railStart + step * (i + 0.5);
-          return renderCause(cause, cx, tipY, isTop, cat.color, i);
+          return renderCause(cause, cx, tipY, isTop, cat.color, i, step);
         })}
 
-        {/* "+N more" badge */}
         {cat.causes.length > 8 && (
           <g>
             <rect
@@ -918,7 +937,6 @@ const FishboneDiagram = ({
         markerEnd="url(#arrowhead)"
       />
 
-      {/* Bones */}
       {topCats.map((cat, i) => renderBone(cat, i, true))}
       {botCats.map((cat, i) => renderBone(cat, i, false))}
 
