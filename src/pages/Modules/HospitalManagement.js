@@ -2123,24 +2123,49 @@ function HospitalManagement() {
 
   // Fetch user's company and hospital info
   const fetchUserContext = async () => {
-    try {
-      const companyId = sessionStorage.getItem('company_id');
-      if (companyId) {
-        const companyResponse = await hospitalService.getCompany(companyId);
-        if (companyResponse && companyResponse.success) {
-          setUserCompany(companyResponse.data);
-          if (companyResponse.data.hospital_id) {
-            const hospitalResponse = await hospitalService.getHospitalById(companyResponse.data.hospital_id);
-            if (hospitalResponse && hospitalResponse.success) {
-              setUserHospital(hospitalResponse.data);
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.warn('Could not fetch user context:', error);
+  try {
+    const companyId = sessionStorage.getItem('company_id');
+    if (!companyId) {
+      console.log('ℹ️ No company ID found in session.');
+      setUserCompany(null);
+      setUserHospital(null);
+      return;
     }
-  };
+
+    const companyResponse = await hospitalService.getCompany(companyId).catch(err => {
+      console.warn('⚠️ Could not fetch company:', err.message);
+      return null;
+    });
+
+    if (companyResponse?.success && companyResponse.data) {
+      setUserCompany(companyResponse.data);
+
+      if (companyResponse.data.hospital_id) {
+        const hospitalResponse = await hospitalService
+          .getHospitalById(companyResponse.data.hospital_id)
+          .catch(err => {
+            console.warn('⚠️ Could not fetch hospital:', err.message);
+            return null;
+          });
+
+        if (hospitalResponse?.success && hospitalResponse.data) {
+          setUserHospital(hospitalResponse.data);
+        } else {
+          setUserHospital(null);
+        }
+      } else {
+        setUserHospital(null);
+      }
+    } else {
+      setUserCompany(null);
+      setUserHospital(null);
+    }
+  } catch (error) {
+    console.warn('Could not fetch user context:', error);
+    setUserCompany(null);
+    setUserHospital(null);
+  }
+};
 
   const fetchAllData = async () => {
     setLoading(true);
@@ -2308,6 +2333,21 @@ function HospitalManagement() {
     return sessionStorage.getItem('company_name') || 'Company';
   };
 
+  // ============================================
+// STATE DETECTION HELPERS
+// ============================================
+const hasCompany = () => {
+  return Boolean(
+    userCompany?.name ||
+    sessionStorage.getItem('company_id') ||
+    sessionStorage.getItem('company_name')
+  );
+};
+
+const hasHospital = () => {
+  return Boolean(getHospitalDisplayName());
+};
+
   const hospitalColumns = [
     {
       title: 'Hospital',
@@ -2377,368 +2417,501 @@ function HospitalManagement() {
   ];
 
   return (
-    <div className="hospital-management-container">
-      {/* Header */}
-      <div className="hospital-header">
-  <Row gutter={[16, 16]} align="middle">
-    <Col flex="auto">
-      {getHospitalDisplayName() ? (
-        <>
-          <h1>
-            <MedicineBoxOutlined /> 
-            {getHospitalDisplayName()} Management
-          </h1>
-          <p>
-            {getCompanyDisplayName()} - Comprehensive healthcare management with AI-powered insights and international standards
-          </p>
-        </>
-      ) : (
-        <>
-          <h1>
-            <MedicineBoxOutlined /> 
-            Hospital Management
-          </h1>
-          <p style={{ color: '#faad14', fontWeight: 500 }}>
-            No hospital found. Please create your hospital profile to get started.
-          </p>
-        </>
-      )}
-    </Col>
-    <Col>
-      <Space>
-        {getHospitalDisplayName() ? (
-          <>
-            <Button icon={<ExportOutlined />}>Export</Button>
-            <Button icon={<ImportOutlined />}>Import</Button>
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleAddHospital} className="btn-primary-gradient">
-              Add Hospital
-            </Button>
-          </>
-        ) : (
-          <Button 
-            type="primary" 
+  <div className="hospital-management-container">
+
+    {/* ============================================
+        STATE 1: NO COMPANY — SHOW CREATE COMPANY
+    ============================================ */}
+    {!hasCompany() ? (
+      <div className="no-company-container" style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '60vh',
+        textAlign: 'center',
+        padding: '40px 20px',
+        background: 'linear-gradient(135deg, #f0f2f8 0%, #e8eaf6 100%)',
+        borderRadius: '16px',
+        margin: '20px'
+      }}>
+        <div style={{
+          width: '80px',
+          height: '80px',
+          borderRadius: '50%',
+          background: 'linear-gradient(135deg, #1A2A6C, #C9A84C)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: '24px'
+        }}>
+          <BankOutlined style={{ fontSize: '40px', color: '#ffffff' }} />
+        </div>
+
+        <h2 style={{ color: '#1A2A6C', marginBottom: '12px' }}>
+          Company Required
+        </h2>
+
+        <p style={{
+          color: '#6c757d',
+          fontSize: '16px',
+          maxWidth: '500px',
+          marginBottom: '16px',
+          lineHeight: 1.6
+        }}>
+          Hospital Management is part of the company suite. Please create your company first to use Hospital Management.
+        </p>
+
+        <p style={{
+          color: '#999',
+          fontSize: '14px',
+          maxWidth: '500px',
+          marginBottom: '32px',
+          lineHeight: 1.6
+        }}>
+          Need help? Contact support at{' '}
+          <a href="mailto:info@safetrackproglobal.com" style={{ color: '#C9A84C', fontWeight: 600 }}>
+            info@safetrackproglobal.com
+          </a>
+        </p>
+
+        <Space size="large">
+          <Button
+            type="primary"
             size="large"
-            icon={<PlusOutlined />} 
-            onClick={handleAddHospital} 
+            icon={<PlusOutlined />}
+            onClick={() => {
+              window.location.href = '/company/setup';
+            }}
             className="btn-primary-gradient"
+            style={{ padding: '0 40px', height: '50px', fontSize: '16px' }}
           >
-            + Create New Hospital
+            Create Company
           </Button>
-        )}
-      </Space>
-    </Col>
-  </Row>
-</div>
 
-      {/* Statistics */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12} md={4}>
-          <Card className="stat-card fade-in-up">
-            <Statistic title="Total Hospitals" value={hospitals.length} prefix={<BankOutlined />} valueStyle={{ color: '#1890ff' }} />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={4}>
-          <Card className="stat-card fade-in-up" style={{ animationDelay: '0.1s' }}>
-            <Statistic title="Active" value={hospitals.filter(h => h.status === 'active').length} prefix={<HeartOutlined />} valueStyle={{ color: '#52c41a' }} />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={4}>
-          <Card className="stat-card fade-in-up" style={{ animationDelay: '0.2s' }}>
-            <Statistic title="Total Staff" value={hospitals.reduce((sum, h) => sum + (h.staffCount || 0), 0)} prefix={<TeamOutlined />} valueStyle={{ color: '#faad14' }} />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={4}>
-          <Card className="stat-card fade-in-up" style={{ animationDelay: '0.3s' }}>
-            <Statistic title="Total Beds" value={hospitals.reduce((sum, h) => sum + (h.beds || 0), 0)} prefix={<MedicineBoxOutlined />} valueStyle={{ color: '#722ed1' }} />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={4}>
-          <Card className="stat-card fade-in-up" style={{ animationDelay: '0.4s' }}>
-            <Statistic title="AI Services" value={aiServices.length} prefix={<RobotOutlined />} valueStyle={{ color: '#eb2f96' }} suffix="tools" />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={4}>
-          <Card className="stat-card fade-in-up" style={{ animationDelay: '0.5s' }}>
-            <Statistic title="Departments" value={departments.length} prefix={<ApartmentOutlined />} valueStyle={{ color: '#36cfc9' }} />
-          </Card>
-        </Col>
-      </Row>
+          <Button
+            size="large"
+            icon={<ReloadOutlined />}
+            onClick={fetchAllData}
+            style={{ height: '50px' }}
+          >
+            Refresh
+          </Button>
+        </Space>
+      </div>
+    ) : !hasHospital() ? (
 
-      {analysisResult && (
-        <Alert
-          message="AI Analysis Result"
-          description={analysisResult.diagnosis || 'Analysis completed successfully'}
-          type="success"
-          showIcon
-          closable
-          onClose={() => setAnalysisResult(null)}
-          style={{ marginBottom: 16 }}
-        />
-      )}
+      /* ============================================
+         STATE 2: COMPANY EXISTS, NO HOSPITAL
+      ============================================ */
+      <div className="no-hospital-container" style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '60vh',
+        textAlign: 'center',
+        padding: '40px 20px',
+        background: 'linear-gradient(135deg, #f0f2f8 0%, #e8eaf6 100%)',
+        borderRadius: '16px',
+        margin: '20px'
+      }}>
+        <div style={{
+          width: '80px',
+          height: '80px',
+          borderRadius: '50%',
+          background: 'linear-gradient(135deg, #1A2A6C, #C9A84C)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: '24px'
+        }}>
+          <MedicineBoxOutlined style={{ fontSize: '40px', color: '#ffffff' }} />
+        </div>
 
-      {/* Search */}
-      <Card style={{ marginBottom: 24 }}>
-        <Row gutter={[16, 16]} align="middle">
-          <Col xs={24} sm={8}>
-            <Input
-              placeholder="Search hospitals..."
-              prefix={<SearchOutlined />}
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              style={{ width: '100%' }}
-            />
+        <h2 style={{ color: '#1A2A6C', marginBottom: '12px' }}>
+          No Hospital Found
+        </h2>
+
+        <p style={{
+          color: '#6c757d',
+          fontSize: '16px',
+          maxWidth: '500px',
+          marginBottom: '32px',
+          lineHeight: 1.6
+        }}>
+          You haven't set up your hospital profile yet. Create one to unlock all hospital management features, including patient flow, safety department, analytics, and AI services.
+        </p>
+
+        <Space size="large">
+          <Button
+            type="primary"
+            size="large"
+            icon={<PlusOutlined />}
+            onClick={handleAddHospital}
+            className="btn-primary-gradient"
+            style={{ padding: '0 40px', height: '50px', fontSize: '16px' }}
+          >
+            Create New Hospital
+          </Button>
+
+          <Button
+            size="large"
+            icon={<ReloadOutlined />}
+            onClick={fetchAllData}
+            style={{ height: '50px' }}
+          >
+            Refresh
+          </Button>
+        </Space>
+
+        <div style={{ marginTop: '32px', fontSize: '13px', color: '#999' }}>
+          <p>
+            Need help? Contact support at{' '}
+            <a href="mailto:info@safetrackproglobal.com" style={{ color: '#C9A84C', fontWeight: 600 }}>
+              info@safetrackproglobal.com
+            </a>
+          </p>
+        </div>
+      </div>
+    ) : (
+
+      /* ============================================
+         STATE 3: EVERYTHING EXISTS — SHOW DASHBOARD
+      ============================================ */
+      <>
+        {/* Header */}
+        <div className="hospital-header">
+          <Row gutter={[16, 16]} align="middle">
+            <Col flex="auto">
+              <h1>
+                <MedicineBoxOutlined /> 
+                {getHospitalDisplayName()} Management
+              </h1>
+              <p>
+                {getCompanyDisplayName()} - Comprehensive healthcare management with AI-powered insights and international standards
+              </p>
+            </Col>
+            <Col>
+              <Space>
+                <Button icon={<ExportOutlined />}>Export</Button>
+                <Button icon={<ImportOutlined />}>Import</Button>
+                <Button type="primary" icon={<PlusOutlined />} onClick={handleAddHospital} className="btn-primary-gradient">
+                  Add Hospital
+                </Button>
+              </Space>
+            </Col>
+          </Row>
+        </div>
+
+        {/* Statistics */}
+        <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+          <Col xs={24} sm={12} md={4}>
+            <Card className="stat-card fade-in-up">
+              <Statistic title="Total Hospitals" value={hospitals.length} prefix={<BankOutlined />} valueStyle={{ color: '#1890ff' }} />
+            </Card>
           </Col>
-          <Col xs={12} sm={4}>
-            <Select placeholder="Status" style={{ width: '100%' }}>
-              <Option value="all">All Status</Option>
-              <Option value="active">Active</Option>
-              <Option value="maintenance">Maintenance</Option>
-              <Option value="inactive">Inactive</Option>
-            </Select>
+          <Col xs={24} sm={12} md={4}>
+            <Card className="stat-card fade-in-up" style={{ animationDelay: '0.1s' }}>
+              <Statistic title="Active" value={hospitals.filter(h => h.status === 'active').length} prefix={<HeartOutlined />} valueStyle={{ color: '#52c41a' }} />
+            </Card>
           </Col>
-          <Col xs={12} sm={4}>
-            <Select placeholder="Type" style={{ width: '100%' }}>
-              <Option value="all">All Types</Option>
-              <Option value="general">General</Option>
-              <Option value="community">Community</Option>
-              <Option value="specialty">Specialty</Option>
-              <Option value="research">Research</Option>
-            </Select>
+          <Col xs={24} sm={12} md={4}>
+            <Card className="stat-card fade-in-up" style={{ animationDelay: '0.2s' }}>
+              <Statistic title="Total Staff" value={hospitals.reduce((sum, h) => sum + (h.staffCount || 0), 0)} prefix={<TeamOutlined />} valueStyle={{ color: '#faad14' }} />
+            </Card>
           </Col>
-          <Col xs={24} sm={8}>
-            <Button icon={<FilterOutlined />} style={{ width: '100%' }}>More Filters</Button>
+          <Col xs={24} sm={12} md={4}>
+            <Card className="stat-card fade-in-up" style={{ animationDelay: '0.3s' }}>
+              <Statistic title="Total Beds" value={hospitals.reduce((sum, h) => sum + (h.beds || 0), 0)} prefix={<MedicineBoxOutlined />} valueStyle={{ color: '#722ed1' }} />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={4}>
+            <Card className="stat-card fade-in-up" style={{ animationDelay: '0.4s' }}>
+              <Statistic title="AI Services" value={aiServices.length} prefix={<RobotOutlined />} valueStyle={{ color: '#eb2f96' }} suffix="tools" />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={4}>
+            <Card className="stat-card fade-in-up" style={{ animationDelay: '0.5s' }}>
+              <Statistic title="Departments" value={departments.length} prefix={<ApartmentOutlined />} valueStyle={{ color: '#36cfc9' }} />
+            </Card>
           </Col>
         </Row>
-      </Card>
 
-      {/* Main Tabs */}
-      <Tabs activeKey={activeTab} onChange={setActiveTab} type="card" size="large" className="enterprise-tabs">
-        <TabPane tab={<span><DashboardOutlined /> Overview</span>} key="overview">
-          <EnterpriseOverviewDashboard 
-            hospitals={hospitals} 
-            staff={staff} 
-            departments={departments} 
-            aiServices={aiServices} 
-            recentActivity={recentActivity}
+        {/* AI Analysis Alert */}
+        {analysisResult && (
+          <Alert
+            message="AI Analysis Result"
+            description={analysisResult.diagnosis || 'Analysis completed successfully'}
+            type="success"
+            showIcon
+            closable
+            onClose={() => setAnalysisResult(null)}
+            style={{ marginBottom: 16 }}
           />
-        </TabPane>
-        
-        <TabPane tab={<span><UserOutlined /> Patient Flow</span>} key="patient-flow">
-          <PatientFlow />
-        </TabPane>
+        )}
 
-        <TabPane 
-          tab={
-            <span>
-              <SafetyIcon style={{ color: '#faad14' }} /> 
-              Safety Department
-            </span>
-          } 
-          key="safety"
-        >
-          <SafetyDepartment />
-        </TabPane>
-
-        <TabPane 
-          tab={<span><UserSwitchOutlined /> Doctor Dashboard</span>} 
-          key="doctor-dashboard"
-        >
-          <DoctorDashboard onDataUpdate={fetchAllData} />
-        </TabPane>
-
-        <TabPane tab={<span><BankOutlined /> Hospitals <Badge count={hospitals.length} /></span>} key="hospitals">
-          <Card>
-            <Table
-              className="hospital-table"
-              columns={hospitalColumns}
-              dataSource={filteredHospitals}
-              rowKey="id"
-              loading={loading}
-              pagination={{ pageSize: 10, showSizeChanger: true }}
-            />
-          </Card>
-        </TabPane>
-
-        <TabPane tab={<span><ApartmentOutlined /> Departments <Badge count={departments.length} /></span>} key="departments">
-          <Card>
-            <Table
-              className="hospital-table"
-              columns={[
-                { title: 'Department', dataIndex: 'name' },
-                { title: 'Head', dataIndex: 'head' },
-                { title: 'Staff', dataIndex: 'staffCount' },
-                { title: 'Beds', dataIndex: 'beds' },
-                { title: 'Status', dataIndex: 'status', render: (s) => <Tag color={getStatusColor(s)}>{s?.toUpperCase()}</Tag> }
-              ]}
-              dataSource={departments}
-              rowKey="id"
-              loading={loading}
-              pagination={{ pageSize: 10 }}
-            />
-          </Card>
-        </TabPane>
-
-        <TabPane tab={<span><TeamOutlined /> Staff <Badge count={staff.length} /></span>} key="staff">
-          <Card>
-            <Table
-              className="hospital-table"
-              columns={[
-                { title: 'Name', dataIndex: 'name', render: (t, r) => <Space><Avatar icon={<UserOutlined />} /><div><div>{t}</div><div style={{ fontSize: 12, color: '#666' }}>{r.role}</div></div></Space> },
-                { title: 'Department', dataIndex: 'department' },
-                { title: 'Status', dataIndex: 'status', render: (s) => <Tag color={getStatusColor(s)}>{s?.toUpperCase()}</Tag> }
-              ]}
-              dataSource={staff}
-              rowKey="id"
-              loading={loading}
-              pagination={{ pageSize: 10 }}
-            />
-          </Card>
-        </TabPane>
-
-        <TabPane tab={<span><SafetyCertificateOutlined /> Accreditation</span>} key="accreditation">
-          <AccreditationDashboard />
-        </TabPane>
-
-        <TabPane tab={<span><DashboardOutlined /> Quality Indicators</span>} key="quality-indicators">
-          <QualityIndicatorsDashboard />
-        </TabPane>
-
-        <TabPane tab={<span><SafetyOutlined /> Patient Safety</span>} key="patient-safety">
-          <PatientSafetyGoalsDashboard />
-        </TabPane>
-
-        <TabPane tab={<span><WarningOutlined /> Adverse Events</span>} key="adverse-events">
-          <AdverseEventDashboard />
-        </TabPane>
-
-        <TabPane tab={<span><AuditOutlined /> Risk Assessment</span>} key="risk-assessment">
-          <RiskAssessmentDashboard />
-        </TabPane>
-
-        <TabPane tab={<span><ExperimentOutlined /> Disease Control</span>} key="disease-control">
-          <DiseaseControlDashboard />
-        </TabPane>
-
-        <TabPane tab={<span><BugOutlined /> Infection Control</span>} key="infection-control">
-          <InfectionControlDashboard />
-        </TabPane>
-
-        <TabPane tab={<span><FireOutlined /> Emergency</span>} key="emergency">
-          <EmergencyPreparednessDashboard />
-        </TabPane>
-
-        <TabPane tab={<span><IdcardOutlined /> Competency</span>} key="competency">
-          <StaffCompetencyDashboard />
-        </TabPane>
-
-        <TabPane tab={<span><DollarOutlined /> Financial</span>} key="financial">
-          <FinancialDashboard />
-        </TabPane>
-
-        <TabPane tab={<span><SecurityScanOutlined /> System Health</span>} key="system-health">
-          <SystemHealthDashboard />
-        </TabPane>
-
-        <TabPane tab={<span><RobotOutlined /> AI Services <Badge count={aiServices.length} /></span>} key="ai-services">
-          <AIMedicalAnalysisTab 
-            onSymptomAnalysis={handleSymptomAnalysis}
-            analysisResult={analysisResult}
-            aiServices={aiServices}
-          />
-        </TabPane>
-
-        {/* ✅ USING THE IMPORTED AnalyticsDashboard COMPONENT */}
-        <TabPane tab={<span><BarChartOutlined /> Analytics</span>} key="analytics-dashboard">
-          <AnalyticsDashboard 
-            hospitals={hospitals} 
-            departments={departments} 
-            staff={staff} 
-            aiServices={aiServices} 
-            onRefresh={fetchAllData}
-          />
-        </TabPane>
-      </Tabs>
-    
-      {/* Add/Edit Hospital Modal */}
-      <Modal
-        title={selectedHospital ? 'Edit Hospital' : 'Add New Hospital'}
-        open={modalVisible}
-        onCancel={handleModalCancel}
-        footer={null}
-        width={700}
-        destroyOnClose
-        className="custom-modal"
-      >
-        <Form form={form} layout="vertical" onFinish={handleModalOk} initialValues={{ type: 'general', status: 'active' }}>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="name" label="Hospital Name" rules={[{ required: true }]}>
-                <Input placeholder="Enter hospital name" />
-              </Form.Item>
+        {/* Search */}
+        <Card style={{ marginBottom: 24 }}>
+          <Row gutter={[16, 16]} align="middle">
+            <Col xs={24} sm={8}>
+              <Input
+                placeholder="Search hospitals..."
+                prefix={<SearchOutlined />}
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                style={{ width: '100%' }}
+              />
             </Col>
-            <Col span={12}>
-              <Form.Item name="type" label="Hospital Type" rules={[{ required: true }]}>
-                <Select placeholder="Select type">
-                  <Option value="general">General Hospital</Option>
-                  <Option value="community">Community Hospital</Option>
-                  <Option value="specialty">Specialty Hospital</Option>
-                  <Option value="research">Research Hospital</Option>
-                </Select>
-              </Form.Item>
+            <Col xs={12} sm={4}>
+              <Select placeholder="Status" style={{ width: '100%' }}>
+                <Option value="all">All Status</Option>
+                <Option value="active">Active</Option>
+                <Option value="maintenance">Maintenance</Option>
+                <Option value="inactive">Inactive</Option>
+              </Select>
+            </Col>
+            <Col xs={12} sm={4}>
+              <Select placeholder="Type" style={{ width: '100%' }}>
+                <Option value="all">All Types</Option>
+                <Option value="general">General</Option>
+                <Option value="community">Community</Option>
+                <Option value="specialty">Specialty</Option>
+                <Option value="research">Research</Option>
+              </Select>
+            </Col>
+            <Col xs={24} sm={8}>
+              <Button icon={<FilterOutlined />} style={{ width: '100%' }}>More Filters</Button>
             </Col>
           </Row>
+        </Card>
 
-          <Form.Item name="address" label="Address" rules={[{ required: true }]}>
-            <TextArea rows={2} placeholder="Enter full address" />
-          </Form.Item>
+        {/* Main Tabs */}
+        <Tabs activeKey={activeTab} onChange={setActiveTab} type="card" size="large" className="enterprise-tabs">
+          <TabPane tab={<span><DashboardOutlined /> Overview</span>} key="overview">
+            <EnterpriseOverviewDashboard 
+              hospitals={hospitals} 
+              staff={staff} 
+              departments={departments} 
+              aiServices={aiServices} 
+              recentActivity={recentActivity}
+            />
+          </TabPane>
+          
+          <TabPane tab={<span><UserOutlined /> Patient Flow</span>} key="patient-flow">
+            <PatientFlow />
+          </TabPane>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="phone" label="Phone Number" rules={[{ required: true }]}>
-                <Input prefix={<PhoneOutlined />} placeholder="Phone number" />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="email" label="Email" rules={[{ required: true }, { type: 'email' }]}>
-                <Input prefix={<MailOutlined />} placeholder="Email address" />
-              </Form.Item>
-            </Col>
-          </Row>
+          <TabPane 
+            tab={
+              <span>
+                <SafetyIcon style={{ color: '#faad14' }} /> 
+                Safety Department
+              </span>
+            } 
+            key="safety"
+          >
+            <SafetyDepartment />
+          </TabPane>
 
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item name="beds" label="Number of Beds" rules={[{ required: true }]}>
-                <InputNumber min={1} max={2000} style={{ width: '100%' }} placeholder="Beds" />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item name="accreditation" label="Accreditation">
-                <Select placeholder="Select accreditation">
-                  <Option value="JCI">JCI</Option>
-                  <Option value="CAP">CAP</Option>
-                  <Option value="AAAHC">AAAHC</Option>
-                  <Option value="NABH">NABH</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item name="established" label="Established Date">
-                <DatePicker style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-          </Row>
+          <TabPane tab={<span><UserSwitchOutlined /> Doctor Dashboard</span>} key="doctor-dashboard">
+            <DoctorDashboard onDataUpdate={fetchAllData} />
+          </TabPane>
 
-          <Divider />
-          <Form.Item>
-            <Space>
-              <Button type="primary" htmlType="submit">{selectedHospital ? 'Update Hospital' : 'Add Hospital'}</Button>
-              <Button onClick={handleModalCancel}>Cancel</Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
-    </div>
-  );
+          <TabPane tab={<span><BankOutlined /> Hospitals <Badge count={hospitals.length} /></span>} key="hospitals">
+            <Card>
+              <Table
+                className="hospital-table"
+                columns={hospitalColumns}
+                dataSource={filteredHospitals}
+                rowKey="id"
+                loading={loading}
+                pagination={{ pageSize: 10, showSizeChanger: true }}
+              />
+            </Card>
+          </TabPane>
+
+          <TabPane tab={<span><ApartmentOutlined /> Departments <Badge count={departments.length} /></span>} key="departments">
+            <Card>
+              <Table
+                className="hospital-table"
+                columns={[
+                  { title: 'Department', dataIndex: 'name' },
+                  { title: 'Head', dataIndex: 'head' },
+                  { title: 'Staff', dataIndex: 'staffCount' },
+                  { title: 'Beds', dataIndex: 'beds' },
+                  { title: 'Status', dataIndex: 'status', render: (s) => <Tag color={getStatusColor(s)}>{s?.toUpperCase()}</Tag> }
+                ]}
+                dataSource={departments}
+                rowKey="id"
+                loading={loading}
+                pagination={{ pageSize: 10 }}
+              />
+            </Card>
+          </TabPane>
+
+          <TabPane tab={<span><TeamOutlined /> Staff <Badge count={staff.length} /></span>} key="staff">
+            <Card>
+              <Table
+                className="hospital-table"
+                columns={[
+                  { title: 'Name', dataIndex: 'name', render: (t, r) => <Space><Avatar icon={<UserOutlined />} /><div><div>{t}</div><div style={{ fontSize: 12, color: '#666' }}>{r.role}</div></div></Space> },
+                  { title: 'Department', dataIndex: 'department' },
+                  { title: 'Status', dataIndex: 'status', render: (s) => <Tag color={getStatusColor(s)}>{s?.toUpperCase()}</Tag> }
+                ]}
+                dataSource={staff}
+                rowKey="id"
+                loading={loading}
+                pagination={{ pageSize: 10 }}
+              />
+            </Card>
+          </TabPane>
+
+          <TabPane tab={<span><SafetyCertificateOutlined /> Accreditation</span>} key="accreditation">
+            <AccreditationDashboard />
+          </TabPane>
+
+          <TabPane tab={<span><DashboardOutlined /> Quality Indicators</span>} key="quality-indicators">
+            <QualityIndicatorsDashboard />
+          </TabPane>
+
+          <TabPane tab={<span><SafetyOutlined /> Patient Safety</span>} key="patient-safety">
+            <PatientSafetyGoalsDashboard />
+          </TabPane>
+
+          <TabPane tab={<span><WarningOutlined /> Adverse Events</span>} key="adverse-events">
+            <AdverseEventDashboard />
+          </TabPane>
+
+          <TabPane tab={<span><AuditOutlined /> Risk Assessment</span>} key="risk-assessment">
+            <RiskAssessmentDashboard />
+          </TabPane>
+
+          <TabPane tab={<span><ExperimentOutlined /> Disease Control</span>} key="disease-control">
+            <DiseaseControlDashboard />
+          </TabPane>
+
+          <TabPane tab={<span><BugOutlined /> Infection Control</span>} key="infection-control">
+            <InfectionControlDashboard />
+          </TabPane>
+
+          <TabPane tab={<span><FireOutlined /> Emergency</span>} key="emergency">
+            <EmergencyPreparednessDashboard />
+          </TabPane>
+
+          <TabPane tab={<span><IdcardOutlined /> Competency</span>} key="competency">
+            <StaffCompetencyDashboard />
+          </TabPane>
+
+          <TabPane tab={<span><DollarOutlined /> Financial</span>} key="financial">
+            <FinancialDashboard />
+          </TabPane>
+
+          <TabPane tab={<span><SecurityScanOutlined /> System Health</span>} key="system-health">
+            <SystemHealthDashboard />
+          </TabPane>
+
+          <TabPane tab={<span><RobotOutlined /> AI Services <Badge count={aiServices.length} /></span>} key="ai-services">
+            <AIMedicalAnalysisTab 
+              onSymptomAnalysis={handleSymptomAnalysis}
+              analysisResult={analysisResult}
+              aiServices={aiServices}
+            />
+          </TabPane>
+
+          <TabPane tab={<span><BarChartOutlined /> Analytics</span>} key="analytics-dashboard">
+            <AnalyticsDashboard 
+              hospitals={hospitals} 
+              departments={departments} 
+              staff={staff} 
+              aiServices={aiServices} 
+              onRefresh={fetchAllData}
+            />
+          </TabPane>
+        </Tabs>
+      </>
+    )}
+
+    {/* Add/Edit Hospital Modal — always render so create works */}
+    <Modal
+      title={selectedHospital ? 'Edit Hospital' : 'Add New Hospital'}
+      open={modalVisible}
+      onCancel={handleModalCancel}
+      footer={null}
+      width={700}
+      destroyOnClose
+      className="custom-modal"
+    >
+      <Form form={form} layout="vertical" onFinish={handleModalOk} initialValues={{ type: 'general', status: 'active' }}>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item name="name" label="Hospital Name" rules={[{ required: true }]}>
+              <Input placeholder="Enter hospital name" />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="type" label="Hospital Type" rules={[{ required: true }]}>
+              <Select placeholder="Select type">
+                <Option value="general">General Hospital</Option>
+                <Option value="community">Community Hospital</Option>
+                <Option value="specialty">Specialty Hospital</Option>
+                <Option value="research">Research Hospital</Option>
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Form.Item name="address" label="Address" rules={[{ required: true }]}>
+          <TextArea rows={2} placeholder="Enter full address" />
+        </Form.Item>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item name="phone" label="Phone Number" rules={[{ required: true }]}>
+              <Input prefix={<PhoneOutlined />} placeholder="Phone number" />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="email" label="Email" rules={[{ required: true }, { type: 'email' }]}>
+              <Input prefix={<MailOutlined />} placeholder="Email address" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={8}>
+            <Form.Item name="beds" label="Number of Beds" rules={[{ required: true }]}>
+              <InputNumber min={1} max={2000} style={{ width: '100%' }} placeholder="Beds" />
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item name="accreditation" label="Accreditation">
+              <Select placeholder="Select accreditation">
+                <Option value="JCI">JCI</Option>
+                <Option value="CAP">CAP</Option>
+                <Option value="AAAHC">AAAHC</Option>
+                <Option value="NABH">NABH</Option>
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item name="established" label="Established Date">
+              <DatePicker style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Divider />
+        <Form.Item>
+          <Space>
+            <Button type="primary" htmlType="submit">{selectedHospital ? 'Update Hospital' : 'Add Hospital'}</Button>
+            <Button onClick={handleModalCancel}>Cancel</Button>
+          </Space>
+        </Form.Item>
+      </Form>
+    </Modal>
+  </div>
+);
 }
 
 export default HospitalManagement;
