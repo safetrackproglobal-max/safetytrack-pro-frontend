@@ -2274,19 +2274,32 @@ function HospitalManagement() {
   );
 
   const getHospitalDisplayName = () => {
-    if (userHospital && userHospital.name) {
-      return userHospital.name;
+  // Priority 1: User's hospital from context
+  if (userHospital?.name) {
+    return userHospital.name;
+  }
+
+  // Priority 2: Match from hospitals list by session ID
+  if (Array.isArray(hospitals) && hospitals.length > 0) {
+    const userHospitalId =
+      sessionStorage.getItem('hospital_id') ||
+      sessionStorage.getItem('hospitalId') ||
+      localStorage.getItem('hospitalId');
+
+    if (userHospitalId) {
+      const found = hospitals.find(h => String(h.id) === String(userHospitalId));
+      if (found?.name) return found.name;
     }
-    if (hospitals && hospitals.length > 0) {
-      const userHospitalId = sessionStorage.getItem('hospital_id');
-      if (userHospitalId) {
-        const found = hospitals.find(h => h.id == userHospitalId);
-        if (found) return found.name;
-      }
-      return hospitals[0]?.name || 'Hospital';
+
+    // Priority 3: First hospital in list
+    if (hospitals[0]?.name) {
+      return hospitals[0].name;
     }
-    return 'Hospital';
-  };
+  }
+
+  // No hospital exists — return null so UI can show create prompt
+  return null;
+};
 
   const getCompanyDisplayName = () => {
     if (userCompany && userCompany.name) {
@@ -2367,27 +2380,55 @@ function HospitalManagement() {
     <div className="hospital-management-container">
       {/* Header */}
       <div className="hospital-header">
-        <Row gutter={[16, 16]} align="middle">
-          <Col flex="auto">
-            <h1>
-              <MedicineBoxOutlined /> 
-              {getHospitalDisplayName()} Management
-            </h1>
-            <p>
-              {getCompanyDisplayName()} - Comprehensive healthcare management with AI-powered insights and international standards
-            </p>
-          </Col>
-          <Col>
-            <Space>
-              <Button icon={<ExportOutlined />}>Export</Button>
-              <Button icon={<ImportOutlined />}>Import</Button>
-              <Button type="primary" icon={<PlusOutlined />} onClick={handleAddHospital} className="btn-primary-gradient">
-                Add Hospital
-              </Button>
-            </Space>
-          </Col>
-        </Row>
-      </div>
+  <Row gutter={[16, 16]} align="middle">
+    <Col flex="auto">
+      {getHospitalDisplayName() ? (
+        <>
+          <h1>
+            <MedicineBoxOutlined /> 
+            {getHospitalDisplayName()} Management
+          </h1>
+          <p>
+            {getCompanyDisplayName()} - Comprehensive healthcare management with AI-powered insights and international standards
+          </p>
+        </>
+      ) : (
+        <>
+          <h1>
+            <MedicineBoxOutlined /> 
+            Hospital Management
+          </h1>
+          <p style={{ color: '#faad14', fontWeight: 500 }}>
+            No hospital found. Please create your hospital profile to get started.
+          </p>
+        </>
+      )}
+    </Col>
+    <Col>
+      <Space>
+        {getHospitalDisplayName() ? (
+          <>
+            <Button icon={<ExportOutlined />}>Export</Button>
+            <Button icon={<ImportOutlined />}>Import</Button>
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleAddHospital} className="btn-primary-gradient">
+              Add Hospital
+            </Button>
+          </>
+        ) : (
+          <Button 
+            type="primary" 
+            size="large"
+            icon={<PlusOutlined />} 
+            onClick={handleAddHospital} 
+            className="btn-primary-gradient"
+          >
+            + Create New Hospital
+          </Button>
+        )}
+      </Space>
+    </Col>
+  </Row>
+</div>
 
       {/* Statistics */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
