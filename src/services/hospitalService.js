@@ -125,25 +125,27 @@ export const deleteHospital = async (id) => {
 };
 
 /**
- * Get company details by ID
- * @param {string} companyId - Company ID
+ * Get current user's company information
+ * Uses /api/company/info — derives company from authenticated user
  * @returns {Promise} Company data
  */
-export const getCompany = async (companyId) => {
+export const getCompany = async () => {
   try {
-    if (!companyId) {
-      const error = new Error('Company ID is required');
-      error.code = 'MISSING_COMPANY_ID';
-      error.userMessage = 'Company ID is required.';
-      throw error;
-    }
-
-    console.log(`🔄 Fetching company ${companyId}...`);
-    const res = await api.get(`/companies/${companyId}`);
-    console.log('✅ Company data received:', res.data);
+    console.log('🔄 Fetching company info...');
+    const res = await api.get('/company/info');
+    console.log('✅ Company info received:', res.data);
     return res.data;
   } catch (error) {
-    console.error(`❌ Error fetching company ${companyId}:`, error);
+    if (error.response?.status === 404) {
+      // No company associated — not an error, just a state
+      console.log('ℹ️ No company associated with user');
+      return {
+        success: false,
+        error: 'No company associated with your account',
+        code: 'NO_COMPANY_ASSOCIATED'
+      };
+    }
+    console.error('❌ Error fetching company info:', error);
     throw error;
   }
 };
@@ -2224,29 +2226,7 @@ export const getAIServices = async (hospitalId = null) => {
   }
 };
     
-    const effectiveId = getEffectiveHospitalId(hospitalId);
-    if (!effectiveId) {
-      console.warn('⚠️ No hospital ID found for AI services');
-      return { success: true, data: [], message: 'No hospital found' };
-    }
     
-    console.log(`🔄 Fetching AI services for hospital ${effectiveId}...`);
-    const res = await api.get(`/hospital/${effectiveId}/ai-services`);
-    console.log('✅ AI services data received:', res.data);
-    return res.data;
-  } catch (error) {
-    if (error.code === 'HOSPITAL_MODULE_NOT_SETUP' || error.requiresSetup) {
-      return { 
-        success: true, 
-        data: [], 
-        message: error.userMessage || 'Hospital module not set up',
-        requiresSetup: true
-      };
-    }
-    console.error('❌ Error fetching AI services:', error);
-    throw error;
-  }
-};
 
 export const getHospitalAICapabilities = async (hospitalId = null) => {
   try {
