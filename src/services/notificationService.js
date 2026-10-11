@@ -1883,17 +1883,18 @@ async saveAIAssistantMessage(incidentId, message) {
 
   // ==================== NOTIFICATION MANAGEMENT ====================
 
-  function normalizeNotification(notification) {
-  return {
-    ...notification,
-    read: notification.is_read !== undefined ? notification.is_read : false,
-    date: notification.created_at || notification.date,
-    type: notification.type || 'info',
-    priority: notification.priority || 'medium',
-    category: notification.category || 'system',
-    is_read: notification.is_read,
-  };
-}
+  normalizeNotification(notification) {     // ✅ no 'function' keyword
+    return {
+      ...notification,
+      read: notification.is_read !== undefined ? notification.is_read : false,
+      date: notification.created_at || notification.date,
+      type: notification.type || 'info',
+      priority: notification.priority || 'medium',
+      category: notification.category || 'system',
+      is_read: notification.is_read,
+    };
+  }
+
 
   async getNotifications() {
   try {
