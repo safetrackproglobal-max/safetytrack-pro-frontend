@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Menu, Divider, Typography, Button } from 'antd';
-import { 
+import {
   DashboardOutlined,
   BarChartOutlined,
   FileTextOutlined,
@@ -34,12 +34,12 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
   const getDashboardPath = () => {
     const actualUserType = userType || user?.user_type || user?.role || 'user';
     const actualUserTypeLower = actualUserType.toLowerCase();
-    
-    const isSuperAdminUser = 
-      isSuperAdmin() || 
-      actualUserTypeLower === 'super_admin' || 
-      actualUserTypeLower === 'safetypro' || 
-      actualUserTypeLower === 'safety_pro' || 
+
+    const isSuperAdminUser =
+      isSuperAdmin() ||
+      actualUserTypeLower === 'super_admin' ||
+      actualUserTypeLower === 'safetypro' ||
+      actualUserTypeLower === 'safety_pro' ||
       actualUserTypeLower === 'platform_owner' ||
       user?.is_super_admin === true;
 
@@ -61,11 +61,10 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
       history.push('/login');
       return;
     }
-    
-    // Ensure single slash
+
     const targetPath = key.startsWith('/') ? key : `/${key}`;
     history.push(targetPath);
-    
+
     if (onNavigate) {
       onNavigate();
     }
@@ -79,8 +78,11 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
 
   const dashboardPath = getDashboardPath();
 
-  // Define menu items with paths WITHOUT leading slashes (relative to basename)
-  // If you remove basename, use leading slashes instead
+  // ============================================================
+  // MENU ITEMS
+  // ✅ REMOVED: User Management (/admin) from both admin and super admin menus
+  // ============================================================
+
   const adminMenuItems = [
     { key: dashboardPath, icon: <DashboardOutlined />, label: 'Dashboard' },
     { key: '/analytics', icon: <BarChartOutlined />, label: 'Analytics' },
@@ -89,7 +91,7 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
     { key: '/reports', icon: <BarChartOutlined />, label: 'Reports' },
     { key: '/document-management', icon: <FolderOpenOutlined />, label: 'Document Management' },
     { type: 'divider' },
-    { key: '/admin', icon: <TeamOutlined />, label: 'User Management' },
+    // ✅ REMOVED: { key: '/admin', icon: <TeamOutlined />, label: 'User Management' },
     { key: '/subscription', icon: <AppstoreOutlined />, label: 'Subscriptions' },
     { key: '/settings', icon: <SettingOutlined />, label: 'System Settings' }
   ];
@@ -115,7 +117,7 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
     { key: '/environmental-management', icon: <EnvironmentOutlined />, label: 'Environmental' },
     { key: '/hospital-management', icon: <MedicineBoxOutlined />, label: 'Hospital' },
     { type: 'divider' },
-    { key: '/admin', icon: <TeamOutlined />, label: 'User Management' },
+    // ✅ REMOVED: { key: '/admin', icon: <TeamOutlined />, label: 'User Management' },
     { key: '/subscription', icon: <AppstoreOutlined />, label: 'Subscriptions' },
     { key: '/settings', icon: <SettingOutlined />, label: 'System Settings' }
   ];
@@ -124,28 +126,25 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
   const getMenuItems = () => {
     const actualUserType = userType || user?.user_type || user?.role || 'user';
     const actualUserTypeLower = actualUserType.toLowerCase();
-    
-    // Check Super Admin FIRST
-    const isSuperAdminUser = 
-      isSuperAdmin() || 
-      actualUserTypeLower === 'super_admin' || 
-      actualUserTypeLower === 'safetypro' || 
-      actualUserTypeLower === 'safety_pro' || 
+
+    const isSuperAdminUser =
+      isSuperAdmin() ||
+      actualUserTypeLower === 'super_admin' ||
+      actualUserTypeLower === 'safetypro' ||
+      actualUserTypeLower === 'safety_pro' ||
       actualUserTypeLower === 'platform_owner' ||
       user?.is_super_admin === true ||
       user?.is_platform_owner === true;
 
-    // Then Admin
-    const isRegularAdminUser = 
-      isRegularAdmin() || 
-      actualUserTypeLower === 'admin' || 
-      actualUserTypeLower === 'company_admin' || 
+    const isRegularAdminUser =
+      isRegularAdmin() ||
+      actualUserTypeLower === 'admin' ||
+      actualUserTypeLower === 'company_admin' ||
       actualUserTypeLower === 'administrator';
 
-    // Then Employee
-    const isEmployeeUser = 
-      isEmployee() || 
-      actualUserTypeLower === 'employee' || 
+    const isEmployeeUser =
+      isEmployee() ||
+      actualUserTypeLower === 'employee' ||
       actualUserTypeLower === 'staff';
 
     if (isSuperAdminUser) {
@@ -157,7 +156,7 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
     if (isEmployeeUser) {
       return employeeMenuItems;
     }
-    
+
     return [
       { key: dashboardPath, icon: <DashboardOutlined />, label: 'Dashboard' },
       { key: '/analytics', icon: <BarChartOutlined />, label: 'Analytics' },
@@ -174,24 +173,24 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
   const getHeaderTitle = () => {
     const actualUserType = userType || user?.user_type || user?.role || 'user';
     const actualUserTypeLower = actualUserType.toLowerCase();
-    
-    const isSuperAdminUser = 
-      isSuperAdmin() || 
-      actualUserTypeLower === 'super_admin' || 
-      actualUserTypeLower === 'safetypro' || 
-      actualUserTypeLower === 'safety_pro' || 
+
+    const isSuperAdminUser =
+      isSuperAdmin() ||
+      actualUserTypeLower === 'super_admin' ||
+      actualUserTypeLower === 'safetypro' ||
+      actualUserTypeLower === 'safety_pro' ||
       actualUserTypeLower === 'platform_owner' ||
       user?.is_super_admin === true;
 
-    const isRegularAdminUser = 
-      isRegularAdmin() || 
-      actualUserTypeLower === 'admin' || 
-      actualUserTypeLower === 'company_admin' || 
+    const isRegularAdminUser =
+      isRegularAdmin() ||
+      actualUserTypeLower === 'admin' ||
+      actualUserTypeLower === 'company_admin' ||
       actualUserTypeLower === 'administrator';
 
-    const isEmployeeUser = 
-      isEmployee() || 
-      actualUserTypeLower === 'employee' || 
+    const isEmployeeUser =
+      isEmployee() ||
+      actualUserTypeLower === 'employee' ||
       actualUserTypeLower === 'staff';
 
     if (isSuperAdminUser) {
@@ -206,12 +205,11 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
     return 'Dashboard';
   };
 
-  // Determine the selected key
   const getSelectedKey = () => {
     if (!menuItems || menuItems.length === 0) {
       return dashboardPath;
     }
-    
+
     for (const item of menuItems) {
       if (item.key && (currentPath === item.key || currentPath.startsWith(item.key + '/'))) {
         return item.key;
@@ -230,9 +228,9 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
   const selectedKey = getSelectedKey();
 
   return (
-    <div className={`sidebar ${mobileOpen ? 'mobile-open' : ''}`} style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
+    <div className={`sidebar ${mobileOpen ? 'mobile-open' : ''}`} style={{
+      display: 'flex',
+      flexDirection: 'column',
       height: '100%',
       background: '#ffffff',
       color: '#1a1a1a',
@@ -264,7 +262,7 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
           transition: 'all 0.3s ease'
         }}
       />
-      
+
       {/* Sidebar Header */}
       <div className="sidebar-header" style={{
         padding: collapsed ? '12px 8px' : '16px 20px',
@@ -278,8 +276,8 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
         position: 'relative'
       }}>
         <div className="module-title" style={{ textAlign: 'center', width: '100%' }}>
-          <Text strong style={{ 
-            color: '#ffffff', 
+          <Text strong style={{
+            color: '#ffffff',
             fontSize: collapsed ? '14px' : '16px',
             fontWeight: 600,
             textShadow: '0 1px 2px rgba(0,0,0,0.1)'
@@ -288,9 +286,9 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
           </Text>
         </div>
       </div>
-      
+
       <Divider style={{ margin: '8px 0', borderColor: '#f0f0f0' }} />
-      
+
       {/* Main Menu */}
       <Menu
         mode="inline"
@@ -307,7 +305,7 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
           overflowX: 'hidden'
         }}
       />
-      
+
       {/* Footer Menu */}
       <div className="sidebar-footer" style={{
         borderTop: '1px solid #f0f0f0',
