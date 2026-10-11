@@ -1880,6 +1880,9 @@ const StaffCompetencyDashboard = () => {
 // ============================================
 // 11. FINANCIAL DASHBOARD (REAL API)
 // ============================================
+// ============================================
+// 11. FINANCIAL DASHBOARD (ENHANCED WITH CRUD)
+// ============================================
 const FinancialDashboard = () => {
   const [financialData, setFinancialData] = useState({
     totalRevenue: 0,
@@ -1889,13 +1892,27 @@ const FinancialDashboard = () => {
     revenueByDepartment: [],
     payerMix: []
   });
+  const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [recordsLoading, setRecordsLoading] = useState(false);
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 1 });
+  const [filters, setFilters] = useState({
+    record_type: '',
+    status: '',
+    payer_type: ''
+  });
+  const [form] = Form.useForm();
 
+  // ============================================
+  // FETCH: Dashboard aggregates
+  // ============================================
   const fetchFinancialData = async () => {
     setLoading(true);
     try {
       const result = await hospitalService.getFinancialData();
-      if (result && result.data) {
+      if (result?.data) {
         setFinancialData({
           totalRevenue: result.data.totalRevenue || 0,
           outstandingReceivables: result.data.outstandingReceivables || 0,
@@ -1904,22 +1921,172 @@ const FinancialDashboard = () => {
           revenueByDepartment: result.data.revenueByDepartment || [],
           payerMix: result.data.payerMix || []
         });
-      } else {
-        message.info('No financial data available');
       }
     } catch (error) {
       console.error('Error fetching financial data:', error);
-      message.error('Failed to load financial data');
+      if (!error.silent) message.error('Failed to load financial data');
     } finally {
       setLoading(false);
     }
   };
 
+  // ============================================
+  // FETCH: Records list
+  // ============================================
+  const fetchRecords = async (page = 1) => {
+    setRecordsLoading(true);
+    try {
+      const activeFilters = Object.fromEntries(
+        Object.entries(filters).filter(([_, v]) => v && v !== '')
+      );
+      const result = await hospitalService.listFinancialRecords(null, {
+        page,
+        limit: pagination.limit,
+        ...activeFilters
+      });
+      if (result?.data) {
+        setRecords(result.data || []);
+        setPagination(prev => ({
+          ...prev,
+          page: result.pagination?.page || page,
+          total: result.pagination?.total || 0,
+          pages: result.pagination?.pages || 1
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching records:', error);
+      if (!error.silent) message.error('Failed to load records');
+    } finally {
+      setRecordsLoading(false);
+    }
+  };
+
+  // ============================================
+  // LOAD ON MOUNT
+  // ============================================
   useEffect(() => {
     fetchFinancialData();
+    fetchRecords(1);
   }, []);
 
-  if (loading) {
+  // ============================================
+  // REFRESH ALL
+  // ============================================
+  const handleRefresh = () => {
+    fetchFinancialData();
+    fetchRecords(pagination.page);
+  };
+
+  // ============================================
+  // CREATE RECORD
+  // ============================================
+  const handleAddRecord = async (values) => {
+    setSaving(true);
+    try {
+      const payload = {
+        record_type: values.record_type,
+        payer_type: values.payer_type,
+        payer_name: values.payer_name || null,
+        amount: parseFloat(values.amount),
+        currency: values.currency || 'USD',
+        invoice_number: values.invoice_number || null,
+        claim_number: values.claim_number || null,
+        description: values.description || null,
+        status: values.status || 'pending',
+        service_date: values.service_date?.toISOString() || new Date().toISOString(),
+        due_date: values.due_date?.toISOString() || null
+      };
+
+      await hospitalService.createFinancialRecord(null, payload);
+      message.success('Record created successfully');
+      setAddModalVisible(false);
+      form.resetFields();
+      handleRefresh();
+    } catch (error) {
+      console.error('Error creating record:', error);
+      message.error(error.response?.data?.error || 'Failed to create record');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ============================================
+  // MARK AS PAID
+  // ============================================
+  const handleMarkPaid = async (record) => {
+    try {
+      await hospitalService.updateFinancialRecord(null, record.id, {
+        status: 'paid'
+      });
+      message.success('Record marked as paid');
+      handleRefresh();
+    } catch (error) {
+      console.error('Error updating record:', error);
+      message.error('Failed to update record');
+    }
+  };
+
+  // ============================================
+  // DELETE RECORD
+  // ============================================
+  const handleDelete = async (recordId) => {
+    try {
+      await hospitalService.deleteFinancialRecord(null, recordId);
+      message.success('Record deleted');
+      handleRefresh();
+    } catch (error) {
+      console.error('Error deleting record:', error);
+      message.error('Failed to delete record');
+    }
+  };
+
+  // ============================================
+  // FORMATTING HELPERS
+  // ============================================
+  const formatMoney = (amount) => {
+    if (!amount && amount !== 0) return '$0';
+    return `$${Number(amount).toLocaleString(undefined, {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    })}`;
+  };
+
+  const getRecordTypeColor = (type) => {
+    const map = {
+      service_billed: 'blue',
+      payment_received: 'green',
+      insurance_claim: 'purple',
+      refund: 'orange',
+      adjustment: 'default'
+    };
+    return map[type] || 'default';
+  };
+
+  const getStatusColor = (status) => {
+    const map = {
+      pending: 'orange',
+      paid: 'green',
+      overdue: 'red',
+      rejected: 'red',
+      cancelled: 'default'
+    };
+    return map[status] || 'default';
+  };
+
+  const getPayerTypeColor = (type) => {
+    const map = {
+      insurance: 'blue',
+      self_pay: 'green',
+      government: 'orange',
+      corporate: 'purple'
+    };
+    return map[type] || 'default';
+  };
+
+  // ============================================
+  // RENDER
+  // ============================================
+  if (loading && !financialData.totalRevenue && !financialData.outstandingReceivables) {
     return (
       <div style={{ textAlign: 'center', padding: 40 }}>
         <Spin size="large" />
@@ -1930,19 +2097,83 @@ const FinancialDashboard = () => {
 
   return (
     <div>
-      <Alert message="Enterprise Financial Dashboard" type="info" showIcon style={{ marginBottom: 16 }} />
+      <Alert
+        message="Enterprise Financial Dashboard"
+        description="Track bills, payments, insurance claims, and revenue"
+        type="info"
+        showIcon
+        style={{ marginBottom: 16 }}
+        action={
+          <Space>
+            <Button size="small" icon={<ReloadOutlined />} onClick={handleRefresh}>
+              Refresh
+            </Button>
+            <Button
+              size="small"
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setAddModalVisible(true)}
+            >
+              Add Record
+            </Button>
+          </Space>
+        }
+      />
+
+      {/* KPI Cards */}
       <Row gutter={[16, 16]}>
-        <Col span={6}><Card><Statistic title="Total Revenue (YTD)" value={financialData.totalRevenue} prefix="$" precision={0} valueStyle={{ color: '#1890ff' }} /></Card></Col>
-        <Col span={6}><Card><Statistic title="Outstanding Receivables" value={financialData.outstandingReceivables} prefix="$" precision={0} valueStyle={{ color: '#faad14' }} /></Card></Col>
-        <Col span={6}><Card><Statistic title="Collection Rate" value={financialData.collectionRate} suffix="%" valueStyle={{ color: financialData.collectionRate > 85 ? '#52c41a' : '#faad14' }} /></Card></Col>
-        <Col span={6}><Card><Statistic title="Pending Claims" value={financialData.pendingClaims} prefix={<ClockCircleOutlined />} valueStyle={{ color: '#cf1322' }} /></Card></Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="Total Revenue (YTD)"
+              value={financialData.totalRevenue}
+              prefix="$"
+              precision={0}
+              valueStyle={{ color: '#1890ff' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="Outstanding Receivables"
+              value={financialData.outstandingReceivables}
+              prefix="$"
+              precision={0}
+              valueStyle={{ color: '#faad14' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="Collection Rate"
+              value={financialData.collectionRate}
+              suffix="%"
+              valueStyle={{
+                color: financialData.collectionRate > 85 ? '#52c41a' : '#faad14'
+              }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="Pending Claims"
+              value={financialData.pendingClaims}
+              prefix={<ClockCircleOutlined />}
+              valueStyle={{ color: '#cf1322' }}
+            />
+          </Card>
+        </Col>
       </Row>
 
+      {/* Charts */}
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
-        <Col span={12}>
+        <Col xs={24} lg={12}>
           <Card title="Revenue by Department">
             {financialData.revenueByDepartment.length > 0 ? (
-              <CustomBarChart 
+              <CustomBarChart
                 data={financialData.revenueByDepartment.map(d => ({
                   label: d.label,
                   value: d.value || 0,
@@ -1953,11 +2184,11 @@ const FinancialDashboard = () => {
                 title="Revenue Distribution"
               />
             ) : (
-              <Empty description="No revenue data available" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+              <Empty description="No revenue data yet" image={Empty.PRESENTED_IMAGE_SIMPLE} />
             )}
           </Card>
         </Col>
-        <Col span={12}>
+        <Col xs={24} lg={12}>
           <Card title="Payer Mix">
             {financialData.payerMix.length > 0 ? (
               financialData.payerMix.map((item, index) => (
@@ -1966,24 +2197,384 @@ const FinancialDashboard = () => {
                     <span>{item.label}</span>
                     <span>{item.percentage}%</span>
                   </div>
-                  <Progress percent={item.percentage} size="small" strokeColor={item.color || '#1890ff'} />
+                  <Progress
+                    percent={item.percentage}
+                    size="small"
+                    strokeColor={item.color || '#1890ff'}
+                  />
                 </div>
               ))
             ) : (
-              <Empty description="No payer mix data available" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+              <Empty description="No payer mix data yet" image={Empty.PRESENTED_IMAGE_SIMPLE} />
             )}
           </Card>
         </Col>
       </Row>
 
-      <Card title="Quick Actions" style={{ marginTop: 16 }}>
-        <Space wrap>
-          <Button icon={<DollarOutlined />}>Generate Invoice</Button>
-          <Button icon={<WalletOutlined />}>Submit Claim</Button>
-          <Button icon={<FileExcelOutlined />}>Export Report</Button>
-          <Button icon={<PrinterOutlined />}>Print Statement</Button>
-        </Space>
+      {/* Records Table */}
+      <Card
+        title={
+          <Space>
+            <FileTextOutlined />
+            Financial Records
+            <Badge count={pagination.total} style={{ marginLeft: 8 }} />
+          </Space>
+        }
+        style={{ marginTop: 16 }}
+        extra={
+          <Button icon={<ReloadOutlined />} onClick={() => fetchRecords(pagination.page)}>
+            Refresh
+          </Button>
+        }
+      >
+        {/* Filters */}
+        <Row gutter={[12, 12]} style={{ marginBottom: 16 }}>
+          <Col xs={24} sm={8} md={6}>
+            <Select
+              placeholder="Record Type"
+              style={{ width: '100%' }}
+              allowClear
+              value={filters.record_type || undefined}
+              onChange={(value) => {
+                setFilters(prev => ({ ...prev, record_type: value || '' }));
+                setTimeout(() => fetchRecords(1), 0);
+              }}
+            >
+              <Option value="service_billed">Service Billed</Option>
+              <Option value="payment_received">Payment Received</Option>
+              <Option value="insurance_claim">Insurance Claim</Option>
+              <Option value="refund">Refund</Option>
+              <Option value="adjustment">Adjustment</Option>
+            </Select>
+          </Col>
+          <Col xs={24} sm={8} md={6}>
+            <Select
+              placeholder="Status"
+              style={{ width: '100%' }}
+              allowClear
+              value={filters.status || undefined}
+              onChange={(value) => {
+                setFilters(prev => ({ ...prev, status: value || '' }));
+                setTimeout(() => fetchRecords(1), 0);
+              }}
+            >
+              <Option value="pending">Pending</Option>
+              <Option value="paid">Paid</Option>
+              <Option value="overdue">Overdue</Option>
+              <Option value="rejected">Rejected</Option>
+              <Option value="cancelled">Cancelled</Option>
+            </Select>
+          </Col>
+          <Col xs={24} sm={8} md={6}>
+            <Select
+              placeholder="Payer Type"
+              style={{ width: '100%' }}
+              allowClear
+              value={filters.payer_type || undefined}
+              onChange={(value) => {
+                setFilters(prev => ({ ...prev, payer_type: value || '' }));
+                setTimeout(() => fetchRecords(1), 0);
+              }}
+            >
+              <Option value="insurance">Insurance</Option>
+              <Option value="self_pay">Self-Pay</Option>
+              <Option value="government">Government</Option>
+              <Option value="corporate">Corporate</Option>
+            </Select>
+          </Col>
+          <Col xs={24} sm={24} md={6}>
+            <Button
+              block
+              onClick={() => {
+                setFilters({ record_type: '', status: '', payer_type: '' });
+                setTimeout(() => fetchRecords(1), 0);
+              }}
+            >
+              Clear Filters
+            </Button>
+          </Col>
+        </Row>
+
+        <Table
+          dataSource={records}
+          rowKey="id"
+          loading={recordsLoading}
+          pagination={{
+            current: pagination.page,
+            pageSize: pagination.limit,
+            total: pagination.total,
+            showSizeChanger: false,
+            onChange: (page) => fetchRecords(page)
+          }}
+          scroll={{ x: 900 }}
+          columns={[
+            {
+              title: 'Date',
+              dataIndex: 'service_date',
+              width: 110,
+              render: (d) => d ? moment(d).format('MMM DD, YY') : '—'
+            },
+            {
+              title: 'Type',
+              dataIndex: 'record_type',
+              width: 140,
+              render: (t) => (
+                <Tag color={getRecordTypeColor(t)}>
+                  {t?.replace(/_/g, ' ').toUpperCase() || '—'}
+                </Tag>
+              )
+            },
+            {
+              title: 'Description',
+              dataIndex: 'description',
+              ellipsis: true,
+              render: (d) => d || '—'
+            },
+            {
+              title: 'Payer',
+              dataIndex: 'payer_type',
+              width: 130,
+              render: (p, r) => (
+                <div>
+                  <Tag color={getPayerTypeColor(p)}>
+                    {p?.replace(/_/g, ' ').toUpperCase() || '—'}
+                  </Tag>
+                  {r.payer_name && (
+                    <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>
+                      {r.payer_name}
+                    </div>
+                  )}
+                </div>
+              )
+            },
+            {
+              title: 'Amount',
+              dataIndex: 'amount',
+              width: 120,
+              align: 'right',
+              render: (a) => (
+                <strong style={{ color: '#1A2A6C' }}>{formatMoney(a)}</strong>
+              )
+            },
+            {
+              title: 'Status',
+              dataIndex: 'status',
+              width: 110,
+              render: (s) => (
+                <Tag color={getStatusColor(s)}>
+                  {s?.toUpperCase() || '—'}
+                </Tag>
+              )
+            },
+            {
+              title: 'Actions',
+              key: 'actions',
+              width: 130,
+              fixed: 'right',
+              render: (_, r) => (
+                <Space size="small">
+                  {r.status !== 'paid' && r.record_type !== 'payment_received' && (
+                    <Tooltip title="Mark as Paid">
+                      <Button
+                        type="link"
+                        size="small"
+                        icon={<CheckCircleOutlined />}
+                        style={{ color: '#52c41a' }}
+                        onClick={() => handleMarkPaid(r)}
+                      />
+                    </Tooltip>
+                  )}
+                  <Popconfirm
+                    title="Delete this record?"
+                    onConfirm={() => handleDelete(r.id)}
+                    okText="Yes"
+                    cancelText="No"
+                  >
+                    <Button
+                      type="link"
+                      size="small"
+                      danger
+                      icon={<DeleteOutlined />}
+                    />
+                  </Popconfirm>
+                </Space>
+              )
+            }
+          ]}
+        />
       </Card>
+
+      {/* Add Record Modal */}
+      <Modal
+        title={
+          <Space>
+            <PlusOutlined />
+            Add Financial Record
+          </Space>
+        }
+        open={addModalVisible}
+        onCancel={() => {
+          setAddModalVisible(false);
+          form.resetFields();
+        }}
+        footer={null}
+        width={700}
+        destroyOnClose
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleAddRecord}
+          initialValues={{
+            record_type: 'service_billed',
+            payer_type: 'self_pay',
+            currency: 'USD',
+            status: 'pending',
+            service_date: moment()
+          }}
+        >
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="record_type"
+                label="Record Type"
+                rules={[{ required: true, message: 'Select record type' }]}
+              >
+                <Select placeholder="Select type">
+                  <Option value="service_billed">Service Billed</Option>
+                  <Option value="payment_received">Payment Received</Option>
+                  <Option value="insurance_claim">Insurance Claim</Option>
+                  <Option value="refund">Refund</Option>
+                  <Option value="adjustment">Adjustment</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="payer_type"
+                label="Payer Type"
+                rules={[{ required: true, message: 'Select payer type' }]}
+              >
+                <Select placeholder="Select payer">
+                  <Option value="insurance">Insurance</Option>
+                  <Option value="self_pay">Self-Pay</Option>
+                  <Option value="government">Government</Option>
+                  <Option value="corporate">Corporate</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="payer_name"
+                label="Payer Name (Optional)"
+              >
+                <Input placeholder="e.g., Acme Insurance" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="amount"
+                label="Amount"
+                rules={[
+                  { required: true, message: 'Enter amount' },
+                  {
+                    validator: (_, v) =>
+                      v && parseFloat(v) > 0
+                        ? Promise.resolve()
+                        : Promise.reject(new Error('Amount must be greater than 0'))
+                  }
+                ]}
+              >
+                <InputNumber
+                  style={{ width: '100%' }}
+                  placeholder="0.00"
+                  min={0}
+                  step={0.01}
+                  prefix="$"
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item name="currency" label="Currency">
+                <Select>
+                  <Option value="USD">USD</Option>
+                  <Option value="GHS">GHS</Option>
+                  <Option value="QAR">QAR</Option>
+                  <Option value="EUR">EUR</Option>
+                  <Option value="GBP">GBP</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="service_date"
+                label="Service Date"
+                rules={[{ required: true, message: 'Select date' }]}
+              >
+                <DatePicker style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="due_date" label="Due Date (Optional)">
+                <DatePicker style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item name="invoice_number" label="Invoice # (Optional)">
+                <Input placeholder="INV-2026-001" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="claim_number" label="Claim # (Optional)">
+                <Input placeholder="CLM-2026-001" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item name="status" label="Status">
+            <Select>
+              <Option value="pending">Pending</Option>
+              <Option value="paid">Paid</Option>
+              <Option value="overdue">Overdue</Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item name="description" label="Description (Optional)">
+            <TextArea rows={3} placeholder="Describe this record..." />
+          </Form.Item>
+
+          <Divider />
+          <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+            <Space>
+              <Button
+                onClick={() => {
+                  setAddModalVisible(false);
+                  form.resetFields();
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={saving}
+                icon={<SaveOutlined />}
+              >
+                Save Record
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };
