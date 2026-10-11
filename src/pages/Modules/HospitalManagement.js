@@ -2124,15 +2124,8 @@ function HospitalManagement() {
   // Fetch user's company and hospital info
   const fetchUserContext = async () => {
   try {
-    const companyId = sessionStorage.getItem('company_id');
-    if (!companyId) {
-      console.log('ℹ️ No company ID found in session.');
-      setUserCompany(null);
-      setUserHospital(null);
-      return;
-    }
-
-    const companyResponse = await hospitalService.getCompany(companyId).catch(err => {
+    // ✅ Backend derives company from authenticated user — no ID needed
+    const companyResponse = await hospitalService.getCompany().catch(err => {
       console.warn('⚠️ Could not fetch company:', err.message);
       return null;
     });
@@ -2157,6 +2150,7 @@ function HospitalManagement() {
         setUserHospital(null);
       }
     } else {
+      // No company associated — this is the "Company Required" state
       setUserCompany(null);
       setUserHospital(null);
     }
@@ -2170,28 +2164,26 @@ function HospitalManagement() {
   const fetchAllData = async () => {
   setLoading(true);
   try {
-    // ✅ STEP 1: Check company FIRST
-    const companyId = sessionStorage.getItem('company_id');
-    if (!companyId) {
+    // ✅ STEP 1: Fetch company + hospitals (backend derives company from user)
+    await fetchUserContext();
+
+    // ✅ STEP 2: If no company, show "Company Required" prompt
+    if (!userCompany?.id) {
       console.log('ℹ️ No company found. Waiting for registration.');
       setHospitals([]);
       setDepartments([]);
       setStaff([]);
       setAiServices([]);
-      setUserCompany(null);
-      setUserHospital(null);
       setLoading(false);
       return;
     }
 
-    // ✅ STEP 2: Fetch company + hospitals
-    await fetchUserContext();
-
+    // ✅ STEP 3: Fetch hospitals
     const hospitalsData = await hospitalService.getHospitals();
     const hospitalsList = Array.isArray(hospitalsData) ? hospitalsData : [];
     setHospitals(hospitalsList);
 
-    // ✅ STEP 3: If no hospitals exist, stop here — show create prompt
+    // ✅ STEP 4: If no hospitals exist, show "No Hospital Found" prompt
     if (hospitalsList.length === 0) {
       console.log('ℹ️ No hospitals found. Waiting for user to create one.');
       setDepartments([]);
@@ -2201,7 +2193,7 @@ function HospitalManagement() {
       return;
     }
 
-    // ✅ STEP 4: Hospitals exist — fetch everything else
+    // ✅ STEP 5: Hospitals exist — fetch everything else
     const [departmentsData, staffData, aiServicesData] = await Promise.all([
       hospitalService.getDepartments().catch(err => {
         if (!err.silent) console.warn('⚠️ Could not fetch departments:', err.message);
@@ -2217,7 +2209,7 @@ function HospitalManagement() {
       }),
     ]);
 
-    // ✅ STEP 5: Normalize AI services
+    // ✅ STEP 6: Normalize AI services
     let extractedAIServices = [];
     if (aiServicesData?.services) {
       extractedAIServices = aiServicesData.services;
@@ -2232,7 +2224,7 @@ function HospitalManagement() {
       }
     }
 
-    // ✅ STEP 6: Set state
+    // ✅ STEP 7: Set state
     setDepartments(Array.isArray(departmentsData) ? departmentsData : []);
     setStaff(Array.isArray(staffData) ? staffData : []);
     setAiServices(extractedAIServices);
@@ -2241,7 +2233,6 @@ function HospitalManagement() {
   } catch (error) {
     console.error('Failed to fetch data:', error);
 
-    // ✅ Handle "hospital module not set up" gracefully
     if (error.code === 'HOSPITAL_MODULE_NOT_SETUP' || error.requiresSetup) {
       console.log('ℹ️ Hospital module not set up. Showing create prompt.');
       setHospitals([]);
@@ -2255,6 +2246,7 @@ function HospitalManagement() {
     setLoading(false);
   }
 };
+  
   useEffect(() => {
     fetchAllData();
   }, []);
