@@ -2434,18 +2434,41 @@ export const getReports = async (hospitalId = null, filters = {}) => {
 
 
 
-const getHospitalDisplayName = () => {
-  // Get from session storage
-  const hospitalId = sessionStorage.getItem('hospital_id');
-  if (hospitalId && hospitals.length > 0) {
-    const hospital = hospitals.find(h => h.id == hospitalId);
-    if (hospital) return hospital.name;
+/**
+ * Get the display name of the current hospital
+ * Returns null if no hospital exists — caller must handle the empty state
+ * @param {Array} hospitals - Array of hospitals (defaults to empty)
+ * @returns {string|null} Hospital name, or null if none exists
+ */
+const getHospitalDisplayName = (hospitals = []) => {
+  // Ensure hospitals is an array
+  if (!Array.isArray(hospitals)) {
+    hospitals = [];
   }
-  // Fallback to first hospital
-  if (hospitals.length > 0) {
-    return hospitals[0].name || 'Hospital';
+
+  // If there are no hospitals at all, return null
+  if (hospitals.length === 0) {
+    return null;
   }
-  return 'Hospital';
+
+  // Try to get hospital ID from storage
+  const hospitalId =
+    sessionStorage.getItem('hospital_id') ||
+    sessionStorage.getItem('hospitalId') ||
+    localStorage.getItem('hospitalId');
+
+  // If no ID stored, but hospitals exist, return the first one
+  if (!hospitalId) {
+    return hospitals[0]?.name || null;
+  }
+
+  // Find the hospital matching the stored ID
+  const hospital = hospitals.find(h =>
+    String(h.id) === String(hospitalId)
+  );
+
+  // Return the matched hospital name, or null if not found
+  return hospital?.name || null;
 };
 
 export const deleteReport = async (id, hospitalId = null) => {
