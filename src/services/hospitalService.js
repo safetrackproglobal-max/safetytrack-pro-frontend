@@ -123,6 +123,30 @@ export const deleteHospital = async (id) => {
   }
 };
 
+/**
+ * Get company details by ID
+ * @param {string} companyId - Company ID
+ * @returns {Promise} Company data
+ */
+export const getCompany = async (companyId) => {
+  try {
+    if (!companyId) {
+      const error = new Error('Company ID is required');
+      error.code = 'MISSING_COMPANY_ID';
+      error.userMessage = 'Company ID is required.';
+      throw error;
+    }
+
+    console.log(`🔄 Fetching company ${companyId}...`);
+    const res = await api.get(`/companies/${companyId}`);
+    console.log('✅ Company data received:', res.data);
+    return res.data;
+  } catch (error) {
+    console.error(`❌ Error fetching company ${companyId}:`, error);
+    throw error;
+  }
+};
+
 // ============================================
 // DEPARTMENT MANAGEMENT
 // ============================================
@@ -2286,6 +2310,108 @@ export const generateQualityReport = async (hospitalId, dateRange) => {
   }
 };
 
+/**
+ * Get financial data for hospital
+ * @param {string} hospitalId - Optional hospital ID
+ * @returns {Promise} Financial data (revenue, receivables, claims, etc.)
+ */
+export const getFinancialData = async (hospitalId = null) => {
+  try {
+    checkHospitalModule();
+    const effectiveId = validateHospitalId(hospitalId, 'getFinancialData');
+
+    console.log(`🔄 Fetching financial data for hospital ${effectiveId}...`);
+    const res = await api.get(`/hospital/${effectiveId}/financial`);
+
+    // Normalize response shape
+    const payload = res.data?.data || res.data || {};
+    const normalized = {
+      totalRevenue: payload.totalRevenue || 0,
+      outstandingReceivables: payload.outstandingReceivables || 0,
+      collectionRate: payload.collectionRate || 0,
+      pendingClaims: payload.pendingClaims || 0,
+      revenueByDepartment: Array.isArray(payload.revenueByDepartment)
+        ? payload.revenueByDepartment
+        : [],
+      payerMix: Array.isArray(payload.payerMix) ? payload.payerMix : [],
+    };
+
+    console.log('✅ Financial data received:', normalized);
+    return { success: true, data: normalized };
+  } catch (error) {
+    console.error('❌ Error fetching financial data:', error);
+
+    // Return empty shape so the UI doesn't crash
+    if (error.code === 'HOSPITAL_MODULE_NOT_SETUP' || error.requiresSetup) {
+      return {
+        success: true,
+        data: {
+          totalRevenue: 0,
+          outstandingReceivables: 0,
+          collectionRate: 0,
+          pendingClaims: 0,
+          revenueByDepartment: [],
+          payerMix: [],
+        },
+        requiresSetup: true,
+        message: error.userMessage,
+      };
+    }
+
+    throw error;
+  }
+};
+
+/**
+ * Get system health & integration status
+ * @param {string} hospitalId - Optional hospital ID
+ * @returns {Promise} System health data (uptime, services, integrations)
+ */
+export const getSystemHealth = async (hospitalId = null) => {
+  try {
+    checkHospitalModule();
+    const effectiveId = validateHospitalId(hospitalId, 'getSystemHealth');
+
+    console.log(`🔄 Fetching system health for hospital ${effectiveId}...`);
+    const res = await api.get(`/hospital/${effectiveId}/system-health`);
+
+    // Normalize response shape
+    const payload = res.data?.data || res.data || {};
+    const normalized = {
+      uptime: payload.uptime || '0%',
+      responseTime: payload.responseTime || '0ms',
+      activeUsers: payload.activeUsers || 0,
+      pendingJobs: payload.pendingJobs || 0,
+      services: Array.isArray(payload.services) ? payload.services : [],
+      integrations: Array.isArray(payload.integrations) ? payload.integrations : [],
+    };
+
+    console.log('✅ System health received:', normalized);
+    return { success: true, data: normalized };
+  } catch (error) {
+    console.error('❌ Error fetching system health:', error);
+
+    // Return empty shape so the UI doesn't crash
+    if (error.code === 'HOSPITAL_MODULE_NOT_SETUP' || error.requiresSetup) {
+      return {
+        success: true,
+        data: {
+          uptime: '0%',
+          responseTime: '0ms',
+          activeUsers: 0,
+          pendingJobs: 0,
+          services: [],
+          integrations: [],
+        },
+        requiresSetup: true,
+        message: error.userMessage,
+      };
+    }
+
+    throw error;
+  }
+};
+
 // ============================================
 // AUDIT & LOGGING
 // ============================================
@@ -2497,7 +2623,7 @@ export const hospitalService = {
   createHospital,
   updateHospital,
   deleteHospital,
-  
+  getCompany,
   
 
   
@@ -2730,6 +2856,8 @@ export const hospitalService = {
   getHospitalAnalytics,
   getComplianceReport,
   generateQualityReport,
+  getFinancialData,    // ✅ ADD THIS
+  getSystemHealth,
   
   // Audit & Logging
   getAuditLogs,
