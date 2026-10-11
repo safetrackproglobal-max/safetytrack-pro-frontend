@@ -2477,17 +2477,19 @@ const hasHospital = () => {
 
         <Space size="large">
           <Button
-            type="primary"
-            size="large"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              window.location.href = '/company/setup';
-            }}
-            className="btn-primary-gradient"
-            style={{ padding: '0 40px', height: '50px', fontSize: '16px' }}
-          >
-            Create Company
-          </Button>
+  type="primary"
+  size="large"
+  icon={<PlusOutlined />}
+  onClick={() => {
+    // Clear any stale signup state and send user to signup
+    sessionStorage.removeItem('signupState');
+    window.location.href = '/register';
+  }}
+  className="btn-primary-gradient"
+  style={{ padding: '0 40px', height: '50px', fontSize: '16px' }}
+>
+  Register Your Company
+</Button>
 
           <Button
             size="large"
