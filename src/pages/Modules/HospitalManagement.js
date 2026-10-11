@@ -2168,57 +2168,93 @@ function HospitalManagement() {
 };
 
   const fetchAllData = async () => {
-    setLoading(true);
-    try {
-      await fetchUserContext();
-      
-      const [hospitalsData, departmentsData, staffData, aiServicesData] = await Promise.all([
-        hospitalService.getHospitals(),
-        hospitalService.getDepartments(),
-        hospitalService.getMedicalStaff(),
-        hospitalService.getAIServices()
-      ]);
-    
-      console.log('🔍 Hospitals Data:', hospitalsData);
-      console.log('🔍 AI Services Data (raw):', aiServicesData);
-      
-      let extractedAIServices = [];
-      
-      if (aiServicesData && aiServicesData.services) {
-        extractedAIServices = aiServicesData.services;
-      } else if (Array.isArray(aiServicesData)) {
-        extractedAIServices = aiServicesData;
-      } else if (hospitalsData && hospitalsData.length > 0 && hospitalsData[0]?.aiServices) {
-        extractedAIServices = hospitalsData[0].aiServices;
-      } else {
-        for (const hospital of (hospitalsData || [])) {
-          if (hospital.aiServices && Array.isArray(hospital.aiServices)) {
-            extractedAIServices = hospital.aiServices;
-            break;
-          }
-        }
-      }
-      
-      console.log('✅ Extracted AI Services:', extractedAIServices);
-      
-      setHospitals(Array.isArray(hospitalsData) ? hospitalsData : []);
-      setDepartments(Array.isArray(departmentsData) ? departmentsData : []);
-      setStaff(Array.isArray(staffData) ? staffData : []);
-      setAiServices(extractedAIServices);
-      
-      message.success('Data loaded successfully');
-    } catch (error) {
-      console.error('Failed to fetch data:', error);
-      message.error('Failed to load data');
+  setLoading(true);
+  try {
+    // ✅ STEP 1: Check company FIRST
+    const companyId = sessionStorage.getItem('company_id');
+    if (!companyId) {
+      console.log('ℹ️ No company found. Waiting for registration.');
       setHospitals([]);
       setDepartments([]);
       setStaff([]);
       setAiServices([]);
-    } finally {
+      setUserCompany(null);
+      setUserHospital(null);
       setLoading(false);
+      return;
     }
-  };
 
+    // ✅ STEP 2: Fetch company + hospitals
+    await fetchUserContext();
+
+    const hospitalsData = await hospitalService.getHospitals();
+    const hospitalsList = Array.isArray(hospitalsData) ? hospitalsData : [];
+    setHospitals(hospitalsList);
+
+    // ✅ STEP 3: If no hospitals exist, stop here — show create prompt
+    if (hospitalsList.length === 0) {
+      console.log('ℹ️ No hospitals found. Waiting for user to create one.');
+      setDepartments([]);
+      setStaff([]);
+      setAiServices([]);
+      setLoading(false);
+      return;
+    }
+
+    // ✅ STEP 4: Hospitals exist — fetch everything else
+    const [departmentsData, staffData, aiServicesData] = await Promise.all([
+      hospitalService.getDepartments().catch(err => {
+        if (!err.silent) console.warn('⚠️ Could not fetch departments:', err.message);
+        return [];
+      }),
+      hospitalService.getMedicalStaff().catch(err => {
+        if (!err.silent) console.warn('⚠️ Could not fetch medical staff:', err.message);
+        return [];
+      }),
+      hospitalService.getAIServices().catch(err => {
+        if (!err.silent) console.warn('⚠️ Could not fetch AI services:', err.message);
+        return [];
+      }),
+    ]);
+
+    // ✅ STEP 5: Normalize AI services
+    let extractedAIServices = [];
+    if (aiServicesData?.services) {
+      extractedAIServices = aiServicesData.services;
+    } else if (Array.isArray(aiServicesData)) {
+      extractedAIServices = aiServicesData;
+    } else {
+      for (const hospital of hospitalsList) {
+        if (Array.isArray(hospital.aiServices)) {
+          extractedAIServices = hospital.aiServices;
+          break;
+        }
+      }
+    }
+
+    // ✅ STEP 6: Set state
+    setDepartments(Array.isArray(departmentsData) ? departmentsData : []);
+    setStaff(Array.isArray(staffData) ? staffData : []);
+    setAiServices(extractedAIServices);
+
+    message.success('Data loaded successfully');
+  } catch (error) {
+    console.error('Failed to fetch data:', error);
+
+    // ✅ Handle "hospital module not set up" gracefully
+    if (error.code === 'HOSPITAL_MODULE_NOT_SETUP' || error.requiresSetup) {
+      console.log('ℹ️ Hospital module not set up. Showing create prompt.');
+      setHospitals([]);
+      setDepartments([]);
+      setStaff([]);
+      setAiServices([]);
+    } else {
+      message.error('Failed to load data');
+    }
+  } finally {
+    setLoading(false);
+  }
+};
   useEffect(() => {
     fetchAllData();
   }, []);
