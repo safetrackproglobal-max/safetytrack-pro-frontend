@@ -1883,36 +1883,60 @@ async saveAIAssistantMessage(incidentId, message) {
 
   // ==================== NOTIFICATION MANAGEMENT ====================
 
+  function normalizeNotification(notification) {
+  return {
+    ...notification,
+    read: notification.is_read !== undefined ? notification.is_read : false,
+    date: notification.created_at || notification.date,
+    type: notification.type || 'info',
+    priority: notification.priority || 'medium',
+    category: notification.category || 'system',
+    is_read: notification.is_read,
+  };
+}
+
   async getNotifications() {
-    try {
-      const response = await api.get('/notifications');
-      
-      if (response.data && response.data.success) {
-        const notifications = response.data.notifications.map(notification => ({
-          ...notification,
-          read: notification.is_read !== undefined ? notification.is_read : false,
-          date: notification.created_at || notification.date,
-          type: notification.type || 'info',
-          priority: notification.priority || 'medium',
-          category: notification.category || 'system',
-          is_read: notification.is_read
-        }));
-        return notifications;
-      } else if (Array.isArray(response.data)) {
-        return response.data.map(notification => ({
-          ...notification,
-          read: notification.is_read !== undefined ? notification.is_read : false,
-          date: notification.created_at || notification.date,
-          is_read: notification.is_read
-        }));
-      }
-      return [];
-    } catch (error) {
-      console.error('❌ Failed to fetch notifications:', error);
+  try {
+    const response = await api.get('/notifications');
+
+    // Handle BOTH axios (response.data = body) and dedup (response = body) cases
+    const body = response?.data ?? response;
+
+    // Exit early on garbage
+    if (!body || typeof body !== 'object') {
+      console.warn('[notifications] Empty or non-object response:', body);
       return [];
     }
-  }
 
+    // Path 1: { success: true, notifications: [...] }
+    if (Array.isArray(body.notifications)) {
+      return body.notifications.map(normalizeNotification);
+    }
+
+    // Path 2: { success: true, data: { notifications: [...] } }
+    if (Array.isArray(body?.data?.notifications)) {
+      return body.data.notifications.map(normalizeNotification);
+    }
+
+    // Path 3: raw array response
+    if (Array.isArray(body)) {
+      return body.map(normalizeNotification);
+    }
+
+    // Path 4: success flag set but no array anywhere — log and bail safe
+    if (body.success) {
+      console.warn('[notifications] Success response had no notifications array:', body);
+      return [];
+    }
+
+    // Anything else — return empty, don't crash
+    console.warn('[notifications] Unrecognized response shape:', body);
+    return [];
+  } catch (error) {
+    console.error('❌ Failed to fetch notifications:', error);
+    return [];
+  }
+}
   async markAsRead(notificationId) {
     try {
       const response = await api.post(`/notifications/${notificationId}/read`);
