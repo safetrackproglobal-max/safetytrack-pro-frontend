@@ -2124,7 +2124,6 @@ function HospitalManagement() {
   // Fetch user's company and hospital info
   const fetchUserContext = async () => {
   try {
-    // ✅ Backend derives company from authenticated user — no ID needed
     const companyResponse = await hospitalService.getCompany().catch(err => {
       console.warn('⚠️ Could not fetch company:', err.message);
       return null;
@@ -2149,26 +2148,28 @@ function HospitalManagement() {
       } else {
         setUserHospital(null);
       }
+
+      return companyResponse.data;   // ✅ Return the company
     } else {
-      // No company associated — this is the "Company Required" state
       setUserCompany(null);
       setUserHospital(null);
+      return null;                    // ✅ Return null
     }
   } catch (error) {
     console.warn('Could not fetch user context:', error);
     setUserCompany(null);
     setUserHospital(null);
+    return null;                      // ✅ Return null
   }
 };
-
   const fetchAllData = async () => {
   setLoading(true);
   try {
-    // ✅ STEP 1: Fetch company + hospitals (backend derives company from user)
-    await fetchUserContext();
+    // ✅ Fetch company — use returned value directly
+    const company = await fetchUserContext();
 
-    // ✅ STEP 2: If no company, show "Company Required" prompt
-    if (!userCompany?.id) {
+    // ✅ Check the returned value, not the state
+    if (!company?.id) {
       console.log('ℹ️ No company found. Waiting for registration.');
       setHospitals([]);
       setDepartments([]);
@@ -2177,7 +2178,6 @@ function HospitalManagement() {
       setLoading(false);
       return;
     }
-
     // ✅ STEP 3: Fetch hospitals
     const hospitalsData = await hospitalService.getHospitals();
     const hospitalsList = Array.isArray(hospitalsData) ? hospitalsData : [];
