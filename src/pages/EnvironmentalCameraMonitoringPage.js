@@ -1,20 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react'; 
-import { 
-  Card, 
-  Button, 
-  Alert, 
-  Row, 
-  Col, 
-  Statistic, 
-  List, 
-  Tag, 
-  Space, 
-  Modal, 
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  Card,
+  Button,
+  Alert,
+  Row,
+  Col,
+  Statistic,
+  List,
+  Tag,
+  Space,
+  Modal,
   message,
   Spin,
   Progress,
   Tooltip,
-  Switch,
   Select,
   Tabs,
   Badge,
@@ -22,11 +21,11 @@ import {
   Collapse,
   notification
 } from 'antd';
-import { 
-  PlayCircleOutlined, 
-  PauseCircleOutlined, 
-  CameraOutlined, 
-  AlertOutlined, 
+import {
+  PlayCircleOutlined,
+  PauseCircleOutlined,
+  CameraOutlined,
+  AlertOutlined,
   SafetyCertificateOutlined,
   SettingOutlined,
   ExportOutlined,
@@ -51,25 +50,26 @@ const { Option } = Select;
 const { TabPane } = Tabs;
 const { Panel } = Collapse;
 
+// ✅ Production backend URL
+const BACKEND_URL = 'https://safetrackproglobal-backend-production.up.railway.app';
+
 // Camera Controls Component
-const CameraControls = ({ 
-  cameras, 
-  selectedCamera, 
-  onCameraChange, 
-  isMonitoring, 
-  onStartMonitoring, 
-  onStopMonitoring, 
-  loading, 
+const CameraControls = ({
+  cameras,
+  selectedCamera,
+  onCameraChange,
+  isMonitoring,
+  onStartMonitoring,
+  onStopMonitoring,
+  loading,
   socketConnected,
   analysisType,
   onAnalysisTypeChange,
   analysisTypes,
-  cameraType,
-  debugMode,
-  onDebugModeChange
+  cameraType
 }) => (
   <Row gutter={[16, 16]} align="middle">
-    <Col xs={24} md={7}>
+    <Col xs={24} md={8}>
       <Select
         style={{ width: '100%' }}
         placeholder={`Select ${cameraType === 'device' ? 'Device Camera' : 'CCTV Feed'}`}
@@ -90,8 +90,8 @@ const CameraControls = ({
         ))}
       </Select>
     </Col>
-    
-    <Col xs={24} md={7}>
+
+    <Col xs={24} md={8}>
       <Select
         style={{ width: '100%' }}
         placeholder="Analysis Type"
@@ -109,12 +109,12 @@ const CameraControls = ({
         ))}
       </Select>
     </Col>
-    
-    <Col xs={24} md={7}>
+
+    <Col xs={24} md={8}>
       <Space>
         {!isMonitoring ? (
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             icon={<PlayCircleOutlined />}
             onClick={onStartMonitoring}
             disabled={!selectedCamera || (cameraType === 'cctv' && !socketConnected)}
@@ -124,8 +124,8 @@ const CameraControls = ({
             Start {cameraType === 'device' ? 'Device Camera' : 'CCTV'} Monitoring
           </Button>
         ) : (
-          <Button 
-            danger 
+          <Button
+            danger
             icon={<PauseCircleOutlined />}
             onClick={onStopMonitoring}
             loading={loading}
@@ -135,17 +135,6 @@ const CameraControls = ({
           </Button>
         )}
       </Space>
-    </Col>
-
-    <Col xs={24} md={3}>
-      <Tooltip title="Toggle Debug Mode">
-        <Switch 
-          checked={debugMode}
-          onChange={onDebugModeChange}
-          checkedChildren="Debug"
-          unCheckedChildren="Debug"
-        />
-      </Tooltip>
     </Col>
   </Row>
 );
@@ -208,7 +197,6 @@ const MultiDomainRiskDashboard = ({ analysis }) => {
   return (
     <Card title="Comprehensive Safety Dashboard">
       <Row gutter={[16, 16]}>
-        {/* PPE Safety */}
         <Col span={8}>
           <Card size="small" title="👷 PPE Safety">
             <Statistic
@@ -222,8 +210,7 @@ const MultiDomainRiskDashboard = ({ analysis }) => {
             )}
           </Card>
         </Col>
-        
-        {/* Fire Safety */}
+
         <Col span={8}>
           <Card size="small" title="🔥 Fire Safety">
             <Statistic
@@ -237,12 +224,11 @@ const MultiDomainRiskDashboard = ({ analysis }) => {
             )}
           </Card>
         </Col>
-        
-        {/* Environmental */}
+
         <Col span={8}>
           <Card size="small" title="🌿 Environmental">
             <Statistic
-              title="Environmental Risk" 
+              title="Environmental Risk"
               value={analysis.environmental_risk_score || 0}
               suffix="/100"
               valueStyle={{ color: getRiskColor(analysis.environmental_risk_level) }}
@@ -253,8 +239,7 @@ const MultiDomainRiskDashboard = ({ analysis }) => {
           </Card>
         </Col>
       </Row>
-      
-      {/* Detailed Domain Alerts */}
+
       <Collapse style={{ marginTop: 16 }}>
         <Panel header="🔍 Detailed Domain Analysis" key="1">
           <DomainAnalysis breakdown={analysis.domain_breakdown} />
@@ -282,7 +267,6 @@ const EnvironmentalCameraMonitoringPage = () => {
   const [activeSessions, setActiveSessions] = useState([]);
   const [currentSessionId, setCurrentSessionId] = useState('');
   const [localStream, setLocalStream] = useState(null);
-  const [debugMode, setDebugMode] = useState(false); // Set to false by default for production
   const [cameraReady, setCameraReady] = useState(false);
   const [fps, setFps] = useState(0);
   const [detectionStats, setDetectionStats] = useState({
@@ -292,7 +276,7 @@ const EnvironmentalCameraMonitoringPage = () => {
     lastDetectionTime: null
   });
   const [processedFrame, setProcessedFrame] = useState('');
-  
+
   const videoRef = useRef(null);
   const localVideoRef = useRef(null);
   const processedVideoRef = useRef(null);
@@ -302,12 +286,10 @@ const EnvironmentalCameraMonitoringPage = () => {
   const isMonitoringRef = useRef(false);
   const stopRequestedRef = useRef(false);
 
-  // Sync ref with state
   useEffect(() => {
     isMonitoringRef.current = isMonitoring;
   }, [isMonitoring]);
 
-  // Auto-select camera when cameras become available
   useEffect(() => {
     const cameras = cameraStatus.available_cameras || [];
     if (cameras.length > 0 && !selectedCamera) {
@@ -317,7 +299,6 @@ const EnvironmentalCameraMonitoringPage = () => {
     }
   }, [cameraStatus.available_cameras, selectedCamera]);
 
-  // Stop local camera function
   const stopLocalCamera = () => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => {
@@ -326,7 +307,7 @@ const EnvironmentalCameraMonitoringPage = () => {
       streamRef.current = null;
       setLocalStream(null);
     }
-    
+
     if (localVideoRef.current) {
       localVideoRef.current.srcObject = null;
     }
@@ -348,18 +329,9 @@ const EnvironmentalCameraMonitoringPage = () => {
     };
   }, []);
 
-  // Initialize system
   const initializeSystem = async () => {
     try {
       setLoading(true);
-      
-      // Check if backend is running
-      const backendHealthy = await checkBackendHealth();
-      if (!backendHealthy) {
-        message.error('Backend server is not running. Please start the Flask server.');
-      }
-      // Removed empty success message
-      
       await checkCameraStatus();
       await checkSystemHealth();
       await loadViolationHistory();
@@ -373,102 +345,76 @@ const EnvironmentalCameraMonitoringPage = () => {
     }
   };
 
-  // Check backend health
-  const checkBackendHealth = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/');
-      const result = await response.json();
-      return result.status === 'healthy';
-    } catch (error) {
-      console.error('Backend not reachable:', error);
-      return false;
-    }
-  };
-
   // Frame Analysis Function using setInterval
   const startFrameAnalysis = (sessionId) => {
-    // Clear any existing interval
     if (analysisIntervalRef.current) {
       clearInterval(analysisIntervalRef.current);
       analysisIntervalRef.current = null;
     }
-    
+
     frameAnalysisActiveRef.current = true;
-    
-    // Set up interval for frame analysis
+
     analysisIntervalRef.current = setInterval(async () => {
-      
-      // SIMPLIFIED CHECK: Only stop if monitoring is false
       if (!isMonitoringRef.current) {
         clearInterval(analysisIntervalRef.current);
         analysisIntervalRef.current = null;
         return;
       }
-      
-      // If frame analysis was explicitly stopped, clear interval
+
       if (!frameAnalysisActiveRef.current) {
         clearInterval(analysisIntervalRef.current);
         analysisIntervalRef.current = null;
         return;
       }
-      
-      // Check if video ref exists (it should always exist now)
+
       if (!localVideoRef.current) {
         return;
       }
-      
+
       try {
         const video = localVideoRef.current;
-        
-        // Check if video is actually playing (not paused or ended)
+
         if (video.paused || video.ended) {
           return;
         }
-        
+
         if (video.readyState < 2) {
           return;
         }
-        
+
         const width = video.videoWidth || 640;
         const height = video.videoHeight || 480;
-        
+
         if (width === 0 || height === 0) {
           return;
         }
-        
-        // Create canvas for capturing frames
+
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        
+
         canvas.width = width;
         canvas.height = height;
-        
-        // Draw video frame to canvas
+
         ctx.drawImage(video, 0, 0, width, height);
-        
-        // Convert to base64
+
         const frameData = canvas.toDataURL('image/jpeg', 0.7);
-        
-        // Send to backend for YOLOv8 analysis with color system
+
         const analysisResponse = await environmentalAIService.analyzeCameraFrameEnhanced(
-          frameData, 
-          sessionId, 
+          frameData,
+          sessionId,
           analysisType
         );
-        
-        // Process the response
+
         if (analysisResponse && analysisResponse.success) {
-          // Check if still monitoring before updating state
           if (isMonitoringRef.current && frameAnalysisActiveRef.current) {
             setAnalysis(analysisResponse.analysis);
-            
+
             if (analysisResponse.processed_image) {
               setProcessedFrame(analysisResponse.processed_image);
             } else if (analysisResponse.analysis?.processed_image) {
               setProcessedFrame(analysisResponse.analysis.processed_image);
             }
-            
-            // Update stats
+
             setDetectionStats(prev => ({
               ...prev,
               framesProcessed: prev.framesProcessed + 1,
@@ -476,8 +422,7 @@ const EnvironmentalCameraMonitoringPage = () => {
               violations: prev.violations + (analysisResponse.analysis?.ppe_violations || 0),
               lastDetectionTime: new Date().toISOString()
             }));
-            
-            // Handle violations
+
             if (analysisResponse.analysis.ppe_violations > 0) {
               addToViolationHistory({
                 id: `violation_${Date.now()}`,
@@ -490,44 +435,40 @@ const EnvironmentalCameraMonitoringPage = () => {
                 ai_model: analysisResponse.analysis.analysis_method || 'yolov8_19class_safety',
                 acknowledged: false
               });
-              
-              // Show notification
+
               notification.warning({
                 message: '🚨 Safety Violation Detected',
                 description: `${analysisResponse.analysis.ppe_violations} PPE violations found`,
                 duration: 5,
               });
             }
-            
-            // Update FPS
+
             if (analysisResponse.analysis.processing_time_ms) {
               const currentFps = Math.round(1000 / analysisResponse.analysis.processing_time_ms);
               setFps(currentFps);
             }
           }
         }
-        
+
       } catch (error) {
         console.error('Frame analysis error:', error);
-        // Don't stop on error, just continue
       }
-    }, 2000); // Every 2 seconds
+    }, 2000);
   };
 
   const checkCameraStatus = async () => {
     try {
       const response = await environmentalAIService.getCameraStatus();
-      
+
       if (response.success) {
         setCameraStatus(response);
         const cameras = response.available_cameras || [];
-        
+
         if (cameras.length > 0) {
-          // AUTO-SELECT the first available camera
           const firstCamera = cameras[0];
           setSelectedCamera(firstCamera.id);
           setSelectedCameraType(firstCamera.type);
-          
+
           await loadCameraConfig(firstCamera.id);
         }
       }
@@ -537,18 +478,18 @@ const EnvironmentalCameraMonitoringPage = () => {
   };
 
   const initializeWebSocket = () => {
-    const newSocket = io('http://localhost:5000', {
+    const newSocket = io(BACKEND_URL, {
       transports: ['websocket', 'polling'],
       timeout: 10000,
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000
     });
-    
+
     setSocket(newSocket);
 
     newSocket.on('connect', () => {
-      // Silent connect - no message
+      // Silent connect
     });
 
     newSocket.on('disconnect', () => {
@@ -559,17 +500,16 @@ const EnvironmentalCameraMonitoringPage = () => {
 
     newSocket.on('connect_error', (error) => {
       console.error('WebSocket connection error:', error);
-      message.error('Failed to connect to monitoring server');
+      message.error('Unable to connect to the monitoring service. Please try again.');
     });
 
     newSocket.on('video_frame', (data) => {
-      // Set both raw and processed frames
       setVideoFrame(data.frame);
       if (data.processed_image) {
         setProcessedFrame(data.processed_image);
       }
       setAnalysis(data.analysis);
-      
+
       if (data.analysis.violations && data.analysis.violations.length > 0) {
         addToViolationHistory({
           timestamp: data.timestamp,
@@ -584,19 +524,14 @@ const EnvironmentalCameraMonitoringPage = () => {
     newSocket.on('monitoring_status', (data) => {
       if (data.status === 'started') {
         setIsMonitoring(true);
-        // Silent - no success message
       } else if (data.status === 'stopped') {
-        // Only stop if we're actually monitoring
         if (isMonitoringRef.current) {
           stopMonitoring();
         }
       }
     });
 
-    // Add frame analysis response handler
     newSocket.on('frame_analysis', (data) => {
-      
-      // Create analysis object from socket data
       const socketAnalysis = {
         risk_level: data.ppe_violations > 0 ? 'HIGH' : 'LOW',
         risk_score: data.ppe_violations > 0 ? 65 : 25,
@@ -608,10 +543,9 @@ const EnvironmentalCameraMonitoringPage = () => {
         ai_detections: data.hazards_count || 0,
         color_system_enabled: data.color_system || true
       };
-      
+
       setAnalysis(socketAnalysis);
-      
-      // Update detection stats
+
       setDetectionStats(prev => ({
         ...prev,
         framesProcessed: prev.framesProcessed + 1,
@@ -619,8 +553,7 @@ const EnvironmentalCameraMonitoringPage = () => {
         violations: prev.violations + (data.ppe_violations || 0),
         lastDetectionTime: new Date().toISOString()
       }));
-      
-      // Handle violations
+
       if (data.ppe_violations > 0) {
         addToViolationHistory({
           id: `violation_${Date.now()}`,
@@ -638,22 +571,20 @@ const EnvironmentalCameraMonitoringPage = () => {
           ai_model: 'yolov8_19class_safety',
           acknowledged: false
         });
-        
+
         notification.warning({
           message: '🚨 Safety Violation Detected',
           description: `${data.ppe_violations} PPE violations found`,
           duration: 5,
         });
       }
-      
-      // Update processed frame if available
+
       if (data.processed_image) {
         setProcessedFrame(data.processed_image);
       }
     });
   };
 
-  // REAL CAMERA FUNCTIONS
   const startDeviceCamera = async () => {
     if (!selectedCamera) {
       message.warning('Please select a camera first');
@@ -662,22 +593,16 @@ const EnvironmentalCameraMonitoringPage = () => {
 
     try {
       setLoading(true);
-      
-      // Reset stop requested flag
       stopRequestedRef.current = false;
-      
-      // Set monitoring state IMMEDIATELY
       setIsMonitoring(true);
       isMonitoringRef.current = true;
-      setProcessedFrame(''); // Clear any previous processed frames
-      
-      // Start backend session first
+      setProcessedFrame('');
+
       const response = await environmentalAIService.startDeviceCamera(selectedCamera);
-      
+
       if (response.success) {
         setCurrentSessionId(response.session_id);
-        
-        // Then get the camera stream
+
         try {
           await startRealCameraStream();
         } catch (streamError) {
@@ -687,17 +612,15 @@ const EnvironmentalCameraMonitoringPage = () => {
           setLoading(false);
           return;
         }
-        
-        // Start frame analysis immediately
+
         frameAnalysisActiveRef.current = true;
-        
-        // Wait a bit for video to initialize, then start analysis
+
         setTimeout(() => {
           if (isMonitoringRef.current && frameAnalysisActiveRef.current && !stopRequestedRef.current) {
             startFrameAnalysis(response.session_id);
           }
         }, 1000);
-        
+
       } else {
         message.error('Failed to start device camera: ' + (response.error || 'Unknown error'));
         stopLocalCamera();
@@ -715,52 +638,43 @@ const EnvironmentalCameraMonitoringPage = () => {
     }
   };
 
-  // REAL CAMERA STREAM FUNCTION
   const startRealCameraStream = async () => {
     try {
-      // Get available cameras
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoDevices = devices.filter(device => device.kind === 'videoinput');
 
-      // Camera constraints
       const constraints = {
-        video: { 
+        video: {
           width: { ideal: 640, max: 1280 },
           height: { ideal: 480, max: 720 },
-          aspectRatio: { ideal: 4/3 },
+          aspectRatio: { ideal: 4 / 3 },
           frameRate: { ideal: 15, max: 30 },
           facingMode: selectedCamera === 'device_back' ? 'environment' : 'user',
         },
         audio: false
       };
 
-      // Get the stream
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      
-      // Set up the video element
+
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
-        
-        // Add event listeners
+
         localVideoRef.current.onloadedmetadata = () => {
           setCameraReady(true);
-          
-          // Start playing the video
           localVideoRef.current.play().catch(error => {
             console.error('Failed to play video:', error);
           });
         };
-        
+
         localVideoRef.current.onplaying = () => {
-          // Silent - no message
+          // Silent
         };
-        
+
         localVideoRef.current.onerror = (error) => {
           console.error('Video error:', error);
           message.error('Failed to load camera feed');
         };
-        
-        // Ensure video is visible and properly sized
+
         localVideoRef.current.style.width = '100%';
         localVideoRef.current.style.height = 'auto';
         localVideoRef.current.style.objectFit = 'contain';
@@ -774,18 +688,17 @@ const EnvironmentalCameraMonitoringPage = () => {
       return stream;
     } catch (error) {
       console.error('Error accessing camera:', error);
-      
-      // Provide helpful error messages
+
       if (error.name === 'NotAllowedError') {
         message.error('Camera permission denied. Please allow camera access.');
       } else if (error.name === 'NotFoundError') {
-        message.error('No camera found. Please check your device.');
+        message.error('Camera not found on your device. Please connect a camera and try again.');
       } else if (error.name === 'NotReadableError') {
         message.error('Camera is already in use by another application.');
       } else {
         message.error(`Camera error: ${error.message}`);
       }
-      
+
       throw error;
     }
   };
@@ -798,19 +711,19 @@ const EnvironmentalCameraMonitoringPage = () => {
 
     try {
       setLoading(true);
-      
+
       const response = await environmentalAIService.startCCTVFeed(selectedCamera);
-      
+
       if (response.success) {
         setCurrentSessionId(response.session_id);
         setIsMonitoring(true);
         isMonitoringRef.current = true;
         stopRequestedRef.current = false;
-        
+
         if (socket && socket.connected) {
-          socket.emit('start_monitoring', { 
+          socket.emit('start_monitoring', {
             camera_id: selectedCamera,
-            session_id: response.session_id 
+            session_id: response.session_id
           });
         }
       } else {
@@ -827,22 +740,18 @@ const EnvironmentalCameraMonitoringPage = () => {
   const stopMonitoring = async () => {
     try {
       setLoading(true);
-      
-      // Set stop requested flag FIRST
       stopRequestedRef.current = true;
-      
-      // Clear frame analysis interval
+
       if (analysisIntervalRef.current) {
         clearInterval(analysisIntervalRef.current);
         analysisIntervalRef.current = null;
       }
-      
-      // Stop frame analysis
+
       frameAnalysisActiveRef.current = false;
-      
+
       if (currentSessionId) {
         const response = await environmentalAIService.stopCameraSession(currentSessionId);
-        
+
         if (response.success) {
           setIsMonitoring(false);
           isMonitoringRef.current = false;
@@ -852,30 +761,25 @@ const EnvironmentalCameraMonitoringPage = () => {
           setCurrentSessionId('');
           setCameraReady(false);
           setFps(0);
-          
-          // Stop real camera stream for device cameras
+
           if (selectedCameraType === 'device') {
             stopLocalCamera();
           }
-          
-          // Reset detection stats
+
           setDetectionStats({
             framesProcessed: 0,
             detections: 0,
             violations: 0,
             lastDetectionTime: null
           });
-          
+
           if (socket) {
             socket.emit('stop_monitoring', { session_id: currentSessionId });
           }
-          
-          // Silent - no success message
         } else {
           message.error('Failed to stop monitoring: ' + (response.error || 'Invalid response'));
         }
       } else {
-        // Fallback if no session ID
         setIsMonitoring(false);
         isMonitoringRef.current = false;
         stopRequestedRef.current = true;
@@ -885,16 +789,13 @@ const EnvironmentalCameraMonitoringPage = () => {
         setCameraReady(false);
         setFps(0);
         stopLocalCamera();
-        
-        // Reset detection stats
+
         setDetectionStats({
           framesProcessed: 0,
           detections: 0,
           violations: 0,
           lastDetectionTime: null
         });
-        
-        // Silent - no success message
       }
     } catch (error) {
       console.error('Stop monitoring failed:', error);
@@ -907,7 +808,7 @@ const EnvironmentalCameraMonitoringPage = () => {
   const checkSystemHealth = async () => {
     try {
       const response = await environmentalAIService.getSystemHealth();
-      
+
       if (response.success) {
         setSystemHealth(response.health || response);
       }
@@ -922,7 +823,7 @@ const EnvironmentalCameraMonitoringPage = () => {
         limit: 10,
         severity: 'critical,high'
       });
-      
+
       if (response.success) {
         setViolationHistory(response.violations || []);
       }
@@ -935,7 +836,7 @@ const EnvironmentalCameraMonitoringPage = () => {
   const loadActiveSessions = async () => {
     try {
       const response = await environmentalAIService.getActiveSessions();
-      
+
       if (response.success) {
         setActiveSessions(response.active_sessions || []);
       }
@@ -948,7 +849,7 @@ const EnvironmentalCameraMonitoringPage = () => {
   const loadCameraConfig = async (cameraId) => {
     try {
       const response = await environmentalAIService.getCameraConfig(cameraId);
-      
+
       if (response.success) {
         setCameraConfig(response.config || {});
       }
@@ -996,7 +897,7 @@ const EnvironmentalCameraMonitoringPage = () => {
       setSelectedCamera(cameraId);
       setSelectedCameraType(camera.type);
       loadCameraConfig(cameraId);
-      
+
       if (isMonitoring) {
         stopMonitoring();
       }
@@ -1021,10 +922,6 @@ const EnvironmentalCameraMonitoringPage = () => {
     message.success('System refreshed');
   };
 
-  const handleDebugModeChange = (checked) => {
-    setDebugMode(checked);
-  };
-
   const analysisTypes = [
     { value: 'safety_monitoring', label: 'Safety Monitoring', icon: <SafetyOutlined /> },
     { value: 'ppe_detection', label: 'PPE Detection', icon: <SafetyCertificateOutlined /> },
@@ -1032,7 +929,6 @@ const EnvironmentalCameraMonitoringPage = () => {
     { value: 'fire_detection', label: 'Fire Detection', icon: <FireOutlined /> }
   ];
 
-  // Camera data
   const allCameras = cameraStatus.available_cameras || cameraStatus.cameras || [];
   const deviceCameras = allCameras.filter(cam => cam.type === 'device');
   const cctvCameras = allCameras.filter(cam => cam.type === 'cctv');
@@ -1057,18 +953,13 @@ const EnvironmentalCameraMonitoringPage = () => {
                         LIVE {selectedCameraType?.toUpperCase()} MONITORING
                       </Tag>
                     )}
-                    {debugMode && (
-                      <Tag color="orange" icon={<BugOutlined />}>
-                        DEBUG MODE
-                      </Tag>
-                    )}
                   </Space>
                 </Col>
                 <Col>
                   <Space>
                     <Tooltip title="Refresh System">
-                      <Button 
-                        icon={<ReloadOutlined />} 
+                      <Button
+                        icon={<ReloadOutlined />}
                         onClick={refreshSystem}
                         disabled={isMonitoring}
                       >
@@ -1076,34 +967,19 @@ const EnvironmentalCameraMonitoringPage = () => {
                       </Button>
                     </Tooltip>
                     <Tooltip title="Camera Settings">
-                      <Button 
+                      <Button
                         icon={<SettingOutlined />}
                         onClick={() => setShowSettings(true)}
                       >
                         Settings
                       </Button>
                     </Tooltip>
-                    <Button 
+                    <Button
                       icon={<ExportOutlined />}
                       onClick={() => {/* export function */}}
                     >
                       Export Report
                     </Button>
-                    {debugMode && isMonitoring && (
-                      <Button 
-                        type="dashed" 
-                        icon={<ReloadOutlined />}
-                        onClick={() => {
-                          frameAnalysisActiveRef.current = true;
-                          if (currentSessionId && isMonitoring) {
-                            startFrameAnalysis(currentSessionId);
-                          }
-                        }}
-                        size="small"
-                      >
-                        Restart Analysis
-                      </Button>
-                    )}
                   </Space>
                 </Col>
               </Row>
@@ -1113,79 +989,23 @@ const EnvironmentalCameraMonitoringPage = () => {
           {/* Camera Type Tabs */}
           <Col span={24}>
             <Card size="small">
-              
-              {debugMode && (
-                <Card title="Debug Info" size="small" style={{ marginBottom: 16, backgroundColor: '#f5f5f5' }}>
-                  <Space direction="vertical" style={{ width: '100%' }}>
-                    <div>
-                      <strong>Selected Camera:</strong> 
-                      <Tag color={selectedCamera ? 'green' : 'red'}>
-                        {selectedCamera || 'NONE SELECTED'}
-                      </Tag>
-                    </div>
-                    <div>
-                      <strong>Available Cameras:</strong> 
-                      <Tag>{cameraStatus.available_cameras?.length || 0}</Tag>
-                    </div>
-                    <div>
-                      <strong>Camera Type:</strong> 
-                      <Tag>{selectedCameraType || 'NONE'}</Tag>
-                    </div>
-                    <div>
-                      <strong>Monitoring:</strong> 
-                      <Tag color={isMonitoring ? 'green' : 'red'}>
-                        {isMonitoring ? 'ACTIVE' : 'INACTIVE'}
-                      </Tag>
-                    </div>
-                    <div>
-                      <strong>Session ID:</strong> 
-                      <Tag>{currentSessionId || 'None'}</Tag>
-                    </div>
-                    <div>
-                      <strong>Detection Stats:</strong> 
-                      <Tag color="blue">
-                        Frames: {detectionStats.framesProcessed} | Detections: {detectionStats.detections}
-                      </Tag>
-                    </div>
-                    <div>
-                      <strong>Video Ready:</strong> 
-                      <Tag color={cameraReady ? 'green' : 'red'}>
-                        {cameraReady ? 'READY' : 'LOADING'}
-                      </Tag>
-                    </div>
-                    <div>
-                      <strong>Frame Analysis Active:</strong> 
-                      <Tag color={frameAnalysisActiveRef.current ? 'green' : 'red'}>
-                        {frameAnalysisActiveRef.current ? 'RUNNING' : 'STOPPED'}
-                      </Tag>
-                    </div>
-                    <div>
-                      <strong>Stop Requested:</strong> 
-                      <Tag color={stopRequestedRef.current ? 'red' : 'green'}>
-                        {stopRequestedRef.current ? 'YES' : 'NO'}
-                      </Tag>
-                    </div>
-                  </Space>
-                </Card>
-              )}
-              
-              <Tabs 
-                activeKey={activeTab} 
+              <Tabs
+                activeKey={activeTab}
                 onChange={setActiveTab}
                 type="card"
               >
                 {/* Device Cameras Tab */}
-                <TabPane 
+                <TabPane
                   tab={
                     <span>
                       <MobileOutlined />
                       Device Cameras
                       <Badge count={deviceCameras.length} style={{ marginLeft: 8 }} />
                     </span>
-                  } 
+                  }
                   key="device"
                 >
-                  <CameraControls 
+                  <CameraControls
                     cameras={deviceCameras}
                     selectedCamera={selectedCamera}
                     onCameraChange={handleCameraChange}
@@ -1198,23 +1018,21 @@ const EnvironmentalCameraMonitoringPage = () => {
                     onAnalysisTypeChange={handleAnalysisTypeChange}
                     analysisTypes={analysisTypes}
                     cameraType="device"
-                    debugMode={debugMode}
-                    onDebugModeChange={handleDebugModeChange}
                   />
                 </TabPane>
-                
+
                 {/* CCTV Feeds Tab */}
-                <TabPane 
+                <TabPane
                   tab={
                     <span>
                       <VideoCameraOutlined />
                       CCTV Feeds
                       <Badge count={cctvCameras.length} style={{ marginLeft: 8 }} />
                     </span>
-                  } 
+                  }
                   key="cctv"
                 >
-                  <CameraControls 
+                  <CameraControls
                     cameras={cctvCameras}
                     selectedCamera={selectedCamera}
                     onCameraChange={handleCameraChange}
@@ -1227,20 +1045,18 @@ const EnvironmentalCameraMonitoringPage = () => {
                     onAnalysisTypeChange={handleAnalysisTypeChange}
                     analysisTypes={analysisTypes}
                     cameraType="cctv"
-                    debugMode={debugMode}
-                    onDebugModeChange={handleDebugModeChange}
                   />
                 </TabPane>
 
                 {/* Advanced AI Analysis Tab */}
-                <TabPane 
+                <TabPane
                   tab={
                     <span>
                       <RobotOutlined />
                       Advanced AI Analysis
                       <Tag color="purple" style={{ marginLeft: 8 }}>New</Tag>
                     </span>
-                  } 
+                  }
                   key="video-ai"
                 >
                   <div style={{ padding: '16px 0' }}>
@@ -1260,7 +1076,7 @@ const EnvironmentalCameraMonitoringPage = () => {
 
           {/* Live Camera Feed */}
           <Col xs={24} lg={16}>
-            <Card 
+            <Card
               title={
                 <Space>
                   {selectedCameraType === 'device' ? <MobileOutlined /> : <VideoCameraOutlined />}
@@ -1293,17 +1109,11 @@ const EnvironmentalCameraMonitoringPage = () => {
                   {detectionStats.framesProcessed > 0 && (
                     <Tag color="blue">Frames: {detectionStats.framesProcessed}</Tag>
                   )}
-                  {frameAnalysisActiveRef.current && (
-                    <Tag color="green">ANALYSIS ACTIVE</Tag>
-                  )}
-                  {stopRequestedRef.current && (
-                    <Tag color="red">STOP REQUESTED</Tag>
-                  )}
                 </Space>
               }
             >
-              <div className="video-container" style={{ 
-                position: 'relative', 
+              <div className="video-container" style={{
+                position: 'relative',
                 backgroundColor: '#000',
                 borderRadius: '8px',
                 overflow: 'hidden',
@@ -1312,14 +1122,13 @@ const EnvironmentalCameraMonitoringPage = () => {
                 alignItems: 'center',
                 justifyContent: 'center'
               }}>
-                {/* ALWAYS keep the video element mounted but hidden when showing processed frame */}
                 <video
                   ref={localVideoRef}
                   autoPlay
                   playsInline
                   muted
-                  style={{ 
-                    width: '100%', 
+                  style={{
+                    width: '100%',
                     height: 'auto',
                     maxHeight: '600px',
                     objectFit: 'contain',
@@ -1334,18 +1143,17 @@ const EnvironmentalCameraMonitoringPage = () => {
                     setCameraReady(true);
                   }}
                 />
-                
-                {/* Show processed frame overlay when available */}
+
                 {processedFrame && (
-                  <img 
+                  <img
                     ref={processedVideoRef}
-                    src={processedFrame} 
+                    src={processedFrame}
                     alt="AI Processed Camera Feed with Bounding Boxes"
-                    style={{ 
+                    style={{
                       position: 'absolute',
                       top: 0,
                       left: 0,
-                      width: '100%', 
+                      width: '100%',
                       height: 'auto',
                       maxHeight: '600px',
                       objectFit: 'contain',
@@ -1354,13 +1162,11 @@ const EnvironmentalCameraMonitoringPage = () => {
                     }}
                     onError={(e) => {
                       console.error('Processed frame error:', e);
-                      // Fallback: hide processed frame, show video
                       setProcessedFrame('');
                     }}
                   />
                 )}
-                
-                {/* Show overlay when processing but no processed frame yet */}
+
                 {isMonitoring && frameAnalysisActiveRef.current && !processedFrame && (
                   <div style={{
                     position: 'absolute',
@@ -1382,14 +1188,13 @@ const EnvironmentalCameraMonitoringPage = () => {
                     </Space>
                   </div>
                 )}
-                
-                {/* CCTV or simulated feed */}
+
                 {!processedFrame && videoFrame && activeTab !== 'device' && (
-                  <img 
-                    src={videoFrame} 
-                    alt="Live Camera Feed" 
-                    style={{ 
-                      width: '100%', 
+                  <img
+                    src={videoFrame}
+                    alt="Live Camera Feed"
+                    style={{
+                      width: '100%',
                       height: 'auto',
                       maxHeight: '600px',
                       objectFit: 'contain',
@@ -1397,12 +1202,11 @@ const EnvironmentalCameraMonitoringPage = () => {
                     }}
                   />
                 )}
-                
-                {/* Placeholder when no feed is available */}
+
                 {!processedFrame && !videoFrame && (!isMonitoring || activeTab !== 'device') && (
-                  <div className="video-placeholder" style={{ 
-                    textAlign: 'center', 
-                    color: '#fff', 
+                  <div className="video-placeholder" style={{
+                    textAlign: 'center',
+                    color: '#fff',
                     padding: '40px',
                     position: 'absolute',
                     top: 0,
@@ -1420,14 +1224,14 @@ const EnvironmentalCameraMonitoringPage = () => {
                       <VideoCameraOutlined style={{ fontSize: '64px', color: '#666', marginBottom: '16px' }} />
                     )}
                     <p style={{ color: '#999', fontSize: '16px' }}>
-                      {!selectedCamera 
-                        ? `Please select a ${activeTab === 'device' ? 'device camera' : 'CCTV feed'} to start monitoring` 
+                      {!selectedCamera
+                        ? `Please select a ${activeTab === 'device' ? 'device camera' : 'CCTV feed'} to start monitoring`
                         : 'Camera feed will appear here when monitoring starts'
                       }
                     </p>
                     {activeTab === 'device' && !isMonitoring && selectedCamera && (
-                      <Button 
-                        type="primary" 
+                      <Button
+                        type="primary"
                         icon={<PlayCircleOutlined />}
                         onClick={startDeviceCamera}
                         size="large"
@@ -1439,7 +1243,6 @@ const EnvironmentalCameraMonitoringPage = () => {
                 )}
               </div>
 
-              {/* Camera Status Info */}
               {localStream && (
                 <Alert
                   message="Camera Status"
@@ -1459,7 +1262,6 @@ const EnvironmentalCameraMonitoringPage = () => {
                 />
               )}
 
-              {/* Real-time Analysis Overlay */}
               {analysis && (
                 <div className="analysis-overlay" style={{ marginTop: '16px' }}>
                   <Alert
@@ -1495,8 +1297,7 @@ const EnvironmentalCameraMonitoringPage = () => {
                     }
                     showIcon
                   />
-                  
-                  {/* Show detailed violations */}
+
                   {analysis.violations && analysis.violations.length > 0 && (
                     <div style={{ marginTop: '8px' }}>
                       <Alert
@@ -1533,55 +1334,16 @@ const EnvironmentalCameraMonitoringPage = () => {
                 </div>
               )}
 
-              {/* Multi-domain Risk Dashboard */}
               {analysis && (
                 <div style={{ marginTop: '16px' }}>
                   <MultiDomainRiskDashboard analysis={analysis} />
                 </div>
-              )}
-
-              {/* Debug Information */}
-              {debugMode && (
-                <Collapse style={{ marginTop: 16 }}>
-                  <Panel header={<Space><BugOutlined />Debug Information</Space>} key="debug">
-                    <Space direction="vertical" style={{ width: '100%' }}>
-                      <div><strong>Session ID:</strong> {currentSessionId}</div>
-                      <div><strong>Analysis Type:</strong> {analysisType}</div>
-                      <div><strong>Video Ready State:</strong> {localVideoRef.current?.readyState || 'Unknown'}</div>
-                      <div><strong>Stream Active:</strong> {streamRef.current?.active ? 'Yes' : 'No'}</div>
-                      <div><strong>Last Analysis:</strong> {detectionStats.lastDetectionTime ? new Date(detectionStats.lastDetectionTime).toLocaleTimeString() : 'Never'}</div>
-                      <div><strong>Frames Processed:</strong> {detectionStats.framesProcessed}</div>
-                      <div><strong>Total Detections:</strong> {detectionStats.detections}</div>
-                      <div><strong>Total Violations:</strong> {detectionStats.violations}</div>
-                      <div><strong>Frame Analysis Active:</strong> {frameAnalysisActiveRef.current ? 'YES' : 'NO'}</div>
-                      <div><strong>Stop Requested:</strong> {stopRequestedRef.current ? 'YES' : 'NO'}</div>
-                      <div><strong>Processed Frame Available:</strong> {processedFrame ? `Yes (${processedFrame.length} chars)` : 'No'}</div>
-                      <div><strong>Color System:</strong> {analysis?.color_system_enabled ? 'ENABLED' : analysis?.color_system_enabled === false ? 'DISABLED' : 'UNKNOWN'}</div>
-                      {analysis && (
-                        <div>
-                          <strong>Raw Analysis:</strong>
-                          <pre style={{ 
-                            fontSize: '10px', 
-                            maxHeight: '150px', 
-                            overflow: 'auto',
-                            backgroundColor: '#f5f5f5',
-                            padding: '8px',
-                            marginTop: '8px'
-                          }}>
-                            {JSON.stringify(analysis, null, 2)}
-                          </pre>
-                        </div>
-                      )}
-                    </Space>
-                  </Panel>
-                </Collapse>
               )}
             </Card>
           </Col>
 
           {/* Analysis Panel */}
           <Col xs={24} lg={8}>
-            {/* Risk Assessment */}
             <Card title="Risk Assessment" size="small" style={{ marginBottom: 16 }}>
               {analysis ? (
                 <Space direction="vertical" style={{ width: '100%' }}>
@@ -1591,8 +1353,8 @@ const EnvironmentalCameraMonitoringPage = () => {
                     suffix="/100"
                     valueStyle={{ color: getRiskColor(analysis.risk_level) }}
                   />
-                  <Progress 
-                    percent={analysis.risk_score || analysis.confidence_score * 100} 
+                  <Progress
+                    percent={analysis.risk_score || analysis.confidence_score * 100}
                     strokeColor={getRiskColor(analysis.risk_level)}
                     showInfo={false}
                   />
@@ -1623,35 +1385,26 @@ const EnvironmentalCameraMonitoringPage = () => {
               )}
             </Card>
 
-            {/* Quick Access to Advanced AI */}
             <Card title="Quick Actions" size="small" style={{ marginBottom: 16 }}>
               <Space direction="vertical" style={{ width: '100%' }}>
-                <Button 
-                  type="dashed" 
-                  block 
+                <Button
+                  type="dashed"
+                  block
                   icon={<RobotOutlined />}
                   onClick={() => setActiveTab('video-ai')}
                 >
                   Open Advanced AI Analysis
                 </Button>
-                <Button 
-                  block 
+                <Button
+                  block
                   icon={<FileTextOutlined />}
                   onClick={() => {/* export function */}}
                 >
                   Generate Report
                 </Button>
-                <Button 
-                  block 
-                  icon={<BugOutlined />}
-                  onClick={() => handleDebugModeChange(!debugMode)}
-                >
-                  {debugMode ? 'Disable' : 'Enable'} Debug Mode
-                </Button>
               </Space>
             </Card>
 
-            {/* Active Sessions */}
             <Card title="Active Sessions" size="small" style={{ marginBottom: 16 }}>
               {activeSessions.length > 0 ? (
                 <List
@@ -1674,8 +1427,7 @@ const EnvironmentalCameraMonitoringPage = () => {
               )}
             </Card>
 
-            {/* Violation History */}
-            <Card 
+            <Card
               title={
                 <Space>
                   Recent Violations
@@ -1683,7 +1435,7 @@ const EnvironmentalCameraMonitoringPage = () => {
                     <Tag color="red">{violationHistory.filter(v => !v.acknowledged).length} Unacknowledged</Tag>
                   )}
                 </Space>
-              } 
+              }
               size="small"
             >
               {violationHistory.length > 0 ? (
@@ -1721,7 +1473,6 @@ const EnvironmentalCameraMonitoringPage = () => {
               )}
             </Card>
 
-            {/* Detection Statistics */}
             <Card title="Detection Statistics" size="small">
               <Space direction="vertical" style={{ width: '100%' }}>
                 <Statistic
