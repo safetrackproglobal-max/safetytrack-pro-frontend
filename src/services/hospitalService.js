@@ -2279,6 +2279,67 @@ export const getAIAnalytics = async (hospitalId = null) => {
 // ============================================
 // ANALYTICS & REPORTS
 // ============================================
+/**
+ * List financial records (paginated)
+ */
+export const listFinancialRecords = async (hospitalId = null, filters = {}) => {
+  try {
+    checkHospitalModule();
+    const effectiveId = validateHospitalId(hospitalId, 'listFinancialRecords');
+    const params = new URLSearchParams(filters).toString();
+    const res = await api.get(`/hospital/${effectiveId}/financial/records?${params}`);
+    return res.data;
+  } catch (error) {
+    if (!error.silent) console.error('❌ Error listing financial records:', error);
+    throw error;
+  }
+};
+
+/**
+ * Create a financial record
+ */
+export const createFinancialRecord = async (hospitalId, data) => {
+  try {
+    checkHospitalModule();
+    const effectiveId = validateHospitalId(hospitalId, 'createFinancialRecord');
+    const res = await api.post(`/hospital/${effectiveId}/financial`, data);
+    return res.data;
+  } catch (error) {
+    if (!error.silent) console.error('❌ Error creating financial record:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update a financial record
+ */
+export const updateFinancialRecord = async (hospitalId, recordId, data) => {
+  try {
+    checkHospitalModule();
+    const effectiveId = validateHospitalId(hospitalId, 'updateFinancialRecord');
+    const res = await api.put(`/hospital/${effectiveId}/financial/${recordId}`, data);
+    return res.data;
+  } catch (error) {
+    if (!error.silent) console.error('❌ Error updating financial record:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a financial record
+ */
+export const deleteFinancialRecord = async (hospitalId, recordId) => {
+  try {
+    checkHospitalModule();
+    const effectiveId = validateHospitalId(hospitalId, 'deleteFinancialRecord');
+    const res = await api.delete(`/hospital/${effectiveId}/financial/${recordId}`);
+    return res.data;
+  } catch (error) {
+    if (!error.silent) console.error('❌ Error deleting financial record:', error);
+    throw error;
+  }
+};
+
 
 export const getHospitalAnalytics = async (hospitalId = null) => {
   try {
@@ -2864,7 +2925,11 @@ export const hospitalService = {
   generateQualityReport,
   getFinancialData,    // ✅ ADD THIS
   getSystemHealth,
-  
+  getFinancialData,
+  listFinancialRecords,
+  createFinancialRecord,
+  updateFinancialRecord,
+  deleteFinancialRecord,
   // Audit & Logging
   getAuditLogs,
   createAuditLog,
