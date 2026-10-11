@@ -1,6 +1,18 @@
 // src/services/notificationService.js - COMPLETE WITH ALL NEW FEATURES
 import api from './api';
 
+function normalizeNotification(notification) {
+  return {
+    ...notification,
+    read: notification.is_read !== undefined ? notification.is_read : false,
+    date: notification.created_at || notification.date,
+    type: notification.type || 'info',
+    priority: notification.priority || 'medium',
+    category: notification.category || 'system',
+    is_read: notification.is_read,
+  };
+}
+
 class NotificationService {
   // ==================== INCIDENT REPORTING ====================
   
@@ -1882,18 +1894,6 @@ async saveAIAssistantMessage(incidentId, message) {
   }
 
   // ==================== NOTIFICATION MANAGEMENT ====================
-
-  normalizeNotification(notification) {     // ✅ no 'function' keyword
-    return {
-      ...notification,
-      read: notification.is_read !== undefined ? notification.is_read : false,
-      date: notification.created_at || notification.date,
-      type: notification.type || 'info',
-      priority: notification.priority || 'medium',
-      category: notification.category || 'system',
-      is_read: notification.is_read,
-    };
-  }
 
 
   async getNotifications() {
