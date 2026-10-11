@@ -28,6 +28,7 @@ const checkHospitalModule = () => {
     error.code = 'HOSPITAL_MODULE_NOT_SETUP';
     error.userMessage = 'Please set up your hospital profile first to access healthcare features.';
     error.requiresSetup = true;
+    error.silent = true; // ✅ Prevents console spam
     throw error;
   }
 };
@@ -160,7 +161,9 @@ export const getDepartments = async (hospitalId = null) => {
     console.log('✅ Departments data received:', res.data);
     return res.data;
   } catch (error) {
-    console.error('❌ Error fetching departments:', error);
+    if (!error.silent) {  // ✅ ADD THIS
+      console.error('❌ Error fetching departments:', error);
+    }
     throw error;
   }
 };
@@ -2197,6 +2200,29 @@ export const getAIServices = async (hospitalId = null) => {
         requiresSetup: true
       };
     }
+    
+    const effectiveId = getEffectiveHospitalId(hospitalId);
+    if (!effectiveId) {
+      return { success: true, data: [], message: 'No hospital found' };
+    }
+    
+    const res = await api.get(`/hospital/${effectiveId}/ai-services`);
+    return res.data;
+  } catch (error) {
+    if (!error.silent) {  // ✅ ADD THIS
+      console.error('❌ Error fetching AI services:', error);
+    }
+    if (error.requiresSetup) {
+      return { 
+        success: true, 
+        data: [], 
+        message: error.userMessage,
+        requiresSetup: true
+      };
+    }
+    throw error;
+  }
+};
     
     const effectiveId = getEffectiveHospitalId(hospitalId);
     if (!effectiveId) {
