@@ -51,9 +51,11 @@ import {
   UserUpgradeModal,
   UserDetailsDrawer,
   BulkOperationsModal,
-  SystemHealthCard,
   ManualUserCreation
 } from './SafetyProComponents';
+
+// ✅ NEW: Command Center import
+import CommandCenter from './CommandCenter';
 import CSVUserUpload from '../components/CSVUserUpload';
 import api, { apiGet, apiPost } from '../services/api';
 
@@ -748,7 +750,7 @@ const SafetyProDashboard = () => {
         <Col span={6}><Card><Statistic title="Total Users" value={stats?.total?.all || 0} prefix={<TeamOutlined />} /></Card></Col>
         <Col span={6}><Card><Statistic title="Active Today" value={stats?.active_today || 0} valueStyle={{ color: '#3f8600' }} prefix={<RiseOutlined />} /></Card></Col>
         <Col span={6}><Card><Statistic title="New This Month" value={stats?.new_this_month || 0} valueStyle={{ color: '#1890ff' }} prefix={<UserAddOutlined />} /></Card></Col>
-        <Col span={6}><SystemHealthCard /></Col>
+        
       </Row>
 
       {/* Tabs Navigation */}
@@ -857,6 +859,18 @@ const SafetyProDashboard = () => {
               )}
             </Card>
           </TabPane>
+
+         <TabPane 
+  tab={
+    <span>
+      <DashboardOutlined />
+      Command Center
+    </span>
+  } 
+  key="command-center"
+>
+  <CommandCenter />
+</TabPane>       
 
          <TabPane 
   tab={
