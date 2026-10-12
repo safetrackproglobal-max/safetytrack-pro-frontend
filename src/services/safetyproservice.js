@@ -444,6 +444,81 @@ class SafetyProService {
     return apiGet(`/admin/operations/${operationId}/status`);
   }
 
+    // ============== COMMAND CENTER ==============
+
+  static async getPlatformActivity(filters = {}) {
+    try {
+      const params = new URLSearchParams(filters).toString();
+      return await apiGet(`/admin/activity?${params}`);
+    } catch (error) {
+      console.error('Platform activity error:', error);
+      return { success: false, error: error.message, data: [] };
+    }
+  }
+
+  static async logPlatformActivity(data) {
+    try {
+      return await apiPost('/admin/activity', data);
+    } catch (error) {
+      console.error('Log activity error:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  static async getSecurityEvents() {
+    try {
+      return await apiGet('/admin/activity/security-events');
+    } catch (error) {
+      console.error('Security events error:', error);
+      return { success: false, error: error.message, data: [] };
+    }
+  }
+
+  static async getActivityChart(days = 7) {
+    try {
+      return await apiGet(`/admin/activity/chart?days=${days}`);
+    } catch (error) {
+      console.error('Activity chart error:', error);
+      return { success: false, error: error.message, data: [] };
+    }
+  }
+
+  static async getActiveSessions() {
+    try {
+      return await apiGet('/admin/activity/sessions');
+    } catch (error) {
+      console.error('Active sessions error:', error);
+      return { success: false, error: error.message, data: [] };
+    }
+  }
+
+  static async getTopActiveUsers(days = 7) {
+    try {
+      return await apiGet(`/admin/activity/top-users?days=${days}`);
+    } catch (error) {
+      console.error('Top users error:', error);
+      return { success: false, error: error.message, data: [] };
+    }
+  }
+
+  static async getRecentErrors() {
+    try {
+      return await apiGet('/admin/activity/errors');
+    } catch (error) {
+      console.error('Recent errors error:', error);
+      return { success: false, error: error.message, data: [] };
+    }
+  }
+
+  static async getGeographicDistribution(days = 30) {
+    try {
+      return await apiGet(`/admin/activity/geographic?days=${days}`);
+    } catch (error) {
+      console.error('Geographic error:', error);
+      return { success: false, error: error.message, data: [] };
+    }
+  }
+
   // ============== USER MANAGEMENT ==============
 
   /**
