@@ -525,11 +525,7 @@ const AppContent = () => {
             </MainLayoutWrapper>
           </Route>
                                                                                                                  
-         <Route path="/admin/command-center" element={
-<PrivateRoute allowedRoles={[ 'super_admin']}>
-<CommandCenter />
-</PrivateRoute>
-} />                                                                                                     
+                                                                                                          
 
           <Route path="/resume-registration">
             <MainLayoutWrapper>
@@ -1284,6 +1280,12 @@ const AppContent = () => {
               <IntegrationsPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
+
+          <ProtectedRoute path="/admin/command-center">
+  <DashboardLayoutWrapper>
+    <CommandCenter />
+  </DashboardLayoutWrapper>
+</ProtectedRoute>
 
           <ProtectedRoute path="/admin">
             <DashboardLayoutWrapper>
