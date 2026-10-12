@@ -18,7 +18,14 @@ import SafetyProService from '../services/safetyproservice';
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 
-
+// ✅ Safe array helper — prevents "map is not a function" crashes
+const safeArray = (data) => {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data.data)) return data.data;
+  if (Array.isArray(data.items)) return data.items;
+  return [];
+};
 // ============================================
 // 1. MAIN KPI CARDS
 // ============================================
@@ -352,9 +359,11 @@ export const ActivityChart = () => {
     setLoading(true);
     try {
       const res = await SafetyProService.getActivityChart(7);
-      if (res?.data) setData(res.data);
+      // ✅ SAFE: always returns array
+      setData(safeArray(res?.data));
     } catch (e) {
       console.error(e);
+      setData([]);
     } finally {
       setLoading(false);
     }
@@ -362,7 +371,13 @@ export const ActivityChart = () => {
 
   useEffect(() => { fetchChart(); }, []);
 
-  const maxCount = Math.max(...data.map(d => d.count), 1);
+  // ✅ SAFE: data is always an array now
+  const chartData = safeArray(data);
+  const maxCount = chartData.length > 0 
+    ? Math.max(...chartData.map(d => d.count || 0), 1) 
+    : 1;
+  
+  
 
   return (
     <Card
@@ -370,11 +385,11 @@ export const ActivityChart = () => {
       extra={<Button size="small" icon={<ReloadOutlined />} onClick={fetchChart} loading={loading} />}
       style={{ height: '100%' }}
     >
-      {data.length === 0 ? (
-        <Empty description="No chart data" image={Empty.PRESENTED_IMAGE_SIMPLE} />
-      ) : (
-        <div style={{ display: 'flex', alignItems: 'flex-end', height: 200, gap: 8, padding: '16px 0' }}>
-          {data.map((d, i) => (
+      {chartData.length === 0 ? (
+  <Empty description="No chart data" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+) : (
+  <div style={{ display: 'flex', alignItems: 'flex-end', height: 200, gap: 8, padding: '16px 0' }}>
+    {chartData.map((d, i) => (
             <Tooltip key={i} title={`${d.date}: ${d.count} events`}>
               <div style={{
                 flex: 1,
