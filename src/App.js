@@ -46,6 +46,7 @@ import PricingPage from './pages/PricingPage';
 import TermsPolicy from './components/TermsPolicy';
 import ContactBrandInfo from './components/ContactBrandInfo';
 import ContactTeamPage from './pages/ContactTeamPage';
+import CommandCenter from './pages/CommandCenter';
 
 // Dashboard Pages - Role Based
 import EmployeeDashboard from './pages/Dashboard/EmployeeDashboard';
@@ -523,6 +524,12 @@ const AppContent = () => {
               <ContactTeamPage />
             </MainLayoutWrapper>
           </Route>
+                                                                                                                 
+          <Route path="/admin/command-center" element={
+  <PrivateRoute allowedRoles={[ 'super_admin']}>
+    <CommandCenter />
+  </PrivateRoute>
+} />                                                                                                       
 
           <Route path="/resume-registration">
             <MainLayoutWrapper>
