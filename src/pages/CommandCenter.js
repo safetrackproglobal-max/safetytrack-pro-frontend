@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Card, Space, Button, Alert, Badge, message } from 'antd';
 import {
-  ReloadOutlined, EyeOutlined, DashboardOutlined
+  ReloadOutlined, EyeOutlined, DashboardOutlined, ExportOutlined
 } from '@ant-design/icons';
 import SafetyProService from '../services/safetyproservice';
 import {
