@@ -1,67 +1,199 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
         xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
 
+    <!-- ============================================
+         BLOG HOME
+         ============================================ -->
     <url>
         <loc>https://safetrackproglobal.com/blog</loc>
-        <lastmod>2026-09-05</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.7</priority>
+        <lastmod>2026-09-05T08:00:00+00:00</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.8</priority>
+        <image:image>
+            <image:loc>https://safetrackproglobal.com/blog-og-image.jpg</image:loc>
+            <image:title>SafeTrack Pro Global HSE Blog</image:title>
+            <image:caption>Expert insights on HSE, safety compliance, and AI-powered workplace safety.</image:caption>
+        </image:image>
+        <xhtml:link rel="alternate" hreflang="en" href="https://safetrackproglobal.com/blog" />
+        <xhtml:link rel="alternate" hreflang="es" href="https://safetrackproglobal.com/es/blog" />
+        <xhtml:link rel="alternate" hreflang="fr" href="https://safetrackproglobal.com/fr/blog" />
+        <xhtml:link rel="alternate" hreflang="ar" href="https://safetrackproglobal.com/ar/blog" />
+        <xhtml:link rel="alternate" hreflang="zh" href="https://safetrackproglobal.com/zh/blog" />
+        <xhtml:link rel="alternate" hreflang="hi" href="https://safetrackproglobal.com/hi/blog" />
+        <xhtml:link rel="alternate" hreflang="pt" href="https://safetrackproglobal.com/pt/blog" />
+        <xhtml:link rel="alternate" hreflang="ru" href="https://safetrackproglobal.com/ru/blog" />
+        <xhtml:link rel="alternate" hreflang="ja" href="https://safetrackproglobal.com/ja/blog" />
+        <xhtml:link rel="alternate" hreflang="de" href="https://safetrackproglobal.com/de/blog" />
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://safetrackproglobal.com/blog" />
     </url>
+
+    <!-- ============================================
+         FEATURED ARTICLE — AI Safety Management
+         ============================================ -->
     <url>
         <loc>https://safetrackproglobal.com/blog/ai-safety-management</loc>
-        <lastmod>2026-09-05</lastmod>
+        <lastmod>2026-09-05T10:00:00+00:00</lastmod>
         <changefreq>monthly</changefreq>
-        <priority>0.6</priority>
-        <news:news>
-            <news:publication>
-                <news:name>SafeTrack Pro Blog</news:name>
-                <news:language>en</news:language>
-            </news:publication>
-            <news:publication_date>2026-09-05</news:publication_date>
-            <news:title>AI Safety Management: The Future of Workplace Safety</news:title>
-        </news:news>
+        <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://safetrackproglobal.com/blog/ai-safety-management/hero.jpg</image:loc>
+            <image:title>AI Safety Management: The Future of Workplace Safety</image:title>
+            <image:caption>How AI is transforming workplace safety, compliance, and incident prevention.</image:caption>
+        </image:image>
+        <xhtml:link rel="alternate" hreflang="en" href="https://safetrackproglobal.com/blog/ai-safety-management" />
+        <xhtml:link rel="alternate" hreflang="es" href="https://safetrackproglobal.com/es/blog/ai-safety-management" />
+        <xhtml:link rel="alternate" hreflang="ar" href="https://safetrackproglobal.com/ar/blog/ai-safety-management" />
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://safetrackproglobal.com/blog/ai-safety-management" />
     </url>
+
+    <!-- ============================================
+         HSE COMPLIANCE TIPS
+         ============================================ -->
     <url>
         <loc>https://safetrackproglobal.com/blog/hse-compliance-tips</loc>
-        <lastmod>2026-09-05</lastmod>
+        <lastmod>2026-09-05T10:00:00+00:00</lastmod>
         <changefreq>monthly</changefreq>
-        <priority>0.6</priority>
+        <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://safetrackproglobal.com/blog/hse-compliance-tips/hero.jpg</image:loc>
+            <image:title>HSE Compliance Tips for Modern Workplaces</image:title>
+            <image:caption>Practical tips to keep your HSE compliance at 99.5% across every industry.</image:caption>
+        </image:image>
+        <xhtml:link rel="alternate" hreflang="en" href="https://safetrackproglobal.com/blog/hse-compliance-tips" />
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://safetrackproglobal.com/blog/hse-compliance-tips" />
     </url>
+
+    <!-- ============================================
+         RISK ASSESSMENT GUIDE
+         ============================================ -->
     <url>
         <loc>https://safetrackproglobal.com/blog/risk-assessment-guide</loc>
-        <lastmod>2026-09-05</lastmod>
+        <lastmod>2026-09-05T10:00:00+00:00</lastmod>
         <changefreq>monthly</changefreq>
-        <priority>0.6</priority>
+        <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://safetrackproglobal.com/blog/risk-assessment-guide/hero.jpg</image:loc>
+            <image:title>Complete Risk Assessment Guide</image:title>
+            <image:caption>A step-by-step guide to performing risk assessments that pass audits.</image:caption>
+        </image:image>
+        <xhtml:link rel="alternate" hreflang="en" href="https://safetrackproglobal.com/blog/risk-assessment-guide" />
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://safetrackproglobal.com/blog/risk-assessment-guide" />
     </url>
+
+    <!-- ============================================
+         CONSTRUCTION SAFETY
+         ============================================ -->
     <url>
         <loc>https://safetrackproglobal.com/blog/construction-safety-best-practices</loc>
-        <lastmod>2026-09-05</lastmod>
+        <lastmod>2026-09-05T10:00:00+00:00</lastmod>
         <changefreq>monthly</changefreq>
-        <priority>0.6</priority>
+        <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://safetrackproglobal.com/blog/construction-safety-best-practices/hero.jpg</image:loc>
+            <image:title>Construction Safety Best Practices</image:title>
+            <image:caption>Proven construction safety strategies for high-rise and infrastructure projects.</image:caption>
+        </image:image>
+        <xhtml:link rel="alternate" hreflang="en" href="https://safetrackproglobal.com/blog/construction-safety-best-practices" />
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://safetrackproglobal.com/blog/construction-safety-best-practices" />
     </url>
+
+    <!-- ============================================
+         HEALTHCARE SAFETY
+         ============================================ -->
     <url>
         <loc>https://safetrackproglobal.com/blog/healthcare-safety-management</loc>
-        <lastmod>2026-09-05</lastmod>
+        <lastmod>2026-09-05T10:00:00+00:00</lastmod>
         <changefreq>monthly</changefreq>
-        <priority>0.6</priority>
+        <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://safetrackproglobal.com/blog/healthcare-safety-management/hero.jpg</image:loc>
+            <image:title>Healthcare Safety Management</image:title>
+            <image:caption>How hospitals and clinics achieve HIPAA and Joint Commission compliance.</image:caption>
+        </image:image>
+        <xhtml:link rel="alternate" hreflang="en" href="https://safetrackproglobal.com/blog/healthcare-safety-management" />
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://safetrackproglobal.com/blog/healthcare-safety-management" />
     </url>
+
+    <!-- ============================================
+         OIL & GAS SAFETY
+         ============================================ -->
     <url>
         <loc>https://safetrackproglobal.com/blog/oil-gas-safety-solutions</loc>
-        <lastmod>2026-09-05</lastmod>
+        <lastmod>2026-09-05T10:00:00+00:00</lastmod>
         <changefreq>monthly</changefreq>
-        <priority>0.6</priority>
+        <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://safetrackproglobal.com/blog/oil-gas-safety-solutions/hero.jpg</image:loc>
+            <image:title>Oil & Gas Safety Solutions</image:title>
+            <image:caption>Process safety management for upstream, midstream, and downstream operations.</image:caption>
+        </image:image>
+        <xhtml:link rel="alternate" hreflang="en" href="https://safetrackproglobal.com/blog/oil-gas-safety-solutions" />
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://safetrackproglobal.com/blog/oil-gas-safety-solutions" />
     </url>
+
+    <!-- ============================================
+         PERMIT TO WORK (PTW)
+         ============================================ -->
     <url>
         <loc>https://safetrackproglobal.com/blog/ptw-best-practices</loc>
-        <lastmod>2026-09-05</lastmod>
+        <lastmod>2026-09-05T10:00:00+00:00</lastmod>
         <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://safetrackproglobal.com/blog/ptw-best-practices/hero.jpg</image:loc>
+            <image:title>Permit to Work Best Practices</image:title>
+            <image:caption>How to digitize your PTW process for safer, faster approvals.</image:caption>
+        </image:image>
+        <xhtml:link rel="alternate" hreflang="en" href="https://safetrackproglobal.com/blog/ptw-best-practices" />
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://safetrackproglobal.com/blog/ptw-best-practices" />
+    </url>
+
+    <!-- ============================================
+         ENVIRONMENTAL COMPLIANCE
+         ============================================ -->
+    <url>
+        <loc>https://safetrackproglobal.com/blog/environmental-compliance</loc>
+        <lastmod>2026-09-05T10:00:00+00:00</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+        <image:image>
+            <image:loc>https://safetrackproglobal.com/blog/environmental-compliance/hero.jpg</image:loc>
+            <image:title>Environmental Compliance Guide</image:title>
+            <image:caption>How to meet ISO 14001, ESG, and carbon reporting requirements.</image:caption>
+        </image:image>
+        <xhtml:link rel="alternate" hreflang="en" href="https://safetrackproglobal.com/blog/environmental-compliance" />
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://safetrackproglobal.com/blog/environmental-compliance" />
+    </url>
+
+    <!-- ============================================
+         BLOG CATEGORIES (for keyword ranking)
+         ============================================ -->
+    <url>
+        <loc>https://safetrackproglobal.com/blog/category/ai-safety</loc>
+        <lastmod>2026-09-05T10:00:00+00:00</lastmod>
+        <changefreq>weekly</changefreq>
         <priority>0.6</priority>
     </url>
     <url>
-        <loc>https://safetrackproglobal.com/blog/environmental-compliance</loc>
-        <lastmod>2026-09-05</lastmod>
-        <changefreq>monthly</changefreq>
+        <loc>https://safetrackproglobal.com/blog/category/compliance</loc>
+        <lastmod>2026-09-05T10:00:00+00:00</lastmod>
+        <changefreq>weekly</changefreq>
         <priority>0.6</priority>
     </url>
+    <url>
+        <loc>https://safetrackproglobal.com/blog/category/industry</loc>
+        <lastmod>2026-09-05T10:00:00+00:00</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://safetrackproglobal.com/blog/category/best-practices</loc>
+        <lastmod>2026-09-05T10:00:00+00:00</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+
 </urlset>
