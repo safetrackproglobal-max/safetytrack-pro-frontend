@@ -1037,6 +1037,85 @@ function HomePage() {
       </section>
 
       {/* ============================================
+           AI DOCUMENT GENERATOR SECTION
+           ============================================ */}
+      <section className="ai-doc-section">
+        <div className="container">
+          <div className="section-header">
+            <span className="section-tag">AI Document Generator</span>
+            <h2 className="section-title">
+              Generate OSHA-Compliant SOPs in <span className="gradient-text">Seconds</span>
+            </h2>
+            <p className="section-subtitle">
+              Stop wrestling with Word templates. Let our AI build your safety documentation.
+            </p>
+          </div>
+
+          <Row gutter={[48, 48]} align="middle">
+            <Col xs={24} lg={14}>
+              <div className="doc-preview-container">
+                <div className="doc-preview-header">
+                  <div className="doc-icon"><FileTextOutlined /></div>
+                  <div>
+                    <strong>Generalsafetydocuments SOP - Chemical</strong>
+                    <span>Ref: CHE-SOP-20261014 | OSHA 29 CFR 1910</span>
+                  </div>
+                  <Tag color="blue">PDF Generated</Tag>
+                </div>
+                <div className="doc-preview-body">
+                  <div className="doc-line long"></div>
+                  <div className="doc-line medium"></div>
+                  <div className="doc-line short"></div>
+                  <div className="doc-box">
+                    <span>1.0 PURPOSE</span>
+                    <div className="doc-line long"></div>
+                  </div>
+                  <div className="doc-box">
+                    <span>2.0 SCOPE</span>
+                    <div className="doc-line long"></div>
+                  </div>
+                  <div className="doc-box">
+                    <span>4.0 EQUIPMENT & MATERIALS</span>
+                    <div className="doc-checkbox"></div> <div className="doc-line medium"></div>
+                    <div className="doc-checkbox"></div> <div className="doc-line medium"></div>
+                  </div>
+                  <div className="doc-box">
+                    <span>5.0 PROCEDURE STEPS</span>
+                    <div className="doc-line long"></div>
+                    <div className="doc-line long"></div>
+                  </div>
+                </div>
+                <div className="doc-preview-footer">
+                  <span>Characters: 15,718</span>
+                  <span>Words: 877</span>
+                  <span>Export PDF</span>
+                </div>
+              </div>
+            </Col>
+            <Col xs={24} lg={10}>
+              <div className="ai-doc-content">
+                <h3>Your Entire Safety Library, Automated.</h3>
+                <p>
+                  Whether you need a Chemical SOP, a Construction JHA, or a Healthcare
+                  Incident Report, our AI generates fully formatted, regulation-ready
+                  documents that match your company's branding.
+                </p>
+                <ul className="ai-doc-list">
+                  <li><CheckCircleOutlined /> Auto-fills OSHA, ISO, and industry-specific references</li>
+                  <li><CheckCircleOutlined /> Built-in rich text editor with tables, images, and signatures</li>
+                  <li><CheckCircleOutlined /> One-click export to PDF, Word, or direct archive</li>
+                  <li><CheckCircleOutlined /> Includes approval workflows (Prepared by, Reviewed by, Approved by)</li>
+                </ul>
+                <Button type="primary" size="large" href="/features" className="cta-button">
+                  Try the Document Generator <ArrowRightOutlined />
+                </Button>
+              </div>
+            </Col>
+          </Row>
+        </div>
+      </section>
+
+      {/* ============================================
            FEATURES SECTION
            ============================================ */}
       <section className="features-section" id="features">
@@ -1177,6 +1256,86 @@ function HomePage() {
                 </div>
               </Col>
             ))}
+          </Row>
+        </div>
+      </section>
+
+      {/* ============================================
+           CSP EXAM SIMULATOR SECTION
+           ============================================ */}
+      <section className="csp-exam-section">
+        <div className="container">
+          <Row gutter={[48, 48]} align="middle">
+            <Col xs={24} lg={12}>
+              <div className="csp-content">
+                <span className="section-tag">Career Advancement</span>
+                <h2>
+                  Worried About the <span className="gradient-text">CSP Exam?</span>
+                </h2>
+                <p>
+                  Don't guess your readiness. Test your knowledge with our <strong>CSP Hard Mode</strong>{' '}
+                  simulation. Experience the exact pressure, time limits, and scenario-based
+                  questions of the real Certified Safety Professional (CSP) exam.
+                </p>
+
+                <div className="csp-features-grid">
+                  <div className="csp-feature">
+                    <CheckCircleOutlined />
+                    <div>
+                      <strong>100 Complex Scenario Questions</strong>
+                      <span>4-hour time limit (CSP-level pacing)</span>
+                    </div>
+                  </div>
+                  <div className="csp-feature">
+                    <CheckCircleOutlined />
+                    <div>
+                      <strong>Instant Scoring & Analytics</strong>
+                      <span>See exactly where you need to improve</span>
+                    </div>
+                  </div>
+                  <div className="csp-feature">
+                    <CheckCircleOutlined />
+                    <div>
+                      <strong>Verifiable Certification</strong>
+                      <span>Pass and receive a blockchain-verified certificate with CEUs</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="csp-credential-levels">
+                  <h4>Earn Your Credential:</h4>
+                  <div className="levels-row">
+                    <span className="level-badge platinum">🏆 Platinum (90%+)</span>
+                    <span className="level-badge gold">🥇 Gold (85%+)</span>
+                    <span className="level-badge silver">🥈 Silver (80%+)</span>
+                    <span className="level-badge bronze">🥉 Bronze (75%+)</span>
+                  </div>
+                </div>
+
+                <Button type="primary" size="large" className="cta-button" href="/exam">
+                  Start CSP Hard Mode Exam <ArrowRightOutlined />
+                </Button>
+              </div>
+            </Col>
+            <Col xs={24} lg={12}>
+              <div className="csp-visual">
+                <div className="csp-mockup">
+                  <div className="mockup-header">
+                    <SafetyCertificateOutlined /> CSP Hard Mode Exam
+                  </div>
+                  <div className="mockup-body">
+                    <div className="question-skeleton"></div>
+                    <div className="question-skeleton short"></div>
+                    <div className="option-skeleton"></div>
+                    <div className="option-skeleton"></div>
+                  </div>
+                  <div className="mockup-footer">
+                    <span>Time Remaining: 03:45:12</span>
+                    <span>Question 42 of 100</span>
+                  </div>
+                </div>
+              </div>
+            </Col>
           </Row>
         </div>
       </section>
