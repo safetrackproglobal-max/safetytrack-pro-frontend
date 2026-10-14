@@ -1,28 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
     <!-- ============================================
          BASIC META TAGS
          ============================================ -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <meta name="theme-color" content="#2563eb" />
-    <meta name="language" content="en, es, fr, ar, zh, hi, pt, ru, ja, de" />
-    <meta http-equiv="Content-Language" content="en, es, fr, ar, zh, hi, pt, ru, ja, de" />
+    <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1e3a8a" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="format-detection" content="telephone=no, email=no, address=no" />
 
     <!-- ============================================
-         TITLE & DESCRIPTION
+         TITLE & DESCRIPTION (SEO + AI SEARCH)
          ============================================ -->
-    <title>SafeTrack Pro Global - AI-Powered HSE Software</title>
-    <meta name="description" content="AI-powered HSE software trusted across 9+ industries. Achieve 99.5% compliance with AI camera monitoring, instant incident reports, complete document lifecycle control, and live environmental monitoring." />
-    <meta name="keywords" content="HSE software, EHS software, AI safety platform, compliance management, risk assessment, AI camera monitoring, instant incident reports, document lifecycle, live environmental monitoring, PTW, permit to work, healthcare safety, industrial safety, OSHA compliance, ISO 45001, construction safety, oil and gas safety, manufacturing safety, education safety" />
+    <title>SafeTrack Pro Global | AI-Powered HSE & Safety Compliance Software</title>
+    <meta name="description" content="SafeTrack Pro Global is AI-powered HSE software for OSHA, ISO 45001, HIPAA & 20+ frameworks. Manage HSE projects, manpower, training, LTI trends, incidents, and compliance — with AI camera monitoring, instant incident reports, and live environmental monitoring." />
+    <meta name="keywords" content="HSE software, EHS software, AI safety platform, HSE project management, compliance management, risk assessment, AI camera monitoring, instant incident reports, document lifecycle, environmental monitoring, PTW, permit to work, healthcare safety, industrial safety, OSHA compliance, ISO 45001, ISO 14001, construction safety, oil and gas safety, manufacturing safety, mining safety, aviation SMS, maritime MLC, education safety, CSP exam simulator, safety certification" />
 
     <!-- ============================================
          AUTHOR & ROBOTS
          ============================================ -->
-    <meta name="author" content="Abigalistic Studios" />
-    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />
+    <meta name="author" content="Adam Fusheini — Abigalistic Studios" />
+    <meta name="publisher" content="SafeTrack Pro Global" />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="bingbot" content="index, follow" />
     <link rel="canonical" href="https://safetrackproglobal.com/" />
+
+    <!-- ============================================
+         AI SEARCH DECLARATIONS
+         ============================================ -->
+    <meta name="ai-content-declaration" content="human-authored" />
+    <meta name="chatgpt-user" content="allow" />
+    <meta name="perplexity-bot" content="allow" />
+    <meta name="claude-bot" content="allow" />
+    <meta name="google-extended" content="allow" />
+    <meta name="applebot-extended" content="allow" />
 
     <!-- ============================================
          MULTILINGUAL HREFLANG TAGS
@@ -50,16 +64,17 @@
     <link rel="mask-icon" href="/safetrack-logo.png" color="#2563eb" />
 
     <!-- ============================================
-         OPEN GRAPH (OG) - Multilingual Social Sharing
+         OPEN GRAPH (OG)
          ============================================ -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="SafeTrack Pro Global - AI-Powered HSE Software" />
-    <meta property="og:description" content="AI-powered HSE software trusted across 9+ industries. Achieve 99.5% compliance with AI camera monitoring, instant incident reports, complete document lifecycle control, and live environmental monitoring." />
+    <meta property="og:title" content="SafeTrack Pro Global | AI-Powered HSE & Safety Compliance Software" />
+    <meta property="og:description" content="HSE project management, AI camera monitoring, instant incident reports, and compliance for 20+ frameworks. Trusted across 9+ industries." />
     <meta property="og:url" content="https://safetrackproglobal.com/" />
     <meta property="og:site_name" content="SafeTrack Pro Global" />
     <meta property="og:image" content="https://safetrackproglobal.com/android-chrome-512x512.png" />
     <meta property="og:image:width" content="512" />
     <meta property="og:image:height" content="512" />
+    <meta property="og:image:alt" content="SafeTrack Pro Global - AI-powered HSE software dashboard" />
     <meta property="og:locale" content="en_US" />
     <meta property="og:locale:alternate" content="es_ES" />
     <meta property="og:locale:alternate" content="fr_FR" />
@@ -75,79 +90,226 @@
          TWITTER CARD
          ============================================ -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="SafeTrack Pro Global - AI-Powered HSE Software" />
-    <meta name="twitter:description" content="AI-powered HSE software trusted across 9+ industries. Achieve 99.5% compliance with AI camera monitoring, instant incident reports, and live environmental monitoring." />
+    <meta name="twitter:title" content="SafeTrack Pro Global | AI-Powered HSE Software" />
+    <meta name="twitter:description" content="AI-powered HSE software with camera monitoring, instant incident reports, and compliance for OSHA, ISO 45001, HIPAA + 20 frameworks." />
     <meta name="twitter:image" content="https://safetrackproglobal.com/android-chrome-512x512.png" />
+    <meta name="twitter:image:alt" content="SafeTrack Pro Global dashboard" />
     <meta name="twitter:site" content="@safetrackpro" />
+    <meta name="twitter:creator" content="@safetrackpro" />
 
     <!-- ============================================
-         STRUCTURED DATA - JSON-LD (Organization)
+         STRUCTURED DATA — ORGANIZATION
          ============================================ -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
         "@type": "Organization",
+        "@id": "https://safetrackproglobal.com/#organization",
         "name": "SafeTrack Pro Global",
-        "description": "AI-powered HSE software trusted across 9+ industries. Achieve 99.5% compliance with AI camera monitoring, instant incident reports, complete document lifecycle control, and live environmental monitoring.",
+        "alternateName": "SafeTrack Pro",
+        "description": "AI-powered HSE software trusted across 9+ industries. Achieve 99.5% compliance with AI camera monitoring, instant incident reports, and live environmental monitoring.",
         "url": "https://safetrackproglobal.com/",
-        "logo": "https://safetrackproglobal.com/android-chrome-512x512.png",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "https://safetrackproglobal.com/android-chrome-512x512.png",
+            "width": 512,
+            "height": 512
+        },
         "founder": {
             "@type": "Person",
             "name": "Adam Fusheini"
         },
+        "foundingDate": "2022",
         "sameAs": [
             "https://twitter.com/safetrackpro",
             "https://linkedin.com/company/safetrackpro",
-            "https://facebook.com/safetrackpro"
+            "https://facebook.com/safetrackpro",
+            "https://github.com/safetrackpro"
         ],
-        "contactPoint": {
+        "contactPoint": [{
             "@type": "ContactPoint",
             "telephone": "+97433251705",
             "contactType": "sales",
-            "email": "info@safetrackproglobal.com"
-        },
+            "email": "info@safetrackproglobal.com",
+            "areaServed": "Worldwide",
+            "availableLanguage": ["English", "Spanish", "French", "Arabic", "Chinese", "Hindi", "Portuguese", "Russian", "Japanese", "German"]
+        }],
         "address": {
             "@type": "PostalAddress",
-            "addressCountry": "Qatar"
+            "addressLocality": "Doha",
+            "addressCountry": "QA"
         }
     }
     </script>
 
-    <!-- WebSite Schema -->
+    <!-- ============================================
+         STRUCTURED DATA — WEBSITE
+         ============================================ -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
         "@type": "WebSite",
+        "@id": "https://safetrackproglobal.com/#website",
         "name": "SafeTrack Pro Global",
         "url": "https://safetrackproglobal.com/",
+        "publisher": { "@id": "https://safetrackproglobal.com/#organization" },
+        "inLanguage": "en",
         "potentialAction": {
             "@type": "SearchAction",
-            "target": "https://safetrackproglobal.com/search?q={search_term_string}",
+            "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://safetrackproglobal.com/search?q={search_term_string}"
+            },
             "query-input": "required name=search_term_string"
         }
     }
     </script>
 
-    <!-- SoftwareApplication Schema -->
+    <!-- ============================================
+         STRUCTURED DATA — SOFTWARE APPLICATION
+         ============================================ -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
+        "@id": "https://safetrackproglobal.com/#software",
         "name": "SafeTrack Pro Global",
-        "operatingSystem": "Windows, macOS, iOS, Android",
+        "operatingSystem": "Windows, macOS, iOS, Android, Web",
         "applicationCategory": "BusinessApplication",
-        "description": "AI-powered HSE software with AI camera monitoring, instant incident reports, complete document lifecycle control, and live environmental monitoring.",
+        "applicationSubCategory": "HSE Software, Safety Management, Compliance Management, AI Safety Platform",
+        "description": "AI-powered HSE software with HSE project management, AI camera monitoring, instant incident reports, complete document lifecycle control, and live environmental monitoring.",
+        "url": "https://safetrackproglobal.com/",
+        "publisher": { "@id": "https://safetrackproglobal.com/#organization" },
         "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD"
+            "@type": "AggregateOffer",
+            "lowPrice": "0",
+            "highPrice": "999",
+            "priceCurrency": "USD",
+            "offerCount": "3"
         },
         "aggregateRating": {
             "@type": "AggregateRating",
             "ratingValue": "4.8",
-            "reviewCount": "127"
+            "reviewCount": "127",
+            "bestRating": "5",
+            "worstRating": "1"
         },
-        "applicationSubCategory": "HSE Software, Safety Management, Compliance Management, AI Safety Platform"
+        "featureList": [
+            "HSE Project Management",
+            "AI Camera Monitoring",
+            "Instant Incident Reports",
+            "Document Lifecycle Control",
+            "Live Environmental Monitoring",
+            "Manpower Distribution",
+            "Training & Competency Tracking",
+            "LTI Trend Analysis",
+            "Man-Hours Analysis",
+            "Accident & Injury Tracking",
+            "Compliance Management",
+            "Permit to Work (PTW)",
+            "AI Document Generator",
+            "CSP Exam Simulator"
+        ],
+        "screenshot": "https://safetrackproglobal.com/android-chrome-512x512.png"
+    }
+    </script>
+
+    <!-- ============================================
+         STRUCTURED DATA — FAQ PAGE (AI SEARCH MAGNET)
+         ============================================ -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "What is SafeTrack Pro Global?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "SafeTrack Pro Global is an AI-powered HSE (Health, Safety, and Environment) software platform that combines HSE project management, AI camera monitoring, instant incident reporting, complete document lifecycle control, and live environmental monitoring in one command center. It is trusted across 9+ industries and helps organizations achieve up to 99.5% compliance."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Which compliance frameworks does SafeTrack Pro Global support?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "SafeTrack Pro Global supports 20+ compliance frameworks including OSHA 29 CFR 1910, ISO 45001, ISO 14001, ISO 27001, HIPAA, SOC2, MLC 2006, ICAO SMS, MSHA, REACH, TSCA, and GDPR. Pre-built modules are available for healthcare, oil and gas, construction, manufacturing, maritime, aviation, mining, chemical, and education industries."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How does AI camera monitoring work in SafeTrack Pro Global?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "SafeTrack Pro Global uses AI-powered video analysis to detect PPE compliance, unsafe behavior, restricted zone violations, fire, smoke, and spills in real time — with 99.2% detection accuracy and under 1-second alert latency. It works with your existing IP cameras and provides 24/7 coverage across every site and shift."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Can SafeTrack Pro Global help me pass the CSP exam?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes. SafeTrack Pro Global includes a CSP Hard Mode Exam simulator with 100 complex scenario-based questions, a 4-hour time limit, and CSP-level pacing. Upon passing, users receive a blockchain-verified certificate with Continuing Education Units (CEUs) at Platinum, Gold, Silver, Bronze, or Competent levels."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Does SafeTrack Pro Global generate OSHA-compliant safety documents?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes. SafeTrack Pro Global includes an AI Document Generator that creates OSHA-compliant SOPs, JHAs, permits, and incident reports in seconds. Documents include auto-filled regulatory references, rich text editing, tables, digital signatures, approval workflows, and one-click export to PDF or Word."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What modules are included in HSE Project Management?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "SafeTrack Pro Global's HSE Project Management includes: Overview Dashboard and KPI Cards (Overview), Manpower Distribution and Workforce Management (Workforce), Training and Competency (Training), LTI Trend, Man-Hours Analysis, Observations, Accidents and Injuries (Safety), and Overdue and Expiry Tracking (Compliance)."
+                }
+            }
+        ]
+    }
+    </script>
+
+    <!-- ============================================
+         STRUCTURED DATA — BREADCRUMB
+         ============================================ -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://safetrackproglobal.com/" },
+            { "@type": "ListItem", "position": 2, "name": "Features", "item": "https://safetrackproglobal.com/features" },
+            { "@type": "ListItem", "position": 3, "name": "Pricing", "item": "https://safetrackproglobal.com/pricing" },
+            { "@type": "ListItem", "position": 4, "name": "Industries", "item": "https://safetrackproglobal.com/industries" }
+        ]
+    }
+    </script>
+
+    <!-- ============================================
+         STRUCTURED DATA — LOCAL BUSINESS (Doha HQ)
+         ============================================ -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "ProfessionalService",
+        "name": "SafeTrack Pro Global",
+        "image": "https://safetrackproglobal.com/android-chrome-512x512.png",
+        "url": "https://safetrackproglobal.com/",
+        "telephone": "+97433251705",
+        "email": "info@safetrackproglobal.com",
+        "priceRange": "$$",
+        "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Doha",
+            "addressCountry": "QA"
+        },
+        "areaServed": { "@type": "Place", "name": "Worldwide" },
+        "serviceType": "HSE Software, Safety Compliance, EHS Management"
     }
     </script>
 
@@ -156,14 +318,16 @@
          ============================================ -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://i.imgur.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
     <!-- ============================================
-         SECURITY HEADERS (via meta)
+         SECURITY HEADERS
          ============================================ -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+    <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(self)" />
 
     <!-- ============================================
          STYLES
@@ -175,14 +339,12 @@
             text-size-adjust: 100%;
             scroll-behavior: smooth;
         }
-
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            margin: 0;
         }
-
-        /* SEO-only content (hidden from users, visible to crawlers) */
         .seo-only {
             position: absolute;
             left: -9999px;
@@ -213,28 +375,30 @@
     </noscript>
 
     <!-- ============================================
-         REACT ROOT ELEMENT
+         REACT ROOT
          ============================================ -->
     <div id="root">
         <!-- ============================================
-             SEO-ONLY CONTENT FOR CRAWLERS (Bingbot, Googlebot)
-             This content is hidden from users but visible to
-             search engine crawlers before React hydrates.
+             SEO-ONLY CONTENT FOR CRAWLERS
              ============================================ -->
         <div class="seo-only">
-            <h1>SafeTrack Pro Global - AI-Powered HSE Software</h1>
+            <h1>SafeTrack Pro Global — AI-Powered HSE & Safety Compliance Software</h1>
             <p>SafeTrack Pro Global is AI-powered HSE software trusted across 9+ industries. Achieve 99.5% compliance with AI camera monitoring, instant incident reports, complete document lifecycle control, and live environmental monitoring.</p>
+
+            <h2>HSE Project Management</h2>
+            <p>Run your entire HSE operation from one command center. Modules include Overview Dashboard, KPI Cards, Manpower Distribution, Workforce Management, Training and Competency, LTI Trend, Man-Hours Analysis, Observations, Accidents, Injuries, and Overdue Compliance tracking.</p>
 
             <h2>Enterprise-Grade Features</h2>
             <ul>
-                <li><strong>AI Camera Monitoring</strong> - Real-time video analysis with automatic PPE detection, hazard identification, and instant safety violation alerts — 24/7 coverage across every site and shift.</li>
-                <li><strong>Instant Incident Reports & Analysis</strong> - Report incidents in seconds from any device with auto-capture, AI severity scoring, witness tracking, and immediate manager notification.</li>
-                <li><strong>Complete Document Lifecycle Control</strong> - Auto-create, modify, submit, digitally sign, download, and archive every safety document — with AI classification, version control, and full compliance audit trails.</li>
-                <li><strong>Live Environmental Monitoring</strong> - Track air quality, water quality, emissions, biodiversity, and carbon footprint in real-time with AI predictions, ESG reporting, and instant regulatory alerts.</li>
-                <li><strong>AI-Powered Risk Assessment</strong> - Predictive analytics that identify hazards before they become incidents — with 94% AI accuracy.</li>
-                <li><strong>Compliance Management</strong> - Automated regulatory tracking, real-time alerts, and one-click reporting for OSHA, ISO 45001, HIPAA, and 20+ frameworks.</li>
-                <li><strong>Permit to Work (PTW)</strong> - Create, approve, and manage work permits with complete audit trails and integrated risk assessments.</li>
-                <li><strong>Real-time Safety Dashboard</strong> - Live KPIs, incident heatmaps, and compliance status — configurable for any industry, any role.</li>
+                <li><strong>AI Camera Monitoring</strong> — Real-time video analysis with automatic PPE detection, hazard identification, and instant safety violation alerts — 24/7 coverage across every site and shift.</li>
+                <li><strong>Instant Incident Reports & Analysis</strong> — Report incidents in seconds from any device with auto-capture, AI severity scoring, witness tracking, and immediate manager notification.</li>
+                <li><strong>Complete Document Lifecycle Control</strong> — Auto-create, modify, submit, digitally sign, download, and archive every safety document — with AI classification, version control, and full compliance audit trails.</li>
+                <li><strong>Live Environmental Monitoring</strong> — Track air quality, water quality, emissions, biodiversity, and carbon footprint in real-time with AI predictions, ESG reporting, and instant regulatory alerts.</li>
+                <li><strong>AI-Powered Risk Assessment</strong> — Predictive analytics that identify hazards before they become incidents — with 94% AI accuracy.</li>
+                <li><strong>Compliance Management</strong> — Automated regulatory tracking, real-time alerts, and one-click reporting for OSHA, ISO 45001, HIPAA, and 20+ frameworks.</li>
+                <li><strong>Permit to Work (PTW)</strong> — Create, approve, and manage work permits with complete audit trails and integrated risk assessments.</li>
+                <li><strong>CSP Exam Simulator</strong> — 100-question hard-mode CSP simulator with blockchain-verified certificates and CEUs.</li>
+                <li><strong>AI Document Generator</strong> — Instantly generate OSHA-compliant SOPs, JHAs, and reports with auto-filled regulatory references.</li>
             </ul>
 
             <h2>Industries Served</h2>
@@ -254,7 +418,7 @@
             <h2>Enterprise Security</h2>
             <p>ISO 27001 and SOC2 Type II certified. Bank-level encryption, role-based access control, and complete compliance audit trails across every module.</p>
 
-            <h2>Contact</h2>
+            <h2>Contact SafeTrack Pro Global</h2>
             <p>Email: <a href="mailto:info@safetrackproglobal.com">info@safetrackproglobal.com</a></p>
             <p>Phone: +974 3325 1705</p>
             <p>Headquarters: Doha, Qatar</p>
