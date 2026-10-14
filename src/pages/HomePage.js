@@ -612,6 +612,187 @@ function HomePage() {
         </div>
       </section>
 
+{/* ============================================
+     HSE PROJECT MANAGEMENT SECTION
+     ============================================ */}
+<section className="hse-project-section">
+  <div className="container">
+    <div className="section-header">
+      <span className="section-tag">HSE Project Management</span>
+      <h2 className="section-title">
+        Run Your Entire HSE Operation From <span className="gradient-text">One Command Center</span>
+      </h2>
+      <p className="section-subtitle">
+        SafeTrack Pro Global replaces scattered spreadsheets, WhatsApp groups, and disconnected tools with a single, intelligent platform. From manpower deployment and training compliance to LTI trends, accident analytics, and overdue actions — every part of your HSE operation is tracked, measured, and visualized in real time.
+      </p>
+    </div>
+
+    {/* Dashboard Preview */}
+    <div className="hse-dashboard-preview">
+      <div className="hse-dash-header">
+        <div className="hse-dash-title">
+          <SafetyCertificateOutlined /> Safety Compliance Dashboard
+          <span className="live-dot"></span> Last Updated: 15:55:02
+        </div>
+        <div className="hse-dash-actions">
+          <Tag color="blue">2025-1C → 2026-1C</Tag>
+          <Tag>All Depts</Tag>
+          <Button type="primary" size="small" icon={<PlusOutlined />}>New Project</Button>
+        </div>
+      </div>
+
+      <div className="hse-dash-toolbar">
+        <span><FolderOutlined /> Server room</span>
+        <div className="toolbar-icons">
+          <ReloadOutlined /> <PlusOutlined /> <FileTextOutlined />
+          <DownloadOutlined /> <SettingOutlined /> <ExpandOutlined />
+          <Tag color="blue">Edit</Tag>
+        </div>
+      </div>
+
+      <div className="hse-dash-grid">
+        <div className="hse-card">
+          <div className="hse-card-header">
+            <span><TeamOutlined /> Manpower Distribution</span>
+            <SettingOutlined />
+          </div>
+          <div className="hse-card-body">
+            <div className="donut-chart"><div className="donut-center">100%</div></div>
+            <div className="chart-legend">
+              <span><span className="legend-dot blue"></span> Section A: 100%</span>
+            </div>
+          </div>
+          <div className="hse-card-footer">
+            <span>Total: 20</span><a>Add Data</a>
+          </div>
+        </div>
+
+        <div className="hse-card">
+          <div className="hse-card-header">
+            <span><BarChartOutlined /> Training Statistics</span>
+            <SettingOutlined />
+          </div>
+          <div className="hse-card-body">
+            <div className="empty-chart">
+              <div className="chart-grid"></div><span>No Data</span>
+            </div>
+          </div>
+          <div className="hse-card-footer">
+            <span>Total Trained: 0</span><a>Add Data</a>
+          </div>
+        </div>
+
+        <div className="hse-card">
+          <div className="hse-card-header">
+            <span><AlertOutlined /> Lost Time Injury Trend</span>
+            <SettingOutlined />
+          </div>
+          <div className="hse-card-body">
+            <div className="empty-chart"><div className="chart-grid"></div></div>
+          </div>
+        </div>
+
+        <div className="hse-card">
+          <div className="hse-card-header">
+            <span><ClockCircleOutlined /> Man-Hours Analysis</span>
+            <SettingOutlined />
+          </div>
+          <div className="hse-card-body">
+            <div className="bar-chart">
+              <div className="bar" style={{ height: '80%' }}></div>
+              <div className="bar" style={{ height: '60%' }}></div>
+              <div className="bar" style={{ height: '90%' }}></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Module Groups with Rich Explanations */}
+    <div className="hse-modules-rich">
+      {[
+        {
+          group: 'Overview',
+          icon: <DashboardOutlined />,
+          color: '#2563eb',
+          intro: 'Your entire HSE operation, distilled into live KPIs and executive dashboards.',
+          modules: [
+            { icon: <DashboardOutlined />, name: 'Overview Dashboard', desc: 'A single live view of every HSE metric across all sites, departments, and projects — updated in real time so you always know the state of your operation.' },
+            { icon: <FundOutlined />, name: 'KPI Cards', desc: 'Configurable KPI cards for TRIR, LTIFR, compliance rate, training coverage, and incident frequency — visual, color-coded, and drillable.' }
+          ]
+        },
+        {
+          group: 'Workforce',
+          icon: <TeamOutlined />,
+          color: '#7c3aed',
+          intro: 'Know exactly who is on site, where they are deployed, and how they are tracked.',
+          modules: [
+            { icon: <TeamOutlined />, name: 'Manpower Distribution', desc: 'See how your workforce is allocated across sections, shifts, and disciplines — with real-time headcount, contractor vs. staff ratios, and deployment trends.' },
+            { icon: <TeamOutlined />, name: 'Workforce Management', desc: 'Full personnel records including certifications, medicals, inductions, and site access — with automatic expiry alerts and contractor onboarding workflows.' }
+          ]
+        },
+        {
+          group: 'Training',
+          icon: <ReadOutlined />,
+          color: '#0891b2',
+          intro: 'Guarantee every worker is trained, certified, and compliant before they step on site.',
+          modules: [
+            { icon: <ReadOutlined />, name: 'Training & Competency', desc: 'Track mandatory training, competency assessments, toolbox talks, and refresher cycles. Get automatic alerts before certifications expire, and prove compliance in one click during audits.' }
+          ]
+        },
+        {
+          group: 'Safety',
+          icon: <SafetyCertificateOutlined />,
+          color: '#059669',
+          intro: 'The full safety intelligence suite — from incidents and observations to injury analytics.',
+          modules: [
+            { icon: <LineChartOutlined />, name: 'LTI Trend', desc: 'Lost Time Injury trends visualized over weeks, months, and quarters — so you can spot patterns, forecast risk, and demonstrate improvement to regulators.' },
+            { icon: <ClockCircleOutlined />, name: 'Man-Hours Analysis', desc: 'Track exposure hours automatically and compute TRIR, LTIFR, and DART rates without manual spreadsheets. Perfect for monthly and annual HSE reporting.' },
+            { icon: <AlertOutlined />, name: 'Observations', desc: 'Capture behavior-based safety observations from any device, classify them by type and severity, and track corrective actions through to closure.' },
+            { icon: <CarOutlined />, name: 'Accidents', desc: 'Log vehicle, equipment, and site accidents with photos, witnesses, and root cause analysis — and generate investigation reports instantly.' },
+            { icon: <MedicineBoxOutlined />, name: 'Injuries', desc: 'Record first aid, medical treatment, restricted duty, and recordable injuries with full case management, follow-up tracking, and OSHA 300 log generation.' }
+          ]
+        },
+        {
+          group: 'Compliance',
+          icon: <VerifiedOutlined />,
+          color: '#dc2626',
+          intro: 'Never miss a permit, inspection, or regulatory deadline again.',
+          modules: [
+            { icon: <SafetyCertificateOutlined />, name: 'Overdue & Expiry Tracking', desc: 'Automatically track every expiring permit, license, inspection, and corrective action across your operation. Receive alerts days or weeks in advance — and eliminate last-minute audit surprises.' }
+          ]
+        }
+      ].map((group, gi) => (
+        <div key={gi} className="hse-rich-group">
+          <div className="hse-rich-header" style={{ borderLeftColor: group.color }}>
+            <div className="hse-rich-icon" style={{ background: `${group.color}15`, color: group.color }}>
+              {group.icon}
+            </div>
+            <div>
+              <h3 style={{ color: group.color }}>{group.group}</h3>
+              <p>{group.intro}</p>
+            </div>
+          </div>
+
+          <div className="hse-rich-modules">
+            {group.modules.map((mod, mi) => (
+              <div key={mi} className="hse-rich-card">
+                <div className="hse-rich-card-icon" style={{ background: `${group.color}10`, color: group.color }}>
+                  {mod.icon}
+                </div>
+                <div className="hse-rich-card-text">
+                  <strong>{mod.name}</strong>
+                  <span>{mod.desc}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
       {/* ============================================
            TRUST SECTION
            ============================================ */}
