@@ -39,7 +39,14 @@ import {
   SignatureOutlined,
   DownloadOutlined,
   FileAddOutlined,
-  FundOutlined
+  FundOutlined,
+  // ✅ NEW — required by HSE Project Management section
+  PlusOutlined,
+  FolderOutlined,
+  ReloadOutlined,
+  SettingOutlined,
+  ExpandOutlined
+} from '@ant-design/icons';
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../context/LanguageContext';
