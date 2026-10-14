@@ -4,70 +4,101 @@
 # ============================================
 # This file controls how search engines and AI crawlers
 # interact with SafeTrack Pro Global.
+#
+# Spec reference: RFC 9309
+# Last updated: 2026
 # ============================================
 
 # ============================================
-# ALLOW ALL MAJOR SEARCH ENGINES
+# DEFAULT — ALLOW ALL CRAWLERS
 # ============================================
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /super-admin
+Disallow: /api/private
+Disallow: /auth
+Disallow: /password-reset
+Disallow: /profile
+Disallow: /settings
+Disallow: /_next
+Disallow: /cart
+Disallow: /checkout
+Disallow: /*?sessionid=
+Disallow: /*?token=
 
 # ============================================
-# ALLOW AI RETRIEVAL CRAWLERS
-# AI crawlers need access to index your content
-# for AI-powered search and answer engines.
+# AI RETRIEVAL CRAWLERS — WELCOMED
 # ============================================
 
 # OpenAI / ChatGPT
 User-agent: GPTBot
 Allow: /
-Allow: /sitemap.xml
 
-# ChatGPT-User (for browsing)
 User-agent: ChatGPT-User
 Allow: /
 
-# OpenAI OAI-SearchBot
 User-agent: OAI-SearchBot
 Allow: /
-Allow: /sitemap.xml
 
 # Anthropic / Claude
 User-agent: ClaudeBot
 Allow: /
-Allow: /sitemap.xml
 
-# Claude-Web
 User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
 Allow: /
 
 # Perplexity AI
 User-agent: PerplexityBot
 Allow: /
-Allow: /sitemap.xml
 
 # Google AI / Gemini
 User-agent: Google-Extended
 Allow: /
-Allow: /sitemap.xml
 
-# Apple AI / Applebot-Extended
+# Apple AI
+User-agent: Applebot
+Allow: /
+
 User-agent: Applebot-Extended
 Allow: /
 
-# Amazon AI / Amazonbot
+# Amazon AI
 User-agent: Amazonbot
 Allow: /
 
+# Meta AI
+User-agent: meta-externalagent
+Allow: /
+
+# Common Crawl (used by many AI models)
+User-agent: CCBot
+Allow: /
+
+# DuckDuckGo AI
+User-agent: DuckAssistBot
+Allow: /
+
+# You.com AI
+User-agent: YouBot
+Allow: /
+
 # ============================================
-# BLOCK BAD BOTS & SCRAPERS
+# SEO TOOLS — ALLOWED FOR BACKLINK HEALTH
+# Remove these blocks if you want maximum visibility
 # ============================================
 User-agent: AhrefsBot
-Disallow: /
+Allow: /
 
 User-agent: SemrushBot
-Disallow: /
+Allow: /
 
+# ============================================
+# BAD BOTS & SCRAPERS — BLOCKED
+# ============================================
 User-agent: MJ12bot
 Disallow: /
 
@@ -77,63 +108,23 @@ Disallow: /
 User-agent: AspiegelBot
 Disallow: /
 
-# ============================================
-# ALLOW ALL CORE PAGES FOR SEO
-# ============================================
+User-agent: Bytespider
+Disallow: /
 
-# Core Features
-Allow: /features
-Allow: /dashboard
-Allow: /risk-assessment
-Allow: /incidents
-Allow: /documents
-Allow: /camera-ai
-Allow: /environmental
+User-agent: PetalBot
+Disallow: /
 
-# Industry Solutions
-Allow: /industries/healthcare
-Allow: /industries/oil-gas
-Allow: /industries/construction
-Allow: /industries/manufacturing
-Allow: /industries/maritime
-Allow: /industries/aviation
-Allow: /industries/mining
-Allow: /industries/chemical
+User-agent: BLEXBot
+Disallow: /
 
-# Company & Resources
-Allow: /about
-Allow: /contact
-Allow: /blog
-Allow: /pricing
-Allow: /subscription
-Allow: /demo
-Allow: /support
+User-agent: DataForSeoBot
+Disallow: /
 
-# PWA & Assets
-Allow: /manifest.json
-Allow: /favicon.ico
-Allow: /android-chrome-*.png
-Allow: /apple-touch-icon.png
-Allow: /safetrack-logo.png
+User-agent: ZoominfoBot
+Disallow: /
 
-# API Documentation
-Allow: /docs
-Allow: /api
-
-# ============================================
-# BLOCK SENSITIVE & ADMIN AREAS
-# ============================================
-Disallow: /admin
-Disallow: /super-admin
-Disallow: /api/private
-Disallow: /auth
-Disallow: /login
-Disallow: /signup
-Disallow: /password-reset
-Disallow: /profile
-Disallow: /settings
-Disallow: /_next
-Disallow: /static
+User-agent: magpie-crawler
+Disallow: /
 
 # ============================================
 # SITEMAP LOCATIONS
@@ -141,13 +132,4 @@ Disallow: /static
 Sitemap: https://safetrackproglobal.com/sitemap.xml
 Sitemap: https://safetrackproglobal.com/sitemap-pages.xml
 Sitemap: https://safetrackproglobal.com/sitemap-blog.xml
-
-# ============================================
-# CRAWL DELAY (Respect server resources)
-# ============================================
-Crawl-delay: 2
-
-# ============================================
-# HOST
-# ============================================
-Host: https://safetrackproglobal.com
+Sitemap: https://safetrackproglobal.com/sitemap-images.xml
