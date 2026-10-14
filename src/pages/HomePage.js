@@ -99,7 +99,7 @@ function HomePage() {
     return () => clearInterval(slideInterval.current);
   }, []);
 
-  // Hero Slides - Dashboard Screenshots
+  // Hero Slides
   const heroSlides = [
     {
       id: 1,
@@ -138,7 +138,7 @@ function HomePage() {
     }
   ];
 
-  // Core Features - Action-Driven
+  // Core Features
   const features = [
     {
       icon: <SafetyCertificateOutlined />,
@@ -208,7 +208,7 @@ function HomePage() {
     { icon: <DatabaseOutlined />, label: 'Archive', color: '#dc2626' }
   ];
 
-  // Industry Solutions - Correct Images
+  // Industry Solutions
   const industries = [
     {
       icon: <MedicineBoxOutlined />,
@@ -338,7 +338,7 @@ function HomePage() {
     { icon: <GlobalOutlined />, label: 'Multi-Industry Ready', color: '#722ed1' }
   ];
 
-  // Benefits - Highlight Positives
+  // Benefits
   const benefits = [
     {
       icon: <ThunderboltOutlined />,
@@ -514,7 +514,6 @@ function HomePage() {
                 </div>
               </div>
 
-              {/* ✅ THE ONLY H1 ON THE PAGE */}
               <h1 className="hero-title animate-fade-in">
                 The New Standard in <br />
                 <span className="gradient-text">Industrial Safety</span>
@@ -614,7 +613,7 @@ function HomePage() {
       </section>
 
       {/* ============================================
-           TRUST SECTION - FEATURE-FOCUSED CONFIDENCE
+           TRUST SECTION
            ============================================ */}
       <section className="trust-section">
         <div className="container">
@@ -660,7 +659,6 @@ function HomePage() {
             </div>
           </div>
 
-          {/* Second row — environmental + enterprise */}
           <div className="trust-grid trust-grid-secondary">
             <div className="trust-item">
               <div className="trust-icon">
@@ -704,6 +702,65 @@ function HomePage() {
       </section>
 
       {/* ============================================
+           HOW IT WORKS SECTION
+           ============================================ */}
+      <section className="how-it-works-section">
+        <div className="container">
+          <div className="section-header">
+            <span className="section-tag">How It Works</span>
+            <h2 className="section-title">
+              Get Protected in <span className="gradient-text">3 Simple Steps</span>
+            </h2>
+            <p className="section-subtitle">
+              From signup to full compliance — onboard your entire team in under a day
+            </p>
+          </div>
+
+          <Row gutter={[32, 32]} className="steps-row">
+            {[
+              {
+                step: '01',
+                icon: <TeamOutlined />,
+                title: 'Connect Your Team',
+                description:
+                  'Invite users, assign roles, and set up departments, sites, and shifts in minutes. SSO and role-based access included.',
+                color: '#2563eb'
+              },
+              {
+                step: '02',
+                icon: <RobotOutlined />,
+                title: 'Activate AI Modules',
+                description:
+                  'Turn on AI camera monitoring, incident reporting, document lifecycle, and environmental sensors with one click.',
+                color: '#7c3aed'
+              },
+              {
+                step: '03',
+                icon: <SafetyCertificateOutlined />,
+                title: 'Achieve Compliance',
+                description:
+                  'Watch your compliance rate climb, incidents drop, and audits pass — with real-time dashboards and automated reports.',
+                color: '#059669'
+              }
+            ].map((item, index) => (
+              <Col xs={24} md={8} key={index}>
+                <div className="step-card">
+                  <div className="step-number" style={{ color: item.color }}>
+                    {item.step}
+                  </div>
+                  <div className="step-icon" style={{ background: `${item.color}15`, color: item.color }}>
+                    {item.icon}
+                  </div>
+                  <h4>{item.title}</h4>
+                  <p>{item.description}</p>
+                </div>
+              </Col>
+            ))}
+          </Row>
+        </div>
+      </section>
+
+      {/* ============================================
            DOCUMENT LIFECYCLE SECTION
            ============================================ */}
       <section className="document-lifecycle-section">
@@ -729,6 +786,106 @@ function HomePage() {
                   <ArrowRightOutlined className="lifecycle-arrow" />
                 )}
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================
+           AI CAMERA SHOWCASE
+           ============================================ */}
+      <section className="ai-camera-section">
+        <div className="container">
+          <Row gutter={[48, 48]} align="middle">
+            <Col xs={24} lg={12}>
+              <div className="ai-camera-visual">
+                <div className="camera-frame">
+                  <div className="camera-scan-line"></div>
+                  <div className="camera-detection-box box-1">
+                    <span>PPE Detected ✓</span>
+                  </div>
+                  <div className="camera-detection-box box-2 alert">
+                    <span>No Helmet ⚠</span>
+                  </div>
+                  <div className="camera-detection-box box-3">
+                    <span>Safe Zone ✓</span>
+                  </div>
+                </div>
+                <div className="camera-stats">
+                  <div className="cam-stat">
+                    <strong>99.2%</strong>
+                    <span>Detection Accuracy</span>
+                  </div>
+                  <div className="cam-stat">
+                    <strong>&lt;1s</strong>
+                    <span>Alert Latency</span>
+                  </div>
+                  <div className="cam-stat">
+                    <strong>24/7</strong>
+                    <span>Monitoring</span>
+                  </div>
+                </div>
+              </div>
+            </Col>
+
+            <Col xs={24} lg={12}>
+              <div className="ai-camera-content">
+                <span className="section-tag">AI Camera Monitoring</span>
+                <h2>
+                  Eyes That Never <span className="gradient-text">Blink</span>
+                </h2>
+                <p>
+                  Our AI-powered camera system detects PPE compliance, unsafe behavior, and
+                  hazardous conditions in real time — across every site, shift, and zone.
+                </p>
+                <ul className="camera-feature-list">
+                  <li><CheckCircleOutlined /> Automatic PPE detection (helmets, vests, goggles, gloves)</li>
+                  <li><CheckCircleOutlined /> Unsafe behavior recognition &amp; instant alerts</li>
+                  <li><CheckCircleOutlined /> Restricted zone &amp; hazard area enforcement</li>
+                  <li><CheckCircleOutlined /> Fire, smoke &amp; spill detection</li>
+                  <li><CheckCircleOutlined /> Works with your existing IP cameras</li>
+                </ul>
+                <Button type="primary" size="large" href="/features" className="cta-button">
+                  See It in Action <ArrowRightOutlined />
+                </Button>
+              </div>
+            </Col>
+          </Row>
+        </div>
+      </section>
+
+      {/* ============================================
+           INCIDENT REPORTING FLOW
+           ============================================ */}
+      <section className="incident-section">
+        <div className="container">
+          <div className="section-header">
+            <span className="section-tag">Incident Reporting</span>
+            <h2 className="section-title">
+              From Incident to <span className="gradient-text">Insight in Seconds</span>
+            </h2>
+            <p className="section-subtitle">
+              Report, analyze, and resolve incidents — no paperwork, no delays, no missed details
+            </p>
+          </div>
+
+          <div className="incident-flow">
+            {[
+              { icon: <MobileOutlined />, label: 'Report', sub: 'Any device, 10 seconds' },
+              { icon: <RobotOutlined />, label: 'AI Classify', sub: 'Severity & category' },
+              { icon: <AlertOutlined />, label: 'Notify', sub: 'Managers & responders' },
+              { icon: <FileTextOutlined />, label: 'Document', sub: 'Auto-generated report' },
+              { icon: <CheckCircleOutlined />, label: 'Resolve', sub: 'Track to closure' },
+              { icon: <FundOutlined />, label: 'Learn', sub: 'Trends & prevention' }
+            ].map((step, index) => (
+              <React.Fragment key={index}>
+                <div className="incident-step">
+                  <div className="incident-icon">{step.icon}</div>
+                  <strong>{step.label}</strong>
+                  <span>{step.sub}</span>
+                </div>
+                {index < 5 && <ArrowRightOutlined className="incident-arrow" />}
+              </React.Fragment>
             ))}
           </div>
         </div>
@@ -831,6 +988,47 @@ function HomePage() {
                       </p>
                     )}
                   </div>
+                </div>
+              </Col>
+            ))}
+          </Row>
+        </div>
+      </section>
+
+      {/* ============================================
+           COMPLIANCE FRAMEWORKS
+           ============================================ */}
+      <section className="compliance-section">
+        <div className="container">
+          <div className="section-header">
+            <span className="section-tag">Compliance</span>
+            <h2 className="section-title">
+              Built for <span className="gradient-text">Every Framework</span>
+            </h2>
+            <p className="section-subtitle">
+              Pre-built compliance modules for the standards your industry demands
+            </p>
+          </div>
+
+          <Row gutter={[16, 16]}>
+            {[
+              { code: 'OSHA', label: 'Occupational Safety', color: '#2563eb' },
+              { code: 'ISO 45001', label: 'OH&S Management', color: '#7c3aed' },
+              { code: 'ISO 14001', label: 'Environmental', color: '#059669' },
+              { code: 'ISO 27001', label: 'Information Security', color: '#0891b2' },
+              { code: 'HIPAA', label: 'Healthcare Privacy', color: '#dc2626' },
+              { code: 'SOC2', label: 'Service Security', color: '#ca8a04' },
+              { code: 'MLC 2006', label: 'Maritime Labour', color: '#0ea5e9' },
+              { code: 'ICAO SMS', label: 'Aviation Safety', color: '#6366f1' },
+              { code: 'MSHA', label: 'Mining Safety', color: '#b45309' },
+              { code: 'REACH', label: 'Chemical Safety', color: '#db2777' },
+              { code: 'TSCA', label: 'Chemical Control', color: '#16a34a' },
+              { code: 'GDPR', label: 'Data Protection', color: '#7e22ce' }
+            ].map((fw, index) => (
+              <Col xs={12} sm={8} md={6} lg={4} key={index}>
+                <div className="compliance-badge" style={{ borderColor: `${fw.color}40` }}>
+                  <strong style={{ color: fw.color }}>{fw.code}</strong>
+                  <span>{fw.label}</span>
                 </div>
               </Col>
             ))}
@@ -1065,7 +1263,6 @@ function HomePage() {
                 </Button>
               </div>
               <div className="cta-trust">
-                
                 <span>✓ ISO 27001 Certified</span>
                 <span>✓ SOC2 Compliant</span>
               </div>
