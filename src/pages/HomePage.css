@@ -2263,3 +2263,82 @@
 .home-page.rtl .lifecycle-arrow {
   transform: scaleX(-1);
 }
+
+
+/* ===== HOW IT WORKS ===== */
+.how-it-works-section { padding: 80px 0; background: #fafbfc; }
+.steps-row { margin-top: 48px; }
+.step-card {
+  text-align: center;
+  padding: 40px 24px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+}
+.step-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+.step-number { font-size: 48px; font-weight: 800; opacity: 0.15; margin-bottom: 8px; }
+.step-icon {
+  width: 72px; height: 72px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px; font-size: 32px;
+}
+.step-card h4 { font-size: 20px; margin-bottom: 12px; }
+.step-card p { color: #666; font-size: 15px; }
+
+/* ===== AI CAMERA ===== */
+.ai-camera-section { padding: 100px 0; background: #fff; }
+.ai-camera-visual { position: relative; }
+.camera-frame {
+  position: relative; aspect-ratio: 16/10;
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  border-radius: 20px; overflow: hidden;
+}
+.camera-scan-line {
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, #22d3ee, transparent);
+  animation: scan 3s linear infinite;
+}
+@keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+.camera-detection-box {
+  position: absolute; border: 2px solid #22c55e; border-radius: 8px;
+  padding: 4px 8px; font-size: 11px; color: #22c55e;
+  background: rgba(34,197,94,0.1);
+}
+.camera-detection-box.alert { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,0.1); }
+.box-1 { top: 15%; left: 10%; } .box-2 { top: 45%; right: 15%; } .box-3 { bottom: 15%; left: 30%; }
+.camera-stats { display: flex; gap: 24px; margin-top: 24px; }
+.cam-stat { text-align: center; flex: 1; }
+.cam-stat strong { display: block; font-size: 24px; color: #2563eb; }
+.cam-stat span { font-size: 13px; color: #666; }
+.camera-feature-list { list-style: none; padding: 0; margin: 24px 0; }
+.camera-feature-list li { display: flex; gap: 10px; margin-bottom: 12px; color: #555; }
+
+/* ===== INCIDENT FLOW ===== */
+.incident-section { padding: 80px 0; background: #fafbfc; }
+.incident-flow {
+  display: flex; align-items: center; justify-content: center;
+  gap: 12px; flex-wrap: wrap; margin-top: 48px;
+}
+.incident-step {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 24px; background: #fff; border-radius: 16px;
+  min-width: 130px; box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+.incident-icon { font-size: 28px; color: #2563eb; margin-bottom: 10px; }
+.incident-step strong { font-size: 14px; }
+.incident-step span { font-size: 12px; color: #888; }
+.incident-arrow { color: #cbd5e1; font-size: 20px; }
+
+/* ===== COMPLIANCE ===== */
+.compliance-section { padding: 80px 0; background: #fff; }
+.compliance-badge {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 20px 12px; border: 2px solid; border-radius: 12px;
+  background: #fff; transition: transform 0.3s ease;
+  min-height: 90px; text-align: center;
+}
+.compliance-badge:hover { transform: translateY(-4px); }
+.compliance-badge strong { font-size: 16px; display: block; margin-bottom: 4px; }
+.compliance-badge span { font-size: 11px; color: #888; }
