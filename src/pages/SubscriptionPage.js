@@ -403,7 +403,7 @@ const SubscriptionPage = () => {
           const isCurrentPlan = currentPlan === plan.name;
 
           return (
-            <Col xs={24} md={6} key={plan.id || plan.name}>
+            <Col xs={24} sm={12} lg={6} key={plan.id || plan.name}>
               <Card
                 className={`plan-card ${selectedPlan === plan.name ? 'selected' : ''} ${plan.name === 'pro' ? 'recommended' : ''} ${isCurrentPlan ? 'current' : ''}`}
               >
@@ -420,27 +420,28 @@ const SubscriptionPage = () => {
                 )}
                 
                 <div className="plan-header">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                    {getPlanIcon(plan.name)}
-                    <Title level={3} style={{ margin: 0 }}>{plan.label}</Title>
-                  </div>
-                  <div className="plan-price">
-                    <Title level={2} style={{ margin: 0 }}>
-                      {formatCurrency(pricing?.[selectedDuration], pricing?.currency)}
-                    </Title>
-                    {selectedDuration !== '1_month' && pricing?.[selectedDuration] !== "Custom" && (
-                      <Text type="secondary">
-                        {formatCurrency(pricing?.['1_month'], pricing?.currency)}/month
-                      </Text>
-                    )}
-                  </div>
-                  
-                  {discount > 0 && (
-                    <div className="discount-badge">
-                      <Tag color="green">Save {discount}%</Tag>
-                    </div>
-                  )}
-                </div>
+  <div className="plan-title-row">
+    {getPlanIcon(plan.name)}
+    <Title level={3} className="plan-name">{plan.label}</Title>
+  </div>
+
+  <div className="plan-price">
+    <div className="price-amount">
+      {formatCurrency(pricing?.[selectedDuration], pricing?.currency)}
+    </div>
+    {selectedDuration !== '1_month' && pricing?.[selectedDuration] !== "Custom" && (
+      <Text className="price-subtitle">
+        {formatCurrency(pricing?.['1_month'], pricing?.currency)}/month
+      </Text>
+    )}
+  </div>
+
+  {discount > 0 && (
+    <div className="discount-badge">
+      <Tag color="green">Save {discount}%</Tag>
+    </div>
+  )}
+</div>
 
                 <List
                   size="small"
