@@ -24,7 +24,7 @@ const COMPANY = {
   tagline: 'The Future of Technology',
   email: 'info@safetrackproglobal.com',
   phone: '+974 3325 1705',
-  phone2: '+971 50 000 0000', // placeholder — replace with your UAE number if real
+  phone2: '+233 553 841216', // placeholder — replace with your UAE number if real
   address: 'Doha, Qatar',
   region: 'Global Operations',
   website: 'www.safetrackproglobal.com',
