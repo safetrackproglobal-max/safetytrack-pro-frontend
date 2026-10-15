@@ -26,7 +26,7 @@ const CONTACT = {
   email: 'info@safetrackproglobal.com',
   phone: '+974 3325 1705',
   phoneRaw: '+97433251705',
-  whatsapp: '97433251705', // WhatsApp number without + or spaces
+  whatsapp: '97433251705',
   whatsappMessage: encodeURIComponent(
     "Hello SafeTrack Pro Global team! I'd like to learn more about your HSE platform."
   ),
@@ -47,7 +47,6 @@ const ContactBrandInfo = () => {
           email: values.email,
           subject: values.subject,
           message: values.message,
-          // Honeypot — always empty for real users
           website: values.website || ''
         },
         {
@@ -63,7 +62,6 @@ const ContactBrandInfo = () => {
         );
         form.resetFields();
       } else {
-        // Field-level validation errors from the backend
         if (data?.fields) {
           form.setFields(
             Object.entries(data.fields).map(([field, err]) => ({
@@ -77,7 +75,6 @@ const ContactBrandInfo = () => {
     } catch (error) {
       const errData = error?.response?.data;
 
-      // Map backend field errors onto the form
       if (errData?.fields) {
         form.setFields(
           Object.entries(errData.fields).map(([field, err]) => ({
@@ -87,7 +84,6 @@ const ContactBrandInfo = () => {
         );
       }
 
-      // Rate limit or send failure
       message.error(
         errData?.error ||
           'Failed to send message. Please try again or email us directly.'
@@ -97,18 +93,23 @@ const ContactBrandInfo = () => {
     }
   };
 
-  // WhatsApp click-to-chat URL
   const whatsappUrl = `https://wa.me/${CONTACT.whatsapp}?text=${CONTACT.whatsappMessage}`;
 
   return (
-    <div className="contact-page-header">
-  <Title level={1}>Contact Us</Title>
-  <Text className="contact-page-description">
-    Have questions or need assistance? Send us a message, chat on WhatsApp,
-    or reach out through any of the channels below — we'll get back to you
-    as soon as possible.
-  </Text>
-</div>
+    <div className="contact-brand-page">
+      <div className="contact-container">
+
+        {/* ============================================
+             PAGE HEADER
+             ============================================ */}
+        <div className="contact-page-header">
+          <Title level={1}>Contact Us</Title>
+          <Text className="contact-page-description">
+            Have questions or need assistance? Send us a message, chat on WhatsApp,
+            or reach out through any of the channels below — we'll get back to you
+            as soon as possible.
+          </Text>
+        </div>
 
         {/* ============================================
              QUICK CONTACT METHODS
@@ -276,8 +277,7 @@ const ContactBrandInfo = () => {
               />
             </Form.Item>
 
-            {/* Honeypot — hidden from humans, filled by bots.
-                If this field has a value, the backend silently drops the message. */}
+            {/* Honeypot — hidden from humans, filled by bots */}
             <Form.Item
               name="website"
               style={{
