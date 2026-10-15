@@ -10,7 +10,7 @@ import {
   QuestionCircleOutlined,
   TeamOutlined,
   SafetyCertificateOutlined,
-  HandshakeOutlined,
+  UserSwitchOutlined,
   AuditOutlined,
   InfoCircleOutlined,
   ClockCircleOutlined,
@@ -168,7 +168,7 @@ const SECTIONS = {
   },
   partners: {
     title: 'Partners & Integrations',
-    icon: <HandshakeOutlined />,
+    icon: <UserSwitchOutlined />,
     tagline: 'Grow with SafeTrack Pro.',
     description:
       'Reseller, technology, and consulting partners across the Middle East, Africa, and Asia. Join a growing ecosystem building safer workplaces.',
