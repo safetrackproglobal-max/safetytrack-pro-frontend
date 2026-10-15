@@ -558,7 +558,7 @@ function HomePage() {
                 <Button type="primary" size="large" href="/signup" className="cta-button">
                   Start Free Trial <ArrowRightOutlined />
                 </Button>
-                <Button size="large" href="/subscription" className="secondary-btn">
+                <Button size="large" href="/pricing" className="secondary-btn">
                   View Plans
                 </Button>
               </div>
