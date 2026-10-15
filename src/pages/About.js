@@ -3,14 +3,42 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  FaRocket, FaShieldAlt, FaUsers, FaGlobe, FaHeart,
-  FaCheckCircle, FaChartLine, FaRobot, FaLightbulb,
-  FaHandshake, FaAward, FaClock, FaEnvelope, FaPhoneAlt,
-  FaLinkedin, FaTwitter, FaFacebook, FaMapMarkerAlt,
-  FaBullseye, FaEye, FaGem, FaIndustry, FaHardHat,
-  FaFire, FaFlask, FaPlane, FaShip, FaTruck, FaLeaf
-} from 'react-icons/fa';
-import { HiOutlineSparkles } from 'react-icons/hi';
+  RocketOutlined,
+  SafetyCertificateOutlined,
+  TeamOutlined,
+  GlobalOutlined,
+  HeartOutlined,
+  CheckCircleOutlined,
+  LineChartOutlined,
+  RobotOutlined,
+  BulbOutlined,
+  SmileOutlined,          // ← add this
+  TrophyOutlined,
+  ClockCircleOutlined,
+  MailOutlined,
+  PhoneOutlined,
+  LinkedinOutlined,
+  TwitterOutlined,
+  FacebookOutlined,
+  EnvironmentOutlined,
+  AimOutlined,
+  EyeOutlined,
+  CrownOutlined,
+  ToolOutlined,
+  FireOutlined,
+  ExperimentOutlined,
+  MedicineBoxOutlined,
+  DatabaseOutlined,
+  CloudOutlined,
+  BuildOutlined,
+  CarOutlined,
+  BlockOutlined,
+  ReadOutlined,
+  ThunderboltOutlined
+} from '@ant-design/icons';
+
+// ❌ Remove this line:
+// import { HiOutlineSparkles } from 'react-icons/hi';
 
 // ============================================================
 // AFDALTECH SOLUTIONS / SAFETRACK PRO GLOBAL
@@ -24,7 +52,6 @@ const COMPANY = {
   tagline: 'The Future of Technology',
   email: 'info@safetrackproglobal.com',
   phone: '+974 3325 1705',
-  phone2: '+233 553 841216', // placeholder — replace with your UAE number if real
   address: 'Doha, Qatar',
   region: 'Global Operations',
   website: 'www.safetrackproglobal.com',
@@ -74,7 +101,7 @@ const About = () => {
             marginBottom: 24,
             fontSize: 14
           }}>
-            <HiOutlineSparkles style={{ color: '#C9A84C' }} /> About Us
+            <SmileOutlined style={{ color: '#C9A84C' }} /> About Us
           </div>
 
           <h1 style={{
@@ -213,22 +240,22 @@ const About = () => {
           >
             {[
               {
-                icon: <FaShieldAlt />,
+                icon: <SafetyCertificateOutlined />,
                 title: 'HSE Management',
                 desc: 'Incident reporting, root cause analysis with AI-powered Fishbone diagrams, permit-to-work systems, safety observations, and predictive risk assessment — configurable for every industry.'
               },
               {
-                icon: <FaGlobe />,
+                icon: <GlobalOutlined />,
                 title: 'Environmental Intelligence',
                 desc: 'Real-time air, water, and emissions monitoring, carbon footprint tracking, ESG scoring, biodiversity monitoring, and sustainability goal management.'
               },
               {
-                icon: <FaLeaf />,
+                icon: <ReadOutlined />,
                 title: 'Compliance & Documentation',
                 desc: 'AI-generated SOPs, JHAs, and permits. Automated regulatory tracking across OSHA, ISO 45001, ISO 14001, EPA, HIPAA, MLC 2006, ICAO SMS, MSHA, REACH, and more.'
               },
               {
-                icon: <FaRobot />,
+                icon: <RobotOutlined />,
                 title: 'AI & Camera Monitoring',
                 desc: 'Real-time AI camera monitoring for PPE compliance, unsafe behavior, and hazard detection. Predictive analytics, document classification, and automated reporting.'
               }
@@ -277,7 +304,7 @@ const About = () => {
       </section>
 
       {/* ============================================================
-          INDUSTRIES WE SERVE  ← NEW
+          INDUSTRIES WE SERVE
       ============================================================ */}
       <section style={{ padding: '80px 24px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
@@ -313,18 +340,18 @@ const About = () => {
             }}
           >
             {[
-              { icon: <FaHardHat />, label: 'Construction' },
-              { icon: <FaFire />, label: 'Oil & Gas' },
-              { icon: <FaIndustry />, label: 'Manufacturing' },
-              { icon: <FaHeart />, label: 'Healthcare' },
-              { icon: <FaGem />, label: 'Mining' },
-              { icon: <FaFlask />, label: 'Chemical' },
-              { icon: <FaPlane />, label: 'Aviation' },
-              { icon: <FaShip />, label: 'Maritime' },
-              { icon: <FaTruck />, label: 'Logistics' },
-              { icon: <FaLeaf />, label: 'Agriculture' },
-              { icon: <FaUsers />, label: 'Education' },
-              { icon: <FaChartLine />, label: 'Energy & Utilities' }
+              { icon: <BuildOutlined />, label: 'Construction' },
+              { icon: <FireOutlined />, label: 'Oil & Gas' },
+              { icon: <ToolOutlined />, label: 'Manufacturing' },
+              { icon: <MedicineBoxOutlined />, label: 'Healthcare' },
+              { icon: <CrownOutlined />, label: 'Mining' },
+              { icon: <ExperimentOutlined />, label: 'Chemical' },
+              { icon: <RocketOutlined />, label: 'Aviation' },
+              { icon: <CloudOutlined />, label: 'Maritime' },
+              { icon: <CarOutlined />, label: 'Logistics' },
+              { icon: <DatabaseOutlined />, label: 'Agriculture' },
+              { icon: <TeamOutlined />, label: 'Education' },
+              { icon: <LineChartOutlined />, label: 'Energy & Utilities' }
             ].map((item, i) => (
               <motion.div
                 key={i}
@@ -389,12 +416,12 @@ const About = () => {
             }}
           >
             {[
-              { icon: <FaLightbulb />, title: 'Innovation First', desc: 'We embrace AI, automation, and modern technology to solve real-world safety challenges across every industry.' },
-              { icon: <FaHandshake />, title: 'Trust & Integrity', desc: 'We build tools that professionals can rely on when lives and livelihoods are at stake.' },
-              { icon: <FaUsers />, title: 'Customer Obsessed', desc: 'Every feature, every fix, every improvement starts with listening to our users.' },
-              { icon: <FaAward />, title: 'Excellence', desc: 'We deliver enterprise-grade quality — from the code we write to the support we provide.' },
-              { icon: <FaClock />, title: 'Reliability', desc: 'When professionals depend on us, we must be available, accurate, and fast.' },
-              { icon: <FaGem />, title: 'Global Accessibility', desc: 'We make world-class safety technology affordable and accessible across the Middle East, Africa, Asia, and beyond.' }
+              { icon: <BulbOutlined />, title: 'Innovation First', desc: 'We embrace AI, automation, and modern technology to solve real-world safety challenges across every industry.' },
+              { icon: <SmileOutlined />, title: 'Trust & Integrity', desc: 'We build tools that professionals can rely on when lives and livelihoods are at stake.' },
+              { icon: <TeamOutlined />, title: 'Customer Obsessed', desc: 'Every feature, every fix, every improvement starts with listening to our users.' },
+              { icon: <TrophyOutlined />, title: 'Excellence', desc: 'We deliver enterprise-grade quality — from the code we write to the support we provide.' },
+              { icon: <ClockCircleOutlined />, title: 'Reliability', desc: 'When professionals depend on us, we must be available, accurate, and fast.' },
+              { icon: <CrownOutlined />, title: 'Global Accessibility', desc: 'We make world-class safety technology affordable and accessible across the Middle East, Africa, Asia, and beyond.' }
             ].map((value, i) => (
               <motion.div
                 key={i}
@@ -491,7 +518,7 @@ const About = () => {
                   borderRadius: 12
                 }}
               >
-                <FaCheckCircle style={{
+                <CheckCircleOutlined style={{
                   color: '#C9A84C',
                   fontSize: '1.2rem',
                   flexShrink: 0,
@@ -505,7 +532,7 @@ const About = () => {
       </section>
 
       {/* ============================================================
-          OUR REACH  ← NEW: replaces "Built in Ghana"
+          OUR REACH
       ============================================================ */}
       <section style={{ padding: '80px 24px' }}>
         <div style={{ maxWidth: 900, margin: '0 auto', textAlign: 'center' }}>
@@ -614,7 +641,7 @@ const About = () => {
                 boxShadow: '0 4px 15px rgba(26, 42, 108, 0.25)'
               }}
             >
-              Start Free Trial <FaRocket />
+              Start Free Trial <RocketOutlined />
             </Link>
             <Link
               to="/contact"
@@ -649,7 +676,7 @@ const About = () => {
             textAlign: 'center'
           }}>
             <div>
-              <FaEnvelope style={{ fontSize: '1.8rem', color: '#C9A84C', marginBottom: 12 }} />
+              <MailOutlined style={{ fontSize: '1.8rem', color: '#C9A84C', marginBottom: 12 }} />
               <h4 style={{ color: '#1A2A6C', marginBottom: 6 }}>Email</h4>
               <a
                 href={`mailto:${COMPANY.email}`}
@@ -659,14 +686,14 @@ const About = () => {
               </a>
             </div>
             <div>
-              <FaPhoneAlt style={{ fontSize: '1.8rem', color: '#C9A84C', marginBottom: 12 }} />
+              <PhoneOutlined style={{ fontSize: '1.8rem', color: '#C9A84C', marginBottom: 12 }} />
               <h4 style={{ color: '#1A2A6C', marginBottom: 6 }}>Phone</h4>
               <div style={{ color: '#555', fontSize: 14 }}>
                 {COMPANY.phone}
               </div>
             </div>
             <div>
-              <FaMapMarkerAlt style={{ fontSize: '1.8rem', color: '#C9A84C', marginBottom: 12 }} />
+              <EnvironmentOutlined style={{ fontSize: '1.8rem', color: '#C9A84C', marginBottom: 12 }} />
               <h4 style={{ color: '#1A2A6C', marginBottom: 6 }}>Headquarters</h4>
               <div style={{ color: '#555', fontSize: 14 }}>{COMPANY.address}</div>
               <div style={{ color: '#8a94a6', fontSize: 12, marginTop: 4 }}>{COMPANY.region}</div>
