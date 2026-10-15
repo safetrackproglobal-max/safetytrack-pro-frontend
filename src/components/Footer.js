@@ -23,10 +23,10 @@ function Footer() {
     <footer role="contentinfo" className="footer main-footer">
       <div className="container">
         {/* ============================================
-             TOP SECTION - BRAND + CONTACT
+             TOP SECTION — BRAND + CONTACT + LINKS
              ============================================ */}
         <div className="footer-top">
-          {/* Brand Column */}
+          {/* ---------- Brand Column ---------- */}
           <div className="footer-brand-column">
             <Link to="/" className="footer-logo-link">
               <div className="footer-logo">
@@ -40,18 +40,19 @@ function Footer() {
             </Link>
 
             <p className="footer-brand-description">
-              AI-powered HSE and safety management platform for healthcare, oil & gas,
-              construction, manufacturing, maritime, aviation, mining, chemical, and
-              education — trusted across 9+ industries.
+              AI-powered HSE, environmental, and compliance platform for
+              construction, oil &amp; gas, manufacturing, mining, maritime, aviation,
+              chemical, agriculture, healthcare, and education — one platform,
+              trusted worldwide.
             </p>
 
             {/* Trust badges */}
             <div className="footer-trust-badges">
               <span className="footer-trust-badge">
-                <SafetyCertificateOutlined /> ISO 27001
+                <SafetyCertificateOutlined /> ISO 27001 Ready
               </span>
               <span className="footer-trust-badge">
-                <CheckCircleOutlined /> SOC2 Compliant
+                <CheckCircleOutlined /> SOC2 Practices
               </span>
             </div>
 
@@ -61,7 +62,7 @@ function Footer() {
                 href="https://twitter.com/safetrackproglobal"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Twitter"
+                aria-label="Follow us on Twitter"
               >
                 <TwitterOutlined />
               </a>
@@ -69,7 +70,7 @@ function Footer() {
                 href="https://linkedin.com/company/safetrackproglobal"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="LinkedIn"
+                aria-label="Connect with us on LinkedIn"
               >
                 <LinkedinOutlined />
               </a>
@@ -77,7 +78,7 @@ function Footer() {
                 href="https://facebook.com/safetrackproglobal"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Facebook"
+                aria-label="Follow us on Facebook"
               >
                 <FacebookOutlined />
               </a>
@@ -85,20 +86,23 @@ function Footer() {
                 href="https://youtube.com/@safetrackproglobal"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="YouTube"
+                aria-label="Subscribe on YouTube"
               >
                 <YoutubeOutlined />
               </a>
             </div>
           </div>
 
-          {/* Contact Column */}
+          {/* ---------- Contact Column ---------- */}
           <div className="footer-contact-column">
-            <h4 className="footer-heading">Contact Us</h4>
+            <h4 className="footer-heading">Contact</h4>
 
             <ul className="footer-contact-list">
               <li>
-                <a href="mailto:info@safetrackproglobal.com" className="footer-contact-item">
+                <a
+                  href="mailto:info@safetrackproglobal.com"
+                  className="footer-contact-item"
+                >
                   <span className="contact-icon"><MailOutlined /></span>
                   <span className="contact-text">
                     <span className="contact-label">Email</span>
@@ -137,64 +141,74 @@ function Footer() {
                   <span className="contact-icon"><GlobalOutlined /></span>
                   <span className="contact-text">
                     <span className="contact-label">Enterprise Sales</span>
-                    <span className="contact-value">Contact our team →</span>
+                    <span className="contact-value">Talk to our team →</span>
                   </span>
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Links Columns */}
+          {/* ---------- Links Columns ---------- */}
           <div className="footer-links">
+            {/* Product */}
             <div className="link-group">
               <h4>Product</h4>
               <Link to="/features">Features</Link>
               <Link to="/pricing">Pricing</Link>
-              <Link to="/subscription">Subscription</Link>
-              <Link to="/demo">Request Demo</Link>
-              <Link to="/ai-documents">AI Documents</Link>
+              <Link to="/ai-documents">AI Document Generator</Link>
+              <Link to="/camera-monitoring">AI Camera Monitoring</Link>
+              <Link to="/info/demo">Request a Demo</Link>
             </div>
 
+            {/* Industries — all 9+ with real routes */}
             <div className="link-group">
               <h4>Industries</h4>
-              <Link to="/industries/healthcare">Healthcare</Link>
-              <Link to="/industries/oil-gas">Oil & Gas</Link>
-              <Link to="/industries/construction">Construction</Link>
-              <Link to="/industries/manufacturing">Manufacturing</Link>
-              <Link to="/industries/maritime">Maritime</Link>
+              <Link to="/hse/construction">Construction</Link>
+              <Link to="/hse/oil_gas">Oil &amp; Gas</Link>
+              <Link to="/hse/manufacturing">Manufacturing</Link>
+              <Link to="/hse/mining">Mining</Link>
+              <Link to="/hse/aviation">Aviation</Link>
+              <Link to="/hse/maritime">Maritime</Link>
+              <Link to="/hse/chemical">Chemical</Link>
+              <Link to="/hse/healthcare">Healthcare</Link>
+              <Link to="/hse/general">General Industry</Link>
             </div>
 
+            {/* Resources */}
             <div className="link-group">
               <h4>Resources</h4>
-              <Link to="/documentation">Documentation</Link>
-              <Link to="/blog">Blog</Link>
-              <Link to="/support">Support</Link>
-              <Link to="/api-docs">API Docs</Link>
-              <Link to="/guides">Guides</Link>
+              <Link to="/info/documentation">Documentation</Link>
+              <Link to="/info/guides">Guides</Link>
+              <Link to="/info/blog">Blog</Link>
+              <Link to="/info/api-docs">API Docs</Link>
+              <Link to="/info/support">Support</Link>
             </div>
 
+            {/* Company */}
             <div className="link-group">
               <h4>Company</h4>
-              <Link to="/about">About</Link>
+              <Link to="/about">About Us</Link>
               <Link to="/contact">Contact</Link>
-              <Link to="/careers">Careers</Link>
-              <Link to="/security">Security</Link>
-              <Link to="/partners">Partners</Link>
+              <Link to="/info/careers">Careers</Link>
+              <Link to="/info/security">Security</Link>
+              <Link to="/info/partners">Partners</Link>
             </div>
 
+            {/* Legal */}
             <div className="link-group">
               <h4>Legal</h4>
               <Link to="/terms">Terms of Service</Link>
               <Link to="/privacy">Privacy Policy</Link>
-              <Link to="/cookies">Cookie Policy</Link>
-              <Link to="/compliance">Compliance</Link>
-              <Link to="/sla">SLA</Link>
+              <Link to="/info/cookies">Cookie Policy</Link>
+              <Link to="/info/compliance">Compliance</Link>
+              <Link to="/info/sla">SLA</Link>
             </div>
           </div>
         </div>
 
         {/* ============================================
-             LEGACY CONTACT BRAND INFO (if still used)
+             LEGACY CONTACT BRAND INFO
+             Note: Keep only if you want a second contact block.
              ============================================ */}
         <ContactBrandInfo />
 
@@ -205,19 +219,21 @@ function Footer() {
 
         <div className="footer-bottom">
           <p className="footer-copyright">
-            © {currentYear} <strong>Abigalistic Studios</strong>. All rights reserved.
+            © {currentYear} <strong>AfdalTech Solutions</strong>. All rights reserved.
             <span className="footer-separator">•</span>
             SafeTrack Pro Global™
+            <span className="footer-separator">•</span>
+            Headquartered in Doha, Qatar
           </p>
 
           <div className="footer-bottom-links">
-            <Link to="/privacy">Privacy Policy</Link>
+            <Link to="/privacy">Privacy</Link>
             <span className="footer-separator">•</span>
-            <Link to="/terms">Terms of Service</Link>
+            <Link to="/terms">Terms</Link>
             <span className="footer-separator">•</span>
-            <Link to="/cookies">Cookie Policy</Link>
+            <Link to="/info/cookies">Cookies</Link>
             <span className="footer-separator">•</span>
-            <Link to="/sla">SLA</Link>
+            <Link to="/info/sla">SLA</Link>
           </div>
         </div>
       </div>
