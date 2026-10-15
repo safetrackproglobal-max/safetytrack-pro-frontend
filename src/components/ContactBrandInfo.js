@@ -101,16 +101,14 @@ const ContactBrandInfo = () => {
   const whatsappUrl = `https://wa.me/${CONTACT.whatsapp}?text=${CONTACT.whatsappMessage}`;
 
   return (
-    <div className="contact-brand-page">
-      <div className="contact-container">
-        <div className="page-header">
-          <Title level={1}>Contact Us</Title>
-          <Text className="page-description">
-            Have questions or need assistance? Send us a message, chat on WhatsApp,
-            or reach out through any of the channels below — we'll get back to you
-            as soon as possible.
-          </Text>
-        </div>
+    <div className="contact-page-header">
+  <Title level={1}>Contact Us</Title>
+  <Text className="contact-page-description">
+    Have questions or need assistance? Send us a message, chat on WhatsApp,
+    or reach out through any of the channels below — we'll get back to you
+    as soon as possible.
+  </Text>
+</div>
 
         {/* ============================================
              QUICK CONTACT METHODS
