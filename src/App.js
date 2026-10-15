@@ -48,6 +48,7 @@ import ContactBrandInfo from './components/ContactBrandInfo';
 import ContactTeamPage from './pages/ContactTeamPage';
 import CommandCenter from './pages/CommandCenter';
 import InfoPage from './pages/InfoPage';
+import About from './pages/About';
 
 // Dashboard Pages - Role Based
 import EmployeeDashboard from './pages/Dashboard/EmployeeDashboard';
@@ -519,6 +520,13 @@ const AppContent = () => {
               <ContactBrandInfo />
             </MainLayoutWrapper>
           </Route>
+                                                                                                                 
+          <Route path="/about">
+  <MainLayoutWrapper>
+    <About />
+  </MainLayoutWrapper>
+</Route>
+
 
           <Route path="/contact-team">
             <MainLayoutWrapper>
