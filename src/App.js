@@ -47,6 +47,7 @@ import TermsPolicy from './components/TermsPolicy';
 import ContactBrandInfo from './components/ContactBrandInfo';
 import ContactTeamPage from './pages/ContactTeamPage';
 import CommandCenter from './pages/CommandCenter';
+import InfoPage from './pages/InfoPage';
 
 // Dashboard Pages - Role Based
 import EmployeeDashboard from './pages/Dashboard/EmployeeDashboard';
@@ -1358,6 +1359,22 @@ const AppContent = () => {
               <HSEManagementPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
+
+         {/* ============================================ */}
+          {/* INFO PAGES (Consolidated: documentation, guides, blog, etc.) */}
+          {/* ============================================ */}
+          <Route path="/info/:section">
+            <MainLayoutWrapper>
+              <InfoPage />
+            </MainLayoutWrapper>
+          </Route>
+
+          <Route path="/info" exact>
+            <MainLayoutWrapper>
+              <InfoPage />
+            </MainLayoutWrapper>
+          </Route>
+
 
           {/* ============================================ */}
           {/* 404 FALLBACK */}
