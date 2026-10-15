@@ -2916,3 +2916,143 @@
 
 .home-page.rtl .incident-flow { flex-direction: row-reverse; }
 .home-page.rtl .incident-arrow { transform: scaleX(-1); }
+
+/* ============================================================
+   SECTION HEADER LAYOUT FIX
+   Fixes: heading clipping, tag alignment, subtitle stacking
+   ============================================================ */
+.section-header {
+  display: block !important;
+  text-align: center !important;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto 40px !important;
+  padding: 0 16px;
+}
+
+.section-header > * {
+  display: block;
+  max-width: 100%;
+}
+
+.section-tag {
+  display: block !important;
+  width: fit-content;
+  margin: 0 auto 16px !important;
+  float: none !important;
+  position: static !important;
+}
+
+.section-header h2,
+.section-header h2.ant-typography,
+.section-title {
+  display: block !important;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto 12px !important;
+  padding: 0;
+  white-space: normal !important;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  line-height: 1.25;
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .section-header h2,
+  .section-header h2.ant-typography,
+  .section-title {
+    font-size: 34px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section-header h2,
+  .section-header h2.ant-typography,
+  .section-title {
+    font-size: 38px;
+  }
+}
+
+.section-subtitle {
+  display: block !important;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto !important;
+  text-align: center;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--color-text-secondary) !important;
+}
+
+@media (min-width: 768px) {
+  .section-subtitle {
+    font-size: 16px;
+  }
+}
+
+
+/* ============================================================
+   FEATURE CARD FIX — pin Learn More to bottom
+   ============================================================ */
+.feature-card {
+  display: flex !important;
+  flex-direction: column;
+  height: 100%;
+}
+
+.feature-card .feature-icon {
+  flex-shrink: 0;
+}
+
+.feature-card .feature-title {
+  flex-shrink: 0;
+}
+
+.feature-card .feature-description {
+  flex: 1;
+}
+
+.feature-card .feature-link {
+  margin-top: 16px !important;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all var(--transition-base);
+}
+
+.feature-card .feature-link:hover {
+  transform: translateX(5px);
+}
+
+/* Ensure the arrow inherits the same color as the link text */
+.feature-card .feature-link .anticon,
+.feature-card .feature-link svg {
+  color: inherit !important;
+}
+
+
+/* ============================================================
+   IN MOBILE — reduce padding for section headers
+   ============================================================ */
+@media (max-width: 767px) {
+  .section-header {
+    margin-bottom: 32px !important;
+    padding: 0 12px;
+  }
+
+  .section-header h2,
+  .section-title {
+    font-size: 22px !important;
+    line-height: 1.3;
+  }
+
+  .section-subtitle {
+    font-size: 14px !important;
+  }
+}
