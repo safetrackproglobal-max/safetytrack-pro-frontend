@@ -27,7 +27,7 @@
 }
 
 /* ============================================
-   CONTACT CONTAINER - Wider for Grid Layout
+   CONTACT CONTAINER
    ============================================ */
 .contact-container {
   max-width: 100%;
@@ -50,62 +50,75 @@
 }
 
 /* ============================================
-   PAGE HEADER - Mobile Optimized
+   PAGE HEADER — SCOPED
+   Renamed from `.page-header` to avoid conflicts
+   with other pages that use the same class name.
    ============================================ */
-.page-header {
+.contact-page-header {
   text-align: center;
   margin-bottom: 24px;
+  padding: 0 16px;
+  width: 100%;
 }
 
 @media (min-width: 640px) {
-  .page-header {
+  .contact-page-header {
     margin-bottom: 30px;
   }
 }
 
 @media (min-width: 768px) {
-  .page-header {
+  .contact-page-header {
     margin-bottom: 40px;
   }
 }
 
-.page-header .ant-typography {
+/* Only the H1 heading — NOT the description Text */
+.contact-page-header h1,
+.contact-page-header h1.ant-typography {
   color: #2c3e50 !important;
-  margin-bottom: 8px !important;
-  font-size: 24px;
+  margin: 0 0 12px 0 !important;
+  font-size: 26px;
   font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
 }
 
 @media (min-width: 640px) {
-  .page-header .ant-typography {
-    font-size: 28px;
+  .contact-page-header h1,
+  .contact-page-header h1.ant-typography {
+    font-size: 30px;
   }
 }
 
 @media (min-width: 768px) {
-  .page-header .ant-typography {
-    font-size: 32px;
+  .contact-page-header h1,
+  .contact-page-header h1.ant-typography {
+    font-size: 34px;
   }
 }
 
-.page-description {
+/* Description text — independent from the title */
+.contact-page-description {
+  display: block;
   color: #5a6c7d;
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.65;
   max-width: 640px;
   margin: 0 auto;
-  display: block;
+  font-weight: 400;
+  text-align: center;
 }
 
 @media (min-width: 640px) {
-  .page-description {
+  .contact-page-description {
     font-size: 14px;
   }
 }
 
 @media (min-width: 768px) {
-  .page-description {
-    font-size: 16px;
+  .contact-page-description {
+    font-size: 15px;
   }
 }
 
@@ -117,6 +130,7 @@
   grid-template-columns: 1fr;
   gap: 16px;
   margin-bottom: 32px;
+  align-items: stretch;
 }
 
 @media (min-width: 640px) {
@@ -148,6 +162,7 @@
   position: relative;
   overflow: hidden;
   cursor: pointer;
+  min-height: 88px;
 }
 
 .quick-contact-card::before {
@@ -248,6 +263,7 @@
   font-weight: 600;
   color: #1a202c;
   word-break: break-word;
+  overflow-wrap: anywhere;
   line-height: 1.4;
 }
 
@@ -255,6 +271,17 @@
   font-size: 12px;
   color: #94a3b8;
   margin-top: 2px;
+}
+
+/* Smaller font for the long email address */
+.quick-contact-card.email .quick-value {
+  font-size: 12.5px;
+}
+
+@media (min-width: 1024px) {
+  .quick-contact-card.email .quick-value {
+    font-size: 13px;
+  }
 }
 
 /* Mobile tap target improvement */
@@ -300,7 +327,7 @@
 }
 
 /* ============================================
-   CONTACT FORM CARD - Mobile Optimized
+   CONTACT FORM CARD
    ============================================ */
 .contact-form-card {
   border-radius: 12px;
@@ -422,7 +449,7 @@
   }
 }
 
-/* Form Inputs - Touch-friendly */
+/* Form Inputs */
 .contact-form .ant-input,
 .contact-form .ant-input-affix-wrapper,
 .contact-form .ant-input-textarea textarea {
@@ -436,13 +463,6 @@
   height: 44px;
 }
 
-@media (min-width: 768px) {
-  .contact-form .ant-input,
-  .contact-form .ant-input-affix-wrapper {
-    height: 44px;
-  }
-}
-
 .contact-form .ant-input-textarea textarea {
   min-height: 100px;
   padding: 10px 12px;
@@ -454,7 +474,6 @@
   }
 }
 
-/* Input focus states */
 .contact-form .ant-input:focus,
 .contact-form .ant-input-affix-wrapper-focused,
 .contact-form .ant-input-textarea textarea:focus {
@@ -463,7 +482,6 @@
   outline: none;
 }
 
-/* Placeholder styling */
 .contact-form .ant-input::placeholder,
 .contact-form .ant-input-textarea textarea::placeholder {
   color: #bfbfbf;
@@ -471,7 +489,7 @@
 }
 
 /* ============================================
-   SUBMIT BUTTON - Touch Optimized
+   SUBMIT BUTTON
    ============================================ */
 .submit-button {
   height: 48px;
@@ -549,7 +567,7 @@
 }
 
 /* ============================================
-   FORM VALIDATION MESSAGES
+   FORM VALIDATION
    ============================================ */
 .ant-form-item-explain-error {
   font-size: 12px;
@@ -642,11 +660,12 @@
     color: #8c8c8c;
   }
 
-  .page-header .ant-typography {
+  .contact-page-header h1,
+  .contact-page-header h1.ant-typography {
     color: #e6e6e6 !important;
   }
 
-  .page-description {
+  .contact-page-description {
     color: #a6a6a6;
   }
 
@@ -692,7 +711,6 @@
   border-radius: 8px;
 }
 
-/* Touch-friendly tap targets */
 @media (max-width: 767px) {
   .submit-button,
   .contact-form .ant-input,
@@ -714,7 +732,7 @@
 /* ============================================
    ANIMATIONS
    ============================================ */
-@keyframes fadeInUp {
+@keyframes contact-fadeInUp {
   from {
     opacity: 0;
     transform: translateY(20px);
@@ -725,7 +743,7 @@
   }
 }
 
-@keyframes fadeIn {
+@keyframes contact-fadeIn {
   from {
     opacity: 0;
   }
@@ -735,11 +753,11 @@
 }
 
 .contact-form-card {
-  animation: fadeInUp 0.4s ease-out;
+  animation: contact-fadeInUp 0.4s ease-out;
 }
 
 .quick-contact-card {
-  animation: fadeIn 0.5s ease-out;
+  animation: contact-fadeIn 0.5s ease-out;
 }
 
 .quick-contact-card:nth-child(1) {
