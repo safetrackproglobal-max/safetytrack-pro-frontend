@@ -55,9 +55,16 @@ class ChemicalApiService {
     return await this.makeApiCall('/chemical/inventory');
   }
 
-  async getChemicalDocuments() {
-    return await this.makeApiCall('/chemical/documents');
+  const loadDocuments = async () => {
+  try {
+    const response = await chemicalSafetyService.getChemicalDocuments();
+    if (response.success) {
+      setDocuments(response.data); // This will now receive the real documents
+    }
+  } catch (error) {
+    console.error('Error loading documents:', error);
   }
+};
 
   // ==========================================
   // POST/PUT ENDPOINTS
