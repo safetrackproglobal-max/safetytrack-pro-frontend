@@ -456,24 +456,52 @@ const EnvironmentalCameraMonitoringPage = () => {
     }, 2000);
   };
 
+    // 1. ✅ UPDATED: Discover cameras natively from the browser
   const checkCameraStatus = async () => {
     try {
-      const response = await environmentalAIService.getCameraStatus();
+      // Request permission first (required to see camera labels like "Logitech C920")
+      // We immediately stop the stream so the webcam light doesn't stay on.
+      const initialStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      initialStream.getTracks().forEach(track => track.stop());
 
-      if (response.success) {
-        setCameraStatus(response);
-        const cameras = response.available_cameras || [];
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
 
-        if (cameras.length > 0) {
-          const firstCamera = cameras[0];
-          setSelectedCamera(firstCamera.id);
-          setSelectedCameraType(firstCamera.type);
+      const formattedCameras = videoDevices.map((device, index) => ({
+        id: device.deviceId,
+        name: device.label || `Camera ${index + 1}`,
+        type: 'device',
+        status: 'available'
+      }));
 
-          await loadCameraConfig(firstCamera.id);
-        }
+      setCameraStatus({
+        success: true,
+        available_cameras: formattedCameras
+      });
+
+      if (formattedCameras.length > 0) {
+        const firstCamera = formattedCameras[0];
+        setSelectedCamera(firstCamera.id);
+        setSelectedCameraType(firstCamera.type);
+        // Optional: You can still call loadCameraConfig if your backend needs to know
+        // await loadCameraConfig(firstCamera.id); 
+      } else {
+        message.warning('No physical cameras found on this device.');
       }
+
     } catch (error) {
-      console.error('Camera status check failed:', error);
+      console.error('Browser camera discovery failed:', error);
+      if (error.name === 'NotAllowedError') {
+        message.error('Camera permission denied. Please allow access in your browser.');
+      } else {
+        message.error('Could not detect cameras on this device.');
+      }
+      
+      // Fallback so the UI doesn't break completely
+      setCameraStatus({
+        success: true,
+        available_cameras: [{ id: 'default', name: 'Default Camera', type: 'device', status: 'available' }]
+      });
     }
   };
 
@@ -638,18 +666,19 @@ const EnvironmentalCameraMonitoringPage = () => {
     }
   };
 
+  // 2. ✅ UPDATED: Use the specific deviceId from the dropdown
   const startRealCameraStream = async () => {
     try {
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoDevices = devices.filter(device => device.kind === 'videoinput');
-
+      // If selectedCamera contains a real deviceId from the browser, use it explicitly
       const constraints = {
         video: {
+          deviceId: selectedCamera && selectedCamera !== 'default' 
+            ? { exact: selectedCamera } 
+            : undefined,
           width: { ideal: 640, max: 1280 },
           height: { ideal: 480, max: 720 },
           aspectRatio: { ideal: 4 / 3 },
           frameRate: { ideal: 15, max: 30 },
-          facingMode: selectedCamera === 'device_back' ? 'environment' : 'user',
         },
         audio: false
       };
