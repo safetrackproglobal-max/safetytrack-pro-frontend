@@ -1324,143 +1324,117 @@ const PowerBIAnalytics = () => {
     <Layout className={`powerbi-dashboard ${darkMode ? 'dark-mode' : ''} ${fullscreen ? 'fullscreen' : ''}`}>
       <Header className="dashboard-header">
         <div className="header-left">
-          <Title level={3} style={{ margin: 0, fontSize: '16px' }}>
+          <Title level={3} style={{ margin: 0, fontSize: '16px', whiteSpace: 'nowrap' }}>
             <DashboardOutlined /> Safety Compliance Dashboard
           </Title>
           <Badge 
             status="processing" 
             text={`Last Updated: ${format(lastUpdated, 'HH:mm:ss')}`} 
-            style={{ marginLeft: 8, fontSize: '12px' }}
+            style={{ marginLeft: 8, fontSize: '12px', whiteSpace: 'nowrap' }}
           />
         </div>
+        
         <div className="header-right">
-          <Space size="small" wrap={false} style={{ flexWrap: 'nowrap' }}>
-            <RangePicker 
-              value={[moment(dateRange[0]), moment(dateRange[1])]} 
-              onChange={handleDateRangeChange} 
-              allowClear={false}
-              size="small"
-              style={{ minWidth: 180 }}
-            />
-            <Select 
-              value={selectedDepartment} 
-              onChange={setSelectedDepartment} 
-              style={{ width: 120 }} 
-              size="small"
-              placeholder="Dept"
-            >
-              <Option value="all">All Depts</Option>
-              {departments.map(dept => (
-                <Option key={dept.id} value={dept.id}>{dept.name}</Option>
-              ))}
-            </Select>
+          {/* Replaced <Space> with flexbox div to allow wrapping */}
+          <div style={{ 
+            display: 'flex', 
+            gap: '8px', 
+            flexWrap: 'wrap', 
+            justifyContent: 'flex-end', 
+            alignItems: 'center', 
+            width: '100%' 
+          }}>
             
-            {/* ✅ Project Selector - Shows when projects exist */}
-            <Select 
-              value={selectedProject} 
-              onChange={setSelectedProject} 
-              style={{ width: 150 }} 
-              size="small"
-              placeholder="Select Project"
-            >
-              <Option value="all">All Projects</Option>
-              {projects.map(proj => (
-                <Option key={proj.id} value={proj.id}>
-                  <ProjectOutlined /> {proj.name}
-                </Option>
-              ))}
-            </Select>
-            
-            <Button 
-              type="primary" 
-              icon={<PlusOutlined />} 
-              onClick={() => setProjectModalVisible(true)}
-              style={{ background: '#52c41a', borderColor: '#52c41a' }}
-              size="small"
-            >
-              New Project
-            </Button>
-            
-            <Tooltip title="Refresh Data">
-              <Button 
-                icon={<ReloadOutlined />} 
-                onClick={refreshAllData} 
-                loading={loading} 
+            {/* Group 1: Filters */}
+            <Space size="small" wrap={false}>
+              <RangePicker 
+                value={[moment(dateRange[0]), moment(dateRange[1])]} 
+                onChange={handleDateRangeChange} 
+                allowClear={false}
                 size="small"
+                style={{ minWidth: 180 }}
               />
-            </Tooltip>
-            <Tooltip title="Add Widget">
+              <Select 
+                value={selectedDepartment} 
+                onChange={setSelectedDepartment} 
+                style={{ width: 120 }} 
+                size="small"
+                placeholder="Dept"
+              >
+                <Option value="all">All Depts</Option>
+                {departments.map(dept => (
+                  <Option key={dept.id} value={dept.id}>{dept.name}</Option>
+                ))}
+              </Select>
+              <Select 
+                value={selectedProject} 
+                onChange={setSelectedProject} 
+                style={{ width: 150 }} 
+                size="small"
+                placeholder="Select Project"
+              >
+                <Option value="all">All Projects</Option>
+                {projects.map(proj => (
+                  <Option key={proj.id} value={proj.id}>
+                    <ProjectOutlined /> {proj.name}
+                  </Option>
+                ))}
+              </Select>
+            </Space>
+
+            {/* Group 2: Primary Actions */}
+            <Space size="small" wrap={false}>
               <Button 
                 type="primary" 
                 icon={<PlusOutlined />} 
-                onClick={() => setWidgetLibraryVisible(true)} 
+                onClick={() => setProjectModalVisible(true)}
+                style={{ background: '#52c41a', borderColor: '#52c41a' }}
                 size="small"
-              />
-            </Tooltip>
-            <Tooltip title="Save Dashboard">
-              <Button 
-                icon={<SaveOutlined />} 
-                onClick={() => saveDashboard('New Dashboard')} 
-                size="small"
-              />
-            </Tooltip>
-            
-            <Dropdown
-              menu={{
-                items: [
-                  { 
-                    key: 'png', 
-                    label: 'PNG (Screenshot)', 
-                    icon: <FileImageOutlined style={{ color: '#1890ff' }} />,
-                    onClick: () => { setExportFormat('png'); setExportModal(true); }
-                  },
-                  { 
-                    key: 'jpg', 
-                    label: 'JPG (Screenshot)', 
-                    icon: <FileImageOutlined style={{ color: '#fa8c16' }} />,
-                    onClick: () => { setExportFormat('jpg'); setExportModal(true); }
-                  },
-                  { 
-                    key: 'pdf', 
-                    label: 'PDF (Screenshot)', 
-                    icon: <FilePdfOutlined style={{ color: '#f5222d' }} />,
-                    onClick: () => { setExportFormat('pdf'); setExportModal(true); }
-                  },
-                ],
-              }}
-            >
-              <Tooltip title="Export Dashboard">
-                <Button 
-                  icon={<DownloadOutlined />} 
-                  size="small"
-                >
-                  Export
-                </Button>
+              >
+                New Project
+              </Button>
+              <Tooltip title="Refresh Data">
+                <Button icon={<ReloadOutlined />} onClick={refreshAllData} loading={loading} size="small" />
               </Tooltip>
-            </Dropdown>
+              <Tooltip title="Add Widget">
+                <Button type="primary" icon={<PlusOutlined />} onClick={() => setWidgetLibraryVisible(true)} size="small" />
+              </Tooltip>
+              <Tooltip title="Save Dashboard">
+                <Button icon={<SaveOutlined />} onClick={() => saveDashboard('New Dashboard')} size="small" />
+              </Tooltip>
+              <Dropdown
+                menu={{
+                  items: [
+                    { key: 'png', label: 'PNG (Screenshot)', icon: <FileImageOutlined style={{ color: '#1890ff' }} />, onClick: () => { setExportFormat('png'); setExportModal(true); } },
+                    { key: 'jpg', label: 'JPG (Screenshot)', icon: <FileImageOutlined style={{ color: '#fa8c16' }} />, onClick: () => { setExportFormat('jpg'); setExportModal(true); } },
+                    { key: 'pdf', label: 'PDF (Screenshot)', icon: <FilePdfOutlined style={{ color: '#f5222d' }} />, onClick: () => { setExportFormat('pdf'); setExportModal(true); } },
+                  ],
+                }}
+              >
+                <Tooltip title="Export Dashboard">
+                  <Button icon={<DownloadOutlined />} size="small">Export</Button>
+                </Tooltip>
+              </Dropdown>
+            </Space>
+
+            {/* Group 3: Settings & View */}
+            <Space size="small" wrap={false}>
+              <Tooltip title="Settings">
+                <Button icon={<SettingOutlined />} onClick={() => setSettingsDrawer(true)} size="small" />
+              </Tooltip>
+              <Tooltip title={fullscreen ? 'Exit Fullscreen' : 'Fullscreen'}>
+                <Button icon={fullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />} onClick={() => setFullscreen(!fullscreen)} size="small" />
+              </Tooltip>
+              <Switch 
+                checked={editMode} 
+                onChange={setEditMode} 
+                checkedChildren="Edit" 
+                unCheckedChildren="View" 
+                size="small"
+              />
+            </Space>
             
-            <Tooltip title="Settings">
-              <Button 
-                icon={<SettingOutlined />} 
-                onClick={() => setSettingsDrawer(true)} 
-                size="small"
-              />
-            </Tooltip>
-            <Tooltip title={fullscreen ? 'Exit Fullscreen' : 'Fullscreen'}>
-              <Button 
-                icon={fullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />} 
-                onClick={() => setFullscreen(!fullscreen)} 
-                size="small"
-              />
-            </Tooltip>
-            <Switch 
-              checked={editMode} 
-              onChange={setEditMode} 
-              checkedChildren="Edit" 
-              unCheckedChildren="View" 
-              size="small"
-            />
-          </Space>
+          </div>
         </div>
       </Header>
       
@@ -1487,18 +1461,10 @@ const PowerBIAnalytics = () => {
         width={600}
       >
         <Form form={projectForm} layout="vertical" onFinish={handleCreateProject}>
-          <Form.Item 
-            name="name" 
-            label="Project Name" 
-            rules={[{ required: true, message: 'Please enter project name' }]}
-          >
+          <Form.Item name="name" label="Project Name" rules={[{ required: true, message: 'Please enter project name' }]}>
             <Input placeholder="Enter project name" />
           </Form.Item>
-          <Form.Item 
-            name="description" 
-            label="Description" 
-            rules={[{ required: true, message: 'Please enter project description' }]}
-          >
+          <Form.Item name="description" label="Description" rules={[{ required: true, message: 'Please enter project description' }]}>
             <TextArea rows={3} placeholder="Project description" />
           </Form.Item>
           <Row gutter={16}>
@@ -1548,11 +1514,7 @@ const PowerBIAnalytics = () => {
 
       {/* Export Modal */}
       <Modal 
-        title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <DownloadOutlined /> Export Dashboard
-          </div>
-        }
+        title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><DownloadOutlined /> Export Dashboard</div>}
         open={exportModal} 
         onCancel={() => setExportModal(false)} 
         onOk={handleExport} 
@@ -1582,37 +1544,18 @@ const PowerBIAnalytics = () => {
           </Form.Item>
           
           <Form.Item label="Quality / Resolution">
-            <Select 
-              value={exportQuality}
-              onChange={setExportQuality}
-              style={{ width: '100%' }}
-            >
+            <Select value={exportQuality} onChange={setExportQuality} style={{ width: '100%' }}>
               <Select.Option value={1}>Standard (1x) - Smaller file</Select.Option>
               <Select.Option value={2}>High (2x) - Recommended</Select.Option>
               <Select.Option value={3}>Retina (3x) - Best quality</Select.Option>
             </Select>
           </Form.Item>
           
-          <div style={{ 
-            padding: 12, 
-            background: '#f5f5f5', 
-            borderRadius: 4,
-            fontSize: 12,
-            color: '#666'
-          }}>
+          <div style={{ padding: 12, background: '#f5f5f5', borderRadius: 4, fontSize: 12, color: '#666' }}>
             <span><CameraOutlined /> Captures a screenshot of the entire dashboard with all visual elements</span>
           </div>
           
-          <div style={{ 
-            marginTop: 12,
-            padding: 8, 
-            background: '#e6f7ff', 
-            borderRadius: 4,
-            fontSize: 12,
-            color: '#0050b3',
-            display: 'flex',
-            justifyContent: 'space-between'
-          }}>
+          <div style={{ marginTop: 12, padding: 8, background: '#e6f7ff', borderRadius: 4, fontSize: 12, color: '#0050b3', display: 'flex', justifyContent: 'space-between' }}>
             <span>📊 Visible Widgets: {widgets.filter(w => w.visible).length}</span>
             <span>📅 Date Range: {format(dateRange[0], 'MMM dd, yyyy')} - {format(dateRange[1], 'MMM dd, yyyy')}</span>
           </div>
@@ -1643,16 +1586,8 @@ const PowerBIAnalytics = () => {
             <List 
               dataSource={savedDashboards} 
               renderItem={item => (
-                <List.Item 
-                  actions={[
-                    <Button type="link" onClick={() => loadDashboard(item.id)}>Load</Button>, 
-                    <Button type="link" danger>Delete</Button>
-                  ]}
-                >
-                  <List.Item.Meta 
-                    title={item.name} 
-                    description={`Last modified: ${item.updatedAt ? format(new Date(item.updatedAt), 'MMM dd, yyyy') : 'N/A'}`} 
-                  />
+                <List.Item actions={[<Button type="link" onClick={() => loadDashboard(item.id)}>Load</Button>, <Button type="link" danger>Delete</Button>]}>
+                  <List.Item.Meta title={item.name} description={`Last modified: ${item.updatedAt ? format(new Date(item.updatedAt), 'MMM dd, yyyy') : 'N/A'}`} />
                 </List.Item>
               )} 
             />
@@ -1683,5 +1618,4 @@ const PowerBIAnalytics = () => {
     </Layout>
   );
 };
-
 export default PowerBIAnalytics;
