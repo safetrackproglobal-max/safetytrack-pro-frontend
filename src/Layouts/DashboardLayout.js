@@ -1,26 +1,19 @@
-// src/layouts/DashboardLayout.js - Quick Nav Bar REMOVED
+// src/layouts/DashboardLayout.js
 
 import React, { useState, useEffect } from 'react';
-import { Layout, Spin, Alert, Button, Tooltip } from 'antd';
+import { Layout, Spin, Alert, Button } from 'antd';
 import { useLocation, useHistory } from 'react-router-dom';
-import { 
-  MenuUnfoldOutlined, 
-  MenuFoldOutlined,
-  HomeOutlined,
-  DashboardOutlined
-} from '@ant-design/icons';
 import DashboardHeader from '../components/DashboardHeader';
 import Sidebar from './Sidebar';
 import { useAuth } from '../context/AuthContext';
 import './DashboardLayout.css';
 
-const { Sider, Content } = Layout;
+const { Content } = Layout;
 
 function DashboardLayout({ children }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [sidebarKey, setSidebarKey] = useState(0);
   const location = useLocation();
   const history = useHistory();
   const { user, loading, isSuperAdmin, isRegularAdmin, isEmployee } = useAuth();
@@ -32,7 +25,6 @@ function DashboardLayout({ children }) {
     return '/user/dashboard';
   };
 
-  // Check if mobile - DO NOT auto-open sidebar
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 992;
@@ -51,11 +43,6 @@ function DashboardLayout({ children }) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  useEffect(() => {
-    setSidebarKey(prev => prev + 1);
-  }, [user]);
-
-  // Toggle sidebar - ONLY when button is clicked
   const handleMenuToggle = () => {
     if (isMobile) {
       setMobileOpen(!mobileOpen);
@@ -64,7 +51,6 @@ function DashboardLayout({ children }) {
     }
   };
 
-  // Close mobile sidebar
   const closeMobileSidebar = () => {
     if (isMobile && mobileOpen) {
       setMobileOpen(false);
@@ -88,54 +74,26 @@ function DashboardLayout({ children }) {
           description="Please log in to access the dashboard."
           type="warning"
           showIcon
-          action={
-            <Button size="small" onClick={() => history.push('/login')}>
-              Login Now
-            </Button>
-          }
+          action={<Button size="small" onClick={() => history.push('/login')}>Login Now</Button>}
         />
       </div>
     );
   }
 
-  const dashboardPath = getDashboardPath();
-  const isDashboardHome = location.pathname === dashboardPath || location.pathname === '/';
+  // Determine classes based on state
+  const sidebarClass = isMobile 
+    ? `sidebar-mobile ${mobileOpen ? 'open' : ''}` 
+    : `sidebar-desktop ${collapsed ? 'collapsed' : ''}`;
 
-  // Determine sidebar position
-  const getSidebarLeft = () => {
-    if (isMobile) {
-      return mobileOpen ? 0 : -280;
-    }
-    return collapsed ? -80 : 0;
-  };
-
-  const sidebarLeft = getSidebarLeft();
+  const contentClass = isMobile 
+    ? 'content-mobile' 
+    : `content-desktop ${collapsed ? 'collapsed' : ''}`;
 
   return (
-    <Layout className="dashboard-layout">
-      {/* Sidebar */}
-      <Sider 
-        key={sidebarKey}
-        trigger={null} 
-        collapsible 
-        collapsed={isMobile ? false : collapsed}
-        className={`dashboard-sider ${isMobile ? 'mobile-sider' : ''}`}
-        width={280}
-        collapsedWidth={isMobile ? 0 : 80}
-        style={{
-          position: 'fixed',
-          left: sidebarLeft,
-          top: 0,
-          height: '100vh',
-          zIndex: isMobile ? 1001 : 1000,
-          transition: 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          display: 'block',
-          background: '#ffffff',
-          overflow: 'hidden',
-          boxShadow: isMobile ? '2px 0 12px rgba(0, 0, 0, 0.15)' : '2px 0 8px rgba(0, 0, 0, 0.06)',
-          borderRight: '1px solid #e8e8e8'
-        }}
-      >
+    <div className="dashboard-container">
+      
+      {/* 1. SIDEBAR (Using a standard div for perfect fixed positioning) */}
+      <aside className={`dashboard-sidebar ${sidebarClass}`}>
         <Sidebar 
           collapsed={isMobile ? false : collapsed}
           userType={user?.role || user?.user_type || 'user'}
@@ -145,13 +103,11 @@ function DashboardLayout({ children }) {
           onClose={closeMobileSidebar}
           mobileOpen={mobileOpen}
         />
-      </Sider>
+      </aside>
       
-      {/* Content Layout */}
-      <Layout 
-        className={`dashboard-content-layout ${collapsed ? 'collapsed' : ''}`}
-        // ✅ Inline styles for margin/width removed. CSS handles this now.
-      >
+      {/* 2. MAIN CONTENT AREA */}
+      <div className={`dashboard-main-area ${contentClass}`}>
+        
         <DashboardHeader 
           onMenuToggle={handleMenuToggle} 
           sidebarCollapsed={collapsed}
@@ -159,33 +115,18 @@ function DashboardLayout({ children }) {
           mobileOpen={mobileOpen}
         />
         
-        {/* ✅ QUICK NAV BAR REMOVED - Nothing here now */}
-        
-        <Content className="dashboard-main-content">
-          <div className="content-wrapper">
+        <Content className="dashboard-content-wrapper">
+          <div className="content-inner">
             {children}
           </div>
         </Content>
-      </Layout>
+      </div>
       
-      {/* Mobile overlay */}
+      {/* 3. MOBILE OVERLAY */}
       {isMobile && mobileOpen && (
-        <div 
-          className="mobile-sidebar-overlay"
-          onClick={closeMobileSidebar}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0, 0, 0, 0.5)',
-            zIndex: 1000,
-            animation: 'fadeInOverlay 0.3s ease'
-          }}
-        />
+        <div className="mobile-overlay" onClick={closeMobileSidebar} />
       )}
-    </Layout>
+    </div>
   );
 }
 
