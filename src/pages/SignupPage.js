@@ -17,7 +17,9 @@ import {
   Row,
   Col,
   Spin,
-  Radio
+  Radio,
+  ConfigProvider,   // ← add
+  theme 
 } from 'antd';
 import { 
   UserOutlined, 
@@ -37,6 +39,7 @@ import {
   InfoCircleOutlined,
   GlobalOutlined
 } from '@ant-design/icons';
+
 import AuthContext from '../context/AuthContext';
 import VerificationModal from '../components/VerificationModal';
 import { useLanguage } from '../context/LanguageContext';
@@ -882,6 +885,8 @@ function SignupPage() {
     const isVerified = verificationCompleted || localStorage.getItem('verifiedEmail');
 
     return (
+
+      
       <div className="step-content">
         {isVerified && (
           <Alert
@@ -1768,6 +1773,17 @@ const handleCreateAccount = async () => {
   // ============================================
 
   return (
+  <ConfigProvider
+    theme={{
+      algorithm: theme.defaultAlgorithm, // force light theme regardless of OS setting
+      token: {
+        colorText: '#000000d9',
+        colorTextSecondary: '#00000073',
+        colorBgContainer: '#ffffff',
+        colorBgElevated: '#ffffff',
+      },
+    }}
+  >
     <div className="auth-container">
       <Card className="auth-card signup-card" style={{ maxWidth: 750, margin: '0 auto' }}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
@@ -1884,7 +1900,8 @@ const handleCreateAccount = async () => {
       {renderPaymentModal()}
       <CustomPlanModal />
     </div>
-  );
+  </ConfigProvider>
+);
 }
 
 export default SignupPage;
