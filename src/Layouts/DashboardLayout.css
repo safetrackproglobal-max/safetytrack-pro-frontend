@@ -1,129 +1,167 @@
 /* src/layouts/DashboardLayout.css */
 
-/* =========================================
-   BASE LAYOUT
-   ========================================= */
-.dashboard-container {
-  display: flex;
+.dashboard-layout {
   min-height: 100vh;
-  width: 100%;
+  display: flex;
+}
+
+/* Content Layout */
+.dashboard-content-layout {
+  margin-left: 280px;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 100vh;
   background: #f0f2f5;
-}
-
-/* =========================================
-   SIDEBAR
-   ========================================= */
-.dashboard-sidebar {
-  background: #ffffff;
-  border-right: 1px solid #e8e8e8;
-  z-index: 1000;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  height: 100vh;
-  overflow-y: auto;
-  overflow-x: hidden;
-  position: fixed;
-  top: 0;
-  left: 0;
-}
-
-/* Desktop Sidebar */
-.sidebar-desktop {
-  width: 280px;
-  min-width: 280px;
-}
-
-.sidebar-desktop.collapsed {
-  width: 80px;
-  min-width: 80px;
-}
-
-/* Mobile Sidebar */
-.sidebar-mobile {
-  left: -280px;
-  width: 280px;
-  min-width: 280px;
-  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
-}
-
-.sidebar-mobile.open {
-  left: 0;
-}
-
-/* =========================================
-   MAIN CONTENT AREA
-   ========================================= */
-.dashboard-main-area {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  min-height: 100vh;
+  width: calc(100% - 280px); /* Force width to fill remaining space */
 }
 
-/* 
-  ✅ GUARANTEED WIDTH CALCULATION
-*/
-.content-desktop {
-  margin-left: 280px !important;
-  width: calc(100% - 280px) !important; 
+.dashboard-content-layout.collapsed {
+  margin-left: 80px;
+  width: calc(100% - 80px);
 }
 
-.content-desktop.collapsed {
-  margin-left: 80px !important;
-  width: calc(100% - 80px) !important;
-}
-
-.content-mobile {
-  margin-left: 0 !important;
-  width: 100% !important;
-}
-
-/* =========================================
-   INNER CONTENT & HEADER
-   ========================================= */
-.dashboard-content-wrapper {
-  flex: 1;
-  padding: 24px;
+/* Header */
+.dashboard-content-layout .dashboard-header {
   width: 100%;
-  max-width: 100%;
-  overflow-x: hidden; 
+  flex-shrink: 0;
 }
 
-.content-inner {
-  background: transparent;
-  min-height: calc(100vh - 72px - 48px);
+/* Main Content */
+.dashboard-main-content {
+  background: #f0f2f5;
+  flex: 1;
+  overflow: auto;
+  padding: 0;
 }
 
-/* =========================================
-   MOBILE OVERLAY
-   ========================================= */
-.mobile-overlay {
+/* Sidebar - White Background */
+.dashboard-sider {
+  background: #ffffff !important;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.06) !important;
+  z-index: 1000;
   position: fixed;
-  top: 0;
+  height: 100vh;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.45);
-  z-index: 999;
-  animation: fadeIn 0.3s ease;
+  top: 0;
+  border-right: 1px solid #e8e8e8 !important;
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.dashboard-sider .ant-layout-sider-children {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
-/* =========================================
-   RESPONSIVE ADJUSTMENTS
-   ========================================= */
+/* Content Wrapper */
+.content-wrapper {
+  padding: 24px;
+  min-height: 100%;
+  /* ✅ FIXED: Changed from max-width: 1200px; margin: 0 auto; 
+     which was causing the gap. Now it takes full width. */
+  width: 100%; 
+  max-width: 100%;
+}
+
+/* ... (Keep the Loading, Auth Error, Mobile Overlay CSS the same) ... */
+
+/* ============================================================
+   MOBILE RESPONSIVE - FIXED
+   ============================================================ */
+
 @media (max-width: 991px) {
-  .dashboard-content-wrapper {
+  .dashboard-content-layout {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  .dashboard-content-layout.collapsed {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  .dashboard-sider {
+    position: fixed !important;
+    left: -280px !important; /* Hidden by default */
+    top: 0 !important;
+    height: 100vh !important;
+    width: 280px !important;
+    max-width: 280px !important;
+    min-width: 280px !important;
+    flex: 0 0 280px !important;
+    z-index: 1001 !important;
+    background: #ffffff !important;
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15) !important;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    overflow-y: auto !important;
+    border-right: 1px solid #e8e8e8 !important;
+  }
+
+  /* When sidebar is OPEN on mobile */
+  .dashboard-sider[style*="left: 0px"],
+  .dashboard-sider[style*="left:0px"] {
+    left: 0 !important;
+  }
+
+  /* When sidebar is CLOSED on mobile */
+  .dashboard-sider[style*="left: -280px"],
+  .dashboard-sider[style*="left:-280px"] {
+    left: -280px !important;
+  }
+
+  .mobile-sidebar-overlay {
+    display: block;
+  }
+
+  .content-wrapper {
     padding: 16px;
   }
 }
 
+/* Small phones (576px and below) */
 @media (max-width: 576px) {
-  .dashboard-content-wrapper {
+  .dashboard-sider {
+    width: 260px !important;
+    max-width: 260px !important;
+    min-width: 260px !important;
+    flex: 0 0 260px !important;
+    left: -260px !important;
+  }
+
+  .dashboard-sider[style*="left: 0px"],
+  .dashboard-sider[style*="left:0px"] {
+    left: 0 !important;
+  }
+
+  .dashboard-sider[style*="left: -260px"],
+  .dashboard-sider[style*="left:-260px"] {
+    left: -260px !important;
+  }
+
+  .content-wrapper {
     padding: 12px;
+  }
+}
+
+/* Extra small phones (400px and below) */
+@media (max-width: 400px) {
+  .content-wrapper {
+    padding: 8px;
+  }
+}
+
+/* Print */
+@media print {
+  .dashboard-sider,
+  .quick-nav-bar,
+  .mobile-sidebar-overlay,
+  .dashboard-header {
+    display: none !important;
+  }
+
+  .dashboard-content-layout {
+    margin-left: 0 !important;
   }
 }
