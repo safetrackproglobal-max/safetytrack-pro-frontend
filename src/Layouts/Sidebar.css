@@ -221,28 +221,10 @@
    ============================================================ */
 
 @media (max-width: 991px) {
-  .sidebar {
-    position: fixed !important;
-    top: 0 !important;
-    left: -280px !important;
-    width: 280px !important;
-    height: 100vh !important;
-    z-index: 1001 !important;
-    background: #ffffff !important;
-    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15) !important;
-    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    border-right: 1px solid #e8e8e8 !important;
-  }
-
-  /* When sidebar is open on mobile */
-  .sidebar.mobile-open {
-    left: 0 !important;
-  }
+  /* 
+    ✅ REMOVED position and left from here. 
+    The DashboardLayout wrapper handles sliding the sidebar in and out.
+  */
 
   /* Close button on mobile */
   .sidebar-close-btn {
@@ -320,15 +302,6 @@
 }
 
 @media (max-width: 480px) {
-  .sidebar {
-    width: 260px !important;
-    left: -260px !important;
-  }
-
-  .sidebar.mobile-open {
-    left: 0 !important;
-  }
-
   .sidebar-close-btn {
     top: 8px !important;
     right: 8px !important;
