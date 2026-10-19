@@ -1,4 +1,27 @@
 /* src/pages/AuthPages.css */
+
+/* Force light color scheme so browser never auto-inverts form controls, 
+   scrollbars, or text inside the auth area */
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  color-scheme: light;          /* ← NEW: prevents browser dark-mode auto-inversion */
+  color: #000000d9;             /* ← NEW: sensible default */
+}
+
+/* Ensure the card is truly opaque white — not translucent — 
+   so dark-mode text can't bleed through */
+.signup-card {
+  background: #ffffff;          /* ← was rgba(255,255,255,0.95) */
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  max-width: 600px !important;
+  color: #000000d9;             /* ← NEW */
+}
 .auth-container {
   min-height: 100vh;
   display: flex;
@@ -509,4 +532,98 @@
 .custom-plan-modal .ant-input-textarea:focus {
   border-color: #722ed1;
   box-shadow: 0 0 0 2px rgba(114, 46, 209, 0.2);
+}
+
+/* ============================================================
+   DARK MODE SAFETY NET
+   Prevents invisible text when the OS/browser is in dark mode.
+   Ant Design tokens flip to light text, but our card is white,
+   so we force text back to dark inside the auth area.
+   ============================================================ */
+
+@media (prefers-color-scheme: dark) {
+  .auth-container {
+    color-scheme: light;              /* keep browser in light mode here */
+  }
+
+  /* Ant Design typography components */
+  .auth-container .ant-typography,
+  .auth-container .ant-typography h1,
+  .auth-container .ant-typography h2,
+  .auth-container .ant-typography h3,
+  .auth-container .ant-typography h4,
+  .auth-container .ant-typography h5,
+  .auth-container .ant-typography strong,
+  .auth-container .ant-card-head-title,
+  .auth-container .ant-form-item-label > label,
+  .auth-container .ant-steps-item-title,
+  .auth-container .ant-steps-item-description,
+  .auth-container .ant-modal-title,
+  .auth-container .ant-alert-message,
+  .auth-container .ant-alert-description {
+    color: #000000d9 !important;
+  }
+
+  .auth-container .ant-typography-secondary,
+  .auth-container .ant-typography.ant-typography-secondary {
+    color: #00000073 !important;
+  }
+
+  /* Inputs / selects / textareas — AntD would otherwise make them dark */
+  .auth-container .ant-input,
+  .auth-container .ant-input-affix-wrapper,
+  .auth-container .ant-input-password,
+  .auth-container .ant-input-textarea textarea,
+  .auth-container .ant-select-selector,
+  .auth-container .ant-input-number {
+    background-color: #ffffff !important;
+    color: #000000d9 !important;
+    border-color: #d9d9d9 !important;
+  }
+
+  .auth-container .ant-input::placeholder,
+  .auth-container .ant-select-selection-placeholder {
+    color: #bfbfbf !important;
+  }
+
+  .auth-container .ant-select-selection-item {
+    color: #000000d9 !important;
+  }
+
+  /* Card & modal surfaces */
+  .auth-container .ant-card,
+  .auth-container .ant-card-body,
+  .auth-container .ant-modal-content,
+  .auth-container .ant-modal-header {
+    background-color: #ffffff !important;
+    color: #000000d9 !important;
+  }
+
+  /* Plan / user-type cards (these already have explicit white bg) */
+  .auth-container .plan-option,
+  .auth-container .user-type-card {
+    background: #ffffff !important;
+    color: #000000d9 !important;
+  }
+
+  /* Alerts — keep their colored backgrounds readable */
+  .auth-container .ant-alert {
+    color: inherit;
+  }
+  .auth-container .ant-alert-info .ant-alert-message,
+  .auth-container .ant-alert-info .ant-alert-description {
+    color: #000000d9 !important;
+  }
+  .auth-container .ant-alert-success .ant-alert-message,
+  .auth-container .ant-alert-success .ant-alert-description {
+    color: #000000d9 !important;
+  }
+  .auth-container .ant-alert-warning .ant-alert-message,
+  .auth-container .ant-alert-warning .ant-alert-description {
+    color: #000000d9 !important;
+  }
+  .auth-container .ant-alert-error .ant-alert-message,
+  .auth-container .ant-alert-error .ant-alert-description {
+    color: #000000d9 !important;
+  }
 }
