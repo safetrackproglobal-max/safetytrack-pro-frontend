@@ -109,16 +109,7 @@ function DashboardLayout({ children }) {
     return collapsed ? -80 : 0;
   };
 
-  // Determine content margin
-  const getContentMargin = () => {
-    if (isMobile) {
-      return 0;
-    }
-    return collapsed ? 80 : 280;
-  };
-
   const sidebarLeft = getSidebarLeft();
-  const contentMargin = getContentMargin();
 
   return (
     <Layout className="dashboard-layout">
@@ -159,13 +150,7 @@ function DashboardLayout({ children }) {
       {/* Content Layout */}
       <Layout 
         className={`dashboard-content-layout ${collapsed ? 'collapsed' : ''}`}
-        style={{
-          marginLeft: isMobile ? 0 : contentMargin,
-          transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          width: isMobile ? '100%' : `calc(100% - ${contentMargin}px)`,
-          minHeight: '100vh',
-          background: '#f0f2f5'
-        }}
+        // ✅ Inline styles for margin/width removed. CSS handles this now.
       >
         <DashboardHeader 
           onMenuToggle={handleMenuToggle} 
