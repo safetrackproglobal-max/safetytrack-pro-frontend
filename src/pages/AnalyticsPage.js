@@ -1,4 +1,4 @@
-// src/pages/AnalyticsPage.js - Updated with Project Management
+// src/pages/AnalyticsPage.js
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Layout, Card, Row, Col, Statistic, Select, Button, Space, Typography,
@@ -17,11 +17,6 @@ import {
   CameraOutlined, FileTextOutlined, ProjectOutlined,
   FolderOpenOutlined, RocketOutlined, MedicineBoxOutlined
 } from '@ant-design/icons';
-import {
-  LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie,
-  ComposedChart, Cell, XAxis, YAxis, CartesianGrid, ResponsiveContainer,
-  Legend, Tooltip as RechartsTooltip, ReferenceLine
-} from 'recharts';
 import { format } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 import moment from 'moment';
@@ -32,6 +27,9 @@ import WidgetConfigModal from '../components/analytics/WidgetConfigModal';
 import DataEntryForms from '../components/analytics/DataEntryForms';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+
+// ✅ IMPORT THE NEW DYNAMIC CHART COMPONENT
+import { DynamicChart } from '../components/analytics/DynamicChart';
 
 import './AnalyticsPage.css';
 const { TextArea } = Input;
@@ -202,216 +200,173 @@ const PowerBIAnalytics = () => {
   };
 
   const loadDashboardData = async () => {
-  try {
-    setLoading(true);
-    
-    const filters = {
-      start_date: format(dateRange[0], 'yyyy-MM-dd'),
-      end_date: format(dateRange[1], 'yyyy-MM-dd'),
-      department: selectedDepartment !== 'all' ? selectedDepartment : undefined,
-      project: selectedProject !== 'all' ? selectedProject : undefined,
-    };
+    try {
+      setLoading(true);
+      
+      const filters = {
+        start_date: format(dateRange[0], 'yyyy-MM-dd'),
+        end_date: format(dateRange[1], 'yyyy-MM-dd'),
+        department: selectedDepartment !== 'all' ? selectedDepartment : undefined,
+        project: selectedProject !== 'all' ? selectedProject : undefined,
+      };
 
-    // Fetch all data from backend
-    const [
-      manpowerData,
-      trainingData,
-      ltiDataFromApi,
-      manhoursData,
-      observationsData,
-      accidentsDataFromApi,
-      severityDataFromApi,
-      injuriesDataFromApi,
-      overdueData,
-      incidentsResponse
-    ] = await Promise.all([
-      analyticsService.fetchManpower(filters).catch(() => ({ data: [] })),
-      analyticsService.fetchTraining(filters).catch(() => ({ data: [] })),
-      analyticsService.fetchLTI(filters).catch(() => ({ data: [] })),
-      analyticsService.fetchManHours(filters).catch(() => ({ data: [] })),
-      analyticsService.fetchObservations(filters).catch(() => ({ data: [] })),
-      analyticsService.fetchAccidents(filters).catch(() => ({ data: [] })),
-      analyticsService.fetchSeverity(filters).catch(() => ({ data: [] })),
-      analyticsService.fetchInjuries(filters).catch(() => ({ data: [] })),
-      analyticsService.fetchOverdueReports(filters).catch(() => ({ data: [] })),
-      notificationService.getIncidents(filters).catch(() => ({ incidents: [], count: 0, success: false }))
-    ]);
+      const [
+        manpowerData,
+        trainingData,
+        ltiDataFromApi,
+        manhoursData,
+        observationsData,
+        accidentsDataFromApi,
+        severityDataFromApi,
+        injuriesDataFromApi,
+        overdueData,
+        incidentsResponse
+      ] = await Promise.all([
+        analyticsService.fetchManpower(filters).catch(() => ({ data: [] })),
+        analyticsService.fetchTraining(filters).catch(() => ({ data: [] })),
+        analyticsService.fetchLTI(filters).catch(() => ({ data: [] })),
+        analyticsService.fetchManHours(filters).catch(() => ({ data: [] })),
+        analyticsService.fetchObservations(filters).catch(() => ({ data: [] })),
+        analyticsService.fetchAccidents(filters).catch(() => ({ data: [] })),
+        analyticsService.fetchSeverity(filters).catch(() => ({ data: [] })),
+        analyticsService.fetchInjuries(filters).catch(() => ({ data: [] })),
+        analyticsService.fetchOverdueReports(filters).catch(() => ({ data: [] })),
+        notificationService.getIncidents(filters).catch(() => ({ incidents: [], count: 0, success: false }))
+      ]);
 
-    // Process incident data
-    let incidentList = [];
-    if (incidentsResponse && incidentsResponse.success) {
-      incidentList = incidentsResponse.incidents || [];
-    } else if (Array.isArray(incidentsResponse)) {
-      incidentList = incidentsResponse;
-    } else if (incidentsResponse && incidentsResponse.data) {
-      incidentList = Array.isArray(incidentsResponse.data) ? incidentsResponse.data : [];
+      let incidentList = [];
+      if (incidentsResponse && incidentsResponse.success) {
+        incidentList = incidentsResponse.incidents || [];
+      } else if (Array.isArray(incidentsResponse)) {
+        incidentList = incidentsResponse;
+      } else if (incidentsResponse && incidentsResponse.data) {
+        incidentList = Array.isArray(incidentsResponse.data) ? incidentsResponse.data : [];
+      }
+      
+      const projectId = selectedProject !== 'all' ? selectedProject : null;
+      
+      let filteredIncidents = incidentList;
+      if (projectId) {
+        filteredIncidents = incidentList.filter(inc => inc.project_id === projectId);
+      }
+      
+      // Map incident data to charts using FILTERED incidents ONLY
+      const accidentRateMap = {};
+      filteredIncidents.forEach(inc => {
+        const date = inc.date_occurred || inc.created_at;
+        if (date) {
+          const monthKey = moment(date).format('YYYY-MM');
+          if (!accidentRateMap[monthKey]) {
+            accidentRateMap[monthKey] = { year: monthKey, rate: 0, per_10k_hours: 0 };
+          }
+          accidentRateMap[monthKey].rate += 1;
+          const totalManHours = manhoursData?.data?.reduce((sum, d) => sum + (d.hours || 0), 0) || 2000;
+          accidentRateMap[monthKey].per_10k_hours = (accidentRateMap[monthKey].rate / totalManHours) * 10000;
+        }
+      });
+      const mappedAccidentData = Object.values(accidentRateMap).sort((a, b) => a.year.localeCompare(b.year));
+      
+      const severityMap = {};
+      const severityScore = { low: 1, medium: 3, high: 5, critical: 7 };
+      filteredIncidents.forEach(inc => {
+        const date = inc.date_occurred || inc.created_at;
+        if (date) {
+          const monthKey = moment(date).format('YYYY-MM');
+          if (!severityMap[monthKey]) {
+            severityMap[monthKey] = { year: monthKey, value: 0, count: 0 };
+          }
+          const score = severityScore[inc.severity] || 3;
+          severityMap[monthKey].value += score;
+          severityMap[monthKey].count += 1;
+        }
+      });
+      const mappedSeverityData = Object.values(severityMap)
+        .map(d => ({ year: d.year, value: d.value / d.count }))
+        .sort((a, b) => a.year.localeCompare(b.year));
+
+      const ltiMap = {};
+      filteredIncidents.forEach(inc => {
+        const date = inc.date_occurred || inc.created_at;
+        if (date) {
+          const monthKey = moment(date).format('YYYY-MM');
+          if (!ltiMap[monthKey]) {
+            ltiMap[monthKey] = { year: monthKey, value: 0 };
+          }
+          if (inc.severity === 'high' || inc.severity === 'critical' || inc.status === 'investigating') {
+            ltiMap[monthKey].value += 1;
+          }
+        }
+      });
+      const mappedLTIData = Object.values(ltiMap).sort((a, b) => a.year.localeCompare(b.year));
+
+      const bodyPartMap = {
+        'needle_stick': { body_part: 'Hand/Finger', count: 0 },
+        'patient_fall': { body_part: 'Leg/Foot', count: 0 },
+        'medication_error': { body_part: 'Head/Neck', count: 0 },
+        'fall': { body_part: 'Leg/Foot', count: 0 },
+        'default': { body_part: 'Other', count: 0 }
+      };
+      filteredIncidents.forEach(inc => {
+        const type = inc.incident_type || 'default';
+        const key = bodyPartMap[type] ? type : 'default';
+        bodyPartMap[key].count += 1;
+      });
+      const mappedInjuriesData = Object.values(bodyPartMap).filter(d => d.count > 0);
+
+      const finalAccidentsData = mappedAccidentData.length > 0 ? mappedAccidentData : (accidentsDataFromApi?.data || accidentsDataFromApi || []);
+      const finalSeverityData = mappedSeverityData.length > 0 ? mappedSeverityData : (severityDataFromApi?.data || severityDataFromApi || []);
+      const finalLTIData = mappedLTIData.length > 0 ? mappedLTIData : (ltiDataFromApi?.data || ltiDataFromApi || []);
+      const finalInjuriesData = mappedInjuriesData.length > 0 ? mappedInjuriesData : (injuriesDataFromApi?.data || injuriesDataFromApi || []);
+
+      const newDashboardData = {
+        manpower: manpowerData?.data || manpowerData || [],
+        training: trainingData?.data || trainingData || [],
+        lti: finalLTIData,
+        manhours: manhoursData?.data || manhoursData || [],
+        observations: observationsData?.data || observationsData || [],
+        accidents: finalAccidentsData,
+        severity: finalSeverityData,
+        injuries: finalInjuriesData,
+        overdue: overdueData?.data || overdueData || [],
+        ltifr: [],
+        incidents: filteredIncidents,
+      };
+
+      setDashboardData(newDashboardData);
+      
+      const filteredIncidentStats = processIncidentData(filteredIncidents);
+      
+      const metricsPayload = {
+        ...newDashboardData,
+        incidents: filteredIncidents,
+        incidentStats: filteredIncidentStats,
+        project_id: projectId,
+        project: projectId
+      };
+      
+      const metrics = await analyticsService.calculateMetrics(metricsPayload).catch(() => ({}));
+      
+      setCalculatedMetrics(metrics || {});
+      setLastUpdated(new Date());
+      
+      const savedConfig = localStorage.getItem('powerbi_dashboard_config');
+      if (savedConfig) {
+        const config = JSON.parse(savedConfig);
+        setWidgets(config.widgets || []);
+      } else {
+        setWidgets([]);
+      }
+      
+    } catch (error) {
+      console.error('Failed to load dashboard data:', error);
+      notification.error({ 
+        message: 'Data Load Failed', 
+        description: 'Unable to load analytics data from backend. Please check your connection.' 
+      });
+    } finally {
+      setLoading(false);
     }
-    
-    // ✅ STEP 1: Get project_id
-    const projectId = selectedProject !== 'all' ? selectedProject : null;
-    
-    // ✅ STEP 2: Filter incidents by project_id
-    let filteredIncidents = incidentList;
-    if (projectId) {
-      filteredIncidents = incidentList.filter(inc => inc.project_id === projectId);
-      console.log(`✅ Filtered incidents: ${filteredIncidents.length} out of ${incidentList.length} for project ${projectId}`);
-    }
-    
-    // ✅ STEP 3: Map incident data to charts using FILTERED incidents ONLY
-    // 1. ACCIDENT RATE - from filtered incidents
-    const accidentRateMap = {};
-    filteredIncidents.forEach(inc => {
-      const date = inc.date_occurred || inc.created_at;
-      if (date) {
-        const monthKey = moment(date).format('YYYY-MM');
-        if (!accidentRateMap[monthKey]) {
-          accidentRateMap[monthKey] = { year: monthKey, rate: 0, per_10k_hours: 0 };
-        }
-        accidentRateMap[monthKey].rate += 1;
-        const totalManHours = manhoursData?.data?.reduce((sum, d) => sum + (d.hours || 0), 0) || 2000;
-        accidentRateMap[monthKey].per_10k_hours = (accidentRateMap[monthKey].rate / totalManHours) * 10000;
-      }
-    });
-    const mappedAccidentData = Object.values(accidentRateMap).sort((a, b) => a.year.localeCompare(b.year));
-    
-    // 2. SEVERITY TREND - from filtered incidents
-    const severityMap = {};
-    const severityScore = { low: 1, medium: 3, high: 5, critical: 7 };
-    filteredIncidents.forEach(inc => {
-      const date = inc.date_occurred || inc.created_at;
-      if (date) {
-        const monthKey = moment(date).format('YYYY-MM');
-        if (!severityMap[monthKey]) {
-          severityMap[monthKey] = { year: monthKey, value: 0, count: 0 };
-        }
-        const score = severityScore[inc.severity] || 3;
-        severityMap[monthKey].value += score;
-        severityMap[monthKey].count += 1;
-      }
-    });
-    const mappedSeverityData = Object.values(severityMap)
-      .map(d => ({ year: d.year, value: d.value / d.count }))
-      .sort((a, b) => a.year.localeCompare(b.year));
-
-    // 3. LTI - from filtered incidents
-    const ltiMap = {};
-    filteredIncidents.forEach(inc => {
-      const date = inc.date_occurred || inc.created_at;
-      if (date) {
-        const monthKey = moment(date).format('YYYY-MM');
-        if (!ltiMap[monthKey]) {
-          ltiMap[monthKey] = { year: monthKey, value: 0 };
-        }
-        if (inc.severity === 'high' || inc.severity === 'critical' || inc.status === 'investigating') {
-          ltiMap[monthKey].value += 1;
-        }
-      }
-    });
-    const mappedLTIData = Object.values(ltiMap).sort((a, b) => a.year.localeCompare(b.year));
-
-    // 4. INJURIES BY BODY PART - from filtered incidents
-    const bodyPartMap = {
-      'needle_stick': { body_part: 'Hand/Finger', count: 0 },
-      'patient_fall': { body_part: 'Leg/Foot', count: 0 },
-      'medication_error': { body_part: 'Head/Neck', count: 0 },
-      'fall': { body_part: 'Leg/Foot', count: 0 },
-      'default': { body_part: 'Other', count: 0 }
-    };
-    filteredIncidents.forEach(inc => {
-      const type = inc.incident_type || 'default';
-      const key = bodyPartMap[type] ? type : 'default';
-      bodyPartMap[key].count += 1;
-    });
-    const mappedInjuriesData = Object.values(bodyPartMap).filter(d => d.count > 0);
-
-    // ✅ STEP 4: Use mapped data ONLY (ignore API data for injuries, lti, severity)
-    // Since we're mapping from incidents, we don't need the API data for these
-    const finalAccidentsData = mappedAccidentData.length > 0 ? mappedAccidentData : (accidentsDataFromApi?.data || accidentsDataFromApi || []);
-    const finalSeverityData = mappedSeverityData.length > 0 ? mappedSeverityData : (severityDataFromApi?.data || severityDataFromApi || []);
-    const finalLTIData = mappedLTIData.length > 0 ? mappedLTIData : (ltiDataFromApi?.data || ltiDataFromApi || []);
-    const finalInjuriesData = mappedInjuriesData.length > 0 ? mappedInjuriesData : (injuriesDataFromApi?.data || injuriesDataFromApi || []);
-
-    // ✅ STEP 5: Build dashboard data with chart data from FILTERED incidents
-    const newDashboardData = {
-      manpower: manpowerData?.data || manpowerData || [],
-      training: trainingData?.data || trainingData || [],
-      lti: finalLTIData,           // ✅ From filtered incidents
-      manhours: manhoursData?.data || manhoursData || [],
-      observations: observationsData?.data || observationsData || [],
-      accidents: finalAccidentsData, // ✅ From filtered incidents
-      severity: finalSeverityData,   // ✅ From filtered incidents
-      injuries: finalInjuriesData,   // ✅ From filtered incidents
-      overdue: overdueData?.data || overdueData || [],
-      ltifr: [],
-      incidents: filteredIncidents,  // ✅ Filtered incidents
-    };
-
-    setDashboardData(newDashboardData);
-    
-    // ✅ STEP 6: Calculate incident stats from FILTERED incidents
-    const filteredIncidentStats = processIncidentData(filteredIncidents);
-    
-    // ✅ STEP 7: Send ONLY filtered data to backend
-    const metricsPayload = {
-      ...newDashboardData,
-      incidents: filteredIncidents,
-      incidentStats: filteredIncidentStats,
-      project_id: projectId,
-      project: projectId
-    };
-    
-    console.log('📊 Sending metrics payload:', {
-      totalIncidents: filteredIncidents.length,
-      totalInjuries: finalInjuriesData.reduce((sum, d) => sum + d.count, 0),
-      totalLTIs: finalLTIData.length,
-      projectId: projectId
-    });
-    
-    const metrics = await analyticsService.calculateMetrics(metricsPayload).catch(() => ({}));
-    
-    setCalculatedMetrics(metrics || {});
-    setLastUpdated(new Date());
-    
-    const savedConfig = localStorage.getItem('powerbi_dashboard_config');
-    if (savedConfig) {
-      const config = JSON.parse(savedConfig);
-      setWidgets(config.widgets || []);
-    } else {
-      setWidgets([]);
-    }
-    
-  } catch (error) {
-    console.error('Failed to load dashboard data:', error);
-    notification.error({ 
-      message: 'Data Load Failed', 
-      description: 'Unable to load analytics data from backend. Please check your connection.' 
-    });
-    setDashboardData({
-      manpower: [],
-      training: [],
-      lti: [],
-      manhours: [],
-      observations: [],
-      accidents: [],
-      severity: [],
-      injuries: [],
-      overdue: [],
-      ltifr: [],
-      incidents: [],
-      incidentStats: {
-        total: 0,
-        byStatus: {},
-        bySeverity: {},
-        byDepartment: {},
-        byType: {},
-        trend: []
-      }
-    });
-    setCalculatedMetrics({});
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const loadDepartments = async () => {
     try {
@@ -430,7 +385,6 @@ const PowerBIAnalytics = () => {
       setProjects(projectList);
       setHasProjects(projectList.length > 0);
       
-      // If there are projects and none selected, select the first one
       if (projectList.length > 0 && selectedProject === 'all') {
         setSelectedProject(projectList[0].id);
       }
@@ -451,7 +405,6 @@ const PowerBIAnalytics = () => {
     }
   };
 
-  // ==================== PROJECT MANAGEMENT ====================
   const handleCreateProject = async (values) => {
     try {
       const response = await analyticsService.createProject({
@@ -470,7 +423,6 @@ const PowerBIAnalytics = () => {
         projectForm.resetFields();
         setProjectModalVisible(false);
         await loadProjects();
-        // Auto-select the new project
         if (response.data && response.data.id) {
           setSelectedProject(response.data.id);
           await loadDashboardData();
@@ -484,7 +436,6 @@ const PowerBIAnalytics = () => {
     }
   };
 
-  // ==================== WIDGET CONFIGURATION ====================
   const getDefaultConfig = (type) => {
     const baseConfig = {
       chartType: 'bar',
@@ -557,7 +508,6 @@ const PowerBIAnalytics = () => {
     return { x: 0, y: maxY };
   };
 
-  // ==================== WIDGET MANAGEMENT ====================
   const addWidget = (widgetType) => {
     const newWidget = {
       id: uuidv4(),
@@ -644,7 +594,6 @@ const PowerBIAnalytics = () => {
     notification.info({ message: 'Data Refreshed', description: 'Dashboard data has been updated' });
   };
 
-  // ==================== EXPORT FUNCTIONS ====================
   const captureDashboard = async () => {
     if (!dashboardContentRef.current) {
       message.error('Dashboard not found');
@@ -828,7 +777,6 @@ const PowerBIAnalytics = () => {
     }
   };
 
-  // ==================== DATA ENTRY ====================
   const handleDataEntrySubmit = async (values) => {
     try {
       setLoading(true);
@@ -909,160 +857,107 @@ const PowerBIAnalytics = () => {
   };
 
   const ManpowerWidget = ({ data, onEdit, onDelete, setDataEntryModal, config }) => {
-    const colors = config?.colors || CHART_COLOR_LIST;
-    const showLegend = config?.showLegend !== false;
     const chartData = data && data.length > 0 ? data : [{ section: 'No Data', count: 0 }];
     return (
       <Card className="widget-card" size="small" title={<Space><TeamOutlined style={{ color: CHART_COLORS.primary }} /><Text strong>Manpower Distribution</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <ResponsiveContainer width="100%" height={200}>
-          <PieChart><Pie data={chartData} dataKey="count" nameKey="section" cx="50%" cy="50%" outerRadius={70} label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}>{chartData?.map((e, i) => <Cell key={`cell-${i}`} fill={colors[i % colors.length]} />)}</Pie><RechartsTooltip />{showLegend && <Legend />}</PieChart>
-        </ResponsiveContainer>
+        <DynamicChart data={chartData} config={config} xKey="section" yKey="count" nameKey="section" />
         <div className="widget-footer"><Space><Text type="secondary">Total: {data?.reduce((s, i) => s + (i.count || 0), 0) || 0}</Text><Button type="link" size="small" onClick={() => setDataEntryModal('manpower')}>Add Data</Button></Space></div>
       </Card>
     );
   };
 
   const TrainingWidget = ({ data, onEdit, onDelete, setDataEntryModal, config }) => {
-    const colors = config?.colors || CHART_COLOR_LIST;
-    const chartType = config?.chartType || 'bar';
-    const showLegend = config?.showLegend !== false;
     const chartData = data && data.length > 0 ? data : [{ type: 'No Data', count: 0 }];
     return (
       <Card className="widget-card" size="small" title={<Space><ExperimentOutlined style={{ color: CHART_COLORS.purple }} /><Text strong>Training Statistics</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <ResponsiveContainer width="100%" height={200}>
-          {chartType === 'bar' ? (
-            <BarChart data={chartData} layout="vertical"><CartesianGrid strokeDasharray="3 3" /><XAxis type="number" /><YAxis type="category" dataKey="type" width={80} /><RechartsTooltip />{showLegend && <Legend />}<Bar dataKey="count" fill={colors[0]} /></BarChart>
-          ) : (
-            <LineChart data={chartData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="type" /><YAxis /><RechartsTooltip />{showLegend && <Legend />}<Line type="monotone" dataKey="count" stroke={colors[0]} strokeWidth={2} /></LineChart>
-          )}
-        </ResponsiveContainer>
+        <DynamicChart data={chartData} config={config} xKey="type" yKey="count" nameKey="type" />
         <div className="widget-footer"><Space><Text type="secondary">Total Trained: {data?.reduce((s, i) => s + (i.count || 0), 0) || 0}</Text><Button type="link" size="small" onClick={() => setDataEntryModal('training')}>Add Data</Button></Space></div>
       </Card>
     );
   };
 
   const LTIWidget = ({ data, onEdit, onDelete, setDataEntryModal, config }) => {
-    const yAxisDomain = config?.yAxis?.min && config?.yAxis?.max ? [config.yAxis.min, config.yAxis.max] : [0, 0.5];
-    const targetLine = config?.targetLine || 0.2;
-    const colors = config?.colors || CHART_COLOR_LIST;
     const chartData = data && data.length > 0 ? data : [{ year: 'No Data', value: 0 }];
     return (
       <Card className="widget-card" size="small" title={<Space><WarningOutlined style={{ color: CHART_COLORS.danger }} /><Text strong>Lost Time Injury Trend</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <ResponsiveContainer width="100%" height={200}>
-          <LineChart data={chartData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="year" /><YAxis domain={yAxisDomain} /><RechartsTooltip /><Line type="monotone" dataKey="value" stroke={colors[0]} strokeWidth={2} dot={{ r: 4 }} /><ReferenceLine y={targetLine} stroke={CHART_COLORS.warning} strokeDasharray="3 3" /></LineChart>
-        </ResponsiveContainer>
+        <DynamicChart data={chartData} config={config} xKey="year" yKey="value" nameKey="year" />
         <div className="widget-footer"><Space><Text type="secondary">Average: {(data?.reduce((s, i) => s + (i.value || 0), 0) / (data?.length || 1)).toFixed(2) || 0}</Text><Button type="link" size="small" onClick={() => setDataEntryModal('lti')}>Add Data</Button></Space></div>
       </Card>
     );
   };
 
   const ManHoursWidget = ({ data, onEdit, onDelete, setDataEntryModal, config }) => {
-    const colors = config?.colors || CHART_COLOR_LIST;
     const chartData = data && data.length > 0 ? data : [{ section: 'No Data', hours: 0 }];
     return (
       <Card className="widget-card" size="small" title={<Space><FieldTimeOutlined style={{ color: CHART_COLORS.cyan }} /><Text strong>Man-Hours Analysis</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={chartData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="section" /><YAxis /><RechartsTooltip /><Bar dataKey="hours" fill={colors[0]}>{chartData?.map((e, i) => <Cell key={`cell-${i}`} fill={colors[i % colors.length]} />)}</Bar></BarChart>
-        </ResponsiveContainer>
+        <DynamicChart data={chartData} config={config} xKey="section" yKey="hours" nameKey="section" />
         <div className="widget-footer"><Space><Text type="secondary">Total: {data?.reduce((s, i) => s + (i.hours || 0), 0).toLocaleString() || 0}</Text><Button type="link" size="small" onClick={() => setDataEntryModal('manhours')}>Add Data</Button></Space></div>
       </Card>
     );
   };
 
   const ObservationsWidget = ({ data, onEdit, onDelete, setDataEntryModal, config }) => {
-    const colors = config?.colors || CHART_COLOR_LIST;
-    const chartType = config?.chartType || 'bar';
     const chartData = data && data.length > 0 ? data : [{ type: 'No Data', count: 0 }];
     return (
       <Card className="widget-card" size="small" title={<Space><EyeOutlined style={{ color: CHART_COLORS.success }} /><Text strong>Safety Observations</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <ResponsiveContainer width="100%" height={200}>
-          {chartType === 'pie' ? (
-            <PieChart><Pie data={chartData} dataKey="count" nameKey="type" cx="50%" cy="50%" outerRadius={70} label>{chartData?.map((e, i) => <Cell key={`cell-${i}`} fill={colors[i % colors.length]} />)}</Pie><RechartsTooltip /></PieChart>
-          ) : (
-            <BarChart data={chartData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="type" /><YAxis /><RechartsTooltip /><Bar dataKey="count"><Cell fill={colors[0]} /><Cell fill={colors[1] || CHART_COLORS.danger} /></Bar></BarChart>
-          )}
-        </ResponsiveContainer>
+        <DynamicChart data={chartData} config={config} xKey="type" yKey="count" nameKey="type" />
         <div className="widget-footer"><Space><Text type="secondary">Positive: {data?.find(d => d.type === 'Positive')?.count || 0}</Text><Text type="secondary">Negative: {data?.find(d => d.type === 'Negative')?.count || 0}</Text><Button type="link" size="small" onClick={() => setDataEntryModal('observations')}>Add Data</Button></Space></div>
       </Card>
     );
   };
 
   const AccidentWidget = ({ data, onEdit, onDelete, setDataEntryModal, config }) => {
-    const colors = config?.colors || CHART_COLOR_LIST;
     const chartData = data && data.length > 0 ? data : [{ year: 'No Data', rate: 0, per_10k_hours: 0 }];
     return (
       <Card className="widget-card" size="small" title={<Space><AlertOutlined style={{ color: CHART_COLORS.warning }} /><Text strong>Accident Rate</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <ResponsiveContainer width="100%" height={200}>
-          <ComposedChart data={chartData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="year" /><YAxis yAxisId="left" domain={[0, 0.04]} /><YAxis yAxisId="right" orientation="right" domain={[0, 3]} /><RechartsTooltip /><Line yAxisId="left" type="monotone" dataKey="rate" stroke={colors[0]} name="Rate" /><Bar yAxisId="right" dataKey="per_10k_hours" fill={colors[1] || CHART_COLORS.primary} name="Per 10K Hours" /></ComposedChart>
-        </ResponsiveContainer>
+        <DynamicChart data={chartData} config={config} xKey="year" yKey="rate" nameKey="year" />
         <div className="widget-footer"><Space><Text type="secondary">Latest Rate: {data?.[data?.length - 1]?.rate || 0}</Text><Button type="link" size="small" onClick={() => setDataEntryModal('accidents')}>Add Data</Button></Space></div>
       </Card>
     );
   };
 
   const SeverityWidget = ({ data, onEdit, onDelete, setDataEntryModal, config }) => {
-    const yAxisDomain = config?.yAxis?.min && config?.yAxis?.max ? [config.yAxis.min, config.yAxis.max] : [0, 6];
-    const targetLine = config?.targetLine || 3;
-    const colors = config?.colors || CHART_COLOR_LIST;
     const chartData = data && data.length > 0 ? data : [{ year: 'No Data', value: 0 }];
     return (
       <Card className="widget-card" size="small" title={<Space><RiseOutlined style={{ color: CHART_COLORS.magenta }} /><Text strong>Injury Severity Trend</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <ResponsiveContainer width="100%" height={200}>
-          <AreaChart data={chartData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="year" /><YAxis domain={yAxisDomain} /><RechartsTooltip /><Area type="monotone" dataKey="value" stroke={colors[0]} fill={colors[0]} fillOpacity={0.3} /><ReferenceLine y={targetLine} stroke={CHART_COLORS.warning} strokeDasharray="3 3" /></AreaChart>
-        </ResponsiveContainer>
+        <DynamicChart data={chartData} config={config} xKey="year" yKey="value" nameKey="year" />
         <div className="widget-footer"><Space><Text type="secondary">Average: {(data?.reduce((s, i) => s + (i.value || 0), 0) / (data?.length || 1)).toFixed(1) || 0}</Text><Button type="link" size="small" onClick={() => setDataEntryModal('severity')}>Add Data</Button></Space></div>
       </Card>
     );
   };
 
   const InjuriesWidget = ({ data, onEdit, onDelete, setDataEntryModal, config }) => {
-    const colors = config?.colors || CHART_COLOR_LIST;
     const chartData = data && data.length > 0 ? data : [{ body_part: 'No Data', count: 0 }];
     return (
       <Card className="widget-card" size="small" title={<Space><SafetyOutlined style={{ color: CHART_COLORS.orange }} /><Text strong>Injuries by Body Part</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={chartData} layout="vertical"><CartesianGrid strokeDasharray="3 3" /><XAxis type="number" /><YAxis type="category" dataKey="body_part" width={100} /><RechartsTooltip /><Bar dataKey="count" fill={colors[0]}>{chartData?.map((e, i) => <Cell key={`cell-${i}`} fill={colors[i % colors.length]} />)}</Bar></BarChart>
-        </ResponsiveContainer>
+        <DynamicChart data={chartData} config={config} xKey="body_part" yKey="count" nameKey="body_part" />
         <div className="widget-footer"><Space><Text type="secondary">Total: {data?.reduce((s, i) => s + (i.count || 0), 0) || 0}</Text><Button type="link" size="small" onClick={() => setDataEntryModal('injuries')}>Add Data</Button></Space></div>
       </Card>
     );
   };
 
   const OverdueWidget = ({ data, onEdit, onDelete, setDataEntryModal, config }) => {
-    const colors = config?.colors || CHART_COLOR_LIST;
     const chartData = data && data.length > 0 ? data : [{ month: 'No Data', on_time: 0, late: 0 }];
     return (
       <Card className="widget-card" size="small" title={<Space><ClockCircleOutlined style={{ color: CHART_COLORS.danger }} /><Text strong>Overdue Reports</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={chartData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="month" angle={-45} textAnchor="end" height={60} /><YAxis /><RechartsTooltip /><Bar dataKey="on_time" stackId="a" fill={colors[0]} name="On Time" /><Bar dataKey="late" stackId="a" fill={colors[1] || CHART_COLORS.danger} name="Late" /></BarChart>
-        </ResponsiveContainer>
+        <DynamicChart data={chartData} config={config} xKey="month" yKey="late" nameKey="month" />
         <div className="widget-footer"><Space><Text type="secondary">Overdue Rate: {((data?.reduce((s, i) => s + (i.late || 0), 0) / (data?.reduce((s, i) => s + (i.on_time || 0) + (i.late || 0), 0) || 1)) * 100).toFixed(1) || 0}%</Text><Button type="link" size="small" onClick={() => setDataEntryModal('overdue')}>Add Data</Button></Space></div>
       </Card>
     );
   };
 
   const LTIFRWidget = ({ data, metrics, onEdit, onDelete, config }) => {
-    const colors = config?.colors || CHART_COLOR_LIST;
     const ltifrData = data && data.length > 0 ? data : [{ year: 'No Data', value: metrics?.ltifr || 0 }];
     return (
       <Card className="widget-card" size="small" title={<Space><LineChartOutlined style={{ color: CHART_COLORS.primary }} /><Text strong>LTIFR Trend</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <ResponsiveContainer width="100%" height={200}>
-          <LineChart data={ltifrData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="year" /><YAxis domain={[0, 0.5]} /><RechartsTooltip /><Line type="monotone" dataKey="value" stroke={colors[0]} strokeWidth={2} name="LTIFR" /><ReferenceLine y={metrics?.ltifr || 0} stroke={CHART_COLORS.success} strokeDasharray="3 3" label="Current" /></LineChart>
-        </ResponsiveContainer>
+        <DynamicChart data={ltifrData} config={config} xKey="year" yKey="value" nameKey="year" />
         <div className="widget-footer"><Space><Text type="secondary">Current LTIFR: {metrics?.ltifr || 0}</Text><Tag color={metrics?.ltifr > 0.2 ? 'red' : 'green'}>{metrics?.ltifr > 0.2 ? 'Above Target' : 'Within Target'}</Tag></Space></div>
       </Card>
     );
   };
 
-  // Incident Summary Widget
   const IncidentSummaryWidget = ({ stats, onEdit, onDelete }) => {
-    const statusColors = {
-      reported: '#faad14',
-      investigating: '#1890ff',
-      resolved: '#52c41a',
-      closed: '#52c41a'
-    };
-    
+    const statusColors = { reported: '#faad14', investigating: '#1890ff', resolved: '#52c41a', closed: '#52c41a' };
     return (
       <Card className="widget-card" size="small" title={<Space><MedicineBoxOutlined style={{ color: CHART_COLORS.danger }} /><Text strong>Incident Summary</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
         <Row gutter={[16, 16]}>
@@ -1071,8 +966,7 @@ const PowerBIAnalytics = () => {
             <div><Text type="secondary">Status Breakdown</Text></div>
             {Object.entries(stats?.byStatus || {}).map(([status, count]) => (
               <div key={status} style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-                <Tag color={statusColors[status] || '#bfbfbf'}>{status}</Tag>
-                <Text strong>{count}</Text>
+                <Tag color={statusColors[status] || '#bfbfbf'}>{status}</Tag><Text strong>{count}</Text>
               </div>
             ))}
           </Col>
@@ -1082,60 +976,28 @@ const PowerBIAnalytics = () => {
     );
   };
 
-  // Incident Trend Widget
   const IncidentTrendWidget = ({ stats, onEdit, onDelete, config }) => {
     const trendData = stats?.trend || [];
-    const showMovingAverage = config?.showMovingAverage !== false;
-    const colors = config?.colors || CHART_COLOR_LIST;
     const chartData = trendData.length > 0 ? trendData : [{ month: 'No Data', count: 0 }];
-    
     return (
       <Card className="widget-card" size="small" title={<Space><LineChartOutlined style={{ color: CHART_COLORS.primary }} /><Text strong>Incident Trend</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <ResponsiveContainer width="100%" height={250}>
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis />
-            <RechartsTooltip />
-            <Legend />
-            <Line type="monotone" dataKey="count" stroke={colors[0]} name="Total Incidents" strokeWidth={2} />
-            <Line type="monotone" dataKey="investigating" stroke={CHART_COLORS.primary} name="Investigating" strokeDasharray="5 5" />
-            <Line type="monotone" dataKey="resolved" stroke={CHART_COLORS.success} name="Resolved" strokeDasharray="5 5" />
-            {showMovingAverage && (
-              <Line type="monotone" dataKey="count" stroke={CHART_COLORS.warning} name="3-Month Avg" strokeDasharray="3 3" />
-            )}
-          </LineChart>
-        </ResponsiveContainer>
+        <DynamicChart data={chartData} config={config} xKey="month" yKey="count" nameKey="month" />
         <div className="widget-footer"><Text type="secondary">Monthly incident trend analysis</Text></div>
       </Card>
     );
   };
 
-  // Incident By Department Widget
   const IncidentByDepartmentWidget = ({ stats, onEdit, onDelete, config }) => {
     const deptData = Object.entries(stats?.byDepartment || {}).map(([name, value]) => ({ name, value }));
-    const colors = config?.colors || CHART_COLOR_LIST;
     const chartData = deptData.length > 0 ? deptData : [{ name: 'No Data', value: 0 }];
-    const showPercentages = config?.showPercentages !== false;
-    const total = chartData.reduce((sum, d) => sum + d.value, 0);
-    
     return (
       <Card className="widget-card" size="small" title={<Space><TeamOutlined style={{ color: CHART_COLORS.purple }} /><Text strong>Incidents by Department</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <ResponsiveContainer width="100%" height={200}>
-          <PieChart>
-            <Pie data={chartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, value }) => showPercentages ? `${name}: ${((value / total) * 100).toFixed(0)}%` : name}>
-              {chartData?.map((e, i) => <Cell key={`cell-${i}`} fill={colors[i % colors.length]} />)}
-            </Pie>
-            <RechartsTooltip />
-            <Legend />
-          </PieChart>
-        </ResponsiveContainer>
+        <DynamicChart data={chartData} config={config} xKey="name" yKey="value" nameKey="name" />
         <div className="widget-footer"><Text type="secondary">Total incidents by department</Text></div>
       </Card>
     );
   };
 
-  // ==================== RENDER WIDGET ====================
   const renderWidget = (widget) => {
     const commonProps = {
       key: widget.id,
@@ -1168,15 +1030,12 @@ const PowerBIAnalytics = () => {
     }
   };
 
-  // ==================== EFFECTS ====================
   useEffect(() => {
     const init = async () => {
       await loadProjects();
       await loadDepartments();
       await loadSavedDashboards();
       
-      // If no projects, show the "Create Project" flow
-      // If projects exist, load dashboard data
       if (hasProjects) {
         await loadDashboardData();
       } else {
@@ -1206,9 +1065,6 @@ const PowerBIAnalytics = () => {
     }
   }, [selectedProject, selectedDepartment, dateRange]);
 
-  // ==================== RENDER ====================
-  
-  // ✅ Show "Create Project" screen if no projects
   if (!hasProjects && !loading) {
     return (
       <div className="analytics-no-projects">
@@ -1217,13 +1073,7 @@ const PowerBIAnalytics = () => {
           title="Welcome to Safety Analytics"
           subTitle="You don't have any projects yet. Create your first project to start tracking safety metrics."
           extra={[
-            <Button 
-              type="primary" 
-              size="large" 
-              icon={<PlusOutlined />}
-              onClick={() => setProjectModalVisible(true)}
-              style={{ background: '#1890ff' }}
-            >
+            <Button type="primary" size="large" icon={<PlusOutlined />} onClick={() => setProjectModalVisible(true)} style={{ background: '#1890ff' }}>
               Create Your First Project
             </Button>
           ]}
@@ -1247,27 +1097,12 @@ const PowerBIAnalytics = () => {
           </div>
         </Result>
         
-        {/* Project Creation Modal */}
-        <Modal
-          title="Create Your First Project"
-          open={projectModalVisible}
-          onCancel={() => setProjectModalVisible(false)}
-          footer={null}
-          width={600}
-        >
+        <Modal title="Create Your First Project" open={projectModalVisible} onCancel={() => setProjectModalVisible(false)} footer={null} width={600}>
           <Form form={projectForm} layout="vertical" onFinish={handleCreateProject}>
-            <Form.Item 
-              name="name" 
-              label="Project Name" 
-              rules={[{ required: true, message: 'Please enter project name' }]}
-            >
+            <Form.Item name="name" label="Project Name" rules={[{ required: true, message: 'Please enter project name' }]}>
               <Input placeholder="e.g., Safety Improvement Project 2024" size="large" />
             </Form.Item>
-            <Form.Item 
-              name="description" 
-              label="Description" 
-              rules={[{ required: true, message: 'Please enter project description' }]}
-            >
+            <Form.Item name="description" label="Description" rules={[{ required: true, message: 'Please enter project description' }]}>
               <TextArea rows={3} placeholder="Describe the project's safety goals..." />
             </Form.Item>
             <Row gutter={16}>
@@ -1275,9 +1110,7 @@ const PowerBIAnalytics = () => {
                 <Form.Item name="department" label="Department">
                   <Select placeholder="Select department">
                     <Option value="All">All Departments</Option>
-                    {departments.map(dept => (
-                      <Option key={dept.id} value={dept.id}>{dept.name}</Option>
-                    ))}
+                    {departments.map(dept => <Option key={dept.id} value={dept.id}>{dept.name}</Option>)}
                   </Select>
                 </Form.Item>
               </Col>
@@ -1293,20 +1126,14 @@ const PowerBIAnalytics = () => {
             </Row>
             <Row gutter={16}>
               <Col span={12}>
-                <Form.Item name="start_date" label="Start Date">
-                  <DatePicker style={{ width: '100%' }} />
-                </Form.Item>
+                <Form.Item name="start_date" label="Start Date"><DatePicker style={{ width: '100%' }} /></Form.Item>
               </Col>
               <Col span={12}>
-                <Form.Item name="end_date" label="End Date">
-                  <DatePicker style={{ width: '100%' }} />
-                </Form.Item>
+                <Form.Item name="end_date" label="End Date"><DatePicker style={{ width: '100%' }} /></Form.Item>
               </Col>
             </Row>
             <Form.Item>
-              <Button type="primary" htmlType="submit" size="large" block icon={<RocketOutlined />}>
-                Launch Project
-              </Button>
+              <Button type="primary" htmlType="submit" size="large" block icon={<RocketOutlined />}>Launch Project</Button>
             </Form.Item>
           </Form>
         </Modal>
@@ -1314,12 +1141,10 @@ const PowerBIAnalytics = () => {
     );
   }
 
-  // ✅ Show loading state
   if (loading && !dashboardData.manpower?.length) {
     return <div className="loading-container"><Spin size="large" tip="Loading Analytics Dashboard..." /><Progress percent={30} status="active" style={{ width: 300, marginTop: 20 }} /></div>;
   }
 
-  // ✅ Show full dashboard with projects
   return (
     <Layout className={`powerbi-dashboard ${darkMode ? 'dark-mode' : ''} ${fullscreen ? 'fullscreen' : ''}`}>
       <Header className="dashboard-header">
@@ -1327,113 +1152,42 @@ const PowerBIAnalytics = () => {
           <Title level={3} style={{ margin: 0, fontSize: '16px', whiteSpace: 'nowrap' }}>
             <DashboardOutlined /> Safety Compliance Dashboard
           </Title>
-          <Badge 
-            status="processing" 
-            text={`Last Updated: ${format(lastUpdated, 'HH:mm:ss')}`} 
-            style={{ marginLeft: 8, fontSize: '12px', whiteSpace: 'nowrap' }}
-          />
+          <Badge status="processing" text={`Last Updated: ${format(lastUpdated, 'HH:mm:ss')}`} style={{ marginLeft: 8, fontSize: '12px', whiteSpace: 'nowrap' }} />
         </div>
         
         <div className="header-right">
-          {/* Replaced <Space> with flexbox div to allow wrapping */}
-          <div style={{ 
-            display: 'flex', 
-            gap: '8px', 
-            flexWrap: 'wrap', 
-            justifyContent: 'flex-end', 
-            alignItems: 'center', 
-            width: '100%' 
-          }}>
-            
-            {/* Group 1: Filters */}
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end', alignItems: 'center', width: '100%' }}>
             <Space size="small" wrap={false}>
-              <RangePicker 
-                value={[moment(dateRange[0]), moment(dateRange[1])]} 
-                onChange={handleDateRangeChange} 
-                allowClear={false}
-                size="small"
-                style={{ minWidth: 180 }}
-              />
-              <Select 
-                value={selectedDepartment} 
-                onChange={setSelectedDepartment} 
-                style={{ width: 120 }} 
-                size="small"
-                placeholder="Dept"
-              >
+              <RangePicker value={[moment(dateRange[0]), moment(dateRange[1])]} onChange={handleDateRangeChange} allowClear={false} size="small" style={{ minWidth: 180 }} />
+              <Select value={selectedDepartment} onChange={setSelectedDepartment} style={{ width: 120 }} size="small" placeholder="Dept">
                 <Option value="all">All Depts</Option>
-                {departments.map(dept => (
-                  <Option key={dept.id} value={dept.id}>{dept.name}</Option>
-                ))}
+                {departments.map(dept => <Option key={dept.id} value={dept.id}>{dept.name}</Option>)}
               </Select>
-              <Select 
-                value={selectedProject} 
-                onChange={setSelectedProject} 
-                style={{ width: 150 }} 
-                size="small"
-                placeholder="Select Project"
-              >
+              <Select value={selectedProject} onChange={setSelectedProject} style={{ width: 150 }} size="small" placeholder="Select Project">
                 <Option value="all">All Projects</Option>
-                {projects.map(proj => (
-                  <Option key={proj.id} value={proj.id}>
-                    <ProjectOutlined /> {proj.name}
-                  </Option>
-                ))}
+                {projects.map(proj => <Option key={proj.id} value={proj.id}><ProjectOutlined /> {proj.name}</Option>)}
               </Select>
             </Space>
 
-            {/* Group 2: Primary Actions */}
             <Space size="small" wrap={false}>
-              <Button 
-                type="primary" 
-                icon={<PlusOutlined />} 
-                onClick={() => setProjectModalVisible(true)}
-                style={{ background: '#52c41a', borderColor: '#52c41a' }}
-                size="small"
-              >
-                New Project
-              </Button>
-              <Tooltip title="Refresh Data">
-                <Button icon={<ReloadOutlined />} onClick={refreshAllData} loading={loading} size="small" />
-              </Tooltip>
-              <Tooltip title="Add Widget">
-                <Button type="primary" icon={<PlusOutlined />} onClick={() => setWidgetLibraryVisible(true)} size="small" />
-              </Tooltip>
-              <Tooltip title="Save Dashboard">
-                <Button icon={<SaveOutlined />} onClick={() => saveDashboard('New Dashboard')} size="small" />
-              </Tooltip>
-              <Dropdown
-                menu={{
-                  items: [
-                    { key: 'png', label: 'PNG (Screenshot)', icon: <FileImageOutlined style={{ color: '#1890ff' }} />, onClick: () => { setExportFormat('png'); setExportModal(true); } },
-                    { key: 'jpg', label: 'JPG (Screenshot)', icon: <FileImageOutlined style={{ color: '#fa8c16' }} />, onClick: () => { setExportFormat('jpg'); setExportModal(true); } },
-                    { key: 'pdf', label: 'PDF (Screenshot)', icon: <FilePdfOutlined style={{ color: '#f5222d' }} />, onClick: () => { setExportFormat('pdf'); setExportModal(true); } },
-                  ],
-                }}
-              >
-                <Tooltip title="Export Dashboard">
-                  <Button icon={<DownloadOutlined />} size="small">Export</Button>
-                </Tooltip>
+              <Button type="primary" icon={<PlusOutlined />} onClick={() => setProjectModalVisible(true)} style={{ background: '#52c41a', borderColor: '#52c41a' }} size="small">New Project</Button>
+              <Tooltip title="Refresh Data"><Button icon={<ReloadOutlined />} onClick={refreshAllData} loading={loading} size="small" /></Tooltip>
+              <Tooltip title="Add Widget"><Button type="primary" icon={<PlusOutlined />} onClick={() => setWidgetLibraryVisible(true)} size="small" /></Tooltip>
+              <Tooltip title="Save Dashboard"><Button icon={<SaveOutlined />} onClick={() => saveDashboard('New Dashboard')} size="small" /></Tooltip>
+              <Dropdown menu={{ items: [
+                  { key: 'png', label: 'PNG (Screenshot)', icon: <FileImageOutlined style={{ color: '#1890ff' }} />, onClick: () => { setExportFormat('png'); setExportModal(true); } },
+                  { key: 'jpg', label: 'JPG (Screenshot)', icon: <FileImageOutlined style={{ color: '#fa8c16' }} />, onClick: () => { setExportFormat('jpg'); setExportModal(true); } },
+                  { key: 'pdf', label: 'PDF (Screenshot)', icon: <FilePdfOutlined style={{ color: '#f5222d' }} />, onClick: () => { setExportFormat('pdf'); setExportModal(true); } },
+              ]}}>
+                <Tooltip title="Export Dashboard"><Button icon={<DownloadOutlined />} size="small">Export</Button></Tooltip>
               </Dropdown>
             </Space>
 
-            {/* Group 3: Settings & View */}
             <Space size="small" wrap={false}>
-              <Tooltip title="Settings">
-                <Button icon={<SettingOutlined />} onClick={() => setSettingsDrawer(true)} size="small" />
-              </Tooltip>
-              <Tooltip title={fullscreen ? 'Exit Fullscreen' : 'Fullscreen'}>
-                <Button icon={fullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />} onClick={() => setFullscreen(!fullscreen)} size="small" />
-              </Tooltip>
-              <Switch 
-                checked={editMode} 
-                onChange={setEditMode} 
-                checkedChildren="Edit" 
-                unCheckedChildren="View" 
-                size="small"
-              />
+              <Tooltip title="Settings"><Button icon={<SettingOutlined />} onClick={() => setSettingsDrawer(true)} size="small" /></Tooltip>
+              <Tooltip title={fullscreen ? 'Exit Fullscreen' : 'Fullscreen'}><Button icon={fullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />} onClick={() => setFullscreen(!fullscreen)} size="small" /></Tooltip>
+              <Switch checked={editMode} onChange={setEditMode} checkedChildren="Edit" unCheckedChildren="View" size="small" />
             </Space>
-            
           </div>
         </div>
       </Header>
@@ -1452,14 +1206,7 @@ const PowerBIAnalytics = () => {
         </Row>
       </Content>
 
-      {/* Project Creation Modal (reused) */}
-      <Modal
-        title="Create New Project"
-        open={projectModalVisible}
-        onCancel={() => setProjectModalVisible(false)}
-        footer={null}
-        width={600}
-      >
+      <Modal title="Create New Project" open={projectModalVisible} onCancel={() => setProjectModalVisible(false)} footer={null} width={600}>
         <Form form={projectForm} layout="vertical" onFinish={handleCreateProject}>
           <Form.Item name="name" label="Project Name" rules={[{ required: true, message: 'Please enter project name' }]}>
             <Input placeholder="Enter project name" />
@@ -1472,9 +1219,7 @@ const PowerBIAnalytics = () => {
               <Form.Item name="department" label="Department">
                 <Select placeholder="Select department">
                   <Option value="All">All Departments</Option>
-                  {departments.map(dept => (
-                    <Option key={dept.id} value={dept.id}>{dept.name}</Option>
-                  ))}
+                  {departments.map(dept => <Option key={dept.id} value={dept.id}>{dept.name}</Option>)}
                 </Select>
               </Form.Item>
             </Col>
@@ -1491,58 +1236,34 @@ const PowerBIAnalytics = () => {
           </Row>
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="start_date" label="Start Date">
-                <DatePicker style={{ width: '100%' }} />
-              </Form.Item>
+              <Form.Item name="start_date" label="Start Date"><DatePicker style={{ width: '100%' }} /></Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item name="end_date" label="End Date">
-                <DatePicker style={{ width: '100%' }} />
-              </Form.Item>
+              <Form.Item name="end_date" label="End Date"><DatePicker style={{ width: '100%' }} /></Form.Item>
             </Col>
           </Row>
           <Form.Item name="budget" label="Budget (Optional)">
             <InputNumber min={0} step={1000} style={{ width: '100%' }} placeholder="e.g., 50000" />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit" block>
-              Create Project
-            </Button>
+            <Button type="primary" htmlType="submit" block>Create Project</Button>
           </Form.Item>
         </Form>
       </Modal>
 
-      {/* Export Modal */}
       <Modal 
         title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><DownloadOutlined /> Export Dashboard</div>}
-        open={exportModal} 
-        onCancel={() => setExportModal(false)} 
-        onOk={handleExport} 
-        confirmLoading={exportLoading}
-        okText="Export"
-        cancelText="Cancel"
-        width={550}
+        open={exportModal} onCancel={() => setExportModal(false)} onOk={handleExport} confirmLoading={exportLoading}
+        okText="Export" cancelText="Cancel" width={550}
       >
         <Form layout="vertical">
           <Form.Item label="Export Format" required>
-            <Radio.Group 
-              value={exportFormat} 
-              onChange={e => setExportFormat(e.target.value)}
-              buttonStyle="solid"
-              style={{ width: '100%', display: 'flex' }}
-            >
-              <Radio.Button value="png" style={{ flex: 1, textAlign: 'center' }}>
-                <FileImageOutlined /> PNG
-              </Radio.Button>
-              <Radio.Button value="jpg" style={{ flex: 1, textAlign: 'center' }}>
-                <FileImageOutlined /> JPG
-              </Radio.Button>
-              <Radio.Button value="pdf" style={{ flex: 1, textAlign: 'center' }}>
-                <FilePdfOutlined /> PDF
-              </Radio.Button>
+            <Radio.Group value={exportFormat} onChange={e => setExportFormat(e.target.value)} buttonStyle="solid" style={{ width: '100%', display: 'flex' }}>
+              <Radio.Button value="png" style={{ flex: 1, textAlign: 'center' }}><FileImageOutlined /> PNG</Radio.Button>
+              <Radio.Button value="jpg" style={{ flex: 1, textAlign: 'center' }}><FileImageOutlined /> JPG</Radio.Button>
+              <Radio.Button value="pdf" style={{ flex: 1, textAlign: 'center' }}><FilePdfOutlined /> PDF</Radio.Button>
             </Radio.Group>
           </Form.Item>
-          
           <Form.Item label="Quality / Resolution">
             <Select value={exportQuality} onChange={setExportQuality} style={{ width: '100%' }}>
               <Select.Option value={1}>Standard (1x) - Smaller file</Select.Option>
@@ -1550,11 +1271,9 @@ const PowerBIAnalytics = () => {
               <Select.Option value={3}>Retina (3x) - Best quality</Select.Option>
             </Select>
           </Form.Item>
-          
           <div style={{ padding: 12, background: '#f5f5f5', borderRadius: 4, fontSize: 12, color: '#666' }}>
             <span><CameraOutlined /> Captures a screenshot of the entire dashboard with all visual elements</span>
           </div>
-          
           <div style={{ marginTop: 12, padding: 8, background: '#e6f7ff', borderRadius: 4, fontSize: 12, color: '#0050b3', display: 'flex', justifyContent: 'space-between' }}>
             <span>📊 Visible Widgets: {widgets.filter(w => w.visible).length}</span>
             <span>📅 Date Range: {format(dateRange[0], 'MMM dd, yyyy')} - {format(dateRange[1], 'MMM dd, yyyy')}</span>
@@ -1604,13 +1323,7 @@ const PowerBIAnalytics = () => {
         </Collapse>
       </Drawer>
       
-      <Modal 
-        title={`Add ${dataEntryType ? dataEntryType.charAt(0).toUpperCase() + dataEntryType.slice(1) : ''} Data`} 
-        open={dataEntryModal} 
-        onCancel={() => setDataEntryModal(false)} 
-        footer={null} 
-        width={600}
-      >
+      <Modal title={`Add ${dataEntryType ? dataEntryType.charAt(0).toUpperCase() + dataEntryType.slice(1) : ''} Data`} open={dataEntryModal} onCancel={() => setDataEntryModal(false)} footer={null} width={600}>
         <DataEntryForms type={dataEntryType} form={dataEntryForm} onFinish={handleDataEntrySubmit} loading={loading} />
       </Modal>
       
@@ -1618,4 +1331,5 @@ const PowerBIAnalytics = () => {
     </Layout>
   );
 };
+
 export default PowerBIAnalytics;
