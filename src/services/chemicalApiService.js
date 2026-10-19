@@ -1,8 +1,7 @@
 // src/services/chemicalApiService.js
 
-// ✅ Import the centralized API instance instead of Axios directly
-// Adjust the path if your api.js is in a different folder
-import api from './api'; 
+// ✅ Import the centralized API instance
+import api from './api';
 
 class ChemicalApiService {
   
@@ -55,16 +54,9 @@ class ChemicalApiService {
     return await this.makeApiCall('/chemical/inventory');
   }
 
-  const loadDocuments = async () => {
-  try {
-    const response = await chemicalSafetyService.getChemicalDocuments();
-    if (response.success) {
-      setDocuments(response.data); // This will now receive the real documents
-    }
-  } catch (error) {
-    console.error('Error loading documents:', error);
+  async getChemicalDocuments() {
+    return await this.makeApiCall('/chemical/documents');
   }
-};
 
   // ==========================================
   // POST/PUT ENDPOINTS
