@@ -830,3 +830,42 @@
     width: auto;
   }
 }
+
+/* ============================================
+   FIX FOR TEXT CUTTING OFF
+   ============================================ */
+
+/* 1. Ensure the features list item wraps text properly */
+.plan-feature {
+  display: flex !important;
+  align-items: flex-start !important; /* Aligns the checkmark with the first line of text */
+  gap: 8px;
+  width: 100%;
+}
+
+/* 2. The text itself must wrap and have a proper width */
+.plan-feature span {
+  flex: 1; /* Takes up the remaining width next to the icon */
+  white-space: normal !important; /* Force wrapping */
+  word-break: normal !important; /* Break at spaces, not mid-word */
+  overflow-wrap: break-word !important; /* If a word is too long, break it */
+  line-height: 1.4;
+}
+
+/* 3. Ensure the icon doesn't shrink */
+.plan-feature .anticon {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+/* 4. Fix the parent columns from shrinking too much */
+.subscription-page .ant-col {
+  min-width: 280px; /* Ensures cards don't get squished too narrow */
+}
+
+/* 5. Ensure the enterprise section features also wrap */
+.enterprise-feature span {
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.4;
+}
