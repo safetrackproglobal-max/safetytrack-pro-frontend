@@ -1359,7 +1359,7 @@ const handleCreateAccount = async () => {
     // ✅ Only admin and regular user registration
     let endpoint;
     if (userType === 'admin') {
-      endpoint = 'http://https://safetrackproglobal-backend-production.up.railway.app/api/admin/register';
+      endpoint = 'https://safetrackproglobal-backend-production.up.railway.app/api/admin/register';
     } else {
       endpoint = 'https://safetrackproglobal-backend-production.up.railway.app/api/register';
     }
