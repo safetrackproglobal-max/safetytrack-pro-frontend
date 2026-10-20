@@ -249,21 +249,43 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ==================== LOGIN FUNCTION ====================
+    // ==================== LOGIN FUNCTION ====================
   const login = async (credentials, rememberMe = false) => {
     setLoading(true);
 
     try {
       const { email, password, user_type } = credentials;
-      const endpoint = user_type === 'admin' ? '/admin/login' : '/auth/login';
 
-      const res = await apiCall(endpoint, {
-        method: 'POST',
-        data: { email, password, user_type },
-      });
+      // ✅ Use ONE endpoint for everyone. The backend branches on
+      //    user.user_type from the DB, not the payload — sending a
+      //    different endpoint for admins just creates drift.
+      const endpoint = '/auth/login';
 
-      const receivedToken = res.token || res.access_token;
+      // ✅ validateStatus: () => true prevents Axios from throwing
+      //    on 4xx. We read status + data ourselves so we never lose
+      //    the response body (verification, approval, stage, etc).
+      const response = await api.post(
+        endpoint,
+        { email, password, user_type },
+        {
+          validateStatus: () => true,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
 
-      if (receivedToken && res.user) {
+      const { status, data: res } = response;
+
+      // ==================== 200 SUCCESS ====================
+      if (status === 200 && res?.success) {
+        const receivedToken = res.token || res.access_token;
+
+        if (!receivedToken || !res.user) {
+          return {
+            success: false,
+            error: res.error || 'Login failed — no token or user data returned',
+          };
+        }
+
         const cleanToken = receivedToken.replace(/['"]/g, '').trim();
 
         setToken(cleanToken);
@@ -272,46 +294,39 @@ export const AuthProvider = ({ children }) => {
         setUser(normalizedUser);
         setPlanData(getPlanDataFromUser(normalizedUser));
 
-        // ✅ CHANGED: Always use localStorage so refresh keeps user logged in.
-        // rememberMe now just controls whether we ALSO show "session active" branding.
-        // But token persistence is the same either way — best practice for SPAs.
         const storage = localStorage;
 
-        // ✅ Store token in ALL possible locations
+        // Store token in all locations
         storage.setItem('authToken', cleanToken);
         storage.setItem('token', cleanToken);
         storage.setItem('jwtToken', cleanToken);
         storage.setItem('access_token', cleanToken);
 
-        // ✅ Store stage information
+        // Store stage info
         const stage = res.stage || 'complete';
         storage.setItem('userStage', stage);
         storage.setItem('redirect_to', res.redirect_to || '/dashboard');
         storage.setItem('requires_payment', res.requires_payment ? 'true' : 'false');
         storage.setItem('requires_plan_selection', res.requires_plan_selection ? 'true' : 'false');
-        storage.setItem('requires_approval', res.needs_approval ? 'true' : 'false');
+        storage.setItem('requires_approval', res.requires_approval ? 'true' : 'false');
         storage.setItem('requires_company_setup', res.requires_company_setup ? 'true' : 'false');
 
-        // Store user with token and stage
+        // Attach stage to user object
         normalizedUser.token = cleanToken;
         normalizedUser.stage = stage;
         normalizedUser.redirect_to = res.redirect_to || '/dashboard';
         normalizedUser.requires_payment = res.requires_payment || false;
         normalizedUser.requires_plan_selection = res.requires_plan_selection || false;
-        normalizedUser.needs_approval = res.needs_approval || false;
+        normalizedUser.requires_approval = res.requires_approval || false;
         normalizedUser.requires_company_setup = res.requires_company_setup || false;
         normalizedUser.payment_status = res.payment_status || 'completed';
         normalizedUser.dashboard_config = res.dashboard_config || null;
 
         storage.setItem('user', JSON.stringify(normalizedUser));
-
-        // ✅ Store rememberMe flag (used for branding / analytics, NOT for gating)
         storage.setItem('rememberMe', rememberMe ? 'true' : 'false');
 
-        // ✅ Set token in axios defaults immediately
         api.defaults.headers.common['Authorization'] = `Bearer ${cleanToken}`;
 
-        // ✅ Set token expiry (7 days from now)
         const tokenExpiry = new Date();
         tokenExpiry.setDate(tokenExpiry.getDate() + 7);
         storage.setItem('token_expiry', tokenExpiry.toISOString());
@@ -325,36 +340,109 @@ export const AuthProvider = ({ children }) => {
           console.error('Failed to change language:', languageError);
         }
 
-        // ✅ Return ALL necessary data including stage
+        // ✅ Return everything the caller needs, including stage flags
         return {
           success: true,
           user: normalizedUser,
           planData: getPlanDataFromUser(normalizedUser),
-          stage: stage,
+          token: cleanToken,
+          stage,
           redirect_to: res.redirect_to || '/dashboard',
           requires_payment: res.requires_payment || false,
           requires_plan_selection: res.requires_plan_selection || false,
-          needs_approval: res.needs_approval || false,
+          requires_approval: res.requires_approval || false,
           requires_company_setup: res.requires_company_setup || false,
           payment_status: res.payment_status || 'completed',
           dashboard_config: res.dashboard_config || null,
           message: res.message || 'Login successful',
         };
-      } else {
+      }
+
+      // ==================== 403: VERIFICATION REQUIRED ====================
+      if (status === 403 && (res?.requires_verification || res?.needs_verification)) {
         return {
           success: false,
-          error: res.error || 'Login failed - no token or user data received',
-          needsVerification: res.requires_verification || false,
-          message: res.message,
+          error: res.error || 'Email not verified',
+          message: res.message || 'Please verify your email before logging in.',
+          requires_verification: true,
+          needsVerification: true,           // ← keep old key for backward compat
+          email: res.email || email,
         };
       }
+
+      // ==================== 403: APPROVAL REQUIRED ====================
+      if (status === 403 && res?.requires_approval) {
+        return {
+          success: false,
+          error: res.error || 'Account pending approval',
+          message: res.message,
+          requires_approval: true,
+          approval_status: res.approval_status,
+          user_type: res.user_type,
+        };
+      }
+
+      // ==================== 403: ACCOUNT DEACTIVATED ====================
+      if (status === 403 && res?.error === 'Account deactivated') {
+        return {
+          success: false,
+          error: res.error,
+          message: res.message || 'Your account has been deactivated.',
+        };
+      }
+
+      // ==================== 403: COMPANY NOT FOUND ====================
+      if (status === 403 && res?.needs_company_setup) {
+        return {
+          success: false,
+          error: res.error || 'Company not found',
+          message: res.message,
+          needs_company_setup: true,
+          user_type: res.user_type,
+        };
+      }
+
+      // ==================== 401: INVALID CREDENTIALS ====================
+      if (status === 401) {
+        return {
+          success: false,
+          error: res?.error || 'Invalid email or password',
+          message: res?.message,
+        };
+      }
+
+      // ==================== 429: RATE LIMITED ====================
+      if (status === 429) {
+        return {
+          success: false,
+          error: res?.error || 'Too many login attempts. Please wait a moment.',
+          code: 'RATE_LIMITED',
+        };
+      }
+
+      // ==================== ANY OTHER STATUS ====================
+      return {
+        success: false,
+        error: res?.error || `Login failed (HTTP ${status})`,
+        message: res?.message,
+      };
+
     } catch (error) {
-      const errorMessage = error.response?.data?.error || error.message || 'Login failed';
-      message.error(errorMessage);
+      // Network failure, timeout, or something the API layer threw
+      const errorMessage =
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.message ||
+        'Login failed';
+
+      console.error('Login network error:', error);
+
       return {
         success: false,
         error: errorMessage,
+        requires_verification: error.response?.data?.requires_verification || false,
         needsVerification: error.response?.data?.requires_verification || false,
+        message: error.response?.data?.message,
       };
     } finally {
       setLoading(false);
