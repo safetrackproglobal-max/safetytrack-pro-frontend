@@ -463,7 +463,7 @@ const userRoleOptions = [
 ];
 
 const adminRoleOptions = [
-  { value: 'System Administrator', label: 'System Administrator' },
+  
   { value: 'Hospital Administrator', label: 'Hospital Administrator' },
   { value: 'IT Manager', label: 'IT Manager' },
   { value: 'Safety Director', label: 'Safety Director' },
@@ -1279,25 +1279,22 @@ function SignupPage() {
 const handleCreateAccount = async () => {
   setLoading(true);
   setError('');
-  
+
   try {
     const allFormData = { ...formData };
-    
-    // ✅ Validate required fields
+
     if (!allFormData.email || !allFormData.name || !allFormData.password) {
       setError('Missing required fields. Please fill in all steps.');
       setLoading(false);
       return;
     }
 
-    // ✅ For admin users, company_name is required
     if (userType === 'admin' && !allFormData.companyName) {
       setError('Company name is required for admin registration.');
       setLoading(false);
       return;
     }
 
-    // ✅ Determine plan based on user type
     let plan = 'free';
     let subscriptionStatus = 'inactive';
     let approvalStatus = 'approved';
@@ -1305,28 +1302,22 @@ const handleCreateAccount = async () => {
     let verified = true;
 
     if (userType === 'admin') {
-      // ✅ COMPANIES ONLY GET ENTERPRISE OR CUSTOM
       plan = allFormData.plan || 'enterprise';
-      
-      // ✅ Validate company plan
       const companyPlans = ['enterprise', 'custom'];
       if (!companyPlans.includes(plan)) {
         setError(`Invalid company plan. Companies can only have: ${companyPlans.join(', ')}`);
         setLoading(false);
         return;
       }
-      
       subscriptionStatus = 'active';
       approvalStatus = 'approved';
       isActive = true;
       verified = true;
     } else if (userType === 'employee') {
-      // ✅ EMPLOYEES CANNOT REGISTER THEMSELVES
       setError('Employees cannot register themselves. Please contact your company admin to create your account.');
       setLoading(false);
       return;
     } else {
-      // ✅ Regular users get free with trial
       plan = 'free';
       subscriptionStatus = 'inactive';
       approvalStatus = 'approved';
@@ -1347,6 +1338,7 @@ const handleCreateAccount = async () => {
       phone: allFormData.phone || '',
       department: allFormData.department || '',
       plan: plan,
+      subscription_plan: plan,   // backend admin_register() reads 'subscription_plan'
       subscription_status: subscriptionStatus,
       is_active: isActive,
       verified: verified,
@@ -1356,17 +1348,18 @@ const handleCreateAccount = async () => {
 
     console.log('📤 Sending registration payload:', payload);
 
-    // ✅ Only admin and regular user registration
+    const API_BASE = 'https://safetrackproglobal-backend-production.up.railway.app';
+
     let endpoint;
     if (userType === 'admin') {
-      endpoint = 'https://safetrackproglobal-backend-production.up.railway.app/api/admin/register';
+      endpoint = `${API_BASE}/api/admin/register`;
     } else {
-      endpoint = 'https://safetrackproglobal-backend-production.up.railway.app/api/register';
+      endpoint = `${API_BASE}/api/auth/register`;
     }
 
     const response = await fetch(endpoint, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
@@ -1375,17 +1368,16 @@ const handleCreateAccount = async () => {
 
     const data = await response.json();
     console.log('📥 Registration response:', data);
-    
+
     if (response.ok) {
       const userIdLocal = data.user_id || data.id;
       setUserId(userIdLocal);
       setCompanyId(data.company_id || data.user?.company_id || data.company?.id);
       setCurrentEmail(allFormData.email);
-      
+
       console.log('✅ Company ID received:', data.company_id || data.company?.id);
       console.log('✅ Plan assigned:', data.user?.plan || data.company?.plan || plan);
-      
-      // Store user info
+
       localStorage.setItem('userId', userIdLocal);
       localStorage.setItem('pendingUserId', userIdLocal);
       localStorage.setItem('pendingUserEmail', allFormData.email);
@@ -1393,68 +1385,75 @@ const handleCreateAccount = async () => {
       localStorage.setItem('pendingCountry', selectedCountry);
       localStorage.setItem('pendingCompanyId', data.company_id || data.company?.id || '');
       localStorage.setItem('pendingPlan', data.user?.plan || data.company?.plan || plan);
-      
-      if (data.access_token) {
-        localStorage.setItem('token', data.access_token);
+
+      // ✅ Read token from either key
+      const token = data.access_token || data.token;
+      if (token) {
+        localStorage.setItem('token', token);
         console.log('✅ Token stored from registration');
+      } else {
+        console.warn('⚠️ No token returned from registration');
       }
-      
-      // ✅ ADMIN - Always complete, go to dashboard
+
+      // ✅ ADMIN flow
       if (userType === 'admin') {
+        // If backend now returns complete/approved, go to dashboard.
+        // If backend still returns needs_plan/requires_approval, respect that.
+        if (data.stage === 'needs_plan' || data.requires_plan_selection) {
+          message.success(`Company created with ${plan} plan!`);
+          message.info('Please select your plan to continue.');
+          setTimeout(() => history.push('/select-plan'), 500);
+          setLoading(false);
+          return;
+        }
+
+        if (data.requires_approval) {
+          message.success(`Company created with ${plan} plan!`);
+          message.info('Your account is pending approval. We will notify you once reviewed.');
+          setTimeout(() => history.push('/pending-approval'), 500);
+          setLoading(false);
+          return;
+        }
+
         console.log('✅ Admin registration complete, redirecting to dashboard');
         message.success(`Company created with ${plan} plan!`);
-        
         localStorage.removeItem('requires_verification');
-        
         setTimeout(() => {
           history.push('/admin/dashboard');
         }, 500);
         setLoading(false);
         return;
       }
-      
-      // ✅ REGULAR USER - Needs verification
+
+      // ✅ REGULAR USER flow
       const isVerified = data.verified === true || data.user?.verified === true;
-      const requiresVerification = data.requires_verification === true;
       const stage = data.stage || 'needs_plan';
-      
-      console.log('📊 Registration status:', {
-        isVerified,
-        requiresVerification,
-        stage,
-        userType,
-        plan
-      });
-      
+
+      console.log('📊 Registration status:', { isVerified, stage, userType, plan });
+
       saveSignupState();
       setRegistrationComplete(true);
-      
+
       if (isVerified) {
-        console.log('✅ User already verified');
         localStorage.removeItem('requires_verification');
-        
+
         if (stage === 'needs_plan' || data.requires_plan_selection) {
           message.info('Account verified! Please select a plan to continue.');
-          setTimeout(() => {
-            history.push('/select-plan');
-          }, 500);
+          setTimeout(() => history.push('/select-plan'), 500);
           setLoading(false);
           return;
         }
-        
+
         message.success('Welcome! Redirecting to dashboard...');
-        setTimeout(() => {
-          history.push('/dashboard');
-        }, 500);
+        setTimeout(() => history.push('/dashboard'), 500);
         setLoading(false);
         return;
       }
-      
-      // Show verification modal for regular users
+
       setShowVerification(true);
       message.info('Account created! Please verify your email to continue.');
       setLoading(false);
-      
+
     } else {
       const errorMsg = data.error || data.message || 'Registration failed. Please try again.';
       setError(errorMsg);
