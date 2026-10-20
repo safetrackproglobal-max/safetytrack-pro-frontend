@@ -19,94 +19,7 @@ function VerificationModal({ email, onVerified, visible = true, onCancel }) {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [verificationAttempts, setVerificationAttempts] = useState(0);
   const [success, setSuccess] = useState('');
-  const [isAlreadyVerified, setIsAlreadyVerified] = useState(false);
   const { currentLanguage } = useLanguage();
-
-  // ✅ Check if user is already verified
-  useEffect(() => {
-    const checkVerificationStatus = async () => {
-      try {
-        // Check localStorage for user data
-        const userStr = localStorage.getItem('user');
-        const pendingUserStr = localStorage.getItem('pendingUser');
-        const token = localStorage.getItem('token') || localStorage.getItem('authToken');
-        
-        let user = null;
-        if (userStr) {
-          try {
-            user = JSON.parse(userStr);
-          } catch (e) {}
-        }
-        
-        if (!user && pendingUserStr) {
-          try {
-            user = JSON.parse(pendingUserStr);
-          } catch (e) {}
-        }
-        
-        // ✅ If user is already verified, close modal
-        if (user && user.verified === true) {
-          console.log('✅ User already verified, closing modal');
-          setIsAlreadyVerified(true);
-          
-          // Clear verification flags
-          localStorage.removeItem('requires_verification');
-          
-          // Call onVerified to proceed
-          if (onVerified) {
-            onVerified();
-          }
-          if (onCancel) {
-            onCancel();
-          }
-          return;
-        }
-        
-        // ✅ Check with backend if token exists
-        if (token) {
-          try {
-            const response = await fetch('https://safetrackproglobal-backend-production.up.railway.app/api/user/status', {
-              method: 'GET',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
-            });
-            
-            if (response.ok) {
-              const data = await response.json();
-              if (data.verified === true) {
-                console.log('✅ User verified on backend, closing modal');
-                setIsAlreadyVerified(true);
-                localStorage.setItem('user', JSON.stringify({ ...user, verified: true }));
-                localStorage.removeItem('requires_verification');
-                
-                if (onVerified) {
-                  onVerified();
-                }
-                if (onCancel) {
-                  onCancel();
-                }
-                return;
-              }
-            }
-          } catch (e) {
-            console.log('⚠️ Could not check verification status with backend');
-          }
-        }
-        
-        setIsAlreadyVerified(false);
-        
-      } catch (e) {
-        console.log('⚠️ Error checking verification status:', e);
-        setIsAlreadyVerified(false);
-      }
-    };
-    
-    if (visible) {
-      checkVerificationStatus();
-    }
-  }, [visible, email, onVerified, onCancel]);
 
   // Countdown timer for resend cooldown
   useEffect(() => {
@@ -117,21 +30,16 @@ function VerificationModal({ email, onVerified, visible = true, onCancel }) {
     return () => clearTimeout(timer);
   }, [resendCooldown]);
 
-  // Reset state when modal opens/closes
+  // Reset state when modal opens
   useEffect(() => {
-    if (visible && !isAlreadyVerified) {
+    if (visible) {
       setCode('');
       setError('');
       setSuccess('');
       setVerificationAttempts(0);
       setResendCooldown(0);
     }
-  }, [visible, email, isAlreadyVerified]);
-
-  // ✅ If already verified, don't render the modal
-  if (isAlreadyVerified) {
-    return null;
-  }
+  }, [visible, email]);
 
   const handleVerify = async () => {
     if (!code || code.length !== 6) {
@@ -148,60 +56,55 @@ function VerificationModal({ email, onVerified, visible = true, onCancel }) {
     setError('');
 
     try {
-      const response = await fetch('https://safetrackproglobal-backend-production.up.railway.app/api/verify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, code }),
-      });
+      const response = await fetch(
+        'https://safetrackproglobal-backend-production.up.railway.app/api/verify',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, code }),
+        }
+      );
 
       const data = await response.json();
-      
+
       if (response.ok) {
         setSuccess('Email verified successfully!');
         message.success('Email verified successfully!');
-        
-        // ✅ Store verification status
+
         localStorage.setItem('verifiedEmail', email);
         localStorage.removeItem('requires_verification');
-        
-        // ✅ Update user in localStorage
+        localStorage.removeItem('pendingUserEmail');
+
+        // Update ONLY the user record that matches this email
         const userStr = localStorage.getItem('user');
         if (userStr) {
           try {
             const user = JSON.parse(userStr);
-            user.verified = true;
-            localStorage.setItem('user', JSON.stringify(user));
-          } catch (e) {}
+            if (user && user.email && user.email.toLowerCase() === email.toLowerCase()) {
+              user.verified = true;
+              localStorage.setItem('user', JSON.stringify(user));
+            }
+          } catch (e) { /* ignore */ }
         }
-        
-        // Check if we got auth token for auto-login
+
+        // If backend returns token, store it for auto-login
         if (data.access_token && data.user) {
           localStorage.setItem('authToken', data.access_token);
           localStorage.setItem('token', data.access_token);
           localStorage.setItem('user', JSON.stringify(data.user));
           message.success('Logged in successfully!');
-          
-          setTimeout(() => {
-            if (onVerified) {
-              onVerified();
-            }
-          }, 1500);
-        } else {
-          setTimeout(() => {
-            if (onVerified) {
-              onVerified();
-            }
-          }, 1500);
         }
+
+        setTimeout(() => {
+          if (onVerified) onVerified();
+        }, 1500);
       } else {
         setError(data.error || data.message || 'Invalid verification code');
-        setVerificationAttempts(prev => prev + 1);
+        setVerificationAttempts((prev) => prev + 1);
       }
     } catch (err) {
       setError('Verification failed. Please try again.');
-      setVerificationAttempts(prev => prev + 1);
+      setVerificationAttempts((prev) => prev + 1);
     } finally {
       setLoading(false);
     }
@@ -215,16 +118,17 @@ function VerificationModal({ email, onVerified, visible = true, onCancel }) {
     setSuccess('');
 
     try {
-      const response = await fetch('https://safetrackproglobal-backend-production.up.railway.app/api/resend-verification', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
+      const response = await fetch(
+        'https://safetrackproglobal-backend-production.up.railway.app/api/resend-verification',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        }
+      );
 
       const data = await response.json();
-      
+
       if (response.ok) {
         setSuccess('New verification code sent to your email!');
         message.success('Verification code sent!');
@@ -251,7 +155,6 @@ function VerificationModal({ email, onVerified, visible = true, onCancel }) {
     }
   };
 
-  // Localized messages
   const messages = {
     title: {
       en: 'Verify Your Email',
@@ -293,7 +196,7 @@ function VerificationModal({ email, onVerified, visible = true, onCancel }) {
       en: "Didn't receive the code?",
       es: "¿No recibió el código?",
       fr: "Vous n'avez pas reçu le code ?",
-      ar: "لم تستلم الرمز؟",
+      ar: "لم تستلم الرمز؟"
     }
   };
 
@@ -318,11 +221,11 @@ function VerificationModal({ email, onVerified, visible = true, onCancel }) {
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <div style={{ textAlign: 'center' }}>
             <MailOutlined style={{ fontSize: 48, color: '#1890ff', marginBottom: 16 }} />
-            
+
             <Title level={4} style={{ marginBottom: 8 }}>
               {getMessage('checkEmail')}
             </Title>
-            
+
             <Text type="secondary">
               {getMessage('codeSent')} <strong>{email}</strong>
             </Text>
@@ -339,21 +242,15 @@ function VerificationModal({ email, onVerified, visible = true, onCancel }) {
           )}
 
           {success && (
-            <Alert
-              message={success}
-              type="success"
-              showIcon
-            />
+            <Alert message={success} type="success" showIcon />
           )}
 
           {verificationAttempts > 0 && (
             <div style={{ textAlign: 'center' }}>
-              <Text type="secondary">
-                Attempts: {verificationAttempts}/5
-              </Text>
-              <Progress 
-                percent={(verificationAttempts / 5) * 100} 
-                size="small" 
+              <Text type="secondary">Attempts: {verificationAttempts}/5</Text>
+              <Progress
+                percent={(verificationAttempts / 5) * 100}
+                size="small"
                 status={verificationAttempts >= 5 ? 'exception' : 'active'}
                 showInfo={false}
               />
@@ -366,7 +263,7 @@ function VerificationModal({ email, onVerified, visible = true, onCancel }) {
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
             maxLength={6}
-            style={{ 
+            style={{
               textAlign: 'center',
               fontSize: 20,
               letterSpacing: 8,
