@@ -17,8 +17,7 @@ import ContactBrandInfo from "./ContactBrandInfo";
 import "./Footer.css";
 
 // ✅ Import the real logo
-import logoImage from '../../assets/images/safetrack-logo.jpeg';
-
+import logoImage from '../assets/images/safetrack-logo.jpeg';
 function Footer() {
   const currentYear = new Date().getFullYear();
 
