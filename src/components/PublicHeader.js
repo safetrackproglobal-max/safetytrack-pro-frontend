@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import LanguageSelector from './LanguageSelector';
 import './PublicHeader.css';
 
-// ✅ Import the correct logo image
+// ✅ Correct path (2 dots)
 import logoImage from '../assets/images/safetrack-logo.jpeg';
 
 const { Header } = Layout;
@@ -50,7 +50,8 @@ function PublicHeader() {
         {/* 1. LOGO SECTION */}
         <div className="logo">
           <Link to="/" className="logo-link">
-            <img src={logoImage} alt="SafeTrack Pro" className="logo-image" />
+            {/* ✅ Added className="logo-img" to control the size */}
+            <img src={logoImage} alt="SafeTrack Pro" className="logo-img" />
             <span className="logo-text">
               SafeTrack<span className="logo-pro">Pro</span>
             </span>
@@ -70,7 +71,7 @@ function PublicHeader() {
           ))}
         </nav>
 
-        {/* 3. AUTH BUTTONS (Forced Inline) */}
+        {/* 3. AUTH BUTTONS */}
         <div className="header-actions">
           <LanguageSelector />
 
