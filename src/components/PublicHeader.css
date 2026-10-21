@@ -344,3 +344,57 @@
 .main-layout .main-content {
   margin-top: 72px;
 }
+
+/* Add this to the bottom of PublicHeader.css */
+
+@media (prefers-color-scheme: dark) {
+  /* Force the header background to be dark */
+  .public-header {
+    background: #1a1a1a;
+    border-bottom-color: #2d2d2d;
+  }
+  
+  /* Force the "SafeTrack" text to be white */
+  .logo-text {
+    color: #ffffff !important;
+  }
+  
+  /* Keep the "Pro" part blue */
+  .logo-pro {
+    color: #1890ff !important;
+  }
+
+  /* Ensure the hamburger icon is white */
+  .mobile-menu-btn {
+    color: #ffffff !important;
+  }
+  
+  /* Fix drawer text colors for dark mode */
+  .mobile-drawer .ant-drawer-header {
+    background: #1a1a1a;
+    border-bottom-color: #2d2d2d;
+  }
+  
+  .mobile-drawer .ant-drawer-title, 
+  .drawer-logo span {
+    color: #ffffff !important;
+  }
+  
+  .mobile-drawer .ant-drawer-body {
+    background: #1a1a1a;
+  }
+
+  .mobile-nav-link {
+    color: #a0a0a0;
+  }
+
+  .mobile-nav-link:hover {
+    background: #2d2d2d;
+    color: #1890ff;
+  }
+
+  .mobile-nav-link.active {
+    background: rgba(24, 144, 255, 0.1);
+    color: #1890ff;
+  }
+}
