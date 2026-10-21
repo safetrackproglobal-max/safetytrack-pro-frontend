@@ -1,0 +1,188 @@
+/* src/dark-mode.css */
+
+@media (prefers-color-scheme: dark) {
+  /* ==========================================
+     1. GLOBAL BACKGROUNDS & TEXT
+     ========================================== */
+  body, html, #root, .App, .main-layout {
+    background-color: #121212 !important;
+    color: #e0e0e0 !important;
+  }
+
+  /* ==========================================
+     2. PUBLIC HEADER (Home, Pricing, etc.)
+     ========================================== */
+  .public-header {
+    background: #1a1a1a !important;
+    border-bottom: 1px solid #333 !important;
+  }
+  
+  .logo-text {
+    color: #ffffff !important;
+  }
+  
+  .logo-pro {
+    color: #1890ff !important; /* Keep the blue accent */
+  }
+
+  .nav-link {
+    color: #aaaaaa !important;
+  }
+
+  .nav-link:hover, .nav-link.active {
+    color: #1890ff !important;
+  }
+  
+  /* Mobile drawer */
+  .mobile-drawer .ant-drawer-content {
+    background-color: #1a1a1a !important;
+  }
+  .mobile-nav-link {
+    color: #e0e0e0 !important;
+  }
+  
+  /* ==========================================
+     3. SIGNUP PAGE & AUTHENTICATION
+     ========================================== */
+  .auth-container {
+    background: #1a1a1a !important;
+  }
+  
+  .auth-card, .signup-card, .ant-card {
+    background: #242424 !important;
+    border: 1px solid #333 !important;
+  }
+
+  .signup-steps .ant-steps-item-title,
+  .step-content h4,
+  .step-content .ant-typography,
+  .auth-card .ant-form-item-label > label {
+    color: #ffffff !important;
+  }
+
+  /* Fix inputs in dark mode */
+  .auth-card .ant-input,
+  .auth-card .ant-input-password,
+  .auth-card .ant-select-selector {
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
+    border-color: #444 !important;
+  }
+
+  .user-type-card {
+    background: #2a2a2a !important;
+    border-color: #444 !important;
+  }
+  
+  .user-type-card.selected {
+    background: #1a2b3c !important;
+    border-color: #1890ff !important;
+  }
+
+  .user-type-card .card-content h5,
+  .user-type-card .card-content .ant-typography,
+  .user-type-card li {
+    color: #e0e0e0 !important;
+  }
+
+  /* ==========================================
+     4. PRICING / SUBSCRIPTION PAGE
+     ========================================== */
+  .subscription-page {
+    background: #121212 !important;
+  }
+
+  .page-header .ant-typography,
+  .page-header span {
+    color: #ffffff !important;
+  }
+
+  .plan-card {
+    background: #242424 !important;
+    border-color: #333 !important;
+  }
+
+  .plan-name, 
+  .plan-price .ant-typography, 
+  .plan-feature span {
+    color: #e0e0e0 !important;
+  }
+
+  .plan-feature .anticon {
+    color: #52c41a !important; /* Keep the green checkmark */
+  }
+
+  .selection-section {
+    background: #242424 !important;
+  }
+  
+  .selection-group .ant-typography {
+    color: #ffffff !important;
+  }
+
+  /* ==========================================
+     5. DASHBOARD & ANALYTICS
+     ========================================== */
+  .powerbi-dashboard {
+    background: #121212 !important;
+  }
+
+  .dashboard-header {
+    background: #1a1a1a !important;
+    border-bottom-color: #333 !important;
+  }
+
+  .header-left .ant-typography,
+  .dashboard-header .ant-typography {
+    color: #ffffff !important;
+  }
+
+  .dashboard-content {
+    background: #121212 !important;
+  }
+
+  .widget-card {
+    background: #242424 !important;
+    border-color: #333 !important;
+  }
+
+  .widget-card .ant-card-head-title,
+  .widget-card .ant-typography,
+  .widget-card .ant-statistic-title,
+  .widget-card .ant-statistic-content {
+    color: #e0e0e0 !important;
+  }
+
+  .widget-footer {
+    background: #1a1a1a !important;
+    border-top-color: #333 !important;
+  }
+
+  /* ==========================================
+     6. MODALS & DROPDOWNS (Global)
+     ========================================== */
+  .ant-modal-content,
+  .ant-modal-header,
+  .ant-drawer-content {
+    background-color: #242424 !important;
+  }
+
+  .ant-modal-title,
+  .ant-modal-body,
+  .ant-modal-close {
+    color: #ffffff !important;
+  }
+
+  .ant-dropdown-menu {
+    background-color: #242424 !important;
+    border: 1px solid #333 !important;
+  }
+
+  .ant-dropdown-menu-item {
+    color: #e0e0e0 !important;
+  }
+
+  .ant-dropdown-menu-item:hover {
+    background-color: #333 !important;
+  }
+}
