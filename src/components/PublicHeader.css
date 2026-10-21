@@ -34,11 +34,14 @@
   text-decoration: none;
 }
 
-.logo-image {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
+.logo-img {
+  width: 40px !important;
+  height: 40px !important;
   object-fit: contain;
+  border-radius: 8px;
+  display: block;
+  background-color: #ffffff; /* ✅ Forces a white background behind the logo */
+  padding: 2px; /* Gives the logo a tiny bit of breathing room */
 }
 
 .logo-text {
