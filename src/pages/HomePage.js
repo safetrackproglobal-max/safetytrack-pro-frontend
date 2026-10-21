@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, Card, Row, Col, Typography, Space, Divider, Statistic, Tag } from 'antd';
+import { Button, Card, Row, Col, Typography, Space, Divider, Statistic, Tag, Spin } from 'antd';
 import {
   SafetyCertificateOutlined,
   TeamOutlined,
@@ -40,13 +40,11 @@ import {
   DownloadOutlined,
   FileAddOutlined,
   FundOutlined,
-  // ✅ NEW — required by HSE Project Management section
   PlusOutlined,
   FolderOutlined,
   ReloadOutlined,
   SettingOutlined,
   ExpandOutlined
-
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../context/LanguageContext';
@@ -62,6 +60,46 @@ function HomePage() {
   const [animatedStats, setAnimatedStats] = useState({});
   const statsRef = useRef(null);
   const slideInterval = useRef(null);
+
+  // ── Pricing plans state (fetched from backend) ──
+  const [pricingPlans, setPricingPlans] = useState([]);
+  const [plansLoading, setPlansLoading] = useState(true);
+
+  // Fetch real plans from your backend
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const res = await fetch(
+          'https://safetrackproglobal-backend-production.up.railway.app/api/plans'
+        );
+        const data = await res.json();
+
+        if (data.success) {
+          // Convert the backend object into an array for mapping
+          const fetchedPlans = Object.keys(data.plans).map((key) => {
+            const plan = data.plans[key];
+            return {
+              id: key,
+              name: plan.label || key,
+              price: key === 'custom' ? 'Custom' : `$${plan.price || 0}`,
+              period: key === 'custom' ? '' : '/month',
+              description: plan.description || `For ${key} organizations`,
+              features: plan.features || [],
+              link: key === 'custom' ? '/contact' : '/signup',
+              buttonText: key === 'custom' ? 'Contact Sales' : 'Get Started',
+              popular: key === 'pro' // Highlight the Pro plan
+            };
+          });
+          setPricingPlans(fetchedPlans);
+        }
+      } catch (err) {
+        console.error('Failed to load plans:', err);
+      } finally {
+        setPlansLoading(false);
+      }
+    };
+    fetchPlans();
+  }, []);
 
   // Animate stats on scroll
   useEffect(() => {
@@ -422,70 +460,6 @@ function HomePage() {
       author: t('home.testimonials.mining.author') || 'Robert Thompson',
       role: t('home.testimonials.mining.role') || 'Safety Superintendent, Mining Co',
       industry: t('home.testimonials.mining.industry') || 'Mining'
-    }
-  ];
-
-  // Pricing Plans
-  const pricingPlans = [
-    {
-      id: 'starter',
-      name: t('home.pricing.starter.name') || 'Starter',
-      price: t('home.pricing.starter.price') || '$0',
-      period: t('home.pricing.starter.period') || '/month',
-      description: t('home.pricing.starter.description') || 'For small facilities and startups',
-      features: [
-        t('home.pricing.starter.feature1') || 'Up to 3 users',
-        t('home.pricing.starter.feature2') || 'Basic incident reporting',
-        t('home.pricing.starter.feature3') || 'Document management',
-        t('home.pricing.starter.feature4') || 'Email notifications',
-        t('home.pricing.starter.feature5') || 'Basic analytics',
-        t('home.pricing.starter.feature6') || 'Mobile access',
-        t('home.pricing.starter.feature7') || 'Community support'
-      ],
-      link: '/signup',
-      buttonText: t('home.pricing.starter.buttonText') || 'Get Started'
-    },
-    {
-      id: 'professional',
-      name: t('home.pricing.professional.name') || 'Professional',
-      price: t('home.pricing.professional.price') || '$99',
-      period: t('home.pricing.professional.period') || '/month',
-      description: t('home.pricing.professional.description') || 'For growing organizations',
-      features: [
-        t('home.pricing.professional.feature1') || 'Up to 20 users',
-        t('home.pricing.professional.feature2') || 'All Starter features',
-        t('home.pricing.professional.feature3') || 'AI risk assessment',
-        t('home.pricing.professional.feature4') || 'API access',
-        t('home.pricing.professional.feature5') || 'Advanced analytics',
-        t('home.pricing.professional.feature6') || 'Custom workflows',
-        t('home.pricing.professional.feature7') || 'Priority support',
-        t('home.pricing.professional.feature8') || 'Real-time monitoring'
-      ],
-      link: '/subscription',
-      buttonText: t('home.pricing.professional.buttonText') || 'Start Free Trial',
-      popular: true
-    },
-    {
-      id: 'enterprise',
-      name: t('home.pricing.enterprise.name') || 'Enterprise',
-      price: t('home.pricing.enterprise.price') || 'Custom',
-      period: t('home.pricing.enterprise.period') || '',
-      description:
-        t('home.pricing.enterprise.description') || 'For large enterprises and multi-site operations',
-      features: [
-        t('home.pricing.enterprise.feature1') || 'Unlimited users',
-        t('home.pricing.enterprise.feature2') || 'All Professional features',
-        t('home.pricing.enterprise.feature3') || 'Multi-site management',
-        t('home.pricing.enterprise.feature4') || 'Custom integrations',
-        t('home.pricing.enterprise.feature5') || 'Dedicated account manager',
-        t('home.pricing.enterprise.feature6') || 'SLA guarantee',
-        t('home.pricing.enterprise.feature7') || 'On-premise deployment',
-        t('home.pricing.enterprise.feature8') || '24/7 premium support',
-        t('home.pricing.enterprise.feature9') || 'White-labeling options',
-        t('home.pricing.enterprise.feature10') || 'Advanced security features'
-      ],
-      link: '/contact',
-      buttonText: t('home.pricing.enterprise.buttonText') || 'Contact Sales'
     }
   ];
 
@@ -1543,44 +1517,51 @@ function HomePage() {
             </p>
           </div>
 
-          <Row gutter={[24, 24]} justify="center">
-            {pricingPlans.map((plan) => (
-              <Col xs={24} md={12} lg={8} key={plan.id}>
-                <div className={`pricing-card ${plan.popular ? 'popular' : ''}`}>
-                  {plan.popular && (
-                    <div className="popular-badge">
-                      <span>★ Most Popular</span>
-                    </div>
-                  )}
-                  <div className="pricing-header">
-                    <h3 className="plan-name">{plan.name}</h3>
-                    <div className="plan-price">
-                      <span className="price-amount">{plan.price}</span>
-                      <span className="price-period">{plan.period}</span>
-                    </div>
-                    <p className="plan-description">{plan.description}</p>
-                  </div>
-                  <div className="pricing-features">
-                    {plan.features.map((feature, idx) => (
-                      <div key={idx} className="pricing-feature">
-                        <CheckCircleOutlined className="feature-check" />
-                        <span>{feature}</span>
+          {plansLoading ? (
+            <div style={{ textAlign: 'center', padding: '50px' }}>
+              <Spin size="large" tip="Loading plans..." />
+            </div>
+          ) : (
+            <Row gutter={[24, 24]} justify="center">
+              {pricingPlans.map((plan) => (
+                <Col xs={24} md={12} lg={8} key={plan.id}>
+                  <div className={`pricing-card ${plan.popular ? 'popular' : ''}`}>
+                    {plan.popular && (
+                      <div className="popular-badge">
+                        <span>★ Most Popular</span>
                       </div>
-                    ))}
+                    )}
+                    <div className="pricing-header">
+                      <h3 className="plan-name">{plan.name}</h3>
+                      <div className="plan-price">
+                        <span className="price-amount">{plan.price}</span>
+                        <span className="price-period">{plan.period}</span>
+                      </div>
+                      <p className="plan-description">{plan.description}</p>
+                    </div>
+                    <div className="pricing-features">
+                      {/* Only show first 7 features to keep the card height consistent */}
+                      {plan.features.slice(0, 7).map((feature, idx) => (
+                        <div key={idx} className="pricing-feature">
+                          <CheckCircleOutlined className="feature-check" />
+                          <span>{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <Button
+                      type={plan.popular ? 'primary' : 'default'}
+                      size="large"
+                      href={plan.link}
+                      block
+                      className={`pricing-cta ${plan.popular ? 'cta-primary' : ''}`}
+                    >
+                      {plan.buttonText}
+                    </Button>
                   </div>
-                  <Button
-                    type={plan.popular ? 'primary' : 'default'}
-                    size="large"
-                    href={plan.link}
-                    block
-                    className={`pricing-cta ${plan.popular ? 'cta-primary' : ''}`}
-                  >
-                    {plan.buttonText}
-                  </Button>
-                </div>
-              </Col>
-            ))}
-          </Row>
+                </Col>
+              ))}
+            </Row>
+          )}
         </div>
       </section>
 
