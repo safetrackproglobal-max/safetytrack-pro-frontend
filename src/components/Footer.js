@@ -16,21 +16,29 @@ import {
 import ContactBrandInfo from "./ContactBrandInfo";
 import "./Footer.css";
 
+// ✅ Import the real logo
+import logoImage from '../../assets/images/safetrack-logo.jpeg';
+
 function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
     <footer role="contentinfo" className="footer main-footer">
       <div className="container">
-        {/* ============================================
-             TOP SECTION — BRAND + CONTACT + LINKS
-             ============================================ */}
+        
+        {/* TOP SECTION */}
         <div className="footer-top">
-          {/* ---------- Brand Column ---------- */}
+          
+          {/* Brand Column */}
           <div className="footer-brand-column">
             <Link to="/" className="footer-logo-link">
               <div className="footer-logo">
-                <span className="footer-logo-symbol">STP</span>
+                {/* ✅ Replaced the text block with the actual logo image */}
+                <img 
+                  src={logoImage} 
+                  alt="SafeTrack Pro Global" 
+                  className="footer-logo-image" 
+                />
                 <div className="footer-logo-text">
                   <span className="footer-logo-main">SafeTrack</span>
                   <span className="footer-logo-highlight">Pro</span>
@@ -58,51 +66,27 @@ function Footer() {
 
             {/* Social */}
             <div className="footer-social">
-              <a
-                href="https://twitter.com/safetrackproglobal"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Follow us on Twitter"
-              >
+              <a href="https://twitter.com/safetrackproglobal" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
                 <TwitterOutlined />
               </a>
-              <a
-                href="https://linkedin.com/company/safetrackproglobal"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Connect with us on LinkedIn"
-              >
+              <a href="https://linkedin.com/company/safetrackproglobal" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
                 <LinkedinOutlined />
               </a>
-              <a
-                href="https://facebook.com/safetrackproglobal"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Follow us on Facebook"
-              >
+              <a href="https://facebook.com/safetrackproglobal" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
                 <FacebookOutlined />
               </a>
-              <a
-                href="https://youtube.com/@safetrackproglobal"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Subscribe on YouTube"
-              >
+              <a href="https://youtube.com/@safetrackproglobal" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
                 <YoutubeOutlined />
               </a>
             </div>
           </div>
 
-          {/* ---------- Contact Column ---------- */}
+          {/* Contact Column */}
           <div className="footer-contact-column">
             <h4 className="footer-heading">Contact</h4>
-
             <ul className="footer-contact-list">
               <li>
-                <a
-                  href="mailto:info@safetrackproglobal.com"
-                  className="footer-contact-item"
-                >
+                <a href="mailto:info@safetrackproglobal.com" className="footer-contact-item">
                   <span className="contact-icon"><MailOutlined /></span>
                   <span className="contact-text">
                     <span className="contact-label">Email</span>
@@ -110,7 +94,6 @@ function Footer() {
                   </span>
                 </a>
               </li>
-
               <li>
                 <a href="tel:+97433251705" className="footer-contact-item">
                   <span className="contact-icon"><PhoneOutlined /></span>
@@ -120,14 +103,8 @@ function Footer() {
                   </span>
                 </a>
               </li>
-
               <li>
-                <a
-                  href="https://maps.google.com/?q=Doha,Qatar"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="footer-contact-item"
-                >
+                <a href="https://maps.google.com/?q=Doha,Qatar" target="_blank" rel="noopener noreferrer" className="footer-contact-item">
                   <span className="contact-icon"><EnvironmentOutlined /></span>
                   <span className="contact-text">
                     <span className="contact-label">Headquarters</span>
@@ -135,7 +112,6 @@ function Footer() {
                   </span>
                 </a>
               </li>
-
               <li>
                 <Link to="/contact" className="footer-contact-item">
                   <span className="contact-icon"><GlobalOutlined /></span>
@@ -148,9 +124,8 @@ function Footer() {
             </ul>
           </div>
 
-          {/* ---------- Links Columns ---------- */}
+          {/* Links Columns */}
           <div className="footer-links">
-            {/* Product */}
             <div className="link-group">
               <h4>Product</h4>
               <Link to="/features">Features</Link>
@@ -160,7 +135,6 @@ function Footer() {
               <Link to="/info/demo">Request a Demo</Link>
             </div>
 
-            {/* Industries — all 9+ with real routes */}
             <div className="link-group">
               <h4>Industries</h4>
               <Link to="/hse/construction">Construction</Link>
@@ -174,7 +148,6 @@ function Footer() {
               <Link to="/hse/general">General Industry</Link>
             </div>
 
-            {/* Resources */}
             <div className="link-group">
               <h4>Resources</h4>
               <Link to="/info/documentation">Documentation</Link>
@@ -184,7 +157,6 @@ function Footer() {
               <Link to="/info/support">Support</Link>
             </div>
 
-            {/* Company */}
             <div className="link-group">
               <h4>Company</h4>
               <Link to="/about">About Us</Link>
@@ -194,7 +166,6 @@ function Footer() {
               <Link to="/info/partners">Partners</Link>
             </div>
 
-            {/* Legal */}
             <div className="link-group">
               <h4>Legal</h4>
               <Link to="/terms">Terms of Service</Link>
@@ -206,15 +177,9 @@ function Footer() {
           </div>
         </div>
 
-        {/* ============================================
-             LEGACY CONTACT BRAND INFO
-             Note: Keep only if you want a second contact block.
-             ============================================ */}
         <ContactBrandInfo />
 
-        {/* ============================================
-             BOTTOM SECTION
-             ============================================ */}
+        {/* BOTTOM SECTION */}
         <div className="footer-divider" />
 
         <div className="footer-bottom">
