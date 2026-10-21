@@ -235,7 +235,7 @@ import MedicalTextAnalysis from './components/AI/MedicalTextAnalysis';
 import AIChatAssistant from './components/AI/AIChatAssistant';
 import AIAnalysis from './components/AI/AIAnalysis';
 import VideoAI from './components/AI/VideoAi';
-
+import './dark-mode.css'; 
 import './styles/main.css';
 import './pages/safetyproDashboard.css';
 import './pages/PerformanceDashboard.css';
