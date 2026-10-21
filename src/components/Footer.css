@@ -633,19 +633,15 @@
   gap: 12px;
 }
 
-.footer-logo-symbol {
+/* ✅ UPDATED: Replaced the STP text block with actual logo image styling */
+.footer-logo-image {
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 14px;
-  color: #ffffff;
-  letter-spacing: 0.5px;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+  object-fit: contain;
+  background: #ffffff; /* Ensures logo is visible on dark backgrounds */
+  padding: 2px;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
 }
 
 .footer-logo-text {
