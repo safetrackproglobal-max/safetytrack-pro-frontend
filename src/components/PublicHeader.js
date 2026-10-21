@@ -17,7 +17,8 @@ import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from 'react-i18next';
 import LanguageSelector from './LanguageSelector';
 import './PublicHeader.css';
-
+// Add this near your other imports
+import logoImage from '../assets/images/safetrack-logo.jpeg';
 const { Header } = Layout;
 
 function PublicHeader() {
@@ -113,14 +114,16 @@ function PublicHeader() {
   return (
     <Header className={`public-header ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="header-container">
-        {/* Logo */}
+                {/* Logo */}
         <div className="logo">
           <Link to="/" className="logo-link">
-            <div className="logo-icon">
-              <SafetyCertificateOutlined />
-            </div>
+            <img 
+              src={logoImage} 
+              alt="SafeTrack Pro" 
+              className="logo-image" 
+            />
             <span className="logo-text">
-              SafeTrack <span className="logo-pro">Pro</span>
+              SafeTrack<span className="logo-pro">Pro</span>
             </span>
           </Link>
         </div>
@@ -136,7 +139,7 @@ function PublicHeader() {
 
         {/* Auth Buttons / User Menu */}
         <div className="header-actions">
-          <Space size="middle" wrap>
+                    <Space size="middle" wrap={false}>
             {/* Language Selector */}
             <LanguageSelector />
 
