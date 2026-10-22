@@ -62,45 +62,95 @@ function HomePage() {
   const slideInterval = useRef(null);
 
   // ── Pricing plans state (fetched from backend) ──
+    // ✅ 1. New State for Dynamic Pricing
   const [pricingPlans, setPricingPlans] = useState([]);
   const [plansLoading, setPlansLoading] = useState(true);
 
-  // Fetch real plans from your backend
+  // ✅ 2. Fetch real plans from your backend
   useEffect(() => {
-    const fetchPlans = async () => {
+    const fetchPricing = async () => {
       try {
-        const res = await fetch(
-          'https://safetrackproglobal-backend-production.up.railway.app/api/plans'
-        );
+        // You can pass a country if you have location data, otherwise it falls back to default
+        const userCountry = 'default'; 
+        const res = await fetch(`https://safetrackproglobal-backend-production.up.railway.app/api/plans/pricing?country=${userCountry}`);
         const data = await res.json();
+        
+        // Define the plan labels and features that aren't in the pricing endpoint
+        const planMeta = {
+          free: { 
+            name: 'Starter', 
+            description: 'For small facilities and startups', 
+            features: ['Up to 3 users', 'Basic incident reporting', 'Document management', 'Email notifications', 'Basic analytics', 'Mobile access', 'Community support'],
+            link: '/signup',
+            buttonText: 'Get Started'
+          },
+          basic: { 
+            name: 'Basic', 
+            description: 'For growing teams', 
+            features: ['Up to 10 users', 'All Free features', 'PDF/Word/Excel generation', 'Basic analytics', '100 document uploads', '1000 API calls', '100 AI requests'],
+            link: '/signup',
+            buttonText: 'Start Free Trial'
+          },
+          pro: { 
+            name: 'Professional', 
+            description: 'For growing organizations', 
+            features: ['Up to 50 users', 'All Basic features', 'ML image analysis', 'Advanced analytics', 'Team management', 'Real-time monitoring alerts', 'Priority email support', 'Custom reporting'],
+            link: '/signup',
+            buttonText: 'Start Free Trial',
+            popular: true
+          },
+          enterprise: { 
+            name: 'Enterprise', 
+            description: 'For large enterprises and multi-site operations', 
+            features: ['Unlimited users', 'All Pro features', 'Custom workflows & forms', 'API Integration', 'Dedicated infrastructure (SLA)', 'On-premise deployment', 'Dedicated account manager', 'White-labeling options'],
+            link: '/contact',
+            buttonText: 'Contact Sales'
+          }
+        };
 
-        if (data.success) {
-          // Convert the backend object into an array for mapping
-          const fetchedPlans = Object.keys(data.plans).map((key) => {
-            const plan = data.plans[key];
-            return {
-              id: key,
-              name: plan.label || key,
-              price: key === 'custom' ? 'Custom' : `$${plan.price || 0}`,
-              period: key === 'custom' ? '' : '/month',
-              description: plan.description || `For ${key} organizations`,
-              features: plan.features || [],
-              link: key === 'custom' ? '/contact' : '/signup',
-              buttonText: key === 'custom' ? 'Contact Sales' : 'Get Started',
-              popular: key === 'pro' // Highlight the Pro plan
-            };
-          });
-          setPricingPlans(fetchedPlans);
-        }
-      } catch (err) {
-        console.error('Failed to load plans:', err);
+        const formattedPlans = Object.keys(data).map(key => {
+          const priceData = data[key];
+          const meta = planMeta[key] || planMeta.free;
+          
+          // Format price
+          const amount = priceData['1_month'];
+          const currency = priceData['currency'];
+          const symbols = { USD: '$', GHS: 'GH₵', QAR: 'QR', INR: '₹', EUR: '€' };
+          const symbol = symbols[currency] || '$';
+          
+          const displayPrice = amount === 'Custom' ? 'Custom' : `${symbol}${amount}`;
+          const displayPeriod = amount === 'Custom' ? '' : '/month';
+
+          return {
+            id: key,
+            name: meta.name,
+            price: displayPrice,
+            period: displayPeriod,
+            description: meta.description,
+            features: meta.features,
+            link: meta.link,
+            buttonText: meta.buttonText,
+            popular: meta.popular
+          };
+        });
+
+        // Sort so 'pro' is in the middle (Free, Pro, Enterprise)
+        const sortedPlans = [
+          formattedPlans.find(p => p.id === 'free'),
+          formattedPlans.find(p => p.id === 'pro'),
+          formattedPlans.find(p => p.id === 'enterprise')
+        ].filter(Boolean);
+
+        setPricingPlans(sortedPlans);
+      } catch (error) {
+        console.error("Failed to load pricing:", error);
       } finally {
         setPlansLoading(false);
       }
     };
-    fetchPlans();
-  }, []);
 
+    fetchPricing();
+  }, []);
   // Animate stats on scroll
   useEffect(() => {
     const observer = new IntersectionObserver(
