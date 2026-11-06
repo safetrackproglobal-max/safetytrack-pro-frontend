@@ -8,7 +8,7 @@ import {
   PRIVACY_VERSION,
   DPA_VERSION,
   BAA_VERSION,
-} from '../compliance/versions';
+} from '../constants/versions';
 
 const AuthContext = createContext();
 
