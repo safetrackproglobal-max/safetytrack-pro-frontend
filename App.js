@@ -22,7 +22,7 @@ import ResponsiveWrapper from './components/ResponsiveWrapper';
 import hseIndustryService from './services/hseIndustryService';
 import AIService from './services/GeneralAIService';
 import notificationService from './services/notificationService';
-
+import AcceptTermsPage from './pages/AcceptTermsPage';
 // ✅ ADD NEW COMPONENTS
 import ApprovalActions from './pages/ApprovalActions';
 import StatsOverview from './pages/StatsOverview';
@@ -308,6 +308,7 @@ export {
   notificationService
 };
 
+
 // ============================================
 // ✅ SMART DASHBOARD REDIRECT
 // ============================================
@@ -322,7 +323,6 @@ const SmartDashboardRedirect = () => {
   const requiresPlanSelection = userData?.requires_plan_selection || localStorage.getItem('requires_plan_selection') === 'true';
   const needsApproval = userData?.needs_approval || localStorage.getItem('requires_approval') === 'true';
   const requiresCompanySetup = userData?.requires_company_setup || localStorage.getItem('requires_company_setup') === 'true';
-  const requiresVerification = userData?.requires_verification || localStorage.getItem('requires_verification') === 'true';
 
   console.log('🔍 SmartDashboardRedirect:', {
     stage,
@@ -330,12 +330,19 @@ const SmartDashboardRedirect = () => {
     requiresPlanSelection,
     needsApproval,
     requiresCompanySetup,
-    requiresVerification,
+    verified: userData?.verified,
     userType: userData?.user_type,
-    email: userData?.email
+    email: userData?.email,
   });
 
-  if (requiresVerification || (userData && !userData.verified)) {
+  // ✅ STAGE-FIRST ordering — consent must come before anything else
+  if (stage === 'needs_consent') {
+    console.log('📜 needs_consent → /accept-terms');
+    return <Redirect to="/accept-terms" />;
+  }
+
+  // ✅ Only block on verification when explicitly false (not undefined)
+  if (userData?.verified === false) {
     console.log('📧 Requires verification → /verify-email');
     return <Redirect to="/verify-email" />;
   }
@@ -401,7 +408,6 @@ const SmartDashboardRedirect = () => {
   console.log('⚠️ Fallback → /user/dashboard');
   return <Redirect to="/user/dashboard" />;
 };
-
 // ============================================================
 // AppContent
 // ============================================================
@@ -511,7 +517,16 @@ const AppContent = () => {
               <TermsPolicy />
             </MainLayoutWrapper>
           </Route>
-
+                                                                                                                 
+         {/* ============================================ */}
+{/* ACCEPT TERMS (consent re-acceptance) */}
+{/* ============================================ */}
+<ProtectedRoute path="/accept-terms" exact>
+  <MainLayoutWrapper>
+    <AcceptTermsPage />
+  </MainLayoutWrapper>
+</ProtectedRoute>
+                                                                                                                 
           <Route path="/contact">
             <MainLayoutWrapper>
               <ContactBrandInfo />
