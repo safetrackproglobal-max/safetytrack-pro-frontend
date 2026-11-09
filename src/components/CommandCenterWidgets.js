@@ -1,31 +1,47 @@
 // src/components/CommandCenterWidgets.js
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Row, Col, Card, Statistic, Table, Button, Tag, Space, Input, Select,
-  Badge, Alert, Tooltip, Empty, Progress, Avatar, List, Drawer,
-  Descriptions, Divider, Switch, DatePicker, message
+  Badge, Tooltip, Empty, Progress, Avatar, List, Drawer,
+  Descriptions, Divider, Switch, DatePicker
 } from 'antd';
 import {
   ReloadOutlined, SearchOutlined, EyeOutlined, TeamOutlined,
   WarningOutlined, SafetyCertificateOutlined, UserOutlined,
   BuildOutlined, StopOutlined, ApiOutlined, DatabaseOutlined,
-  CloudOutlined, CheckCircleOutlined, CloseCircleOutlined,
-  ClockCircleOutlined, GlobalOutlined, TrophyOutlined,
-  LaptopOutlined, MobileOutlined, DesktopOutlined, ExportOutlined
+  CloudOutlined, CloseCircleOutlined, GlobalOutlined, TrophyOutlined,
+  LaptopOutlined, MobileOutlined, DesktopOutlined
 } from '@ant-design/icons';
 import SafetyProService from '../services/safetyproservice';
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 
-// ✅ Safe array helper — prevents "map is not a function" crashes
+// ✅ Safe array helper — handles ALL nesting patterns
 const safeArray = (data) => {
   if (!data) return [];
   if (Array.isArray(data)) return data;
   if (Array.isArray(data.data)) return data.data;
   if (Array.isArray(data.items)) return data.items;
+  if (Array.isArray(data.users)) return data.users;
+  if (Array.isArray(data.activities)) return data.activities;
+  if (Array.isArray(data.sessions)) return data.sessions;
+  if (Array.isArray(data.events)) return data.events;
+  if (Array.isArray(data.errors)) return data.errors;
+  if (Array.isArray(data.locations)) return data.locations;
+  if (data.data && Array.isArray(data.data.data)) return data.data.data;
   return [];
 };
+
+// ✅ Universal unwrap — extracts the payload from any backend wrapper
+const unwrap = (res) => {
+  if (!res) return null;
+  // If res has .data that itself is an object with .data — go deep
+  if (res.data && res.data.data !== undefined) return res.data.data;
+  if (res.data !== undefined) return res.data;
+  return res;
+};
+
 // ============================================
 // 1. MAIN KPI CARDS
 // ============================================
@@ -57,7 +73,7 @@ export const ActivityKPICards = ({ stats }) => (
           title="Failed Logins (24h)"
           value={stats?.failed_logins_24h || 0}
           prefix={<WarningOutlined />}
-          valueStyle={{ color: stats?.failed_logins_24h > 5 ? '#ff4d4f' : '#faad14' }}
+          valueStyle={{ color: (stats?.failed_logins_24h || 0) > 5 ? '#ff4d4f' : '#faad14' }}
         />
       </Card>
     </Col>
@@ -67,13 +83,12 @@ export const ActivityKPICards = ({ stats }) => (
           title="Security Alerts (7d)"
           value={stats?.security_alerts_7d || 0}
           prefix={<SafetyCertificateOutlined />}
-          valueStyle={{ color: stats?.security_alerts_7d > 0 ? '#ff4d4f' : '#52c41a' }}
+          valueStyle={{ color: (stats?.security_alerts_7d || 0) > 0 ? '#ff4d4f' : '#52c41a' }}
         />
       </Card>
     </Col>
   </Row>
 );
-
 
 // ============================================
 // 2. SECONDARY KPIs
@@ -106,13 +121,12 @@ export const SecondaryKPIs = ({ stats }) => (
           title="Suspicious Activity (7d)"
           value={stats?.suspicious_activity_7d || 0}
           prefix={<StopOutlined />}
-          valueStyle={{ color: stats?.suspicious_activity_7d > 0 ? '#ff4d4f' : '#52c41a' }}
+          valueStyle={{ color: (stats?.suspicious_activity_7d || 0) > 0 ? '#ff4d4f' : '#52c41a' }}
         />
       </Card>
     </Col>
   </Row>
 );
-
 
 // ============================================
 // 3. LIVE ACTIVITY FEED
@@ -126,9 +140,17 @@ export const LiveActivityFeed = ({ refreshInterval = 10000 }) => {
     setLoading(true);
     try {
       const res = await SafetyProService.getPlatformActivity({ page: 1, limit: 20 });
-      if (res?.data) setActivities(res.data);
+      console.log('[LiveActivityFeed] Raw response:', res);
+      
+      // Backend returns {data: {activities: [...], pagination: {...}}} or {data: [...]}
+      const payload = unwrap(res);
+      const list = safeArray(payload) || safeArray(res?.data) || safeArray(res);
+      
+      console.log('[LiveActivityFeed] Extracted list:', list);
+      setActivities(list);
     } catch (e) {
-      console.error(e);
+      console.error('[LiveActivityFeed] Error:', e);
+      setActivities([]);
     } finally {
       setLoading(false);
     }
@@ -153,11 +175,9 @@ export const LiveActivityFeed = ({ refreshInterval = 10000 }) => {
     <Card
       title={
         <Space>
-          <span style={{ 
-            display: 'inline-block', 
-            width: 8, 
-            height: 8, 
-            borderRadius: '50%', 
+          <span style={{
+            display: 'inline-block',
+            width: 8, height: 8, borderRadius: '50%',
             background: autoRefresh ? '#52c41a' : '#8c8c8c',
             animation: autoRefresh ? 'pulse 2s infinite' : 'none'
           }} />
@@ -166,13 +186,8 @@ export const LiveActivityFeed = ({ refreshInterval = 10000 }) => {
       }
       extra={
         <Space>
-          <Switch
-            size="small"
-            checked={autoRefresh}
-            onChange={setAutoRefresh}
-            checkedChildren="Live"
-            unCheckedChildren="Paused"
-          />
+          <Switch size="small" checked={autoRefresh} onChange={setAutoRefresh}
+            checkedChildren="Live" unCheckedChildren="Paused" />
           <Button size="small" icon={<ReloadOutlined />} onClick={fetchLive} loading={loading} />
         </Space>
       }
@@ -185,20 +200,20 @@ export const LiveActivityFeed = ({ refreshInterval = 10000 }) => {
           <List
             size="small"
             dataSource={activities}
+            rowKey={(item) => item.id || `${item.created_at}-${item.activity_type}`}
             renderItem={(item) => (
               <List.Item style={{ padding: '8px 0' }}>
                 <Space>
                   <span style={{ fontSize: 16 }}>{getActivityIcon(item.activity_type)}</span>
                   <div>
                     <div style={{ fontSize: 13 }}>
-                      <strong>{item.user_name || 'System'}</strong>
-                      {' '}
+                      <strong>{item.user_name || item.user_email || 'System'}</strong>{' '}
                       <span style={{ color: '#666' }}>
                         {item.activity_type?.replace(/_/g, ' ')}
                       </span>
                     </div>
                     <div style={{ fontSize: 11, color: '#888' }}>
-                      {new Date(item.created_at).toLocaleTimeString()}
+                      {item.created_at ? new Date(item.created_at).toLocaleTimeString() : '—'}
                       {item.company_name && ` • ${item.company_name}`}
                     </div>
                   </div>
@@ -212,7 +227,6 @@ export const LiveActivityFeed = ({ refreshInterval = 10000 }) => {
   );
 };
 
-
 // ============================================
 // 4. ACTIVE SESSIONS PANEL
 // ============================================
@@ -224,9 +238,16 @@ export const ActiveSessionsPanel = () => {
     setLoading(true);
     try {
       const res = await SafetyProService.getActiveSessions();
-      if (res?.data) setSessions(res.data);
+      console.log('[ActiveSessions] Raw response:', res);
+      
+      const payload = unwrap(res);
+      const list = safeArray(payload) || safeArray(res?.data) || safeArray(res);
+      
+      console.log('[ActiveSessions] Extracted list:', list);
+      setSessions(list);
     } catch (e) {
-      console.error(e);
+      console.error('[ActiveSessions] Error:', e);
+      setSessions([]);
     } finally {
       setLoading(false);
     }
@@ -240,7 +261,7 @@ export const ActiveSessionsPanel = () => {
 
   const getDeviceIcon = (device) => {
     if (!device) return <DesktopOutlined />;
-    if (device.toLowerCase().includes('mobile')) return <MobileOutlined />;
+    if (String(device).toLowerCase().includes('mobile')) return <MobileOutlined />;
     return <LaptopOutlined />;
   };
 
@@ -254,25 +275,22 @@ export const ActiveSessionsPanel = () => {
         <Empty description="No active sessions" image={Empty.PRESENTED_IMAGE_SIMPLE} />
       ) : (
         <div style={{ maxHeight: 300, overflowY: 'auto' }}>
-          {sessions.map(s => (
-            <div key={s.id} style={{
-              padding: 8,
-              borderBottom: '1px solid #f0f0f0',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
+          {sessions.map((s, idx) => (
+            <div key={s.id || s.session_id || idx} style={{
+              padding: 8, borderBottom: '1px solid #f0f0f0',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center'
             }}>
               <Space>
                 <Avatar size="small" icon={<UserOutlined />} />
                 <div>
-                  <div style={{ fontSize: 13 }}>{s.user_name}</div>
+                  <div style={{ fontSize: 13 }}>{s.user_name || s.email || 'User'}</div>
                   <div style={{ fontSize: 11, color: '#888' }}>
-                    {getDeviceIcon(s.device_type)} {s.ip_address}
+                    {getDeviceIcon(s.device_type)} {s.ip_address || s.ip || '—'}
                   </div>
                 </div>
               </Space>
               <div style={{ textAlign: 'right', fontSize: 11, color: '#888' }}>
-                <div>{new Date(s.last_seen_at).toLocaleTimeString()}</div>
+                <div>{s.last_seen_at ? new Date(s.last_seen_at).toLocaleTimeString() : '—'}</div>
               </div>
             </div>
           ))}
@@ -281,7 +299,6 @@ export const ActiveSessionsPanel = () => {
     </Card>
   );
 };
-
 
 // ============================================
 // 5. SECURITY ALERTS PANEL
@@ -294,9 +311,16 @@ export const SecurityAlertsPanel = () => {
     setLoading(true);
     try {
       const res = await SafetyProService.getSecurityEvents();
-      if (res?.data) setEvents(res.data);
+      console.log('[SecurityAlerts] Raw response:', res);
+      
+      const payload = unwrap(res);
+      const list = safeArray(payload) || safeArray(res?.data) || safeArray(res);
+      
+      console.log('[SecurityAlerts] Extracted list:', list);
+      setEvents(list);
     } catch (e) {
-      console.error(e);
+      console.error('[SecurityAlerts] Error:', e);
+      setEvents([]);
     } finally {
       setLoading(false);
     }
@@ -317,6 +341,7 @@ export const SecurityAlertsPanel = () => {
           <List
             size="small"
             dataSource={events.slice(0, 15)}
+            rowKey={(item) => item.id || `${item.created_at}-${item.activity_type}`}
             renderItem={(item) => (
               <List.Item>
                 <List.Item.Meta
@@ -325,7 +350,7 @@ export const SecurityAlertsPanel = () => {
                     <Space>
                       <span style={{ fontSize: 12 }}>{item.activity_type?.replace(/_/g, ' ').toUpperCase()}</span>
                       <Tag color={item.severity === 'critical' ? 'magenta' : 'red'}>
-                        {item.severity?.toUpperCase()}
+                        {item.severity?.toUpperCase() || 'ALERT'}
                       </Tag>
                     </Space>
                   }
@@ -333,7 +358,7 @@ export const SecurityAlertsPanel = () => {
                     <div>
                       <div style={{ fontSize: 12 }}>{item.description || '—'}</div>
                       <div style={{ fontSize: 11, color: '#888' }}>
-                        {item.user_name} • {new Date(item.created_at).toLocaleString()}
+                        {item.user_name || 'System'} • {item.created_at ? new Date(item.created_at).toLocaleString() : '—'}
                       </div>
                     </div>
                   }
@@ -347,7 +372,6 @@ export const SecurityAlertsPanel = () => {
   );
 };
 
-
 // ============================================
 // 6. ACTIVITY CHART
 // ============================================
@@ -359,10 +383,21 @@ export const ActivityChart = () => {
     setLoading(true);
     try {
       const res = await SafetyProService.getActivityChart(7);
-      // ✅ SAFE: always returns array
-      setData(safeArray(res?.data));
+      console.log('[ActivityChart] Raw response:', res);
+      
+      const payload = unwrap(res);
+      const list = safeArray(payload) || safeArray(res?.data) || safeArray(res);
+      
+      // Normalize key names — backend might send day/total, date/count, etc.
+      const normalized = list.map((d) => ({
+        date: d.date || d.day || d.created_at || d.label || '',
+        count: Number(d.count ?? d.total ?? d.value ?? d.events ?? 0),
+      }));
+      
+      console.log('[ActivityChart] Normalized:', normalized);
+      setData(normalized);
     } catch (e) {
-      console.error(e);
+      console.error('[ActivityChart] Error:', e);
       setData([]);
     } finally {
       setLoading(false);
@@ -371,13 +406,9 @@ export const ActivityChart = () => {
 
   useEffect(() => { fetchChart(); }, []);
 
-  // ✅ SAFE: data is always an array now
-  const chartData = safeArray(data);
-  const maxCount = chartData.length > 0 
-    ? Math.max(...chartData.map(d => d.count || 0), 1) 
+  const maxCount = data.length > 0
+    ? Math.max(...data.map(d => d.count || 0), 1)
     : 1;
-  
-  
 
   return (
     <Card
@@ -385,30 +416,24 @@ export const ActivityChart = () => {
       extra={<Button size="small" icon={<ReloadOutlined />} onClick={fetchChart} loading={loading} />}
       style={{ height: '100%' }}
     >
-      {chartData.length === 0 ? (
-  <Empty description="No chart data" image={Empty.PRESENTED_IMAGE_SIMPLE} />
-) : (
-  <div style={{ display: 'flex', alignItems: 'flex-end', height: 200, gap: 8, padding: '16px 0' }}>
-    {chartData.map((d, i) => (
+      {data.length === 0 ? (
+        <Empty description="No chart data" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+      ) : (
+        <div style={{ display: 'flex', alignItems: 'flex-end', height: 200, gap: 8, padding: '16px 0' }}>
+          {data.map((d, i) => (
             <Tooltip key={i} title={`${d.date}: ${d.count} events`}>
               <div style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                height: '100%',
-                justifyContent: 'flex-end'
+                flex: 1, display: 'flex', flexDirection: 'column',
+                alignItems: 'center', height: '100%', justifyContent: 'flex-end'
               }}>
                 <div style={{
                   width: '100%',
                   height: `${(d.count / maxCount) * 100}%`,
                   background: 'linear-gradient(180deg, #1890ff, #40a9ff)',
-                  borderRadius: 4,
-                  minHeight: 4,
-                  transition: 'all 0.3s'
+                  borderRadius: 4, minHeight: 4, transition: 'all 0.3s'
                 }} />
                 <div style={{ fontSize: 10, color: '#666', marginTop: 4 }}>
-                  {new Date(d.date).toLocaleDateString('en', { weekday: 'short' })}
+                  {d.date ? new Date(d.date).toLocaleDateString('en', { weekday: 'short' }) : '—'}
                 </div>
                 <div style={{ fontSize: 11, fontWeight: 600, color: '#1890ff' }}>
                   {d.count}
@@ -422,7 +447,6 @@ export const ActivityChart = () => {
   );
 };
 
-
 // ============================================
 // 7. PLATFORM HEALTH
 // ============================================
@@ -434,10 +458,15 @@ export const PlatformHealth = () => {
     setLoading(true);
     try {
       const res = await SafetyProService.getSystemHealth();
-      if (res?.data) setHealth(res.data);
-      else if (res?.success) setHealth(res);
+      console.log('[PlatformHealth] Raw response:', res);
+      
+      // Could be {data: {api: {...}, database: {...}}} OR {api: {...}}
+      const payload = unwrap(res) || res;
+      console.log('[PlatformHealth] Extracted health:', payload);
+      setHealth(payload || {});
     } catch (e) {
-      console.error(e);
+      console.error('[PlatformHealth] Error:', e);
+      setHealth({});
     } finally {
       setLoading(false);
     }
@@ -447,8 +476,31 @@ export const PlatformHealth = () => {
 
   const getStatusTag = (item) => {
     if (!item) return <Tag color="default">Unknown</Tag>;
-    if (item.healthy) return <Tag color="green">Healthy</Tag>;
-    return <Tag color="red">Unhealthy</Tag>;
+    
+    // Boolean healthy flag
+    if (item.healthy === true) return <Tag color="green">Healthy</Tag>;
+    if (item.healthy === false) return <Tag color="red">Unhealthy</Tag>;
+    
+    // String status
+    const s = item.status?.toLowerCase?.();
+    if (s === 'healthy' || s === 'connected' || s === 'ok' || s === 'up' || s === 'online')
+      return <Tag color="green">Healthy</Tag>;
+    if (s === 'unhealthy' || s === 'disconnected' || s === 'error' || s === 'down' || s === 'offline')
+      return <Tag color="red">Unhealthy</Tag>;
+    
+    // The item itself is a boolean
+    if (item === true) return <Tag color="green">Healthy</Tag>;
+    if (item === false) return <Tag color="red">Unhealthy</Tag>;
+    
+    // String directly
+    if (typeof item === 'string') {
+      if (item.toLowerCase() === 'healthy' || item.toLowerCase() === 'ok')
+        return <Tag color="green">Healthy</Tag>;
+      if (item.toLowerCase() === 'unhealthy' || item.toLowerCase() === 'error')
+        return <Tag color="red">Unhealthy</Tag>;
+    }
+    
+    return <Tag color="default">Unknown</Tag>;
   };
 
   return (
@@ -486,7 +538,6 @@ export const PlatformHealth = () => {
   );
 };
 
-
 // ============================================
 // 8. TOP ACTIVE USERS
 // ============================================
@@ -498,9 +549,16 @@ export const TopActiveUsers = () => {
     setLoading(true);
     try {
       const res = await SafetyProService.getTopActiveUsers(7);
-      if (res?.data) setUsers(res.data);
+      console.log('[TopActiveUsers] Raw response:', res);
+      
+      const payload = unwrap(res);
+      const list = safeArray(payload) || safeArray(res?.data) || safeArray(res);
+      
+      console.log('[TopActiveUsers] Extracted list:', list);
+      setUsers(list);
     } catch (e) {
-      console.error(e);
+      console.error('[TopActiveUsers] Error:', e);
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -527,14 +585,17 @@ export const TopActiveUsers = () => {
         <List
           size="small"
           dataSource={users}
+          rowKey={(u) => u.user_id || u.id || u.user_name || Math.random()}
           renderItem={(user, index) => (
             <List.Item>
               <Space>
                 <span style={{ fontSize: 18, minWidth: 30 }}>{getMedal(index)}</span>
                 <Avatar size="small" icon={<UserOutlined />} />
                 <div>
-                  <div style={{ fontSize: 13 }}>{user.user_name}</div>
-                  <div style={{ fontSize: 11, color: '#888' }}>{user.count} actions</div>
+                  <div style={{ fontSize: 13 }}>{user.user_name || user.name || user.email || 'User'}</div>
+                  <div style={{ fontSize: 11, color: '#888' }}>
+                    {user.count ?? user.total ?? 0} actions
+                  </div>
                 </div>
               </Space>
             </List.Item>
@@ -544,7 +605,6 @@ export const TopActiveUsers = () => {
     </Card>
   );
 };
-
 
 // ============================================
 // 9. RECENT ERRORS
@@ -557,9 +617,16 @@ export const RecentErrors = () => {
     setLoading(true);
     try {
       const res = await SafetyProService.getRecentErrors();
-      if (res?.data) setErrors(res.data);
+      console.log('[RecentErrors] Raw response:', res);
+      
+      const payload = unwrap(res);
+      const list = safeArray(payload) || safeArray(res?.data) || safeArray(res);
+      
+      console.log('[RecentErrors] Extracted list:', list);
+      setErrors(list);
     } catch (e) {
-      console.error(e);
+      console.error('[RecentErrors] Error:', e);
+      setErrors([]);
     } finally {
       setLoading(false);
     }
@@ -579,16 +646,17 @@ export const RecentErrors = () => {
         <List
           size="small"
           dataSource={errors.slice(0, 10)}
+          rowKey={(item) => item.id || `${item.created_at}-${item.activity_type}`}
           renderItem={(item) => (
             <List.Item>
               <List.Item.Meta
                 avatar={<CloseCircleOutlined style={{ color: '#ff4d4f' }} />}
-                title={<span style={{ fontSize: 12 }}>{item.activity_type?.replace(/_/g, ' ')}</span>}
+                title={<span style={{ fontSize: 12 }}>{item.activity_type?.replace(/_/g, ' ') || 'Error'}</span>}
                 description={
                   <div>
-                    <div style={{ fontSize: 12 }}>{item.description || '—'}</div>
+                    <div style={{ fontSize: 12 }}>{item.description || item.message || '—'}</div>
                     <div style={{ fontSize: 11, color: '#888' }}>
-                      {item.user_name} • {new Date(item.created_at).toLocaleString()}
+                      {item.user_name || 'System'} • {item.created_at ? new Date(item.created_at).toLocaleString() : '—'}
                     </div>
                   </div>
                 }
@@ -601,7 +669,6 @@ export const RecentErrors = () => {
   );
 };
 
-
 // ============================================
 // 10. GEOGRAPHIC DISTRIBUTION
 // ============================================
@@ -613,9 +680,16 @@ export const GeographicDistribution = () => {
     setLoading(true);
     try {
       const res = await SafetyProService.getGeographicDistribution(30);
-      if (res?.data) setData(res.data);
+      console.log('[GeoDistribution] Raw response:', res);
+      
+      const payload = unwrap(res);
+      const list = safeArray(payload) || safeArray(res?.data) || safeArray(res);
+      
+      console.log('[GeoDistribution] Extracted list:', list);
+      setData(list);
     } catch (e) {
-      console.error(e);
+      console.error('[GeoDistribution] Error:', e);
+      setData([]);
     } finally {
       setLoading(false);
     }
@@ -623,7 +697,9 @@ export const GeographicDistribution = () => {
 
   useEffect(() => { fetchGeo(); }, []);
 
-  const maxUsers = Math.max(...data.map(d => d.users), 1);
+  const maxUsers = data.length > 0
+    ? Math.max(...data.map(d => d.users ?? d.count ?? 0), 1)
+    : 1;
 
   return (
     <Card
@@ -635,26 +711,30 @@ export const GeographicDistribution = () => {
         <Empty description="No location data" image={Empty.PRESENTED_IMAGE_SIMPLE} />
       ) : (
         <div style={{ maxHeight: 300, overflowY: 'auto' }}>
-          {data.map((item, i) => (
-            <div key={i} style={{ marginBottom: 12 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                <span style={{ fontSize: 13 }}><GlobalOutlined /> {item.location}</span>
-                <span style={{ fontSize: 13, fontWeight: 600 }}>{item.users} users</span>
+          {data.map((item, i) => {
+            const count = item.users ?? item.count ?? 0;
+            return (
+              <div key={i} style={{ marginBottom: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <span style={{ fontSize: 13 }}>
+                    <GlobalOutlined /> {item.location || item.country || item.name || 'Unknown'}
+                  </span>
+                  <span style={{ fontSize: 13, fontWeight: 600 }}>{count} users</span>
+                </div>
+                <Progress
+                  percent={(count / maxUsers) * 100}
+                  size="small"
+                  strokeColor="#1890ff"
+                  showInfo={false}
+                />
               </div>
-              <Progress
-                percent={(item.users / maxUsers) * 100}
-                size="small"
-                strokeColor="#1890ff"
-                showInfo={false}
-              />
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </Card>
   );
 };
-
 
 // ============================================
 // 11. FILTER BAR
@@ -673,10 +753,7 @@ export const ActivityFilterBar = ({ filters, setFilters, onApply, showDateRange 
         />
       </Col>
       <Col xs={12} sm={8} md={3}>
-        <Select
-          placeholder="Category"
-          style={{ width: '100%' }}
-          allowClear
+        <Select placeholder="Category" style={{ width: '100%' }} allowClear
           value={filters.category || undefined}
           onChange={(v) => { setFilters(prev => ({ ...prev, category: v || '' })); setTimeout(onApply, 0); }}
         >
@@ -689,10 +766,7 @@ export const ActivityFilterBar = ({ filters, setFilters, onApply, showDateRange 
         </Select>
       </Col>
       <Col xs={12} sm={8} md={3}>
-        <Select
-          placeholder="Status"
-          style={{ width: '100%' }}
-          allowClear
+        <Select placeholder="Status" style={{ width: '100%' }} allowClear
           value={filters.status || undefined}
           onChange={(v) => { setFilters(prev => ({ ...prev, status: v || '' })); setTimeout(onApply, 0); }}
         >
@@ -702,10 +776,7 @@ export const ActivityFilterBar = ({ filters, setFilters, onApply, showDateRange 
         </Select>
       </Col>
       <Col xs={12} sm={8} md={3}>
-        <Select
-          placeholder="Severity"
-          style={{ width: '100%' }}
-          allowClear
+        <Select placeholder="Severity" style={{ width: '100%' }} allowClear
           value={filters.severity || undefined}
           onChange={(v) => { setFilters(prev => ({ ...prev, severity: v || '' })); setTimeout(onApply, 0); }}
         >
@@ -717,8 +788,7 @@ export const ActivityFilterBar = ({ filters, setFilters, onApply, showDateRange 
       </Col>
       {showDateRange && (
         <Col xs={24} sm={12} md={6}>
-          <RangePicker
-            style={{ width: '100%' }}
+          <RangePicker style={{ width: '100%' }}
             onChange={(dates) => {
               setFilters(prev => ({
                 ...prev,
@@ -744,7 +814,6 @@ export const ActivityFilterBar = ({ filters, setFilters, onApply, showDateRange 
     </Row>
   </Card>
 );
-
 
 // ============================================
 // 12. ACTIVITY TABLE + USER DRILL-DOWN
@@ -780,54 +849,42 @@ export const ActivityTable = ({ activities, loading, pagination, onPageChange, o
 
   return (
     <Table
-      dataSource={activities}
-      rowKey="id"
+      dataSource={safeArray(activities)}
+      rowKey={(r) => r.id || `${r.created_at}-${r.activity_type}-${r.user_id}`}
       loading={loading}
       pagination={{
-        current: pagination.page,
-        pageSize: pagination.limit,
-        total: pagination.total,
+        current: pagination?.page || 1,
+        pageSize: pagination?.limit || 20,
+        total: pagination?.total || 0,
         showSizeChanger: false,
         onChange: onPageChange
       }}
       scroll={{ x: 1200 }}
       columns={[
         {
-          title: 'Time',
-          dataIndex: 'created_at',
-          width: 150,
+          title: 'Time', dataIndex: 'created_at', width: 150,
           render: (d) => d ? new Date(d).toLocaleString() : '—'
         },
         {
-          title: 'Activity',
-          dataIndex: 'activity_type',
-          width: 180,
+          title: 'Activity', dataIndex: 'activity_type', width: 180,
           render: (t) => (
             <Space>
               <span style={{ fontSize: 16 }}>{getActivityIcon(t)}</span>
-              <Tag color={getActivityColor(t)}>
-                {t?.replace(/_/g, ' ').toUpperCase()}
-              </Tag>
+              <Tag color={getActivityColor(t)}>{t?.replace(/_/g, ' ').toUpperCase() || '—'}</Tag>
             </Space>
           )
         },
         {
-          title: 'User',
-          dataIndex: 'user_name',
-          width: 200,
+          title: 'User', dataIndex: 'user_name', width: 200,
           render: (name, r) => (
             <a onClick={() => onUserClick && r.user_id && onUserClick(r.user_id)}>
-              <div>
-                <div>{name || 'System'}</div>
-                <div style={{ fontSize: 11, color: '#888' }}>{r.user_email}</div>
-              </div>
+              <div>{name || 'System'}</div>
+              <div style={{ fontSize: 11, color: '#888' }}>{r.user_email}</div>
             </a>
           )
         },
         {
-          title: 'Context',
-          key: 'context',
-          width: 180,
+          title: 'Context', key: 'context', width: 180,
           render: (_, r) => (
             <div>
               {r.company_name && <div style={{ fontSize: 12 }}><BuildOutlined /> {r.company_name}</div>}
@@ -835,16 +892,9 @@ export const ActivityTable = ({ activities, loading, pagination, onPageChange, o
             </div>
           )
         },
+        { title: 'Description', dataIndex: 'description', ellipsis: true, render: (d) => d || '—' },
         {
-          title: 'Description',
-          dataIndex: 'description',
-          ellipsis: true,
-          render: (d) => d || '—'
-        },
-        {
-          title: 'IP / Device',
-          dataIndex: 'ip_address',
-          width: 150,
+          title: 'IP / Device', dataIndex: 'ip_address', width: 150,
           render: (ip, r) => (
             <div>
               <div style={{ fontSize: 12 }}>{ip || '—'}</div>
@@ -853,22 +903,17 @@ export const ActivityTable = ({ activities, loading, pagination, onPageChange, o
           )
         },
         {
-          title: 'Status',
-          dataIndex: 'status',
-          width: 100,
-          render: (s) => <Badge status={getStatusBadge(s)} text={s?.toUpperCase()} />
+          title: 'Status', dataIndex: 'status', width: 100,
+          render: (s) => <Badge status={getStatusBadge(s)} text={s?.toUpperCase() || '—'} />
         },
         {
-          title: 'Severity',
-          dataIndex: 'severity',
-          width: 100,
+          title: 'Severity', dataIndex: 'severity', width: 100,
           render: (s) => s ? <Tag color={getSeverityColor(s)}>{s.toUpperCase()}</Tag> : '—'
         }
       ]}
     />
   );
 };
-
 
 // ============================================
 // 13. USER DRILL-DOWN DRAWER
@@ -889,8 +934,12 @@ export const UserDrillDownDrawer = ({ visible, userId, onClose }) => {
         SafetyProService.getUserDetails(userId),
         SafetyProService.getPlatformActivity({ user_id: userId, page: 1, limit: 50 })
       ]);
-      if (userRes?.data) setUser(userRes.data);
-      if (activityRes?.data) setActivities(activityRes.data);
+      
+      const userData = unwrap(userRes) || userRes;
+      const activityData = unwrap(activityRes) || activityRes;
+      
+      if (userData) setUser(userData);
+      setActivities(safeArray(activityData));
     } catch (e) {
       console.error(e);
     } finally {
@@ -900,19 +949,16 @@ export const UserDrillDownDrawer = ({ visible, userId, onClose }) => {
 
   return (
     <Drawer
-      title={user ? `${user.name} - Activity` : 'User Activity'}
-      placement="right"
-      width={700}
-      open={visible}
-      onClose={onClose}
+      title={user ? `${user.name || user.email} - Activity` : 'User Activity'}
+      placement="right" width={700} open={visible} onClose={onClose}
     >
       {user && (
         <>
           <Descriptions bordered column={2} size="small" style={{ marginBottom: 16 }}>
-            <Descriptions.Item label="Name" span={2}>{user.name}</Descriptions.Item>
-            <Descriptions.Item label="Email" span={2}>{user.email}</Descriptions.Item>
-            <Descriptions.Item label="Type">{user.user_type}</Descriptions.Item>
-            <Descriptions.Item label="Plan">{user.subscription_plan}</Descriptions.Item>
+            <Descriptions.Item label="Name" span={2}>{user.name || '—'}</Descriptions.Item>
+            <Descriptions.Item label="Email" span={2}>{user.email || '—'}</Descriptions.Item>
+            <Descriptions.Item label="Type">{user.user_type || '—'}</Descriptions.Item>
+            <Descriptions.Item label="Plan">{user.subscription_plan || '—'}</Descriptions.Item>
             <Descriptions.Item label="Status">
               <Badge status={user.is_active ? 'success' : 'default'} text={user.is_active ? 'Active' : 'Inactive'} />
             </Descriptions.Item>
@@ -924,15 +970,16 @@ export const UserDrillDownDrawer = ({ visible, userId, onClose }) => {
             size="small"
             loading={loading}
             dataSource={activities}
+            rowKey={(item) => item.id || `${item.created_at}-${item.activity_type}`}
             renderItem={(item) => (
               <List.Item>
                 <List.Item.Meta
-                  title={item.activity_type?.replace(/_/g, ' ')}
+                  title={item.activity_type?.replace(/_/g, ' ') || 'Event'}
                   description={
                     <div>
                       <div style={{ fontSize: 12 }}>{item.description || '—'}</div>
                       <div style={{ fontSize: 11, color: '#888' }}>
-                        {new Date(item.created_at).toLocaleString()}
+                        {item.created_at ? new Date(item.created_at).toLocaleString() : '—'}
                       </div>
                     </div>
                   }
