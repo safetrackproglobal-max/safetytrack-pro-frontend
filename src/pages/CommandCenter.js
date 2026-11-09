@@ -18,15 +18,22 @@ import {
   GeographicDistribution,
   ActivityFilterBar,
   ActivityTable,
-  UserDrillDownDrawer
+  UserDrillDownDrawer,
+  ActivityDetailDrawer // <-- NEW IMPORT
 } from '../components/CommandCenterWidgets';
 
 const CommandCenter = () => {
   const [activities, setActivities] = useState([]);
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(false);
+  
+  // User Drill-Down State
   const [drawerUserId, setDrawerUserId] = useState(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
+
+  // Activity Detail State (NEW)
+  const [selectedActivity, setSelectedActivity] = useState(null);
+
   const [filters, setFilters] = useState({
     activity_type: '', category: '', status: '', severity: '',
     search: '', start_date: '', end_date: ''
@@ -191,6 +198,7 @@ const CommandCenter = () => {
           pagination={pagination}
           onPageChange={fetchActivity}
           onUserClick={handleUserClick}
+          onViewDetail={(record) => setSelectedActivity(record)} // <-- NEW WIRING
         />
       </Card>
 
@@ -199,6 +207,12 @@ const CommandCenter = () => {
         visible={drawerVisible}
         userId={drawerUserId}
         onClose={() => setDrawerVisible(false)}
+      />
+
+      {/* Activity Detail Drawer (NEW) */}
+      <ActivityDetailDrawer
+        activity={selectedActivity}
+        onClose={() => setSelectedActivity(null)}
       />
     </div>
   );
