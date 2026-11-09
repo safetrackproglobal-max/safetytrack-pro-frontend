@@ -49,7 +49,7 @@ import ContactTeamPage from './pages/ContactTeamPage';
 import CommandCenter from './pages/CommandCenter';
 import InfoPage from './pages/InfoPage';
 import About from './pages/About';
-
+import AcceptTermsPage from './pages/AcceptTermsPage';
 // Dashboard Pages - Role Based
 import EmployeeDashboard from './pages/Dashboard/EmployeeDashboard';
 import UserDashboard from './pages/Dashboard/UserDashboard';
@@ -338,15 +338,19 @@ const SmartDashboardRedirect = () => {
     email: userData?.email
   });
 
-  if (requiresVerification || (userData && !userData.verified)) {
-    console.log('📧 Requires verification → /verify-email');
-    return <Redirect to="/verify-email" />;
-  }
+  // ✅ Consent FIRST — must be checked before verified
+if (stage === 'needs_consent') {
+  console.log('📜 needs_consent → /accept-terms');
+  return <Redirect to="/accept-terms" />;
+}
 
-  if (stage === 'needs_plan' || requiresPlanSelection) {
-    console.log('📋 needs_plan → /select-plan');
-    return <Redirect to="/select-plan" />;
-  }
+// ✅ Only block on verification when explicitly false
+if (requiresVerification || userData?.verified === false) {
+  console.log('📧 Requires verification → /verify-email');
+  return <Redirect to="/verify-email" />;
+}
+
+if (stage === 'needs_plan' || requiresPlanSelection) {
 
   if (stage === 'needs_payment' || requiresPayment) {
     console.log('💳 needs_payment → /payment');
@@ -550,16 +554,23 @@ const AppContent = () => {
           </ProtectedRoute>
 
           <ProtectedRoute path="/company-setup" exact>
-            <MainLayoutWrapper>
-              <CompanySetup />
-            </MainLayoutWrapper>
-          </ProtectedRoute>
+  <MainLayoutWrapper>
+    <CompanySetup />
+  </MainLayoutWrapper>
+</ProtectedRoute>
 
-          <ProtectedRoute path="/payment-waiting">
-            <MainLayoutWrapper>
-              <PaymentWaitingPage />
-            </MainLayoutWrapper>
-          </ProtectedRoute>
+{/* ✅ NEW: Accept Terms (consent re-acceptance) */}
+<ProtectedRoute path="/accept-terms" exact>
+  <MainLayoutWrapper>
+    <AcceptTermsPage />
+  </MainLayoutWrapper>
+</ProtectedRoute>
+
+<ProtectedRoute path="/payment-waiting">
+  <MainLayoutWrapper>
+    <PaymentWaitingPage />
+  </MainLayoutWrapper>
+</ProtectedRoute>
 
           <ProtectedRoute path="/select-plan" exact>
             <MainLayoutWrapper>
