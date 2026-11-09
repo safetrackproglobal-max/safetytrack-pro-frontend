@@ -232,37 +232,42 @@ function LoginPage() {
   // GET DASHBOARD PATH
   // ============================================
   const getDashboardPath = (userData, stage) => {
-    const email = userData?.email || '';
-    const userType = userData?.user_type || '';
-    
-    console.log('🔍 Determining dashboard for:', { email, userType, stage });
-    
-    if (stage === 'needs_plan' || stage === 'needs_payment') {
-      return null;
+  const email = userData?.email || '';
+  const userType = userData?.user_type || '';
+
+  console.log('🔍 Determining dashboard for:', { email, userType, stage });
+
+  // ✅ Consent gate — must come before any stage check
+  if (stage === 'needs_consent') {
+    return '/accept-terms';
+  }
+
+  if (stage === 'needs_plan' || stage === 'needs_payment') {
+    return null;
+  }
+
+  if (stage === 'needs_approval') {
+    return '/pending-approval';
+  }
+
+  if (stage === 'needs_company_setup') {
+    return '/company-setup';
+  }
+
+  if (stage === 'complete') {
+    if (isSuperAdmin(email, userType) || isSafetyPro(email, userType)) {
+      return '/safetypro/dashboard';
     }
-    
-    if (stage === 'needs_approval') {
-      return '/pending-approval';
+    if (isAdminUser(email, userType)) {
+      return '/admin/dashboard';
     }
-    
-    if (stage === 'needs_company_setup') {
-      return '/company-setup';
+    if (isEmployee(email, userType)) {
+      return '/employee/dashboard';
     }
-    
-    if (stage === 'complete') {
-      if (isSuperAdmin(email, userType) || isSafetyPro(email, userType)) {
-        return '/safetypro/dashboard';
-      }
-      if (isAdminUser(email, userType)) {
-        return '/admin/dashboard';
-      }
-      if (isEmployee(email, userType)) {
-        return '/employee/dashboard';
-      }
-    }
-    
-    return '/dashboard';
-  };
+  }
+
+  return '/dashboard';
+};
 
   // ============================================
   // ✅ SHOW STAGE MODAL
@@ -351,149 +356,171 @@ function LoginPage() {
   // LOGIN HANDLERS
   // ============================================
   const handleUserLogin = async (values) => {
-    setLoading(true);
-    setError('');
+  setLoading(true);
+  setError('');
 
-    try {
-      const loginData = {
-        email: values.email.trim().toLowerCase(),
-        password: values.password,
-        user_type: activeTab === 'employee' ? 'employee' : activeTab
-      };
+  try {
+    const loginData = {
+      email: values.email.trim().toLowerCase(),
+      password: values.password,
+      user_type: activeTab === 'employee' ? 'employee' : activeTab
+    };
 
-      console.log('🔑 Login payload:', loginData);
+    console.log('🔑 Login payload:', loginData);
 
-      const result = await login(loginData);
-      
-      console.log('📥 Login result:', result);
-      
-      if (result.success) {
-        const userData = result.user || {};
-        const stage = result.stage || 'complete';
-        const requiresPayment = result.requires_payment || false;
-        const requiresPlanSelection = result.requires_plan_selection || false;
-        
-        console.log(`📊 User stage: ${stage}`);
-        console.log(`📊 Requires plan selection: ${requiresPlanSelection}`);
-        console.log(`📊 Requires payment: ${requiresPayment}`);
-        
-        if (userData.preferred_language) {
-          await changeLanguage(userData.preferred_language);
-          localStorage.setItem('preferredLanguage', userData.preferred_language);
-        }
-        
-        // ✅ Check stage and show appropriate modal
-        if (stage === 'needs_plan' || requiresPlanSelection) {
-          console.log('📋 Showing plan selection modal...');
-          setShowStageModal(false);
-          setUserData(userData);
-          setIsAdmin(isAdminUser(userData?.email, userData?.user_type));
-          setShowPlanModal(true);
-          setLoading(false);
-          return;
-        }
-        
-        if (stage === 'needs_payment' || requiresPayment) {
-          console.log('💳 Showing payment modal...');
-          setShowStageModal(false);
-          setUserData(userData);
-          setIsAdmin(isAdminUser(userData?.email, userData?.user_type));
-          setShowPlanModal(true);
-          setLoading(false);
-          return;
-        }
-        
-        if (stage === 'needs_approval') {
-          console.log('⏳ Showing approval pending modal...');
-          showStageModalWithData(stage, userData);
-          setLoginStage(stage);
-          setLoading(false);
-          return;
-        }
-        
-        if (stage === 'needs_company_setup') {
-          console.log('🏢 Redirecting to company setup...');
-          showStageModalWithData(stage, userData);
-          setLoginStage(stage);
-          setLoading(false);
-          return;
-        }
-        
-        // ✅ Stage is 'complete' - redirect to dashboard
-        const dashboardPath = getDashboardPath(userData, stage);
-        console.log(`🚀 Redirecting to dashboard: ${dashboardPath}`);
-        message.success('Login successful!');
-        history.push(dashboardPath);
-        
-      } else {
-        if (result.needsVerification) {
-          setShowVerification(true);
-          setCurrentEmail(values.email);
-        }
-        setError(result.error || 'Login failed');
-        message.error(result.error || 'Login failed');
+    const result = await login(loginData);
+
+    console.log('📥 Login result:', result);
+
+    if (result.success) {
+      const userData = result.user || {};
+      const stage = result.stage || 'complete';
+      const requiresPayment = result.requires_payment || false;
+      const requiresPlanSelection = result.requires_plan_selection || false;
+
+      console.log(`📊 User stage: ${stage}`);
+      console.log(`📊 Requires plan selection: ${requiresPlanSelection}`);
+      console.log(`📊 Requires payment: ${requiresPayment}`);
+
+      if (userData.preferred_language) {
+        await changeLanguage(userData.preferred_language);
+        localStorage.setItem('preferredLanguage', userData.preferred_language);
       }
-    } catch (err) {
-      console.error('❌ Login error:', err);
-      setError('Login failed. Please try again.');
-      message.error('Login failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const handleEmployeeLogin = async (values) => {
-    setLoading(true);
-    setError('');
-
-    try {
-      const loginData = {
-        email: values.email.trim().toLowerCase(),
-        password: values.password,
-        user_type: 'employee'
-      };
-
-      console.log('🔑 Employee login payload:', loginData);
-
-      const result = await login(loginData);
-      
-      if (result.success) {
-        const userData = result.user || {};
-        const stage = result.stage || 'complete';
-        
-        if (userData.preferred_language) {
-          await changeLanguage(userData.preferred_language);
-          localStorage.setItem('preferredLanguage', userData.preferred_language);
-        }
-        
-        if (stage === 'needs_plan' || stage === 'needs_payment') {
-          setUserData(userData);
-          setIsAdmin(false);
-          setShowPlanModal(true);
-          setLoading(false);
-          return;
-        }
-        
-        message.success('Employee login successful!');
-        const dashboardPath = getDashboardPath(userData, stage);
-        history.push(dashboardPath);
-        
-      } else {
-        if (result.needsVerification) {
-          setShowVerification(true);
-          setCurrentEmail(values.email);
-        }
-        setError(result.error || 'Employee login failed');
-        message.error(result.error || 'Employee login failed');
+      // ✅ NEW: Handle needs_consent FIRST — before plan/payment/approval checks
+      if (stage === 'needs_consent') {
+        console.log('📜 User needs to accept new terms — redirecting to /accept-terms');
+        message.info('Please review and accept our updated terms to continue.');
+        setLoading(false);
+        history.push('/accept-terms');
+        return;
       }
-    } catch (err) {
-      console.error('❌ Employee login error:', err);
-      setError('Employee login failed. Please try again.');
-      message.error('Employee login failed. Please try again.');
-    } finally {
-      setLoading(false);
+
+      // Plan selection
+      if (stage === 'needs_plan' || requiresPlanSelection) {
+        console.log('📋 Showing plan selection modal...');
+        setShowStageModal(false);
+        setUserData(userData);
+        setIsAdmin(isAdminUser(userData?.email, userData?.user_type));
+        setShowPlanModal(true);
+        setLoading(false);
+        return;
+      }
+
+      // Payment
+      if (stage === 'needs_payment' || requiresPayment) {
+        console.log('💳 Showing payment modal...');
+        setShowStageModal(false);
+        setUserData(userData);
+        setIsAdmin(isAdminUser(userData?.email, userData?.user_type));
+        setShowPlanModal(true);
+        setLoading(false);
+        return;
+      }
+
+      // Approval pending
+      if (stage === 'needs_approval') {
+        console.log('⏳ Showing approval pending modal...');
+        showStageModalWithData(stage, userData);
+        setLoginStage(stage);
+        setLoading(false);
+        return;
+      }
+
+      // Company setup
+      if (stage === 'needs_company_setup') {
+        console.log('🏢 Redirecting to company setup...');
+        showStageModalWithData(stage, userData);
+        setLoginStage(stage);
+        setLoading(false);
+        return;
+      }
+
+      // ✅ Complete — route to the right dashboard
+      const dashboardPath = getDashboardPath(userData, stage);
+      console.log(`🚀 Redirecting to dashboard: ${dashboardPath}`);
+      message.success('Login successful!');
+      history.push(dashboardPath);
+
+    } else {
+      if (result.needsVerification) {
+        setShowVerification(true);
+        setCurrentEmail(values.email);
+      }
+      setError(result.error || 'Login failed');
+      message.error(result.error || 'Login failed');
     }
-  };
+  } catch (err) {
+    console.error('❌ Login error:', err);
+    setError('Login failed. Please try again.');
+    message.error('Login failed. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
+
+const handleEmployeeLogin = async (values) => {
+  setLoading(true);
+  setError('');
+
+  try {
+    const loginData = {
+      email: values.email.trim().toLowerCase(),
+      password: values.password,
+      user_type: 'employee'
+    };
+
+    console.log('🔑 Employee login payload:', loginData);
+
+    const result = await login(loginData);
+
+    if (result.success) {
+      const userData = result.user || {};
+      const stage = result.stage || 'complete';
+
+      if (userData.preferred_language) {
+        await changeLanguage(userData.preferred_language);
+        localStorage.setItem('preferredLanguage', userData.preferred_language);
+      }
+
+      // ✅ NEW: Handle needs_consent for employees too
+      if (stage === 'needs_consent') {
+        console.log('📜 Employee needs to accept new terms — redirecting to /accept-terms');
+        message.info('Please review and accept our updated terms to continue.');
+        setLoading(false);
+        history.push('/accept-terms');
+        return;
+      }
+
+      // Plan / payment
+      if (stage === 'needs_plan' || stage === 'needs_payment') {
+        setUserData(userData);
+        setIsAdmin(false);
+        setShowPlanModal(true);
+        setLoading(false);
+        return;
+      }
+
+      message.success('Employee login successful!');
+      const dashboardPath = getDashboardPath(userData, stage);
+      history.push(dashboardPath);
+
+    } else {
+      if (result.needsVerification) {
+        setShowVerification(true);
+        setCurrentEmail(values.email);
+      }
+      setError(result.error || 'Employee login failed');
+      message.error(result.error || 'Employee login failed');
+    }
+  } catch (err) {
+    console.error('❌ Employee login error:', err);
+    setError('Employee login failed. Please try again.');
+    message.error('Employee login failed. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleSubmit = async (values) => {
     if (activeTab === 'employee') {
