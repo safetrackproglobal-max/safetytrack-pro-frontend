@@ -713,64 +713,116 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ==================== ACCEPT TERMS (re-consent) ====================
-  const acceptTerms = async ({
-    termsAccepted,
-    eConsent,
-    dpaAccepted,
-    marketingConsent,
-  }) => {
-    try {
-      const res = await apiCall('/auth/accept-consent', {
-        method: 'POST',
-        data: {
-          terms_version: TERMS_VERSION,
-          terms_accepted: termsAccepted === true,
-          privacy_version: PRIVACY_VERSION,
-          privacy_accepted: termsAccepted === true,
-          e_consent: eConsent === true,
-          dpa_version: ['admin', 'company_admin'].includes(user?.user_type)
-            ? DPA_VERSION
-            : null,
-          dpa_accepted: dpaAccepted === true,
-          marketing_consent: marketingConsent === true,
-          client_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          client_locale: navigator.language,
-        },
-        validateStatus: () => true,
-      });
+  // ==================== ACCEPT TERMS (re-consent) ====================
+const acceptTerms = async ({
+  termsAccepted,
+  eConsent,
+  dpaAccepted,
+  marketingConsent,
+}) => {
+  try {
+    const res = await apiCall('/auth/accept-consent', {
+      method: 'POST',
+      data: {
+        terms_version: TERMS_VERSION,
+        terms_accepted: termsAccepted === true,
+        privacy_version: PRIVACY_VERSION,
+        privacy_accepted: termsAccepted === true,
+        e_consent: eConsent === true,
+        dpa_version: ['admin', 'company_admin'].includes(user?.user_type)
+          ? DPA_VERSION
+          : null,
+        dpa_accepted: dpaAccepted === true,
+        marketing_consent: marketingConsent === true,
+        client_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        client_locale: navigator.language,
+      },
+      validateStatus: () => true,
+    });
 
-      if (res?.success) {
-        const updatedUser = {
-          ...user,
-          terms_version_accepted: TERMS_VERSION,
-          privacy_version_accepted: PRIVACY_VERSION,
-          dpa_version_accepted: dpaAccepted ? DPA_VERSION : user?.dpa_version_accepted,
-          e_consent_given: eConsent === true,
-          marketing_consent: marketingConsent === true,
-          needs_consent: false,
-        };
-        setUser(updatedUser);
-
-        const storage = localStorage.getItem('authToken') ? localStorage : sessionStorage;
-        storage.setItem('user', JSON.stringify(updatedUser));
-        storage.removeItem('userStage');
-        storage.removeItem('requires_consent');
-
-        return { success: true };
-      }
-
+    if (!res?.success) {
       return {
         success: false,
         error: res?.error || 'Failed to record consent',
         missing_consents: res?.missing_consents || [],
       };
-    } catch (error) {
+    }
+
+    // ✅ 1. Backend returns a NEW token after consent — capture it
+    const newToken =
+      res.token || res.access_token || user?.token || token;
+
+    if (!newToken) {
+      console.error('acceptTerms: server accepted consent but returned no token');
       return {
         success: false,
-        error: error.response?.data?.error || error.message || 'Consent request failed',
+        error: 'Server did not return a token after consent — please log in again.',
       };
     }
-  };
+
+    const cleanToken = String(newToken).replace(/['"]/g, '').trim();
+
+    // ✅ 2. Update state
+    setToken(cleanToken);
+    tokenRef.current = cleanToken;
+    api.defaults.headers.common['Authorization'] = `Bearer ${cleanToken}`;
+
+    // ✅ 3. Rebuild the user object with new consents, cleared needs_consent,
+    //    and stage = 'complete' so guards stop bouncing
+    const updatedUser = {
+      ...user,
+      ...(res.user || {}),
+      terms_version_accepted: res.user?.terms_version || TERMS_VERSION,
+      privacy_version_accepted: res.user?.privacy_version || PRIVACY_VERSION,
+      dpa_version_accepted: dpaAccepted
+        ? DPA_VERSION
+        : res.user?.dpa_version || user?.dpa_version_accepted,
+      e_consent_given: eConsent === true,
+      marketing_consent: marketingConsent === true,
+      needs_consent: false,
+      stage: 'complete',
+      token: cleanToken,
+    };
+
+    setUser(updatedUser);
+    setPlanData(getPlanDataFromUser(updatedUser));
+
+    // ✅ 4. Persist to the correct storage (whichever had the token)
+    const storage = localStorage.getItem('authToken') ? localStorage : sessionStorage;
+    storage.setItem('authToken', cleanToken);
+    storage.setItem('token', cleanToken);
+    storage.setItem('user', JSON.stringify(updatedUser));
+    storage.setItem('userStage', 'complete');
+    storage.setItem('redirect_to', '/dashboard');
+    storage.setItem('requires_consent', 'false');
+    storage.removeItem('requires_approval');
+    storage.removeItem('requires_payment');
+    storage.removeItem('requires_plan_selection');
+
+    // Refresh token expiry if the server sent a new TTL
+    if (res.expires_in) {
+      const expiry = new Date(Date.now() + res.expires_in * 1000);
+      storage.setItem('token_expiry', expiry.toISOString());
+    }
+
+    return {
+      success: true,
+      user: updatedUser,
+      token: cleanToken,
+      stage: 'complete',
+      redirect_to: res.redirect_to || '/dashboard',
+    };
+  } catch (error) {
+    console.error('acceptTerms error:', error);
+    return {
+      success: false,
+      error:
+        error.response?.data?.error ||
+        error.message ||
+        'Consent request failed',
+    };
+  }
+};
 
   // ==================== MFA VERIFY ====================
   const verifyMfa = async (mfaToken, code) => {
