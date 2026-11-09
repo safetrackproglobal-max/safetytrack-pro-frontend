@@ -140,13 +140,10 @@ export const LiveActivityFeed = ({ refreshInterval = 10000 }) => {
     setLoading(true);
     try {
       const res = await SafetyProService.getPlatformActivity({ page: 1, limit: 20 });
-      console.log('[LiveActivityFeed] Raw response:', res);
       
-      // Backend returns {data: {activities: [...], pagination: {...}}} or {data: [...]}
       const payload = unwrap(res);
       const list = safeArray(payload) || safeArray(res?.data) || safeArray(res);
       
-      console.log('[LiveActivityFeed] Extracted list:', list);
       setActivities(list);
     } catch (e) {
       console.error('[LiveActivityFeed] Error:', e);
@@ -238,12 +235,10 @@ export const ActiveSessionsPanel = () => {
     setLoading(true);
     try {
       const res = await SafetyProService.getActiveSessions();
-      console.log('[ActiveSessions] Raw response:', res);
       
       const payload = unwrap(res);
       const list = safeArray(payload) || safeArray(res?.data) || safeArray(res);
       
-      console.log('[ActiveSessions] Extracted list:', list);
       setSessions(list);
     } catch (e) {
       console.error('[ActiveSessions] Error:', e);
@@ -311,12 +306,10 @@ export const SecurityAlertsPanel = () => {
     setLoading(true);
     try {
       const res = await SafetyProService.getSecurityEvents();
-      console.log('[SecurityAlerts] Raw response:', res);
       
       const payload = unwrap(res);
       const list = safeArray(payload) || safeArray(res?.data) || safeArray(res);
       
-      console.log('[SecurityAlerts] Extracted list:', list);
       setEvents(list);
     } catch (e) {
       console.error('[SecurityAlerts] Error:', e);
@@ -383,7 +376,6 @@ export const ActivityChart = () => {
     setLoading(true);
     try {
       const res = await SafetyProService.getActivityChart(7);
-      console.log('[ActivityChart] Raw response:', res);
       
       const payload = unwrap(res);
       const list = safeArray(payload) || safeArray(res?.data) || safeArray(res);
@@ -394,7 +386,6 @@ export const ActivityChart = () => {
         count: Number(d.count ?? d.total ?? d.value ?? d.events ?? 0),
       }));
       
-      console.log('[ActivityChart] Normalized:', normalized);
       setData(normalized);
     } catch (e) {
       console.error('[ActivityChart] Error:', e);
@@ -458,11 +449,8 @@ export const PlatformHealth = () => {
     setLoading(true);
     try {
       const res = await SafetyProService.getSystemHealth();
-      console.log('[PlatformHealth] Raw response:', res);
       
-      // Could be {data: {api: {...}, database: {...}}} OR {api: {...}}
       const payload = unwrap(res) || res;
-      console.log('[PlatformHealth] Extracted health:', payload);
       setHealth(payload || {});
     } catch (e) {
       console.error('[PlatformHealth] Error:', e);
@@ -477,22 +465,18 @@ export const PlatformHealth = () => {
   const getStatusTag = (item) => {
     if (!item) return <Tag color="default">Unknown</Tag>;
     
-    // Boolean healthy flag
     if (item.healthy === true) return <Tag color="green">Healthy</Tag>;
     if (item.healthy === false) return <Tag color="red">Unhealthy</Tag>;
     
-    // String status
     const s = item.status?.toLowerCase?.();
     if (s === 'healthy' || s === 'connected' || s === 'ok' || s === 'up' || s === 'online')
       return <Tag color="green">Healthy</Tag>;
     if (s === 'unhealthy' || s === 'disconnected' || s === 'error' || s === 'down' || s === 'offline')
       return <Tag color="red">Unhealthy</Tag>;
     
-    // The item itself is a boolean
     if (item === true) return <Tag color="green">Healthy</Tag>;
     if (item === false) return <Tag color="red">Unhealthy</Tag>;
     
-    // String directly
     if (typeof item === 'string') {
       if (item.toLowerCase() === 'healthy' || item.toLowerCase() === 'ok')
         return <Tag color="green">Healthy</Tag>;
@@ -549,12 +533,10 @@ export const TopActiveUsers = () => {
     setLoading(true);
     try {
       const res = await SafetyProService.getTopActiveUsers(7);
-      console.log('[TopActiveUsers] Raw response:', res);
       
       const payload = unwrap(res);
       const list = safeArray(payload) || safeArray(res?.data) || safeArray(res);
       
-      console.log('[TopActiveUsers] Extracted list:', list);
       setUsers(list);
     } catch (e) {
       console.error('[TopActiveUsers] Error:', e);
@@ -617,12 +599,10 @@ export const RecentErrors = () => {
     setLoading(true);
     try {
       const res = await SafetyProService.getRecentErrors();
-      console.log('[RecentErrors] Raw response:', res);
       
       const payload = unwrap(res);
       const list = safeArray(payload) || safeArray(res?.data) || safeArray(res);
       
-      console.log('[RecentErrors] Extracted list:', list);
       setErrors(list);
     } catch (e) {
       console.error('[RecentErrors] Error:', e);
@@ -680,12 +660,10 @@ export const GeographicDistribution = () => {
     setLoading(true);
     try {
       const res = await SafetyProService.getGeographicDistribution(30);
-      console.log('[GeoDistribution] Raw response:', res);
       
       const payload = unwrap(res);
       const list = safeArray(payload) || safeArray(res?.data) || safeArray(res);
       
-      console.log('[GeoDistribution] Extracted list:', list);
       setData(list);
     } catch (e) {
       console.error('[GeoDistribution] Error:', e);
@@ -818,7 +796,7 @@ export const ActivityFilterBar = ({ filters, setFilters, onApply, showDateRange 
 // ============================================
 // 12. ACTIVITY TABLE + USER DRILL-DOWN
 // ============================================
-export const ActivityTable = ({ activities, loading, pagination, onPageChange, onUserClick }) => {
+export const ActivityTable = ({ activities, loading, pagination, onPageChange, onUserClick, onViewDetail }) => {
   const getActivityIcon = (type) => ({
     login: '🔓', logout: '🔒', failed_login: '⚠️', signup: '✨',
     password_reset: '🔑', data_access: '👁️', data_export: '📤',
@@ -859,7 +837,7 @@ export const ActivityTable = ({ activities, loading, pagination, onPageChange, o
         showSizeChanger: false,
         onChange: onPageChange
       }}
-      scroll={{ x: 1200 }}
+      scroll={{ x: 1400 }}
       columns={[
         {
           title: 'Time', dataIndex: 'created_at', width: 150,
@@ -909,6 +887,21 @@ export const ActivityTable = ({ activities, loading, pagination, onPageChange, o
         {
           title: 'Severity', dataIndex: 'severity', width: 100,
           render: (s) => s ? <Tag color={getSeverityColor(s)}>{s.toUpperCase()}</Tag> : '—'
+        },
+        {
+          title: 'Action',
+          key: 'action',
+          width: 80,
+          fixed: 'right',
+          render: (_, record) => (
+            <Button 
+              type="primary" 
+              ghost 
+              size="small" 
+              icon={<EyeOutlined />} 
+              onClick={() => onViewDetail && onViewDetail(record)} 
+            />
+          )
         }
       ]}
     />
@@ -988,6 +981,84 @@ export const UserDrillDownDrawer = ({ visible, userId, onClose }) => {
             )}
           />
         </>
+      )}
+    </Drawer>
+  );
+};
+
+// ============================================
+// 14. ACTIVITY DETAIL DRAWER (INVESTIGATION)
+// ============================================
+export const ActivityDetailDrawer = ({ activity, onClose }) => {
+  if (!activity) return null;
+
+  return (
+    <Drawer
+      title={<Space><EyeOutlined /> Activity Detail</Space>}
+      placement="right"
+      width={600}
+      open={!!activity}
+      onClose={onClose}
+    >
+      <Descriptions bordered column={1} size="small">
+        <Descriptions.Item label="Time">
+          {new Date(activity.created_at).toLocaleString()}
+        </Descriptions.Item>
+        <Descriptions.Item label="Activity">
+          <Tag color={activity.severity === 'high' ? 'red' : 'blue'}>
+            {activity.activity_type?.replace(/_/g, ' ').toUpperCase()}
+          </Tag>
+        </Descriptions.Item>
+        <Descriptions.Item label="User">
+          {activity.user_name} ({activity.user_email})
+        </Descriptions.Item>
+        <Descriptions.Item label="Context">
+          {activity.company_name || 'N/A'} 
+          {activity.hospital_name && ` • ${activity.hospital_name}`}
+        </Descriptions.Item>
+        <Descriptions.Item label="Description">
+          <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+            {activity.description || '—'}
+          </div>
+        </Descriptions.Item>
+        <Descriptions.Item label="IP Address">
+          {activity.ip_address || '—'}
+        </Descriptions.Item>
+        <Descriptions.Item label="Device">
+          {activity.device_type || '—'}
+        </Descriptions.Item>
+        <Descriptions.Item label="User Agent">
+          <div style={{ fontSize: 12, color: '#666' }}>
+            {activity.user_agent || '—'}
+          </div>
+        </Descriptions.Item>
+        <Descriptions.Item label="Location">
+          {activity.location || '—'}
+        </Descriptions.Item>
+        <Descriptions.Item label="Status">
+          <Badge status={activity.status === 'success' ? 'success' : 'error'} text={activity.status?.toUpperCase()} />
+        </Descriptions.Item>
+        <Descriptions.Item label="Severity">
+          <Tag color={activity.severity === 'critical' ? 'magenta' : 'green'}>
+            {activity.severity?.toUpperCase()}
+          </Tag>
+        </Descriptions.Item>
+      </Descriptions>
+
+      <Divider orientation="left">Raw JSON Payload (extra_data)</Divider>
+      {activity.extra_data ? (
+        <pre style={{ 
+          background: '#f5f5f5', 
+          padding: 12, 
+          borderRadius: 4, 
+          maxHeight: 300, 
+          overflow: 'auto',
+          fontSize: 12 
+        }}>
+          {JSON.stringify(activity.extra_data, null, 2)}
+        </pre>
+      ) : (
+        <Empty description="No extra data" image={Empty.PRESENTED_IMAGE_SIMPLE} />
       )}
     </Drawer>
   );
