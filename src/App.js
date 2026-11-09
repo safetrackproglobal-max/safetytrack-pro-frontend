@@ -325,7 +325,6 @@ const SmartDashboardRedirect = () => {
   const requiresPlanSelection = userData?.requires_plan_selection || localStorage.getItem('requires_plan_selection') === 'true';
   const needsApproval = userData?.needs_approval || localStorage.getItem('requires_approval') === 'true';
   const requiresCompanySetup = userData?.requires_company_setup || localStorage.getItem('requires_company_setup') === 'true';
-  const requiresVerification = userData?.requires_verification || localStorage.getItem('requires_verification') === 'true';
 
   console.log('🔍 SmartDashboardRedirect:', {
     stage,
@@ -333,24 +332,27 @@ const SmartDashboardRedirect = () => {
     requiresPlanSelection,
     needsApproval,
     requiresCompanySetup,
-    requiresVerification,
+    verified: userData?.verified,
     userType: userData?.user_type,
-    email: userData?.email
+    email: userData?.email,
   });
 
-  // ✅ Consent FIRST — must be checked before verified
-if (stage === 'needs_consent') {
-  console.log('📜 needs_consent → /accept-terms');
-  return <Redirect to="/accept-terms" />;
-}
+  // ✅ STAGE-FIRST ordering — consent must come before anything else
+  if (stage === 'needs_consent') {
+    console.log('📜 needs_consent → /accept-terms');
+    return <Redirect to="/accept-terms" />;
+  }
 
-// ✅ Only block on verification when explicitly false
-if (requiresVerification || userData?.verified === false) {
-  console.log('📧 Requires verification → /verify-email');
-  return <Redirect to="/verify-email" />;
-}
+  // ✅ Only block on verification when explicitly false (not undefined)
+  if (userData?.verified === false) {
+    console.log('📧 Requires verification → /verify-email');
+    return <Redirect to="/verify-email" />;
+  }
 
-if (stage === 'needs_plan' || requiresPlanSelection) {
+  if (stage === 'needs_plan' || requiresPlanSelection) {
+    console.log('📋 needs_plan → /select-plan');
+    return <Redirect to="/select-plan" />;
+  }
 
   if (stage === 'needs_payment' || requiresPayment) {
     console.log('💳 needs_payment → /payment');
