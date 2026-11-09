@@ -19,7 +19,7 @@ import {
   ActivityFilterBar,
   ActivityTable,
   UserDrillDownDrawer,
-  ActivityDetailDrawer // <-- NEW IMPORT
+  ActivityDetailDrawer
 } from '../components/CommandCenterWidgets';
 
 const CommandCenter = () => {
@@ -27,11 +27,11 @@ const CommandCenter = () => {
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(false);
   
-  // User Drill-Down State
-  const [drawerUserId, setDrawerUserId] = useState(null);
+  // User Drill-Down State (UPDATED)
+  const [drawerUserRecord, setDrawerUserRecord] = useState(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
 
-  // Activity Detail State (NEW)
+  // Activity Detail State
   const [selectedActivity, setSelectedActivity] = useState(null);
 
   const [filters, setFilters] = useState({
@@ -73,8 +73,9 @@ const CommandCenter = () => {
 
   const handleRefresh = () => fetchActivity(pagination.page);
 
-  const handleUserClick = (userId) => {
-    setDrawerUserId(userId);
+  // UPDATED: Accepts the whole record, not just the ID
+  const handleUserClick = (record) => {
+    setDrawerUserRecord(record);
     setDrawerVisible(true);
   };
 
@@ -198,18 +199,18 @@ const CommandCenter = () => {
           pagination={pagination}
           onPageChange={fetchActivity}
           onUserClick={handleUserClick}
-          onViewDetail={(record) => setSelectedActivity(record)} // <-- NEW WIRING
+          onViewDetail={(record) => setSelectedActivity(record)}
         />
       </Card>
 
-      {/* Drill-Down Drawer */}
+      {/* User Drill-Down Drawer (UPDATED) */}
       <UserDrillDownDrawer
         visible={drawerVisible}
-        userId={drawerUserId}
+        userRecord={drawerUserRecord}
         onClose={() => setDrawerVisible(false)}
       />
 
-      {/* Activity Detail Drawer (NEW) */}
+      {/* Activity Detail Drawer */}
       <ActivityDetailDrawer
         activity={selectedActivity}
         onClose={() => setSelectedActivity(null)}
