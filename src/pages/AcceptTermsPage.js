@@ -10,8 +10,7 @@ import {
   TERMS_VERSION,
   PRIVACY_VERSION,
   DPA_VERSION,
-} from '../compliance/versions';
-
+} from '../constants/versions';   
 const { Title, Text, Paragraph } = Typography;
 
 export default function AcceptTermsPage() {
