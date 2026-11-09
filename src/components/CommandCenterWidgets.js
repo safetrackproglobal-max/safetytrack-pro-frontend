@@ -554,15 +554,22 @@ export const ActivityTable = ({ activities, loading, pagination, onPageChange, o
       columns={[
         { title: 'Time', dataIndex: 'created_at', width: 150, render: (d) => d ? new Date(d).toLocaleString() : '—' },
         { title: 'Activity', dataIndex: 'activity_type', width: 180, render: (t) => (<Space><span style={{ fontSize: 16 }}>{getActivityIcon(t)}</span><Tag color={getActivityColor(t)}>{t?.replace(/_/g, ' ').toUpperCase() || '—'}</Tag></Space>) },
-        {
-          title: 'User', dataIndex: 'user_name', width: 200,
-          render: (name, r) => (
-            // Always clickable, passes the whole record to the drawer
-            <a onClick={() => onUserClick && onUserClick(r)}>
-              <div>{name || 'System'}</div>
-              <div style={{ fontSize: 11, color: '#888' }}>{r.user_email || '—'}</div>
-            </a>
-          )
+                {
+          title: 'User', dataIndex: 'user_name', width: 220,
+          render: (name, r) => {
+            // Highlight anonymous users in red
+            const isAnonymous = !r.user_id;
+
+            return (
+              <a onClick={() => onUserClick && onUserClick(r)} style={{ color: isAnonymous ? '#ff4d4f' : '#1890ff' }}>
+                <div style={{ fontWeight: isAnonymous ? 600 : 400 }}>
+                  {name || 'Anonymous (No Auth)'}
+                  {r.is_suspicious && ' 🚨'}
+                </div>
+                <div style={{ fontSize: 11, color: '#888' }}>{r.user_email || r.ip_address || '—'}</div>
+              </a>
+            );
+          }
         },
         { title: 'Context', key: 'context', width: 180, render: (_, r) => (<div>{r.company_name && <div style={{ fontSize: 12 }}><BuildOutlined /> {r.company_name}</div>}{r.hospital_name && <div style={{ fontSize: 11, color: '#888' }}>{r.hospital_name}</div>}</div>) },
         { title: 'Description', dataIndex: 'description', ellipsis: true, render: (d) => d || '—' },
@@ -702,6 +709,24 @@ export const ActivityDetailDrawer = ({ activity, onClose }) => {
         <Descriptions.Item label="User">{activity.user_name || 'System'} ({activity.user_email || 'No email'})</Descriptions.Item>
         <Descriptions.Item label="Context">{activity.company_name || 'N/A'} {activity.hospital_name && ` • ${activity.hospital_name}`}</Descriptions.Item>
         <Descriptions.Item label="Description"><div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{activity.description || '—'}</div></Descriptions.Item>
+
+        {/* ✅ NEW: Target resource */}
+        <Descriptions.Item label="Target Resource">
+          {activity.resource_name || '—'}
+          {activity.resource_id && ` (ID: ${activity.resource_id})`}
+        </Descriptions.Item>
+
+        {/* ✅ NEW: Request method + URL */}
+        <Descriptions.Item label="Request">
+          <Tag color="blue">{activity.http_method || '—'}</Tag>
+          {activity.request_url || '—'}
+        </Descriptions.Item>
+
+        {/* ✅ NEW: Suspicious flag */}
+        <Descriptions.Item label="Suspicious">
+          <Badge status={activity.is_suspicious ? 'error' : 'success'} text={activity.is_suspicious ? 'Yes - Investigate' : 'No'} />
+        </Descriptions.Item>
+
         <Descriptions.Item label="IP Address">{activity.ip_address || '—'}</Descriptions.Item>
         <Descriptions.Item label="Device">{activity.device_type || '—'}</Descriptions.Item>
         <Descriptions.Item label="User Agent"><div style={{ fontSize: 12, color: '#666' }}>{activity.user_agent || '—'}</div></Descriptions.Item>
