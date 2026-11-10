@@ -362,6 +362,7 @@ export const AuthProvider = ({ children }) => {
 
           const normalizedUser = normalizeUserPlan(res.user);
           normalizedUser.needs_consent = true;
+          normalizedUser.stage = 'needs_consent'; 
           normalizedUser.terms_version_accepted = res.user?.terms_version || null;
           normalizedUser.privacy_version_accepted = res.user?.privacy_version || null;
           setUser(normalizedUser);
