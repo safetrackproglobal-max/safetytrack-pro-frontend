@@ -102,68 +102,105 @@ const api = axios.create({
 // PLAN UTILITY FUNCTIONS
 // ============================================================
 
-/**
- * Check if user is super admin (from localStorage)
- * CACHED for performance
- */
 let cachedSuperAdminStatus = null;
 let cachedSuperAdminTimestamp = 0;
 const CACHE_DURATION = 5000; // 5 seconds
 
+// ------------------------------------------------------------
+// STORAGE HELPERS — read from sessionStorage first, then localStorage
+// ------------------------------------------------------------
+const getStoredUser = () => {
+  try {
+    const raw =
+      sessionStorage.getItem('user') ||
+      localStorage.getItem('user') ||
+      '{}';
+    return JSON.parse(raw);
+  } catch {
+    return {};
+  }
+};
+
+const getStoredFlag = (key) => {
+  return (
+    sessionStorage.getItem(key) === 'true' ||
+    localStorage.getItem(key) === 'true'
+  );
+};
+
+const getStoredValue = (key) => {
+  return (
+    sessionStorage.getItem(key) ||
+    localStorage.getItem(key)
+  );
+};
+
+// ------------------------------------------------------------
+// IS SUPER ADMIN
+// ------------------------------------------------------------
 export const isSuperAdmin = () => {
   try {
-    // Use cache to prevent repeated expensive checks
     const now = Date.now();
     if (cachedSuperAdminStatus !== null && (now - cachedSuperAdminTimestamp) < CACHE_DURATION) {
       return cachedSuperAdminStatus;
     }
-    
-    const localStorageIsSuperAdmin = localStorage.getItem('is_super_admin') === 'true';
-    const userPlan = localStorage.getItem('user_plan');
-    let user = null;
-    
-    try {
-      user = JSON.parse(localStorage.getItem('user') || '{}');
-    } catch (e) {
-      // If user data is corrupted, treat as not super admin
-      cachedSuperAdminStatus = false;
-      cachedSuperAdminTimestamp = now;
-      return false;
-    }
-    
-    // Check multiple possible super admin indicators
-    const isSuperAdmin = 
-      localStorageIsSuperAdmin ||
-      userPlan === 'super_admin' ||
+
+    const flagIsSuperAdmin = getStoredFlag('is_super_admin');
+    const storedUserPlan = getStoredValue('user_plan');
+    const user = getStoredUser();
+
+    const result =
+      flagIsSuperAdmin ||
+      storedUserPlan === 'super_admin' ||
+      storedUserPlan === 'platform_owner' ||
       user?.is_super_admin === true ||
+      user?.is_platform_owner === true ||
+      user?.is_system_team === true ||
       user?.user_type === 'super_admin' ||
+      user?.user_type === 'platform_owner' ||
+      user?.user_type === 'system' ||
       user?.role === 'super_admin' ||
-      user?.account_info?.is_super_admin === true ||
-      user?.is_system_team === true;
-    
-    // Update cache
-    cachedSuperAdminStatus = isSuperAdmin;
+      user?.role === 'Super Admin' ||
+      user?.role === 'Platform Admin' ||
+      user?.subscription_plan === 'super_admin' ||
+      user?.subscription_plan === 'platform_owner' ||
+      user?.account_info?.is_super_admin === true;
+
+    cachedSuperAdminStatus = result;
     cachedSuperAdminTimestamp = now;
-    
-    return isSuperAdmin;
+
+    return result;
   } catch (error) {
     console.error('Error checking super admin status:', error);
     return false;
   }
 };
 
-/**
- * Get current user plan (with super admin override)
- */
+// ------------------------------------------------------------
+// CLEAR CACHE — call this on login / logout so stale cache doesn't win
+// ------------------------------------------------------------
+export const clearSuperAdminCache = () => {
+  cachedSuperAdminStatus = null;
+  cachedSuperAdminTimestamp = 0;
+};
+
+// ------------------------------------------------------------
+// GET USER PLAN
+// ------------------------------------------------------------
 export const getUserPlan = () => {
-  // Super admin bypass - return super_admin if detected
+  // Super admin bypass — return 'super_admin' so any plan check passes
   if (isSuperAdmin()) {
     return 'super_admin';
   }
-  
+
   try {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const plan = user.plan || user.subscription_plan || user.effective_plan || 'free';
+    const user = getStoredUser();
+    const plan =
+      user.plan ||
+      user.subscription_plan ||
+      user.effective_plan ||
+      getStoredValue('user_plan') ||
+      'free';
     return normalizePlanName(plan);
   } catch (error) {
     console.error('Error getting user plan:', error);
@@ -171,9 +208,9 @@ export const getUserPlan = () => {
   }
 };
 
-/**
- * Check if super admin has access (always true)
- */
+// ------------------------------------------------------------
+// HAS SUPER ADMIN ACCESS
+// ------------------------------------------------------------
 export const hasSuperAdminAccess = () => {
   return isSuperAdmin();
 };
@@ -184,57 +221,48 @@ export const hasSuperAdminAccess = () => {
 
 let upgradeModalCallback = null;
 
-/**
- * Register callback to show upgrade modal
- */
 export const registerUpgradeModalHandler = (callback) => {
   upgradeModalCallback = callback;
   console.log('Upgrade modal handler registered');
 };
 
-/**
- * Show upgrade modal (triggers UI callback)
- */
 export const showUpgradeModal = (upgradeInfo) => {
   console.log('Showing upgrade modal with info:', upgradeInfo);
-  
-  // Store upgrade info for later
+
   try {
     localStorage.setItem('pending_upgrade', JSON.stringify(upgradeInfo));
-  } catch (e) {
-    // Ignore storage errors
+  } catch {
+    // ignore
   }
-  
-  // Dispatch event for UI to show modal
-  window.dispatchEvent(new CustomEvent('showUpgradeModal', { 
-    detail: upgradeInfo 
-  }));
-  
-  // Call registered callback if exists
+
+  window.dispatchEvent(
+    new CustomEvent('showUpgradeModal', { detail: upgradeInfo })
+  );
+
   if (upgradeModalCallback) {
     upgradeModalCallback(upgradeInfo);
   }
-  
+
   return upgradeInfo;
 };
 
-/**
- * Get upgrade URL based on user's country and required plan
- */
+// ------------------------------------------------------------
+// GET UPGRADE URL
+// ------------------------------------------------------------
 export const getUpgradeUrl = (requiredPlan = null, country = null) => {
   const plan = requiredPlan || 'pro';
   const userCountry = country || getUserCountry();
   return `/pricing?country=${userCountry}&plan=${plan}`;
 };
 
-/**
- * Get user's country (from localStorage or default)
- */
+// ------------------------------------------------------------
+// GET USER COUNTRY
+// ------------------------------------------------------------
 export const getUserCountry = () => {
   try {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user = getStoredUser();
     return user.country || 'default';
-  } catch (error) {
+  } catch {
     return 'default';
   }
 };
