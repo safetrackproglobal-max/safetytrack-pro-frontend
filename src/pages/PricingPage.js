@@ -1189,111 +1189,136 @@ function PricingPage(props) {
               if (!pricing) return null;
 
               return (
-                <Col xs={24} md={8} key={planId}>
-                  <Card 
-                    className={`pricing-card ${planId === 'pro' ? 'featured' : ''} ${isCurrentPlan ? 'current-plan' : ''}`}
-                    style={{
-                      border: isCurrentPlan ? `2px solid ${planInfo.color}` : 
-                             planId === 'pro' ? '2px solid #1890ff' : undefined
-                    }}
-                    actions={[
-                      <Button 
-                        type={isCurrentPlan ? 'default' : planId === 'pro' ? 'primary' : 'default'}
-                        size="large"
-                        onClick={() => handleGetStarted(planId)}
-                        loading={loading}
-                        block
-                        disabled={isCurrentPlan}
-                      >
-                        {isCurrentPlan ? 'Current Plan' : 
-                         planId === 'free' ? 'Get Started Free' : 'Select Plan'}
-                      </Button>
-                    ]}
-                  >
-                    {isCurrentPlan && (
-                      <div className="current-plan-badge">
-                        <Tag color={planInfo.color} style={{ fontSize: '12px', padding: '2px 8px' }}>
-                          Your Plan
-                        </Tag>
-                      </div>
-                    )}
-                    
-                    {planId === 'pro' && !isCurrentPlan && (
-                      <div className="recommended-badge">
-                        <Tag color="blue" style={{ fontSize: '12px', padding: '2px 8px' }}>
-                          <CrownOutlined /> Most Popular
-                        </Tag>
-                      </div>
-                    )}
-                    
-                    <div className="plan-header" style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 32, color: planInfo.color, marginBottom: 8 }}>
-                        {planInfo.icon}
-                      </div>
-                      <Title level={3} style={{ marginBottom: '8px' }}>
-                        {planInfo.name} Plan
-                      </Title>
-                      <div className="price" style={{ fontSize: '36px', fontWeight: 'bold', color: '#1890ff' }}>
-                        {typeof pricing[selectedDuration] === 'number' 
-                          ? PaymentService.formatCurrency(pricing[selectedDuration], pricing.currency)
-                          : 'Custom Pricing'}
-                      </div>
-                      <Text type="secondary">
-                        per {getDurationLabel(selectedDuration).toLowerCase()}
-                      </Text>
-                      {selectedDuration !== '1_month' && typeof pricing[selectedDuration] === 'number' && pricing['1_month'] && (
-                        <div style={{ marginTop: '4px' }}>
-                          <Text type="secondary" style={{ fontSize: '12px' }}>
-                            Equivalent to {PaymentService.formatCurrency(pricing['1_month'], pricing.currency)}/month
-                          </Text>
-                        </div>
-                      )}
-                    </div>
+  <Col xs={24} md={8} key={planId}>
+    <Card 
+      className={`pricing-card ${planId === 'pro' ? 'featured' : ''} ${isCurrentPlan ? 'current-plan' : ''}`}
+      style={{
+        border: isCurrentPlan ? `2px solid ${planInfo.color}` : 
+               planId === 'pro' ? '2px solid #1890ff' : undefined,
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%' // Ensures all cards are the same height
+      }}
+      bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column' }} // Pushes actions to bottom
+      actions={[
+        <Button 
+          type={isCurrentPlan ? 'default' : planId === 'pro' ? 'primary' : 'default'}
+          size="large"
+          onClick={() => handleGetStarted(planId)}
+          loading={loading}
+          block
+          disabled={isCurrentPlan}
+        >
+          {isCurrentPlan ? 'Current Plan' : 
+           planId === 'free' ? 'Get Started Free' : 'Select Plan'}
+        </Button>
+      ]}
+    >
+      {isCurrentPlan && (
+        <div className="current-plan-badge">
+          <Tag color={planInfo.color} style={{ fontSize: '12px', padding: '2px 8px' }}>
+            Your Plan
+          </Tag>
+        </div>
+      )}
+      
+      {planId === 'pro' && !isCurrentPlan && (
+        <div className="recommended-badge">
+          <Tag color="blue" style={{ fontSize: '12px', padding: '2px 8px' }}>
+            <CrownOutlined /> Most Popular
+          </Tag>
+        </div>
+      )}
+      
+      {/* ✅ HEADER SECTION */}
+      <div className="plan-header" style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: 32, color: planInfo.color, marginBottom: 8 }}>
+          {planInfo.icon}
+        </div>
+        <Title level={3} style={{ marginBottom: '8px' }}>
+          {planInfo.name} Plan
+        </Title>
+        
+        <div className="price" style={{ fontSize: '36px', fontWeight: 'bold', color: '#1890ff' }}>
+          {typeof pricing[selectedDuration] === 'number' 
+            ? PaymentService.formatCurrency(pricing[selectedDuration], pricing.currency)
+            : 'Custom Pricing'}
+        </div>
+        
+        {/* ✅ CLEAN "PER MONTH" TEXT */}
+        <div style={{ marginTop: '4px', marginBottom: '8px' }}>
+          <Text type="secondary" style={{ fontSize: '14px' }}>
+            per month
+          </Text>
+        </div>
 
-                    <Divider style={{ margin: '16px 0' }} />
-
-                    <div className="features">
-                      <Title level={5} style={{ marginBottom: '12px' }}>Key Features:</Title>
-                      <List
-                        size="small"
-                        dataSource={planInfo.features.slice(0, 6)}
-                        renderItem={(item) => (
-                          <List.Item style={{ padding: '4px 0', border: 'none' }}>
-                            <CheckCircleOutlined style={{ color: '#52c41a', marginRight: '8px' }} />
-                            <Text>{item}</Text>
-                          </List.Item>
-                        )}
-                      />
-                    </div>
-
-                    <div style={{ marginTop: '16px' }}>
-                      <Text strong>Plan Limits:</Text>
-                      <Row gutter={[8, 8]} style={{ marginTop: '8px' }}>
-                        {Object.entries(planInfo.limits).slice(0, 4).map(([key, value]) => (
-                          <Col span={12} key={key}>
-                            <div style={{ fontSize: '11px', color: '#666' }}>
-                              {key.replace(/([A-Z])/g, ' $1').toUpperCase()}:{' '}
-                              <strong>{value}</strong>
-                            </div>
-                          </Col>
-                        ))}
-                      </Row>
-                    </div>
-
-                    {isCurrentPlan && (
-                      <Alert
-                        message="This is your current plan"
-                        type="info"
-                        showIcon
-                        style={{ marginTop: 16 }}
-                      />
-                    )}
-                  </Card>
-                </Col>
-              );
-            })}
-          </Row>
+        {selectedDuration !== '1_month' && typeof pricing[selectedDuration] === 'number' && pricing['1_month'] && (
+          <div style={{ marginTop: '4px' }}>
+            <Text type="secondary" style={{ fontSize: '12px' }}>
+              Equivalent to {PaymentService.formatCurrency(pricing['1_month'], pricing.currency)}/month
+            </Text>
+          </div>
         )}
+      </div>
+
+      <Divider style={{ margin: '16px 0' }} />
+
+      {/* ✅ FEATURES SECTION */}
+      <div className="features" style={{ flex: 1 }}>
+        <Title level={5} style={{ marginBottom: '12px', textAlign: 'left' }}>Key Features:</Title>
+        <List
+          size="small"
+          dataSource={planInfo.features.slice(0, 6)}
+          renderItem={(item) => (
+            <List.Item style={{ 
+              padding: '6px 0', 
+              border: 'none',
+              display: 'flex',
+              alignItems: 'flex-start',
+              justifyContent: 'flex-start'
+            }}>
+              <CheckCircleOutlined 
+                style={{ 
+                  color: '#52c41a', 
+                  marginRight: '8px', 
+                  marginTop: '3px',
+                  flexShrink: 0 // Prevents icon from shrinking
+                }} 
+              />
+              <Text style={{ textAlign: 'left', lineHeight: '1.5' }}>
+                {item}
+              </Text>
+            </List.Item>
+          )}
+        />
+      </div>
+
+      {/* ✅ PLAN LIMITS SECTION */}
+      <div style={{ marginTop: '16px', borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
+        <Text strong style={{ display: 'block', textAlign: 'left', marginBottom: '8px' }}>Plan Limits:</Text>
+        <Row gutter={[8, 8]}>
+          {Object.entries(planInfo.limits).slice(0, 4).map(([key, value]) => (
+            <Col span={12} key={key}>
+              <div style={{ fontSize: '11px', color: '#666', textAlign: 'left' }}>
+                {key.replace(/([A-Z])/g, ' $1').toUpperCase()}:{' '}
+                <strong>{value}</strong>
+              </div>
+            </Col>
+          ))}
+        </Row>
+      </div>
+
+      {isCurrentPlan && (
+        <Alert
+          message="This is your current plan"
+          type="info"
+          showIcon
+          style={{ marginTop: 16 }}
+        />
+      )}
+    </Card>
+  </Col>
+);
 
         {/* ✅ Enterprise Section - Hide for admin users (already shown above) */}
         {!isAdmin && (
