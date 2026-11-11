@@ -871,13 +871,18 @@ function PricingPage(props) {
     loadUsageData();
   }, [user, selectedCountry]);
 
-  const loadPricingData = async () => {
+    const loadPricingData = async () => {
     setLoading(true);
     try {
       const response = await api.get(`/plans/pricing?country=${selectedCountry}`);
-      if (response.data) {
-        setPricingData(response.data);
+      
+      // ✅ FIX: Check for nested data (response.data.data) first
+      const fetchedData = response.data?.data || response.data;
+      
+      if (fetchedData && fetchedData.basic) {
+        setPricingData(fetchedData);
       } else {
+        console.warn('⚠️ Invalid pricing data structure, using static fallback');
         const staticData = PaymentService.getStaticPricing(selectedCountry);
         setPricingData(staticData);
       }
