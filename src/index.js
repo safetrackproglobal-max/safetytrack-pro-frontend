@@ -10,7 +10,7 @@ const container = document.getElementById("root");
 const root = createRoot(container);
 
 root.render(
-  // <React.StrictMode>  // ← COMMENT OUT OR REMOVE
+  // <React.StrictMode>  // ← Disabled to prevent double rendering and double console logs in development
     <App />
   // </React.StrictMode>
 );
