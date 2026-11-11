@@ -1180,460 +1180,465 @@ function PricingPage(props) {
           </Row>
         ) : (
           /* ✅ Pricing Cards - Regular User View */
-          <Row gutter={[32, 32]} justify="center">
-            {['free', 'basic', 'pro'].map((planId) => {
-              const pricing = countryPricing?.[planId];
-              const planInfo = planDefinitions[planId];
-              const isCurrentPlan = planId === currentPlanName.toLowerCase();
+          <>
+            <Row gutter={[32, 32]} justify="center">
+              {['free', 'basic', 'pro'].map((planId) => {
+                const pricing = countryPricing?.[planId];
+                const planInfo = planDefinitions[planId];
+                const isCurrentPlan = planId === currentPlanName.toLowerCase();
 
-              if (!pricing) return null;
+                if (!pricing) return null;
 
-              return (
-  <Col xs={24} md={8} key={planId}>
-    <Card 
-      className={`pricing-card ${planId === 'pro' ? 'featured' : ''} ${isCurrentPlan ? 'current-plan' : ''}`}
-      style={{
-        border: isCurrentPlan ? `2px solid ${planInfo.color}` : 
-               planId === 'pro' ? '2px solid #1890ff' : undefined,
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%' // Ensures all cards are the same height
-      }}
-      bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column' }} // Pushes actions to bottom
-      actions={[
-        <Button 
-          type={isCurrentPlan ? 'default' : planId === 'pro' ? 'primary' : 'default'}
-          size="large"
-          onClick={() => handleGetStarted(planId)}
-          loading={loading}
-          block
-          disabled={isCurrentPlan}
-        >
-          {isCurrentPlan ? 'Current Plan' : 
-           planId === 'free' ? 'Get Started Free' : 'Select Plan'}
-        </Button>
-      ]}
-    >
-      {isCurrentPlan && (
-        <div className="current-plan-badge">
-          <Tag color={planInfo.color} style={{ fontSize: '12px', padding: '2px 8px' }}>
-            Your Plan
-          </Tag>
-        </div>
-      )}
-      
-      {planId === 'pro' && !isCurrentPlan && (
-        <div className="recommended-badge">
-          <Tag color="blue" style={{ fontSize: '12px', padding: '2px 8px' }}>
-            <CrownOutlined /> Most Popular
-          </Tag>
-        </div>
-      )}
-      
-      {/* ✅ HEADER SECTION */}
-      <div className="plan-header" style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: 32, color: planInfo.color, marginBottom: 8 }}>
-          {planInfo.icon}
-        </div>
-        <Title level={3} style={{ marginBottom: '8px' }}>
-          {planInfo.name} Plan
-        </Title>
-        
-        <div className="price" style={{ fontSize: '36px', fontWeight: 'bold', color: '#1890ff' }}>
-          {typeof pricing[selectedDuration] === 'number' 
-            ? PaymentService.formatCurrency(pricing[selectedDuration], pricing.currency)
-            : 'Custom Pricing'}
-        </div>
-        
-        {/* ✅ CLEAN "PER MONTH" TEXT */}
-        <div style={{ marginTop: '4px', marginBottom: '8px' }}>
-          <Text type="secondary" style={{ fontSize: '14px' }}>
-            per month
-          </Text>
-        </div>
-
-        {selectedDuration !== '1_month' && typeof pricing[selectedDuration] === 'number' && pricing['1_month'] && (
-          <div style={{ marginTop: '4px' }}>
-            <Text type="secondary" style={{ fontSize: '12px' }}>
-              Equivalent to {PaymentService.formatCurrency(pricing['1_month'], pricing.currency)}/month
-            </Text>
-          </div>
-        )}
-      </div>
-
-      <Divider style={{ margin: '16px 0' }} />
-
-      {/* ✅ FEATURES SECTION */}
-      <div className="features" style={{ flex: 1 }}>
-        <Title level={5} style={{ marginBottom: '12px', textAlign: 'left' }}>Key Features:</Title>
-        <List
-          size="small"
-          dataSource={planInfo.features.slice(0, 6)}
-          renderItem={(item) => (
-            <List.Item style={{ 
-              padding: '6px 0', 
-              border: 'none',
-              display: 'flex',
-              alignItems: 'flex-start',
-              justifyContent: 'flex-start'
-            }}>
-              <CheckCircleOutlined 
-                style={{ 
-                  color: '#52c41a', 
-                  marginRight: '8px', 
-                  marginTop: '3px',
-                  flexShrink: 0 // Prevents icon from shrinking
-                }} 
-              />
-              <Text style={{ textAlign: 'left', lineHeight: '1.5' }}>
-                {item}
-              </Text>
-            </List.Item>
-          )}
-        />
-      </div>
-
-      {/* ✅ PLAN LIMITS SECTION */}
-      <div style={{ marginTop: '16px', borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
-        <Text strong style={{ display: 'block', textAlign: 'left', marginBottom: '8px' }}>Plan Limits:</Text>
-        <Row gutter={[8, 8]}>
-          {Object.entries(planInfo.limits).slice(0, 4).map(([key, value]) => (
-            <Col span={12} key={key}>
-              <div style={{ fontSize: '11px', color: '#666', textAlign: 'left' }}>
-                {key.replace(/([A-Z])/g, ' $1').toUpperCase()}:{' '}
-                <strong>{value}</strong>
-              </div>
-            </Col>
-          ))}
-        </Row>
-      </div>
-
-      {isCurrentPlan && (
-        <Alert
-          message="This is your current plan"
-          type="info"
-          showIcon
-          style={{ marginTop: 16 }}
-        />
-      )}
-    </Card>
-  </Col>
-);
-
-        {/* ✅ Enterprise Section - Hide for admin users (already shown above) */}
-        {!isAdmin && (
-          <div className="enterprise-section" style={{ marginTop: 48 }}>
-            <Card className="enterprise-card">
-              <Row gutter={[48, 24]} align="middle">
-                <Col xs={24} md={14}>
-                  <Title level={2}>Enterprise Solution</Title>
-                  <Paragraph>
-                    For large organizations with specific requirements, we offer fully customized 
-                    enterprise solutions with dedicated support, custom integrations, and tailored pricing.
-                  </Paragraph>
-                  <div style={{ marginBottom: 16 }}>
-                    <Title level={2} style={{ margin: 0, color: '#fa8c16' }}>
-                      Custom Pricing
-                    </Title>
-                    <Text type="secondary">Contact us for volume discounts and custom requirements</Text>
-                  </div>
-                  <Button 
-                    type="primary" 
-                    size="large" 
-                    icon={<RocketOutlined />}
-                    onClick={() => handleGetStarted('enterprise')}
-                    style={{ background: '#fa8c16', borderColor: '#fa8c16' }}
-                  >
-                    Contact Sales for Custom Quote
-                  </Button>
-                </Col>
-                <Col xs={24} md={10}>
-                  <div className="enterprise-features">
-                    <Title level={5}>Enterprise Features:</Title>
-                    {planDefinitions.enterprise.features.slice(0, 8).map((feature, index) => (
-                      <div key={index} className="enterprise-feature" style={{ padding: '4px 0' }}>
-                        <CheckCircleOutlined style={{ color: '#fa8c16', marginRight: '8px' }} />
-                        {feature}
-                      </div>
-                    ))}
-                  </div>
-                </Col>
-              </Row>
-            </Card>
-          </div>
-        )}
-
-        {/* ✅ Current Plan Usage Summary - Only for non-admin users */}
-        {!isAdmin && user && usageData && (
-          <Card title="Your Current Usage" style={{ marginTop: 32 }}>
-            <Row gutter={[16, 16]}>
-              {Object.entries(usageData).map(([key, data]) => {
-                if (data.total === 0 || data.total === 'Custom' || data.total === 'Unlimited') return null;
-                
-                const percentage = data.total === 'Unlimited' ? 0 : Math.min((data.used / data.total) * 100, 100);
                 return (
-                  <Col xs={24} sm={12} md={6} key={key}>
-                    <Card size="small">
-                      <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: 20, fontWeight: 'bold', color: currentPlanInfo.color }}>
-                          {data.used}/{data.total}
+                  <Col xs={24} md={8} key={planId}>
+                    <Card 
+                      className={`pricing-card ${planId === 'pro' ? 'featured' : ''} ${isCurrentPlan ? 'current-plan' : ''}`}
+                      style={{
+                        border: isCurrentPlan ? `2px solid ${planInfo.color}` : 
+                               planId === 'pro' ? '2px solid #1890ff' : undefined,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        height: '100%' // Ensures all cards are the same height
+                      }}
+                      bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column' }} // Pushes actions to bottom
+                      actions={[
+                        <Button 
+                          type={isCurrentPlan ? 'default' : planId === 'pro' ? 'primary' : 'default'}
+                          size="large"
+                          onClick={() => handleGetStarted(planId)}
+                          loading={loading}
+                          block
+                          disabled={isCurrentPlan}
+                        >
+                          {isCurrentPlan ? 'Current Plan' : 
+                           planId === 'free' ? 'Get Started Free' : 'Select Plan'}
+                        </Button>
+                      ]}
+                    >
+                      {isCurrentPlan && (
+                        <div className="current-plan-badge">
+                          <Tag color={planInfo.color} style={{ fontSize: '12px', padding: '2px 8px' }}>
+                            Your Plan
+                          </Tag>
                         </div>
-                        <Text style={{ fontSize: '12px', textTransform: 'uppercase' }}>
-                          {key.replace(/([A-Z])/g, ' $1').trim()}
-                        </Text>
-                        {percentage > 0 && (
-                          <Progress 
-                            percent={percentage} 
-                            size="small" 
-                            strokeColor={currentPlanInfo.color}
-                            style={{ marginTop: 8 }}
-                          />
+                      )}
+                      
+                      {planId === 'pro' && !isCurrentPlan && (
+                        <div className="recommended-badge">
+                          <Tag color="blue" style={{ fontSize: '12px', padding: '2px 8px' }}>
+                            <CrownOutlined /> Most Popular
+                          </Tag>
+                        </div>
+                      )}
+                      
+                      {/* ✅ HEADER SECTION */}
+                      <div className="plan-header" style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: 32, color: planInfo.color, marginBottom: 8 }}>
+                          {planInfo.icon}
+                        </div>
+                        <Title level={3} style={{ marginBottom: '8px' }}>
+                          {planInfo.name} Plan
+                        </Title>
+                        
+                        <div className="price" style={{ fontSize: '36px', fontWeight: 'bold', color: '#1890ff' }}>
+                          {typeof pricing[selectedDuration] === 'number' 
+                            ? PaymentService.formatCurrency(pricing[selectedDuration], pricing.currency)
+                            : 'Custom Pricing'}
+                        </div>
+                        
+                        {/* ✅ CLEAN "PER MONTH" TEXT */}
+                        <div style={{ marginTop: '4px', marginBottom: '8px' }}>
+                          <Text type="secondary" style={{ fontSize: '14px' }}>
+                            per month
+                          </Text>
+                        </div>
+
+                        {selectedDuration !== '1_month' && typeof pricing[selectedDuration] === 'number' && pricing['1_month'] && (
+                          <div style={{ marginTop: '4px' }}>
+                            <Text type="secondary" style={{ fontSize: '12px' }}>
+                              Equivalent to {PaymentService.formatCurrency(pricing['1_month'], pricing.currency)}/month
+                            </Text>
+                          </div>
                         )}
                       </div>
+
+                      <Divider style={{ margin: '16px 0' }} />
+
+                      {/* ✅ FEATURES SECTION */}
+                      <div className="features" style={{ flex: 1 }}>
+                        <Title level={5} style={{ marginBottom: '12px', textAlign: 'left' }}>Key Features:</Title>
+                        <List
+                          size="small"
+                          dataSource={planInfo.features.slice(0, 6)}
+                          renderItem={(item) => (
+                            <List.Item style={{ 
+                              padding: '6px 0', 
+                              border: 'none',
+                              display: 'flex',
+                              alignItems: 'flex-start',
+                              justifyContent: 'flex-start'
+                            }}>
+                              <CheckCircleOutlined 
+                                style={{ 
+                                  color: '#52c41a', 
+                                  marginRight: '8px', 
+                                  marginTop: '3px',
+                                  flexShrink: 0 // Prevents icon from shrinking
+                                }} 
+                              />
+                              <Text style={{ textAlign: 'left', lineHeight: '1.5' }}>
+                                {item}
+                              </Text>
+                            </List.Item>
+                          )}
+                        />
+                      </div>
+
+                      {/* ✅ PLAN LIMITS SECTION */}
+                      <div style={{ marginTop: '16px', borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
+                        <Text strong style={{ display: 'block', textAlign: 'left', marginBottom: '8px' }}>Plan Limits:</Text>
+                        <Row gutter={[8, 8]}>
+                          {Object.entries(planInfo.limits).slice(0, 4).map(([key, value]) => (
+                            <Col span={12} key={key}>
+                              <div style={{ fontSize: '11px', color: '#666', textAlign: 'left' }}>
+                                {key.replace(/([A-Z])/g, ' $1').toUpperCase()}:{' '}
+                                <strong>{value}</strong>
+                              </div>
+                            </Col>
+                          ))}
+                        </Row>
+                      </div>
+
+                      {isCurrentPlan && (
+                        <Alert
+                          message="This is your current plan"
+                          type="info"
+                          showIcon
+                          style={{ marginTop: 16 }}
+                        />
+                      )}
                     </Card>
                   </Col>
                 );
               })}
             </Row>
-          </Card>
-        )}
 
-        {/* ✅ Payment Method Selection Modal - Only for non-admin users */}
-        {!isAdmin && (
-          <Modal
-            title={`Complete Your ${selectedPlan ? selectedPlan.toUpperCase() : ''} Plan Upgrade`}
-            open={showPaymentModal}
-            onCancel={() => setShowPaymentModal(false)}
-            footer={null}
-            width={750}
-            closable={true}
-            className="payment-modal"
-          >
-            {selectedPlan && countryPricing && countryPricing[selectedPlan] && (
-              <div>
-                <Alert
-                  message="Order Summary"
-                  description={
-                    <div style={{ marginTop: 8 }}>
-                      <Row gutter={[16, 8]}>
-                        <Col span={12}>
-                          <Text type="secondary">Selected Plan:</Text>
-                          <div><Text strong style={{ fontSize: '16px' }}>{selectedPlan.toUpperCase()}</Text></div>
-                        </Col>
-                        <Col span={12}>
-                          <Text type="secondary">Billing Cycle:</Text>
-                          <div><Text strong>{getDurationLabel(selectedDuration)}</Text></div>
-                        </Col>
-                        <Col span={12}>
-                          <Text type="secondary">Amount to Pay:</Text>
-                          <div><Text strong style={{ fontSize: '24px', color: '#1890ff' }}>
-                            {typeof countryPricing[selectedPlan][selectedDuration] === 'number'
-                              ? PaymentService.formatCurrency(
-                                  countryPricing[selectedPlan][selectedDuration], 
-                                  countryPricing[selectedPlan].currency
-                                )
-                              : 'Custom Pricing'}
-                          </Text></div>
-                        </Col>
-                        <Col span={12}>
-                          <Text type="secondary">Current Plan:</Text>
-                          <div><Tag color="default">{currentPlanName.toUpperCase()}</Tag> → <Tag color="blue">{selectedPlan.toUpperCase()}</Tag></div>
-                        </Col>
-                      </Row>
-                    </div>
-                  }
-                  type="info"
-                  showIcon
-                  style={{ marginBottom: 24 }}
-                />
-
-                <Divider orientation="left">Select Payment Method</Divider>
-
-                {/* Online Payment Methods */}
-                <div style={{ marginBottom: 24 }}>
-                  <Text strong style={{ fontSize: '16px' }}>💳 Instant Payment</Text>
-                  <div style={{ marginTop: 12 }}>
-                    {displayOnlineMethods.map((method) => (
-                      <Card
-                        key={method.id}
-                        hoverable
-                        onClick={() => handlePaymentMethodSelect(method)}
-                        style={{ marginBottom: 12, cursor: 'pointer', borderRadius: '8px' }}
-                        bodyStyle={{ padding: '16px' }}
+            {/* ✅ Enterprise Section - Hide for admin users (already shown above) */}
+            {!isAdmin && (
+              <div className="enterprise-section" style={{ marginTop: 48 }}>
+                <Card className="enterprise-card">
+                  <Row gutter={[48, 24]} align="middle">
+                    <Col xs={24} md={14}>
+                      <Title level={2}>Enterprise Solution</Title>
+                      <Paragraph>
+                        For large organizations with specific requirements, we offer fully customized 
+                        enterprise solutions with dedicated support, custom integrations, and tailored pricing.
+                      </Paragraph>
+                      <div style={{ marginBottom: 16 }}>
+                        <Title level={2} style={{ margin: 0, color: '#fa8c16' }}>
+                          Custom Pricing
+                        </Title>
+                        <Text type="secondary">Contact us for volume discounts and custom requirements</Text>
+                      </div>
+                      <Button 
+                        type="primary" 
+                        size="large" 
+                        icon={<RocketOutlined />}
+                        onClick={() => handleGetStarted('enterprise')}
+                        style={{ background: '#fa8c16', borderColor: '#fa8c16' }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                            <div style={{ fontSize: '32px' }}>
-                              {getMethodIcon(method.id)}
-                            </div>
-                            <div>
-                              <Text strong style={{ fontSize: '16px' }}>{method.name}</Text>
-                              <br />
-                              <Text type="secondary" style={{ fontSize: '13px' }}>{method.description}</Text>
-                            </div>
+                        Contact Sales for Custom Quote
+                      </Button>
+                    </Col>
+                    <Col xs={24} md={10}>
+                      <div className="enterprise-features">
+                        <Title level={5}>Enterprise Features:</Title>
+                        {planDefinitions.enterprise.features.slice(0, 8).map((feature, index) => (
+                          <div key={index} className="enterprise-feature" style={{ padding: '4px 0' }}>
+                            <CheckCircleOutlined style={{ color: '#fa8c16', marginRight: '8px' }} />
+                            {feature}
                           </div>
-                          <div>
-                            <Tag color="green" style={{ fontSize: '12px', padding: '4px 12px' }}>✓ INSTANT</Tag>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Mobile Money Payment Methods */}
-                {displayMobileMoneyMethods.length > 0 && (
-                  <div style={{ marginBottom: 24 }}>
-                    <Text strong style={{ fontSize: '16px' }}>📱 Mobile Money (Manual)</Text>
-                    <div style={{ marginTop: 12 }}>
-                      {displayMobileMoneyMethods.map((method) => (
-                        <Card
-                          key={method.id}
-                          hoverable
-                          onClick={() => handlePaymentMethodSelect(method)}
-                          style={{ marginBottom: 12, cursor: 'pointer', borderRadius: '8px' }}
-                          bodyStyle={{ padding: '16px' }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                              <div style={{ fontSize: '32px' }}>
-                                <MobileOutlined style={{ color: '#52c41a', fontSize: '28px' }} />
-                              </div>
-                              <div>
-                                <Text strong style={{ fontSize: '16px' }}>{method.name}</Text>
-                                <br />
-                                <Text type="secondary" style={{ fontSize: '13px' }}>{method.description}</Text>
-                              </div>
-                            </div>
-                            <div>
-                              <Tag color="orange" style={{ fontSize: '12px', padding: '4px 12px' }}>⏱ MANUAL (24h)</Tag>
-                            </div>
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Bank Transfer Payment Methods */}
-                {displayBankMethods.length > 0 && (
-                  <div style={{ marginBottom: 16 }}>
-                    <Text strong style={{ fontSize: '16px' }}>🏦 Bank Transfer</Text>
-                    <div style={{ marginTop: 12 }}>
-                      {displayBankMethods.map((method) => (
-                        <Card
-                          key={method.id}
-                          hoverable
-                          onClick={() => handlePaymentMethodSelect(method)}
-                          style={{ marginBottom: 12, cursor: 'pointer', borderRadius: '8px' }}
-                          bodyStyle={{ padding: '16px' }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                              <div style={{ fontSize: '32px' }}>
-                                <BankOutlined style={{ color: '#666', fontSize: '28px' }} />
-                              </div>
-                              <div>
-                                <Text strong style={{ fontSize: '16px' }}>{method.name}</Text>
-                                <br />
-                                <Text type="secondary" style={{ fontSize: '13px' }}>{method.description}</Text>
-                              </div>
-                            </div>
-                            <div>
-                              <Tag color="orange" style={{ fontSize: '12px', padding: '4px 12px' }}>⏱ MANUAL (24h)</Tag>
-                            </div>
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {initializingPayment && (
-                  <div style={{ textAlign: 'center', marginTop: 16 }}>
-                    <Spin indicator={<LoadingOutlined />} /> Initializing payment...
-                  </div>
-                )}
-
-                <div style={{ marginTop: 24, padding: '16px', background: '#f0f7ff', borderRadius: '8px' }}>
-                  <Text type="secondary" style={{ fontSize: '12px' }}>
-                    <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>💡 Payment Information:</div>
-                    <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                      <li>Online payments (Paystack/PayPal/Razorpay) are processed instantly</li>
-                      <li>Mobile Money and Bank transfers require manual verification (1-24 hours)</li>
-                      <li>All payments are secure and encrypted</li>
-                      <li>Your new plan will be activated after payment confirmation</li>
-                      <li>You will receive an email confirmation once payment is complete</li>
-                    </ul>
-                  </Text>
-                </div>
+                        ))}
+                      </div>
+                    </Col>
+                  </Row>
+                </Card>
               </div>
             )}
-          </Modal>
+
+            {/* ✅ Current Plan Usage Summary - Only for non-admin users */}
+            {!isAdmin && user && usageData && (
+              <Card title="Your Current Usage" style={{ marginTop: 32 }}>
+                <Row gutter={[16, 16]}>
+                  {Object.entries(usageData).map(([key, data]) => {
+                    if (data.total === 0 || data.total === 'Custom' || data.total === 'Unlimited') return null;
+                    
+                    const percentage = data.total === 'Unlimited' ? 0 : Math.min((data.used / data.total) * 100, 100);
+                    return (
+                      <Col xs={24} sm={12} md={6} key={key}>
+                        <Card size="small">
+                          <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontSize: 20, fontWeight: 'bold', color: currentPlanInfo.color }}>
+                              {data.used}/{data.total}
+                            </div>
+                            <Text style={{ fontSize: '12px', textTransform: 'uppercase' }}>
+                              {key.replace(/([A-Z])/g, ' $1').trim()}
+                            </Text>
+                            {percentage > 0 && (
+                              <Progress 
+                                percent={percentage} 
+                                size="small" 
+                                strokeColor={currentPlanInfo.color}
+                                style={{ marginTop: 8 }}
+                              />
+                            )}
+                          </div>
+                        </Card>
+                      </Col>
+                    );
+                  })}
+                </Row>
+              </Card>
+            )}
+
+            {/* ✅ Payment Method Selection Modal - Only for non-admin users */}
+            {!isAdmin && (
+              <Modal
+                title={`Complete Your ${selectedPlan ? selectedPlan.toUpperCase() : ''} Plan Upgrade`}
+                open={showPaymentModal}
+                onCancel={() => setShowPaymentModal(false)}
+                footer={null}
+                width={750}
+                closable={true}
+                className="payment-modal"
+              >
+                {selectedPlan && countryPricing && countryPricing[selectedPlan] && (
+                  <div>
+                    <Alert
+                      message="Order Summary"
+                      description={
+                        <div style={{ marginTop: 8 }}>
+                          <Row gutter={[16, 8]}>
+                            <Col span={12}>
+                              <Text type="secondary">Selected Plan:</Text>
+                              <div><Text strong style={{ fontSize: '16px' }}>{selectedPlan.toUpperCase()}</Text></div>
+                            </Col>
+                            <Col span={12}>
+                              <Text type="secondary">Billing Cycle:</Text>
+                              <div><Text strong>{getDurationLabel(selectedDuration)}</Text></div>
+                            </Col>
+                            <Col span={12}>
+                              <Text type="secondary">Amount to Pay:</Text>
+                              <div><Text strong style={{ fontSize: '24px', color: '#1890ff' }}>
+                                {typeof countryPricing[selectedPlan][selectedDuration] === 'number'
+                                  ? PaymentService.formatCurrency(
+                                      countryPricing[selectedPlan][selectedDuration], 
+                                      countryPricing[selectedPlan].currency
+                                    )
+                                  : 'Custom Pricing'}
+                              </Text></div>
+                            </Col>
+                            <Col span={12}>
+                              <Text type="secondary">Current Plan:</Text>
+                              <div><Tag color="default">{currentPlanName.toUpperCase()}</Tag> → <Tag color="blue">{selectedPlan.toUpperCase()}</Tag></div>
+                            </Col>
+                          </Row>
+                        </div>
+                      }
+                      type="info"
+                      showIcon
+                      style={{ marginBottom: 24 }}
+                    />
+
+                    <Divider orientation="left">Select Payment Method</Divider>
+
+                    {/* Online Payment Methods */}
+                    <div style={{ marginBottom: 24 }}>
+                      <Text strong style={{ fontSize: '16px' }}>💳 Instant Payment</Text>
+                      <div style={{ marginTop: 12 }}>
+                        {displayOnlineMethods.map((method) => (
+                          <Card
+                            key={method.id}
+                            hoverable
+                            onClick={() => handlePaymentMethodSelect(method)}
+                            style={{ marginBottom: 12, cursor: 'pointer', borderRadius: '8px' }}
+                            bodyStyle={{ padding: '16px' }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                <div style={{ fontSize: '32px' }}>
+                                  {getMethodIcon(method.id)}
+                                </div>
+                                <div>
+                                  <Text strong style={{ fontSize: '16px' }}>{method.name}</Text>
+                                  <br />
+                                  <Text type="secondary" style={{ fontSize: '13px' }}>{method.description}</Text>
+                                </div>
+                              </div>
+                              <div>
+                                <Tag color="green" style={{ fontSize: '12px', padding: '4px 12px' }}>✓ INSTANT</Tag>
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Mobile Money Payment Methods */}
+                    {displayMobileMoneyMethods.length > 0 && (
+                      <div style={{ marginBottom: 24 }}>
+                        <Text strong style={{ fontSize: '16px' }}>📱 Mobile Money (Manual)</Text>
+                        <div style={{ marginTop: 12 }}>
+                          {displayMobileMoneyMethods.map((method) => (
+                            <Card
+                              key={method.id}
+                              hoverable
+                              onClick={() => handlePaymentMethodSelect(method)}
+                              style={{ marginBottom: 12, cursor: 'pointer', borderRadius: '8px' }}
+                              bodyStyle={{ padding: '16px' }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                  <div style={{ fontSize: '32px' }}>
+                                    <MobileOutlined style={{ color: '#52c41a', fontSize: '28px' }} />
+                                  </div>
+                                  <div>
+                                    <Text strong style={{ fontSize: '16px' }}>{method.name}</Text>
+                                    <br />
+                                    <Text type="secondary" style={{ fontSize: '13px' }}>{method.description}</Text>
+                                  </div>
+                                </div>
+                                <div>
+                                  <Tag color="orange" style={{ fontSize: '12px', padding: '4px 12px' }}>⏱ MANUAL (24h)</Tag>
+                                </div>
+                              </div>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Bank Transfer Payment Methods */}
+                    {displayBankMethods.length > 0 && (
+                      <div style={{ marginBottom: 16 }}>
+                        <Text strong style={{ fontSize: '16px' }}>🏦 Bank Transfer</Text>
+                        <div style={{ marginTop: 12 }}>
+                          {displayBankMethods.map((method) => (
+                            <Card
+                              key={method.id}
+                              hoverable
+                              onClick={() => handlePaymentMethodSelect(method)}
+                              style={{ marginBottom: 12, cursor: 'pointer', borderRadius: '8px' }}
+                              bodyStyle={{ padding: '16px' }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                  <div style={{ fontSize: '32px' }}>
+                                    <BankOutlined style={{ color: '#666', fontSize: '28px' }} />
+                                  </div>
+                                  <div>
+                                    <Text strong style={{ fontSize: '16px' }}>{method.name}</Text>
+                                    <br />
+                                    <Text type="secondary" style={{ fontSize: '13px' }}>{method.description}</Text>
+                                  </div>
+                                </div>
+                                <div>
+                                  <Tag color="orange" style={{ fontSize: '12px', padding: '4px 12px' }}>⏱ MANUAL (24h)</Tag>
+                                </div>
+                              </div>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {initializingPayment && (
+                      <div style={{ textAlign: 'center', marginTop: 16 }}>
+                        <Spin indicator={<LoadingOutlined />} /> Initializing payment...
+                      </div>
+                    )}
+
+                    <div style={{ marginTop: 24, padding: '16px', background: '#f0f7ff', borderRadius: '8px' }}>
+                      <Text type="secondary" style={{ fontSize: '12px' }}>
+                        <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>💡 Payment Information:</div>
+                        <ul style={{ margin: 0, paddingLeft: '20px' }}>
+                          <li>Online payments (Paystack/PayPal/Razorpay) are processed instantly</li>
+                          <li>Mobile Money and Bank transfers require manual verification (1-24 hours)</li>
+                          <li>All payments are secure and encrypted</li>
+                          <li>Your new plan will be activated after payment confirmation</li>
+                          <li>You will receive an email confirmation once payment is complete</li>
+                        </ul>
+                      </Text>
+                    </div>
+                  </div>
+                )}
+              </Modal>
+            )}
+
+            <Divider />
+
+            {/* ✅ FAQ Section - Always visible */}
+            <div className="faq-section">
+              <Title level={3}>Frequently Asked Questions</Title>
+              <Row gutter={[32, 16]} style={{ marginTop: 24 }}>
+                <Col xs={24} md={12}>
+                  <div>
+                    <Text strong>Can I switch plans anytime?</Text>
+                    <br />
+                    <Text type="secondary">
+                      Yes! You can upgrade or downgrade your plan at any time. Downgrades will take effect at your next billing cycle.
+                    </Text>
+                  </div>
+                </Col>
+                <Col xs={24} md={12}>
+                  <div>
+                    <Text strong>What happens to my data if I downgrade?</Text>
+                    <br />
+                    <Text type="secondary">
+                      Your data is preserved. You'll have view-only access to features beyond your new plan's limits.
+                    </Text>
+                  </div>
+                </Col>
+                <Col xs={24} md={12}>
+                  <div>
+                    <Text strong>Do you offer discounts for annual payments?</Text>
+                    <br />
+                    <Text type="secondary">
+                      Yes! Annual plans offer significant savings compared to monthly billing.
+                    </Text>
+                  </div>
+                </Col>
+                <Col xs={24} md={12}>
+                  <div>
+                    <Text strong>Is there a free trial for paid plans?</Text>
+                    <br />
+                    <Text type="secondary">
+                      All paid plans come with a 14-day free trial. No credit card required.
+                    </Text>
+                  </div>
+                </Col>
+                <Col xs={24} md={12}>
+                  <div>
+                    <Text strong>Can I cancel anytime?</Text>
+                    <br />
+                    <Text type="secondary">
+                      Yes, you can cancel your subscription at any time. No long-term contracts.
+                    </Text>
+                  </div>
+                </Col>
+                <Col xs={24} md={12}>
+                  <div>
+                    <Text strong>What payment methods are available?</Text>
+                    <br />
+                    <Text type="secondary">
+                      We support Paystack (Cards), PayPal, and Bank Transfers worldwide. Additional local methods are available for India (Razorpay), Qatar (QNB), and Ghana (Mobile Money).
+                    </Text>
+                  </div>
+                </Col>
+              </Row>
+            </div>
+          </>
         )}
-
-        <Divider />
-
-        {/* ✅ FAQ Section - Always visible */}
-        <div className="faq-section">
-          <Title level={3}>Frequently Asked Questions</Title>
-          <Row gutter={[32, 16]} style={{ marginTop: 24 }}>
-            <Col xs={24} md={12}>
-              <div>
-                <Text strong>Can I switch plans anytime?</Text>
-                <br />
-                <Text type="secondary">
-                  Yes! You can upgrade or downgrade your plan at any time. Downgrades will take effect at your next billing cycle.
-                </Text>
-              </div>
-            </Col>
-            <Col xs={24} md={12}>
-              <div>
-                <Text strong>What happens to my data if I downgrade?</Text>
-                <br />
-                <Text type="secondary">
-                  Your data is preserved. You'll have view-only access to features beyond your new plan's limits.
-                </Text>
-              </div>
-            </Col>
-            <Col xs={24} md={12}>
-              <div>
-                <Text strong>Do you offer discounts for annual payments?</Text>
-                <br />
-                <Text type="secondary">
-                  Yes! Annual plans offer significant savings compared to monthly billing.
-                </Text>
-              </div>
-            </Col>
-            <Col xs={24} md={12}>
-              <div>
-                <Text strong>Is there a free trial for paid plans?</Text>
-                <br />
-                <Text type="secondary">
-                  All paid plans come with a 14-day free trial. No credit card required.
-                </Text>
-              </div>
-            </Col>
-            <Col xs={24} md={12}>
-              <div>
-                <Text strong>Can I cancel anytime?</Text>
-                <br />
-                <Text type="secondary">
-                  Yes, you can cancel your subscription at any time. No long-term contracts.
-                </Text>
-              </div>
-            </Col>
-            <Col xs={24} md={12}>
-              <div>
-                <Text strong>What payment methods are available?</Text>
-                <br />
-                <Text type="secondary">
-                  We support Paystack (Cards), PayPal, and Bank Transfers worldwide. Additional local methods are available for India (Razorpay), Qatar (QNB), and Ghana (Mobile Money).
-                </Text>
-              </div>
-            </Col>
-          </Row>
-        </div>
       </div>
     </div>
   );
