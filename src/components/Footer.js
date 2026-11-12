@@ -18,6 +18,7 @@ import "./Footer.css";
 
 // ✅ Import the real logo
 import logoImage from '../assets/images/safetrack-logo.jpeg';
+
 function Footer() {
   const currentYear = new Date().getFullYear();
 
@@ -32,7 +33,6 @@ function Footer() {
           <div className="footer-brand-column">
             <Link to="/" className="footer-logo-link">
               <div className="footer-logo">
-                {/* ✅ Replaced the text block with the actual logo image */}
                 <img 
                   src={logoImage} 
                   alt="SafeTrack Pro Global" 
@@ -54,13 +54,30 @@ function Footer() {
             </p>
 
             {/* Trust badges */}
-            <div className="footer-trust-badges">
+            <div className="footer-trust-badges" style={{ marginBottom: '20px' }}>
               <span className="footer-trust-badge">
                 <SafetyCertificateOutlined /> ISO 27001 Ready
               </span>
               <span className="footer-trust-badge">
                 <CheckCircleOutlined /> SOC2 Practices
               </span>
+            </div>
+
+            {/* ✅ LaunchIgniter Badge */}
+            <div className="footer-launch-badge" style={{ marginBottom: '20px' }}>
+              <a 
+                href="https://launchigniter.com/product/safetrack-pro-global?ref=badge-safetrack-pro-global" 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                <img 
+                  src="https://launchigniter.com/api/badge/safetrack-pro-global?theme=light" 
+                  alt="Featured on LaunchIgniter" 
+                  width="212" 
+                  height="55" 
+                  style={{ borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
+                />
+              </a>
             </div>
 
             {/* Social */}
