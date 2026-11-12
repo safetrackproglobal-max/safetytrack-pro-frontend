@@ -1,4 +1,4 @@
-/* src/layouts/DashboardLayout.css */
+/* src/layouts/DashboardLayout.css - STRIPPED DOWN FOR TESTING */
 
 .dashboard-layout {
   min-height: 100vh;
@@ -10,10 +10,11 @@
   margin-left: 280px;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   min-height: 100vh;
-  background: #f0f2f5;
+  /* ✅ REMOVED: background: #f0f2f5; */
+  background: transparent; 
   display: flex;
   flex-direction: column;
-  width: calc(100% - 280px); /* Force width to fill remaining space */
+  width: calc(100% - 280px); 
 }
 
 .dashboard-content-layout.collapsed {
@@ -29,7 +30,8 @@
 
 /* Main Content */
 .dashboard-main-content {
-  background: #f0f2f5;
+  /* ✅ REMOVED: background: #f0f2f5; */
+  background: transparent;
   flex: 1;
   overflow: auto;
   padding: 0;
@@ -59,16 +61,14 @@
 .content-wrapper {
   padding: 24px;
   min-height: 100%;
-  /* ✅ FIXED: Changed from max-width: 1200px; margin: 0 auto; 
-     which was causing the gap. Now it takes full width. */
   width: 100%; 
   max-width: 100%;
+  /* ✅ REMOVED any implicit background */
+  background: transparent;
 }
 
-/* ... (Keep the Loading, Auth Error, Mobile Overlay CSS the same) ... */
-
 /* ============================================================
-   MOBILE RESPONSIVE - FIXED
+   MOBILE RESPONSIVE
    ============================================================ */
 
 @media (max-width: 991px) {
@@ -84,7 +84,7 @@
 
   .dashboard-sider {
     position: fixed !important;
-    left: -280px !important; /* Hidden by default */
+    left: -280px !important; 
     top: 0 !important;
     height: 100vh !important;
     width: 280px !important;
