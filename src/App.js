@@ -446,7 +446,7 @@ const AppContent = () => {
   }
 
   return (
-    <Router basename="/safetrack-pro-web">
+    <Router>
       <NotificationProvider>
 
         <ToastNotifications />
