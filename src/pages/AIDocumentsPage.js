@@ -4452,16 +4452,15 @@ const formatQuestion = (q, index, isDeepSeek) => {
         }
     }
 
-    const correctAnswerIndex = correctAnswer.charCodeAt(0) - 65;
-
+    // 🔴 FIXED: Keep correct_answer as the letter (e.g., 'A'), NOT the index (0)
     return {
         id: q.id || `q_${index}_${Date.now()}`,
         question_text: q.question_text || q.question || `Question ${index + 1}`,
         question: q.question_text || q.question || `Question ${index + 1}`,
         type: q.question_type || 'application',
         options: options,
-        correct_answer: correctAnswerIndex,
-        correct_answer_letter: correctAnswer,
+        correct_answer: correctAnswer,           // Now a string: 'A', 'B', 'C', or 'D'
+        correct_answer_letter: correctAnswer,    // Kept for safety
         explanation: q.explanation || (isDeepSeek ? 'AI-generated explanation based on CSP standards.' : 'Based on CSP-level professional judgment.'),
         points: q.points || 2,
         difficulty: q.difficulty || (isDeepSeek ? 'advanced' : 'intermediate'),
@@ -4471,7 +4470,6 @@ const formatQuestion = (q, index, isDeepSeek) => {
         scenario_context: q.scenario_context || ''
     };
 };
-
 // ============================================================
 // HELPER: Start Exam Timer
 // ============================================================
@@ -4519,22 +4517,38 @@ const startExamTimer = (exam) => {
     return `user_${Date.now()}`;
   };
 
-  const handleAnswerSelect = (questionIndex, answerLetter) => {
+  const handleAnswerSelect = (questionIndex, answer) => {
+    // Force everything to be a single uppercase letter ('A', 'B', 'C', 'D')
+    let letter = answer;
+    
+    // If a number (0, 1, 2, 3) was passed by the Radio button, convert to letter
+    if (typeof answer === 'number' || !isNaN(parseInt(answer))) {
+        const idx = parseInt(answer, 10);
+        if (idx >= 0 && idx <= 3) {
+            letter = String.fromCharCode(65 + idx); // 0 -> 'A', 1 -> 'B'
+        }
+    }
+    
+    // If it's a string like "A) ...", extract just the letter
+    if (typeof letter === 'string') {
+        letter = letter.trim().toUpperCase().charAt(0);
+    }
+
     setUserAnswers(prev => ({
-      ...prev,
-      [questionIndex]: answerLetter
+        ...prev,
+        [questionIndex]: letter
     }));
 
     setExamProgress(prev => {
-      const answeredCount = Object.keys({ ...prev.answers, [questionIndex]: answerLetter }).length;
-      return {
-        ...prev,
-        answered: answeredCount,
-        answers: { ...prev.answers, [questionIndex]: answerLetter },
-        percentage: Math.round((answeredCount / prev.total) * 100)
-      };
+        const answeredCount = Object.keys({ ...prev.answers, [questionIndex]: letter }).length;
+        return {
+            ...prev,
+            answered: answeredCount,
+            answers: { ...prev.answers, [questionIndex]: letter },
+            percentage: Math.round((answeredCount / prev.total) * 100)
+        };
     });
-  };
+};
 
   const handleSubmitExam = async () => {
     console.log('📤 Submitting exam...');
@@ -4711,17 +4725,19 @@ const performSubmit = async () => {
 // 🔴 FIX 4 (continued): Handle BOTH "A) option" and "A. option" formats
 const getOptionText = (options, letter) => {
     if (!options || !letter) return 'N/A';
+    
     const cleanLetter = String(letter).toUpperCase().charAt(0);
     
-    // Try "A) ..." first (most common), then "A. ...", then "A) ..." with space
+    // Try to find the full option text (e.g., "A) Elimination")
     const option = options.find(opt => {
-        const cleaned = String(opt).trim();
+        const cleaned = String(opt).trim().toUpperCase();
         return cleaned.startsWith(`${cleanLetter})`) || 
                cleaned.startsWith(`${cleanLetter}.`) || 
                cleaned.startsWith(`${cleanLetter} `);
     });
     
-    return option || `${cleanLetter}. Not found`;
+    // Return the matched option, or a clean fallback instead of "Not found"
+    return option || `Option ${cleanLetter}`;
 };
 
   
