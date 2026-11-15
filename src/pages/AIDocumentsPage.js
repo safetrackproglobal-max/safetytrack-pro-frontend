@@ -4573,14 +4573,20 @@ const performSubmit = async () => {
             setExamSessionId(sessionId);
         }
 
-        // Format answers
+        // 🔴 FIXED: userAnswers stores letters ('A', 'B', 'C', 'D') NOT indexes.
+        // The old code did `String.fromCharCode(65 + answerIndex)` which
+        // produced '\x00' when answerIndex was 'A' (NaN). Fix: just pass through.
         const formattedAnswers = {};
-        Object.entries(userAnswers).forEach(([qIndex, answerIndex]) => {
+        Object.entries(userAnswers).forEach(([qIndex, answer]) => {
+            const letter = String(answer).toUpperCase().charAt(0);
             formattedAnswers[qIndex] = {
-                index: answerIndex,
-                letter: String.fromCharCode(65 + answerIndex)
+                index: parseInt(qIndex, 10),
+                letter: letter,       // 'A', 'B', 'C', 'D'
+                value: letter
             };
         });
+
+        console.log('📤 Sending formatted answers to backend:', formattedAnswers);
 
         // Submit to backend
         const submitResult = await AIService.submitExamForGrading(
@@ -4591,6 +4597,8 @@ const performSubmit = async () => {
 
         if (submitResult?.success) {
             const detailedResults = submitResult.grading_result?.detailed_results || [];
+            
+            // 🔴 FIXED: Backend may send `domain` OR `domain_name` — map both
             const mappedResults = detailedResults.map(result => ({
                 question: result.question_text || `Question ${result.question_number}`,
                 userAnswer: result.user_answer || 'Not answered',
@@ -4599,7 +4607,7 @@ const performSubmit = async () => {
                 explanation: result.explanation || 'No explanation provided',
                 points: result.points || 1,
                 points_earned: result.points_earned || 0,
-                domain: result.domain || 'Unknown'
+                domain: result.domain || result.domain_name || 'CSP General'
             }));
 
             setExamScore({
@@ -4613,62 +4621,108 @@ const performSubmit = async () => {
             });
 
             setExamFlowStep('results');
-            message.success({ content: `✅ Exam submitted! Score: ${submitResult.grading_result?.percentage || 0}%`, key: 'submit' });
+            message.success({ 
+                content: `✅ Exam submitted! Score: ${submitResult.grading_result?.percentage || 0}%`, 
+                key: 'submit' 
+            });
         } else {
-            // Fallback to local grading
+            // Fallback to local grading — but first kill the loading toast
+            message.destroy('submit');
             performLocalGrading();
         }
     } catch (error) {
         console.error('❌ Submit exception:', error);
-        message.error({ content: 'Error submitting exam. Using local grading.', key: 'submit' });
+        message.destroy('submit');
         performLocalGrading();
     }
 };
-
+  
   const performLocalGrading = () => {
-    if (!activeExam) return;
+    // 🔴 FIX 1: Kill the "Submitting exam..." spinner — this is what's stuck forever
+    message.destroy('submit');
+    message.destroy('loading');
+    
+    if (!activeExam) {
+        console.error('❌ performLocalGrading: no activeExam');
+        return;
+    }
+
+    console.log('📊 performLocalGrading: grading', Object.keys(userAnswers).length, 'answers');
 
     let correct = 0;
     const results = [];
 
     activeExam.questions.forEach((question, index) => {
-      const userAnswer = userAnswers[index];
-      const isCorrect = userAnswer === question.correct_answer;
-      if (isCorrect) correct++;
+        const userAnswer = userAnswers[index];  // 'A', 'B', 'C', 'D' or undefined
 
-      const userAnswerText = userAnswer ? getOptionText(question.options, userAnswer) : 'Not answered';
-      const correctAnswerText = getOptionText(question.options, question.correct_answer);
+        // 🔴 FIX 2: getOptionText expects options like "A) ..." but gets "A" — 
+        //         normalize both user answer AND correct answer to single letters
+        const userLetter = userAnswer ? String(userAnswer).toUpperCase().charAt(0) : null;
+        const correctLetter = String(question.correct_answer || '').toUpperCase().charAt(0);
 
-      results.push({
-        question: question.question,
-        userAnswer: userAnswerText,
-        correctAnswer: correctAnswerText,
-        isCorrect,
-        explanation: question.explanation
-      });
+        // 🔴 FIX 3: Only count CORRECT if user actually answered
+        const isCorrect = userLetter !== null && userLetter === correctLetter;
+        if (isCorrect) correct++;
+
+        // 🔴 FIX 4: getOptionText was looking for "A." but options are "A) ..."
+        //           This means EVERY answer showed "Not found"
+        const userAnswerText = userLetter
+            ? getOptionText(question.options, userLetter)
+            : 'Not answered';
+        const correctAnswerText = getOptionText(question.options, correctLetter);
+
+        results.push({
+            // 🔴 FIX 5: Some questions use `.question`, others use `.question_text` — handle both
+            question: question.question || question.question_text || `Question ${index + 1}`,
+            userAnswer: userAnswerText,
+            correctAnswer: correctAnswerText,
+            isCorrect,
+            explanation: question.explanation || 'No explanation',
+            // 🔴 FIX 6: Preserve domain so results show "Domain 3: Risk Management" not "Unknown"
+            domain: question.domain || question.domain_name || 'CSP General',
+            points: question.points || 2,
+            points_earned: isCorrect ? (question.points || 2) : 0,
+        });
     });
 
-    const score = Math.round((correct / activeExam.questions.length) * 100);
+    const total = activeExam.questions.length;
+    const score = total > 0 ? Math.round((correct / total) * 100) : 0;
     const passed = score >= (activeExam.passing_score || 70);
 
+    console.log(`✅ Local grading: ${correct}/${total} = ${score}% (${passed ? 'PASS' : 'FAIL'})`);
+
     setExamScore({
-      score,
-      correct,
-      total: activeExam.questions.length,
-      percentage: score,
-      passed,
-      results
+        score,
+        correct,
+        total,
+        percentage: score,
+        passed,
+        results,
+        professional_analysis: {
+            method: 'local',
+            note: 'Backend grading was unavailable — scored locally against the exam key.',
+        },
     });
 
     setExamFlowStep('results');
     message.success(`Exam submitted! Score: ${score}%`);
-  };
+};
 
-  const getOptionText = (options, letter) => {
+// 🔴 FIX 4 (continued): Handle BOTH "A) option" and "A. option" formats
+const getOptionText = (options, letter) => {
     if (!options || !letter) return 'N/A';
-    const option = options.find(opt => opt.startsWith(`${letter}.`));
-    return option || `${letter}. Not found`;
-  };
+    const cleanLetter = String(letter).toUpperCase().charAt(0);
+    
+    // Try "A) ..." first (most common), then "A. ...", then "A) ..." with space
+    const option = options.find(opt => {
+        const cleaned = String(opt).trim();
+        return cleaned.startsWith(`${cleanLetter})`) || 
+               cleaned.startsWith(`${cleanLetter}.`) || 
+               cleaned.startsWith(`${cleanLetter} `);
+    });
+    
+    return option || `${cleanLetter}. Not found`;
+};
 
   
 
