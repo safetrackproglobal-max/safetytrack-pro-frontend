@@ -4252,126 +4252,60 @@ const trackExamState = (stateName, stateValue) => {
 };
 
 const generateExamFromBackend = async (userId, numQuestions) => {
-  console.log('🔄 [BACKEND] generateExamFromBackend STARTED');
+  console.log('🔄 [AI] Requesting exam from backend...');
   
   try {
-    // STEP 1: Start the exam flow - get REAL session ID
-    const startResult = await AIService.startExamFlow({
-      user_name: userName,
-      user_id: userId,
-      user_email: userEmail || `${userId}@exam.com`,
-      course: selectedCourseForExam || 'CSP Professional Certification Preparation',
-      topic: selectedExamTopic || 'safety_management',
-      difficulty: numQuestions === 100 ? 'advanced' : 'intermediate',
-      num_questions: numQuestions,
-      industry: selectedIndustry,
-      user_plan: userPlan,
-      is_super_admin: userPlan === 'super_admin'
-    }, userPlan);
-
-    console.log('📥 startExamFlow response:', startResult);
+    message.loading({ 
+      content: 'Generating your CSP exam with AI... (2-3 minutes)', 
+      key: 'gen', 
+      duration: 0 
+    });
     
-    if (!startResult?.success) {
-      console.error('❌ startExamFlow failed:', startResult?.error);
-      return null;
+    // 🔴 SINGLE CALL — no fallback logic here
+    const response = await apiPost('/deepseek/generate-exam', {
+      topic: selectedExamTopic || 'csp_exam',
+      count: numQuestions || 100,
+      difficulty: 'advanced',
+    });
+    
+    message.destroy('gen');
+    const result = response?.data || response;
+    
+    // 🔴 Backend GUARANTEES success with questions
+    if (!result?.success || !result?.questions || result.questions.length === 0) {
+      throw new Error(result?.error || 'Backend returned no questions (unexpected)');
     }
-
-    // ✅ CRITICAL FIX: Use the REAL session_id from the backend
-    // DO NOT generate a fake one!
-    const sessionId = startResult.session_id || startResult.data?.session_id;
     
-    console.log('✅ Real session ID from backend:', sessionId);
-    
-    if (!sessionId) {
-      console.error('❌ No session_id in startResult');
-      // Check if we have questions directly
-      if (startResult.questions && startResult.questions.length > 0) {
-        console.log('✅ Found questions directly in startResult');
-        const examData = {
-          exam_id: `EXAM-${Date.now()}`,
-          exam_type: 'CSP_FULL_EXAM_BACKEND',
-          total_questions: startResult.questions.length,
-          passing_score: 75,
-          time_limit_minutes: 240,
-          questions: startResult.questions,
-          source: 'backend_direct'
-        };
-        return { 
-          examData, 
-          sessionId: `EXAM-${Date.now()}`, 
-          questionsList: startResult.questions 
-        };
-      }
-      return null;
-    }
-
-    // Store the REAL session ID
+    const sessionId = result.session_id;
     setExamSessionId(sessionId);
     localStorage.setItem('exam_session_id', sessionId);
-    console.log('📋 Session ID stored:', sessionId);
-
-    // STEP 2: Use the REAL session ID to get the exam
-    const generateResult = await AIService.generateExamForFlow(sessionId, userPlan);
     
-    console.log('📥 generateExamForFlow response:', generateResult);
-
-    // Check if we already have questions from startResult
-    if (startResult?.questions && startResult.questions.length > 0) {
-      console.log('✅ Using questions from startResult:', startResult.questions.length);
-      const examData = {
-        exam_id: sessionId,
-        exam_type: 'CSP_FULL_EXAM_BACKEND',
-        domain: selectedExamTopic || 'safety_management',
-        total_questions: startResult.questions.length,
-        passing_score: 75,
-        time_limit_minutes: 240,
-        generated_at: new Date().toISOString(),
-        questions: startResult.questions,
-        source: 'backend_start'
-      };
-      return { examData, sessionId, questionsList: startResult.questions };
-    }
-
-    if (!generateResult?.success) {
-      console.error('❌ generateExamForFlow failed:', generateResult?.error);
-      // Check if there are questions in the response anyway
-      if (generateResult?.questions && generateResult.questions.length > 0) {
-        console.log('✅ Found questions in error response:', generateResult.questions.length);
-        const examData = {
-          exam_id: sessionId,
-          exam_type: 'CSP_FULL_EXAM_BACKEND',
-          domain: selectedExamTopic || 'safety_management',
-          total_questions: generateResult.questions.length,
-          passing_score: 75,
-          time_limit_minutes: 240,
-          generated_at: new Date().toISOString(),
-          questions: generateResult.questions,
-          source: 'backend_error'
-        };
-        return { examData, sessionId, questionsList: generateResult.questions };
-      }
-      message.error(generateResult?.error || 'Failed to generate questions');
-      return null;
-    }
-
-    const examData = generateResult.exam_data || generateResult.data;
-    const questionsList = examData?.questions || generateResult.questions || [];
+    console.log(`✅ Received ${result.questions.length} questions from backend`);
+    console.log(`📊 Source: ${result.source}`);
+    console.log(`📊 Domains: ${result.domain_breakdown}`);
     
-    console.log('📊 [BACKEND] Final data:');
-    console.log('  - sessionId:', sessionId);
-    console.log('  - questionsList length:', questionsList.length);
-
-    if (!questionsList || questionsList.length === 0) {
-      console.error('❌ [BACKEND] No questions in response');
-      return null;
-    }
-
-    console.log('✅ [BACKEND] generateExamFromBackend SUCCESS');
+    const questionsList = result.questions.map((q, i) => formatQuestion(q, i, true));
+    
+    const examData = {
+      exam_id: sessionId,
+      exam_type: 'CSP_AI_EXAM',
+      domain: selectedExamTopic || 'csp_exam',
+      total_questions: questionsList.length,
+      passing_score: 75,
+      time_limit_minutes: 240,
+      generated_at: new Date().toISOString(),
+      source: result.source,
+      domain_breakdown: result.domain_breakdown,
+      saved_to: result.saved_to,
+    };
+    
     return { examData, sessionId, questionsList };
-
+    
   } catch (error) {
-    console.error('❌ [BACKEND] generateExamFromBackend error:', error);
-    return null;
+    message.destroy('gen');
+    console.error('❌ Exam generation failed:', error);
+    message.error('Failed to generate exam. Please try again.');
+    return null;  // ← Single failure = user sees error, no auto-retry
   }
 };
 // ============================================================
