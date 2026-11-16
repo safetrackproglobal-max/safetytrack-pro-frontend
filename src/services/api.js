@@ -72,7 +72,7 @@ const removePendingRequest = (key) => {
 // ============================================================
 
 // ✅ Environment-based baseURL
-const isDevelopment = process.env.NODE_ENV === 'development';
+const isDevelopment = process.env.NODE_ENV === 'production';
 
 const PROD_API_URL = 'https://safetrackproglobal-backend-production.up.railway.app/api';
 const DEV_API_URL = 'http://localhost:5000/api';
@@ -85,7 +85,7 @@ console.log('[API] Using baseURL:', baseURL, isDevelopment ? '(dev)' : '(prod)')
 
 const api = axios.create({
   baseURL,
-  timeout: 120000,
+  timeout: 300000,
   headers: {
     'Content-Type': 'application/json',
   },
