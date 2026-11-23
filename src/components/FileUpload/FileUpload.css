@@ -99,24 +99,4 @@
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .upload-card {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-  
-  .upload-dragger {
-    border-color: #434343;
-    background: #141414;
-  }
-  
-  .selected-files {
-    background: #141414;
-    border-color: #303030;
-  }
-  
-  .upload-progress {
-    background: #162312;
-    border-color: #274916;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */

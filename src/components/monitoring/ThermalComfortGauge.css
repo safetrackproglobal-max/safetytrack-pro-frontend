@@ -153,32 +153,4 @@
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .thermal-comfort-gauge {
-    background: #141414;
-  }
-  
-  .comfort-title {
-    color: #e6e6e6;
-  }
-  
-  .pmv-indicator {
-    background: #1f1f1f;
-  }
-  
-  .pmv-label {
-    color: #a6a6a6;
-  }
-  
-  .comfort-recommendations {
-    border-top-color: #303030;
-  }
-  
-  .comfort-recommendations h4 {
-    color: #e6e6e6;
-  }
-  
-  .comfort-recommendations ul {
-    color: #a6a6a6;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */

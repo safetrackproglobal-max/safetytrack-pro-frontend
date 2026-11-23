@@ -99,38 +99,7 @@
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .aqi-meter {
-    background: #2d3748;
-    border-color: #4a5568;
-  }
-  
-  .aqi-description {
-    color: #a0aec0;
-  }
-  
-  .scale-markers {
-    color: #a0aec0;
-  }
-  
-  .scale-bar {
-    background: linear-gradient(
-      90deg,
-      #22543d 0%,
-      #22543d 10%,
-      #744210 10%,
-      #744210 20%,
-      #7b341e 20%,
-      #7b341e 30%,
-      #742a2a 30%,
-      #742a2a 40%,
-      #553c9a 40%,
-      #553c9a 60%,
-      #4a5568 60%,
-      #4a5568 100%
-    );
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* Animation for value changes */
 @keyframes pulse {

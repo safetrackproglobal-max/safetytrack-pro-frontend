@@ -180,47 +180,4 @@
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .notif-menu {
-    background: #1f1f1f;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  }
-  
-  .notif-header {
-    border-bottom-color: #333;
-    color: #e0e0e0;
-  }
-  
-  .notif-item {
-    border-bottom-color: #333;
-  }
-  
-  .notif-item:hover {
-    background-color: #2a2a2a;
-  }
-  
-  .notif-item.unread {
-    background-color: #1a3c5a;
-    border-left-color: #1890ff;
-  }
-  
-  .notif-item.unread:hover {
-    background-color: #1e4a6e;
-  }
-  
-  .notif-item strong {
-    color: #e0e0e0;
-  }
-  
-  .notif-item div {
-    color: #b0b0b0;
-  }
-  
-  .notif-empty {
-    color: #888;
-  }
-  
-  .notif-footer {
-    border-top-color: #333;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */

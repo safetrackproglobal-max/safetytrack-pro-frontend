@@ -575,50 +575,7 @@
 /* ============================================
    DARK MODE SUPPORT
    ============================================ */
-@media (prefers-color-scheme: dark) {
-  .notifications-page {
-    background: #141414;
-  }
-  
-  .stat-card,
-  .filters-card,
-  .notifications-list-card {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-  
-  .notification-list-item {
-    border-bottom-color: #303030;
-  }
-  
-  .notification-list-item:hover {
-    background: #2a2a2a;
-  }
-  
-  .notification-list-item.unread {
-    background: #1a3a1a;
-  }
-  
-  .notification-list-item.unread:hover {
-    background: #1a4a1a;
-  }
-  
-  .notification-message {
-    color: #a6a6a6;
-  }
-  
-  .list-header {
-    border-bottom-color: #303030;
-  }
-  
-  .notifications-empty h4 {
-    color: #a6a6a6;
-  }
-  
-  .notifications-empty p {
-    color: #8c8c8c;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* ============================================
    ACCESSIBILITY

@@ -218,19 +218,7 @@
 }
 
 /* Dark Mode */
-@media (prefers-color-scheme: dark) {
-  .retention-header {
-    background: #1f1f1f;
-  }
-  
-  .disposal-method-radio .ant-radio-wrapper {
-    border-color: #303030;
-  }
-  
-  .disposal-method-radio .ant-radio-wrapper:hover {
-    background: #262626;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* Certificate Preview */
 .certificate-preview {

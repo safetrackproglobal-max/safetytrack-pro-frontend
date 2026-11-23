@@ -1880,6 +1880,9 @@ const StaffCompetencyDashboard = () => {
 // ============================================
 // 11. FINANCIAL DASHBOARD (REAL API)
 // ============================================
+// ============================================
+// 11. FINANCIAL DASHBOARD (ENHANCED WITH CRUD)
+// ============================================
 const FinancialDashboard = () => {
   const [financialData, setFinancialData] = useState({
     totalRevenue: 0,
@@ -1889,13 +1892,27 @@ const FinancialDashboard = () => {
     revenueByDepartment: [],
     payerMix: []
   });
+  const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [recordsLoading, setRecordsLoading] = useState(false);
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 1 });
+  const [filters, setFilters] = useState({
+    record_type: '',
+    status: '',
+    payer_type: ''
+  });
+  const [form] = Form.useForm();
 
+  // ============================================
+  // FETCH: Dashboard aggregates
+  // ============================================
   const fetchFinancialData = async () => {
     setLoading(true);
     try {
       const result = await hospitalService.getFinancialData();
-      if (result && result.data) {
+      if (result?.data) {
         setFinancialData({
           totalRevenue: result.data.totalRevenue || 0,
           outstandingReceivables: result.data.outstandingReceivables || 0,
@@ -1904,22 +1921,172 @@ const FinancialDashboard = () => {
           revenueByDepartment: result.data.revenueByDepartment || [],
           payerMix: result.data.payerMix || []
         });
-      } else {
-        message.info('No financial data available');
       }
     } catch (error) {
       console.error('Error fetching financial data:', error);
-      message.error('Failed to load financial data');
+      if (!error.silent) message.error('Failed to load financial data');
     } finally {
       setLoading(false);
     }
   };
 
+  // ============================================
+  // FETCH: Records list
+  // ============================================
+  const fetchRecords = async (page = 1) => {
+    setRecordsLoading(true);
+    try {
+      const activeFilters = Object.fromEntries(
+        Object.entries(filters).filter(([_, v]) => v && v !== '')
+      );
+      const result = await hospitalService.listFinancialRecords(null, {
+        page,
+        limit: pagination.limit,
+        ...activeFilters
+      });
+      if (result?.data) {
+        setRecords(result.data || []);
+        setPagination(prev => ({
+          ...prev,
+          page: result.pagination?.page || page,
+          total: result.pagination?.total || 0,
+          pages: result.pagination?.pages || 1
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching records:', error);
+      if (!error.silent) message.error('Failed to load records');
+    } finally {
+      setRecordsLoading(false);
+    }
+  };
+
+  // ============================================
+  // LOAD ON MOUNT
+  // ============================================
   useEffect(() => {
     fetchFinancialData();
+    fetchRecords(1);
   }, []);
 
-  if (loading) {
+  // ============================================
+  // REFRESH ALL
+  // ============================================
+  const handleRefresh = () => {
+    fetchFinancialData();
+    fetchRecords(pagination.page);
+  };
+
+  // ============================================
+  // CREATE RECORD
+  // ============================================
+  const handleAddRecord = async (values) => {
+    setSaving(true);
+    try {
+      const payload = {
+        record_type: values.record_type,
+        payer_type: values.payer_type,
+        payer_name: values.payer_name || null,
+        amount: parseFloat(values.amount),
+        currency: values.currency || 'USD',
+        invoice_number: values.invoice_number || null,
+        claim_number: values.claim_number || null,
+        description: values.description || null,
+        status: values.status || 'pending',
+        service_date: values.service_date?.toISOString() || new Date().toISOString(),
+        due_date: values.due_date?.toISOString() || null
+      };
+
+      await hospitalService.createFinancialRecord(null, payload);
+      message.success('Record created successfully');
+      setAddModalVisible(false);
+      form.resetFields();
+      handleRefresh();
+    } catch (error) {
+      console.error('Error creating record:', error);
+      message.error(error.response?.data?.error || 'Failed to create record');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ============================================
+  // MARK AS PAID
+  // ============================================
+  const handleMarkPaid = async (record) => {
+    try {
+      await hospitalService.updateFinancialRecord(null, record.id, {
+        status: 'paid'
+      });
+      message.success('Record marked as paid');
+      handleRefresh();
+    } catch (error) {
+      console.error('Error updating record:', error);
+      message.error('Failed to update record');
+    }
+  };
+
+  // ============================================
+  // DELETE RECORD
+  // ============================================
+  const handleDelete = async (recordId) => {
+    try {
+      await hospitalService.deleteFinancialRecord(null, recordId);
+      message.success('Record deleted');
+      handleRefresh();
+    } catch (error) {
+      console.error('Error deleting record:', error);
+      message.error('Failed to delete record');
+    }
+  };
+
+  // ============================================
+  // FORMATTING HELPERS
+  // ============================================
+  const formatMoney = (amount) => {
+    if (!amount && amount !== 0) return '$0';
+    return `$${Number(amount).toLocaleString(undefined, {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    })}`;
+  };
+
+  const getRecordTypeColor = (type) => {
+    const map = {
+      service_billed: 'blue',
+      payment_received: 'green',
+      insurance_claim: 'purple',
+      refund: 'orange',
+      adjustment: 'default'
+    };
+    return map[type] || 'default';
+  };
+
+  const getStatusColor = (status) => {
+    const map = {
+      pending: 'orange',
+      paid: 'green',
+      overdue: 'red',
+      rejected: 'red',
+      cancelled: 'default'
+    };
+    return map[status] || 'default';
+  };
+
+  const getPayerTypeColor = (type) => {
+    const map = {
+      insurance: 'blue',
+      self_pay: 'green',
+      government: 'orange',
+      corporate: 'purple'
+    };
+    return map[type] || 'default';
+  };
+
+  // ============================================
+  // RENDER
+  // ============================================
+  if (loading && !financialData.totalRevenue && !financialData.outstandingReceivables) {
     return (
       <div style={{ textAlign: 'center', padding: 40 }}>
         <Spin size="large" />
@@ -1930,19 +2097,83 @@ const FinancialDashboard = () => {
 
   return (
     <div>
-      <Alert message="Enterprise Financial Dashboard" type="info" showIcon style={{ marginBottom: 16 }} />
+      <Alert
+        message="Enterprise Financial Dashboard"
+        description="Track bills, payments, insurance claims, and revenue"
+        type="info"
+        showIcon
+        style={{ marginBottom: 16 }}
+        action={
+          <Space>
+            <Button size="small" icon={<ReloadOutlined />} onClick={handleRefresh}>
+              Refresh
+            </Button>
+            <Button
+              size="small"
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setAddModalVisible(true)}
+            >
+              Add Record
+            </Button>
+          </Space>
+        }
+      />
+
+      {/* KPI Cards */}
       <Row gutter={[16, 16]}>
-        <Col span={6}><Card><Statistic title="Total Revenue (YTD)" value={financialData.totalRevenue} prefix="$" precision={0} valueStyle={{ color: '#1890ff' }} /></Card></Col>
-        <Col span={6}><Card><Statistic title="Outstanding Receivables" value={financialData.outstandingReceivables} prefix="$" precision={0} valueStyle={{ color: '#faad14' }} /></Card></Col>
-        <Col span={6}><Card><Statistic title="Collection Rate" value={financialData.collectionRate} suffix="%" valueStyle={{ color: financialData.collectionRate > 85 ? '#52c41a' : '#faad14' }} /></Card></Col>
-        <Col span={6}><Card><Statistic title="Pending Claims" value={financialData.pendingClaims} prefix={<ClockCircleOutlined />} valueStyle={{ color: '#cf1322' }} /></Card></Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="Total Revenue (YTD)"
+              value={financialData.totalRevenue}
+              prefix="$"
+              precision={0}
+              valueStyle={{ color: '#1890ff' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="Outstanding Receivables"
+              value={financialData.outstandingReceivables}
+              prefix="$"
+              precision={0}
+              valueStyle={{ color: '#faad14' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="Collection Rate"
+              value={financialData.collectionRate}
+              suffix="%"
+              valueStyle={{
+                color: financialData.collectionRate > 85 ? '#52c41a' : '#faad14'
+              }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="Pending Claims"
+              value={financialData.pendingClaims}
+              prefix={<ClockCircleOutlined />}
+              valueStyle={{ color: '#cf1322' }}
+            />
+          </Card>
+        </Col>
       </Row>
 
+      {/* Charts */}
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
-        <Col span={12}>
+        <Col xs={24} lg={12}>
           <Card title="Revenue by Department">
             {financialData.revenueByDepartment.length > 0 ? (
-              <CustomBarChart 
+              <CustomBarChart
                 data={financialData.revenueByDepartment.map(d => ({
                   label: d.label,
                   value: d.value || 0,
@@ -1953,11 +2184,11 @@ const FinancialDashboard = () => {
                 title="Revenue Distribution"
               />
             ) : (
-              <Empty description="No revenue data available" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+              <Empty description="No revenue data yet" image={Empty.PRESENTED_IMAGE_SIMPLE} />
             )}
           </Card>
         </Col>
-        <Col span={12}>
+        <Col xs={24} lg={12}>
           <Card title="Payer Mix">
             {financialData.payerMix.length > 0 ? (
               financialData.payerMix.map((item, index) => (
@@ -1966,24 +2197,384 @@ const FinancialDashboard = () => {
                     <span>{item.label}</span>
                     <span>{item.percentage}%</span>
                   </div>
-                  <Progress percent={item.percentage} size="small" strokeColor={item.color || '#1890ff'} />
+                  <Progress
+                    percent={item.percentage}
+                    size="small"
+                    strokeColor={item.color || '#1890ff'}
+                  />
                 </div>
               ))
             ) : (
-              <Empty description="No payer mix data available" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+              <Empty description="No payer mix data yet" image={Empty.PRESENTED_IMAGE_SIMPLE} />
             )}
           </Card>
         </Col>
       </Row>
 
-      <Card title="Quick Actions" style={{ marginTop: 16 }}>
-        <Space wrap>
-          <Button icon={<DollarOutlined />}>Generate Invoice</Button>
-          <Button icon={<WalletOutlined />}>Submit Claim</Button>
-          <Button icon={<FileExcelOutlined />}>Export Report</Button>
-          <Button icon={<PrinterOutlined />}>Print Statement</Button>
-        </Space>
+      {/* Records Table */}
+      <Card
+        title={
+          <Space>
+            <FileTextOutlined />
+            Financial Records
+            <Badge count={pagination.total} style={{ marginLeft: 8 }} />
+          </Space>
+        }
+        style={{ marginTop: 16 }}
+        extra={
+          <Button icon={<ReloadOutlined />} onClick={() => fetchRecords(pagination.page)}>
+            Refresh
+          </Button>
+        }
+      >
+        {/* Filters */}
+        <Row gutter={[12, 12]} style={{ marginBottom: 16 }}>
+          <Col xs={24} sm={8} md={6}>
+            <Select
+              placeholder="Record Type"
+              style={{ width: '100%' }}
+              allowClear
+              value={filters.record_type || undefined}
+              onChange={(value) => {
+                setFilters(prev => ({ ...prev, record_type: value || '' }));
+                setTimeout(() => fetchRecords(1), 0);
+              }}
+            >
+              <Option value="service_billed">Service Billed</Option>
+              <Option value="payment_received">Payment Received</Option>
+              <Option value="insurance_claim">Insurance Claim</Option>
+              <Option value="refund">Refund</Option>
+              <Option value="adjustment">Adjustment</Option>
+            </Select>
+          </Col>
+          <Col xs={24} sm={8} md={6}>
+            <Select
+              placeholder="Status"
+              style={{ width: '100%' }}
+              allowClear
+              value={filters.status || undefined}
+              onChange={(value) => {
+                setFilters(prev => ({ ...prev, status: value || '' }));
+                setTimeout(() => fetchRecords(1), 0);
+              }}
+            >
+              <Option value="pending">Pending</Option>
+              <Option value="paid">Paid</Option>
+              <Option value="overdue">Overdue</Option>
+              <Option value="rejected">Rejected</Option>
+              <Option value="cancelled">Cancelled</Option>
+            </Select>
+          </Col>
+          <Col xs={24} sm={8} md={6}>
+            <Select
+              placeholder="Payer Type"
+              style={{ width: '100%' }}
+              allowClear
+              value={filters.payer_type || undefined}
+              onChange={(value) => {
+                setFilters(prev => ({ ...prev, payer_type: value || '' }));
+                setTimeout(() => fetchRecords(1), 0);
+              }}
+            >
+              <Option value="insurance">Insurance</Option>
+              <Option value="self_pay">Self-Pay</Option>
+              <Option value="government">Government</Option>
+              <Option value="corporate">Corporate</Option>
+            </Select>
+          </Col>
+          <Col xs={24} sm={24} md={6}>
+            <Button
+              block
+              onClick={() => {
+                setFilters({ record_type: '', status: '', payer_type: '' });
+                setTimeout(() => fetchRecords(1), 0);
+              }}
+            >
+              Clear Filters
+            </Button>
+          </Col>
+        </Row>
+
+        <Table
+          dataSource={records}
+          rowKey="id"
+          loading={recordsLoading}
+          pagination={{
+            current: pagination.page,
+            pageSize: pagination.limit,
+            total: pagination.total,
+            showSizeChanger: false,
+            onChange: (page) => fetchRecords(page)
+          }}
+          scroll={{ x: 900 }}
+          columns={[
+            {
+              title: 'Date',
+              dataIndex: 'service_date',
+              width: 110,
+              render: (d) => d ? moment(d).format('MMM DD, YY') : '—'
+            },
+            {
+              title: 'Type',
+              dataIndex: 'record_type',
+              width: 140,
+              render: (t) => (
+                <Tag color={getRecordTypeColor(t)}>
+                  {t?.replace(/_/g, ' ').toUpperCase() || '—'}
+                </Tag>
+              )
+            },
+            {
+              title: 'Description',
+              dataIndex: 'description',
+              ellipsis: true,
+              render: (d) => d || '—'
+            },
+            {
+              title: 'Payer',
+              dataIndex: 'payer_type',
+              width: 130,
+              render: (p, r) => (
+                <div>
+                  <Tag color={getPayerTypeColor(p)}>
+                    {p?.replace(/_/g, ' ').toUpperCase() || '—'}
+                  </Tag>
+                  {r.payer_name && (
+                    <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>
+                      {r.payer_name}
+                    </div>
+                  )}
+                </div>
+              )
+            },
+            {
+              title: 'Amount',
+              dataIndex: 'amount',
+              width: 120,
+              align: 'right',
+              render: (a) => (
+                <strong style={{ color: '#1A2A6C' }}>{formatMoney(a)}</strong>
+              )
+            },
+            {
+              title: 'Status',
+              dataIndex: 'status',
+              width: 110,
+              render: (s) => (
+                <Tag color={getStatusColor(s)}>
+                  {s?.toUpperCase() || '—'}
+                </Tag>
+              )
+            },
+            {
+              title: 'Actions',
+              key: 'actions',
+              width: 130,
+              fixed: 'right',
+              render: (_, r) => (
+                <Space size="small">
+                  {r.status !== 'paid' && r.record_type !== 'payment_received' && (
+                    <Tooltip title="Mark as Paid">
+                      <Button
+                        type="link"
+                        size="small"
+                        icon={<CheckCircleOutlined />}
+                        style={{ color: '#52c41a' }}
+                        onClick={() => handleMarkPaid(r)}
+                      />
+                    </Tooltip>
+                  )}
+                  <Popconfirm
+                    title="Delete this record?"
+                    onConfirm={() => handleDelete(r.id)}
+                    okText="Yes"
+                    cancelText="No"
+                  >
+                    <Button
+                      type="link"
+                      size="small"
+                      danger
+                      icon={<DeleteOutlined />}
+                    />
+                  </Popconfirm>
+                </Space>
+              )
+            }
+          ]}
+        />
       </Card>
+
+      {/* Add Record Modal */}
+      <Modal
+        title={
+          <Space>
+            <PlusOutlined />
+            Add Financial Record
+          </Space>
+        }
+        open={addModalVisible}
+        onCancel={() => {
+          setAddModalVisible(false);
+          form.resetFields();
+        }}
+        footer={null}
+        width={700}
+        destroyOnClose
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleAddRecord}
+          initialValues={{
+            record_type: 'service_billed',
+            payer_type: 'self_pay',
+            currency: 'USD',
+            status: 'pending',
+            service_date: moment()
+          }}
+        >
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="record_type"
+                label="Record Type"
+                rules={[{ required: true, message: 'Select record type' }]}
+              >
+                <Select placeholder="Select type">
+                  <Option value="service_billed">Service Billed</Option>
+                  <Option value="payment_received">Payment Received</Option>
+                  <Option value="insurance_claim">Insurance Claim</Option>
+                  <Option value="refund">Refund</Option>
+                  <Option value="adjustment">Adjustment</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="payer_type"
+                label="Payer Type"
+                rules={[{ required: true, message: 'Select payer type' }]}
+              >
+                <Select placeholder="Select payer">
+                  <Option value="insurance">Insurance</Option>
+                  <Option value="self_pay">Self-Pay</Option>
+                  <Option value="government">Government</Option>
+                  <Option value="corporate">Corporate</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="payer_name"
+                label="Payer Name (Optional)"
+              >
+                <Input placeholder="e.g., Acme Insurance" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="amount"
+                label="Amount"
+                rules={[
+                  { required: true, message: 'Enter amount' },
+                  {
+                    validator: (_, v) =>
+                      v && parseFloat(v) > 0
+                        ? Promise.resolve()
+                        : Promise.reject(new Error('Amount must be greater than 0'))
+                  }
+                ]}
+              >
+                <InputNumber
+                  style={{ width: '100%' }}
+                  placeholder="0.00"
+                  min={0}
+                  step={0.01}
+                  prefix="$"
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item name="currency" label="Currency">
+                <Select>
+                  <Option value="USD">USD</Option>
+                  <Option value="GHS">GHS</Option>
+                  <Option value="QAR">QAR</Option>
+                  <Option value="EUR">EUR</Option>
+                  <Option value="GBP">GBP</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="service_date"
+                label="Service Date"
+                rules={[{ required: true, message: 'Select date' }]}
+              >
+                <DatePicker style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="due_date" label="Due Date (Optional)">
+                <DatePicker style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item name="invoice_number" label="Invoice # (Optional)">
+                <Input placeholder="INV-2026-001" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="claim_number" label="Claim # (Optional)">
+                <Input placeholder="CLM-2026-001" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item name="status" label="Status">
+            <Select>
+              <Option value="pending">Pending</Option>
+              <Option value="paid">Paid</Option>
+              <Option value="overdue">Overdue</Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item name="description" label="Description (Optional)">
+            <TextArea rows={3} placeholder="Describe this record..." />
+          </Form.Item>
+
+          <Divider />
+          <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+            <Space>
+              <Button
+                onClick={() => {
+                  setAddModalVisible(false);
+                  form.resetFields();
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={saving}
+                icon={<SaveOutlined />}
+              >
+                Save Record
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };
@@ -2123,77 +2714,130 @@ function HospitalManagement() {
 
   // Fetch user's company and hospital info
   const fetchUserContext = async () => {
-    try {
-      const companyId = sessionStorage.getItem('company_id');
-      if (companyId) {
-        const companyResponse = await hospitalService.getCompany(companyId);
-        if (companyResponse && companyResponse.success) {
-          setUserCompany(companyResponse.data);
-          if (companyResponse.data.hospital_id) {
-            const hospitalResponse = await hospitalService.getHospitalById(companyResponse.data.hospital_id);
-            if (hospitalResponse && hospitalResponse.success) {
-              setUserHospital(hospitalResponse.data);
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.warn('Could not fetch user context:', error);
-    }
-  };
+  try {
+    const companyResponse = await hospitalService.getCompany().catch(err => {
+      console.warn('⚠️ Could not fetch company:', err.message);
+      return null;
+    });
 
-  const fetchAllData = async () => {
-    setLoading(true);
-    try {
-      await fetchUserContext();
-      
-      const [hospitalsData, departmentsData, staffData, aiServicesData] = await Promise.all([
-        hospitalService.getHospitals(),
-        hospitalService.getDepartments(),
-        hospitalService.getMedicalStaff(),
-        hospitalService.getAIServices()
-      ]);
-    
-      console.log('🔍 Hospitals Data:', hospitalsData);
-      console.log('🔍 AI Services Data (raw):', aiServicesData);
-      
-      let extractedAIServices = [];
-      
-      if (aiServicesData && aiServicesData.services) {
-        extractedAIServices = aiServicesData.services;
-      } else if (Array.isArray(aiServicesData)) {
-        extractedAIServices = aiServicesData;
-      } else if (hospitalsData && hospitalsData.length > 0 && hospitalsData[0]?.aiServices) {
-        extractedAIServices = hospitalsData[0].aiServices;
-      } else {
-        for (const hospital of (hospitalsData || [])) {
-          if (hospital.aiServices && Array.isArray(hospital.aiServices)) {
-            extractedAIServices = hospital.aiServices;
-            break;
-          }
+    if (companyResponse?.success && companyResponse.data) {
+      setUserCompany(companyResponse.data);
+
+      if (companyResponse.data.hospital_id) {
+        const hospitalResponse = await hospitalService
+          .getHospitalById(companyResponse.data.hospital_id)
+          .catch(err => {
+            console.warn('⚠️ Could not fetch hospital:', err.message);
+            return null;
+          });
+
+        if (hospitalResponse?.success && hospitalResponse.data) {
+          setUserHospital(hospitalResponse.data);
+        } else {
+          setUserHospital(null);
         }
+      } else {
+        setUserHospital(null);
       }
-      
-      console.log('✅ Extracted AI Services:', extractedAIServices);
-      
-      setHospitals(Array.isArray(hospitalsData) ? hospitalsData : []);
-      setDepartments(Array.isArray(departmentsData) ? departmentsData : []);
-      setStaff(Array.isArray(staffData) ? staffData : []);
-      setAiServices(extractedAIServices);
-      
-      message.success('Data loaded successfully');
-    } catch (error) {
-      console.error('Failed to fetch data:', error);
-      message.error('Failed to load data');
+
+      return companyResponse.data;   // ✅ Return the company
+    } else {
+      setUserCompany(null);
+      setUserHospital(null);
+      return null;                    // ✅ Return null
+    }
+  } catch (error) {
+    console.warn('Could not fetch user context:', error);
+    setUserCompany(null);
+    setUserHospital(null);
+    return null;                      // ✅ Return null
+  }
+};
+  const fetchAllData = async () => {
+  setLoading(true);
+  try {
+    // ✅ Fetch company — use returned value directly
+    const company = await fetchUserContext();
+
+    // ✅ Check the returned value, not the state
+    if (!company?.id) {
+      console.log('ℹ️ No company found. Waiting for registration.');
       setHospitals([]);
       setDepartments([]);
       setStaff([]);
       setAiServices([]);
-    } finally {
       setLoading(false);
+      return;
     }
-  };
+    // ✅ STEP 3: Fetch hospitals
+    const hospitalsData = await hospitalService.getHospitals();
+    const hospitalsList = Array.isArray(hospitalsData) ? hospitalsData : [];
+    setHospitals(hospitalsList);
 
+    // ✅ STEP 4: If no hospitals exist, show "No Hospital Found" prompt
+    if (hospitalsList.length === 0) {
+      console.log('ℹ️ No hospitals found. Waiting for user to create one.');
+      setDepartments([]);
+      setStaff([]);
+      setAiServices([]);
+      setLoading(false);
+      return;
+    }
+
+    // ✅ STEP 5: Hospitals exist — fetch everything else
+    const [departmentsData, staffData, aiServicesData] = await Promise.all([
+      hospitalService.getDepartments().catch(err => {
+        if (!err.silent) console.warn('⚠️ Could not fetch departments:', err.message);
+        return [];
+      }),
+      hospitalService.getMedicalStaff().catch(err => {
+        if (!err.silent) console.warn('⚠️ Could not fetch medical staff:', err.message);
+        return [];
+      }),
+      hospitalService.getAIServices().catch(err => {
+        if (!err.silent) console.warn('⚠️ Could not fetch AI services:', err.message);
+        return [];
+      }),
+    ]);
+
+    // ✅ STEP 6: Normalize AI services
+    let extractedAIServices = [];
+    if (aiServicesData?.services) {
+      extractedAIServices = aiServicesData.services;
+    } else if (Array.isArray(aiServicesData)) {
+      extractedAIServices = aiServicesData;
+    } else {
+      for (const hospital of hospitalsList) {
+        if (Array.isArray(hospital.aiServices)) {
+          extractedAIServices = hospital.aiServices;
+          break;
+        }
+      }
+    }
+
+    // ✅ STEP 7: Set state
+    setDepartments(Array.isArray(departmentsData) ? departmentsData : []);
+    setStaff(Array.isArray(staffData) ? staffData : []);
+    setAiServices(extractedAIServices);
+
+    message.success('Data loaded successfully');
+  } catch (error) {
+    console.error('Failed to fetch data:', error);
+
+    if (error.code === 'HOSPITAL_MODULE_NOT_SETUP' || error.requiresSetup) {
+      console.log('ℹ️ Hospital module not set up. Showing create prompt.');
+      setHospitals([]);
+      setDepartments([]);
+      setStaff([]);
+      setAiServices([]);
+    } else {
+      message.error('Failed to load data');
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+  
   useEffect(() => {
     fetchAllData();
   }, []);
@@ -2274,19 +2918,32 @@ function HospitalManagement() {
   );
 
   const getHospitalDisplayName = () => {
-    if (userHospital && userHospital.name) {
-      return userHospital.name;
+  // Priority 1: User's hospital from context
+  if (userHospital?.name) {
+    return userHospital.name;
+  }
+
+  // Priority 2: Match from hospitals list by session ID
+  if (Array.isArray(hospitals) && hospitals.length > 0) {
+    const userHospitalId =
+      sessionStorage.getItem('hospital_id') ||
+      sessionStorage.getItem('hospitalId') ||
+      localStorage.getItem('hospitalId');
+
+    if (userHospitalId) {
+      const found = hospitals.find(h => String(h.id) === String(userHospitalId));
+      if (found?.name) return found.name;
     }
-    if (hospitals && hospitals.length > 0) {
-      const userHospitalId = sessionStorage.getItem('hospital_id');
-      if (userHospitalId) {
-        const found = hospitals.find(h => h.id == userHospitalId);
-        if (found) return found.name;
-      }
-      return hospitals[0]?.name || 'Hospital';
+
+    // Priority 3: First hospital in list
+    if (hospitals[0]?.name) {
+      return hospitals[0].name;
     }
-    return 'Hospital';
-  };
+  }
+
+  // No hospital exists — return null so UI can show create prompt
+  return null;
+};
 
   const getCompanyDisplayName = () => {
     if (userCompany && userCompany.name) {
@@ -2294,6 +2951,21 @@ function HospitalManagement() {
     }
     return sessionStorage.getItem('company_name') || 'Company';
   };
+
+  // ============================================
+// STATE DETECTION HELPERS
+// ============================================
+const hasCompany = () => {
+  return Boolean(
+    userCompany?.name ||
+    sessionStorage.getItem('company_id') ||
+    sessionStorage.getItem('company_name')
+  );
+};
+
+const hasHospital = () => {
+  return Boolean(getHospitalDisplayName());
+};
 
   const hospitalColumns = [
     {
@@ -2364,340 +3036,503 @@ function HospitalManagement() {
   ];
 
   return (
-    <div className="hospital-management-container">
-      {/* Header */}
-      <div className="hospital-header">
-        <Row gutter={[16, 16]} align="middle">
-          <Col flex="auto">
-            <h1>
-              <MedicineBoxOutlined /> 
-              {getHospitalDisplayName()} Management
-            </h1>
-            <p>
-              {getCompanyDisplayName()} - Comprehensive healthcare management with AI-powered insights and international standards
-            </p>
-          </Col>
-          <Col>
-            <Space>
-              <Button icon={<ExportOutlined />}>Export</Button>
-              <Button icon={<ImportOutlined />}>Import</Button>
-              <Button type="primary" icon={<PlusOutlined />} onClick={handleAddHospital} className="btn-primary-gradient">
-                Add Hospital
-              </Button>
-            </Space>
-          </Col>
-        </Row>
+  <div className="hospital-management-container">
+
+    {/* ============================================
+        STATE 1: NO COMPANY — SHOW CREATE COMPANY
+    ============================================ */}
+    {!hasCompany() ? (
+      <div className="no-company-container" style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '60vh',
+        textAlign: 'center',
+        padding: '40px 20px',
+        background: 'linear-gradient(135deg, #f0f2f8 0%, #e8eaf6 100%)',
+        borderRadius: '16px',
+        margin: '20px'
+      }}>
+        <div style={{
+          width: '80px',
+          height: '80px',
+          borderRadius: '50%',
+          background: 'linear-gradient(135deg, #1A2A6C, #C9A84C)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: '24px'
+        }}>
+          <BankOutlined style={{ fontSize: '40px', color: '#ffffff' }} />
+        </div>
+
+        <h2 style={{ color: '#1A2A6C', marginBottom: '12px' }}>
+          Company Required
+        </h2>
+
+        <p style={{
+          color: '#6c757d',
+          fontSize: '16px',
+          maxWidth: '500px',
+          marginBottom: '16px',
+          lineHeight: 1.6
+        }}>
+          Hospital Management is part of the company suite. Please create your company first to use Hospital Management.
+        </p>
+
+        <p style={{
+          color: '#999',
+          fontSize: '14px',
+          maxWidth: '500px',
+          marginBottom: '32px',
+          lineHeight: 1.6
+        }}>
+          Need help? Contact support at{' '}
+          <a href="mailto:info@safetrackproglobal.com" style={{ color: '#C9A84C', fontWeight: 600 }}>
+            info@safetrackproglobal.com
+          </a>
+        </p>
+
+        <Space size="large">
+          <Button
+  type="primary"
+  size="large"
+  icon={<PlusOutlined />}
+  onClick={() => {
+    // Clear any stale signup state and send user to signup
+    sessionStorage.removeItem('signupState');
+    window.location.href = '/register';
+  }}
+  className="btn-primary-gradient"
+  style={{ padding: '0 40px', height: '50px', fontSize: '16px' }}
+>
+  Register Your Company
+</Button>
+
+          <Button
+            size="large"
+            icon={<ReloadOutlined />}
+            onClick={fetchAllData}
+            style={{ height: '50px' }}
+          >
+            Refresh
+          </Button>
+        </Space>
       </div>
+    ) : !hasHospital() ? (
 
-      {/* Statistics */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12} md={4}>
-          <Card className="stat-card fade-in-up">
-            <Statistic title="Total Hospitals" value={hospitals.length} prefix={<BankOutlined />} valueStyle={{ color: '#1890ff' }} />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={4}>
-          <Card className="stat-card fade-in-up" style={{ animationDelay: '0.1s' }}>
-            <Statistic title="Active" value={hospitals.filter(h => h.status === 'active').length} prefix={<HeartOutlined />} valueStyle={{ color: '#52c41a' }} />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={4}>
-          <Card className="stat-card fade-in-up" style={{ animationDelay: '0.2s' }}>
-            <Statistic title="Total Staff" value={hospitals.reduce((sum, h) => sum + (h.staffCount || 0), 0)} prefix={<TeamOutlined />} valueStyle={{ color: '#faad14' }} />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={4}>
-          <Card className="stat-card fade-in-up" style={{ animationDelay: '0.3s' }}>
-            <Statistic title="Total Beds" value={hospitals.reduce((sum, h) => sum + (h.beds || 0), 0)} prefix={<MedicineBoxOutlined />} valueStyle={{ color: '#722ed1' }} />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={4}>
-          <Card className="stat-card fade-in-up" style={{ animationDelay: '0.4s' }}>
-            <Statistic title="AI Services" value={aiServices.length} prefix={<RobotOutlined />} valueStyle={{ color: '#eb2f96' }} suffix="tools" />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={4}>
-          <Card className="stat-card fade-in-up" style={{ animationDelay: '0.5s' }}>
-            <Statistic title="Departments" value={departments.length} prefix={<ApartmentOutlined />} valueStyle={{ color: '#36cfc9' }} />
-          </Card>
-        </Col>
-      </Row>
+      /* ============================================
+         STATE 2: COMPANY EXISTS, NO HOSPITAL
+      ============================================ */
+      <div className="no-hospital-container" style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '60vh',
+        textAlign: 'center',
+        padding: '40px 20px',
+        background: 'linear-gradient(135deg, #f0f2f8 0%, #e8eaf6 100%)',
+        borderRadius: '16px',
+        margin: '20px'
+      }}>
+        <div style={{
+          width: '80px',
+          height: '80px',
+          borderRadius: '50%',
+          background: 'linear-gradient(135deg, #1A2A6C, #C9A84C)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: '24px'
+        }}>
+          <MedicineBoxOutlined style={{ fontSize: '40px', color: '#ffffff' }} />
+        </div>
 
-      {analysisResult && (
-        <Alert
-          message="AI Analysis Result"
-          description={analysisResult.diagnosis || 'Analysis completed successfully'}
-          type="success"
-          showIcon
-          closable
-          onClose={() => setAnalysisResult(null)}
-          style={{ marginBottom: 16 }}
-        />
-      )}
+        <h2 style={{ color: '#1A2A6C', marginBottom: '12px' }}>
+          No Hospital Found
+        </h2>
 
-      {/* Search */}
-      <Card style={{ marginBottom: 24 }}>
-        <Row gutter={[16, 16]} align="middle">
-          <Col xs={24} sm={8}>
-            <Input
-              placeholder="Search hospitals..."
-              prefix={<SearchOutlined />}
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              style={{ width: '100%' }}
-            />
+        <p style={{
+          color: '#6c757d',
+          fontSize: '16px',
+          maxWidth: '500px',
+          marginBottom: '32px',
+          lineHeight: 1.6
+        }}>
+          You haven't set up your hospital profile yet. Create one to unlock all hospital management features, including patient flow, safety department, analytics, and AI services.
+        </p>
+
+        <Space size="large">
+          <Button
+            type="primary"
+            size="large"
+            icon={<PlusOutlined />}
+            onClick={handleAddHospital}
+            className="btn-primary-gradient"
+            style={{ padding: '0 40px', height: '50px', fontSize: '16px' }}
+          >
+            Create New Hospital
+          </Button>
+
+          <Button
+            size="large"
+            icon={<ReloadOutlined />}
+            onClick={fetchAllData}
+            style={{ height: '50px' }}
+          >
+            Refresh
+          </Button>
+        </Space>
+
+        <div style={{ marginTop: '32px', fontSize: '13px', color: '#999' }}>
+          <p>
+            Need help? Contact support at{' '}
+            <a href="mailto:info@safetrackproglobal.com" style={{ color: '#C9A84C', fontWeight: 600 }}>
+              info@safetrackproglobal.com
+            </a>
+          </p>
+        </div>
+      </div>
+    ) : (
+
+      /* ============================================
+         STATE 3: EVERYTHING EXISTS — SHOW DASHBOARD
+      ============================================ */
+      <>
+        {/* Header */}
+        <div className="hospital-header">
+          <Row gutter={[16, 16]} align="middle">
+            <Col flex="auto">
+              <h1>
+                <MedicineBoxOutlined /> 
+                {getHospitalDisplayName()} Management
+              </h1>
+              <p>
+                {getCompanyDisplayName()} - Comprehensive healthcare management with AI-powered insights and international standards
+              </p>
+            </Col>
+            <Col>
+              <Space>
+                <Button icon={<ExportOutlined />}>Export</Button>
+                <Button icon={<ImportOutlined />}>Import</Button>
+                <Button type="primary" icon={<PlusOutlined />} onClick={handleAddHospital} className="btn-primary-gradient">
+                  Add Hospital
+                </Button>
+              </Space>
+            </Col>
+          </Row>
+        </div>
+
+        {/* Statistics */}
+        <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+          <Col xs={24} sm={12} md={4}>
+            <Card className="stat-card fade-in-up">
+              <Statistic title="Total Hospitals" value={hospitals.length} prefix={<BankOutlined />} valueStyle={{ color: '#1890ff' }} />
+            </Card>
           </Col>
-          <Col xs={12} sm={4}>
-            <Select placeholder="Status" style={{ width: '100%' }}>
-              <Option value="all">All Status</Option>
-              <Option value="active">Active</Option>
-              <Option value="maintenance">Maintenance</Option>
-              <Option value="inactive">Inactive</Option>
-            </Select>
+          <Col xs={24} sm={12} md={4}>
+            <Card className="stat-card fade-in-up" style={{ animationDelay: '0.1s' }}>
+              <Statistic title="Active" value={hospitals.filter(h => h.status === 'active').length} prefix={<HeartOutlined />} valueStyle={{ color: '#52c41a' }} />
+            </Card>
           </Col>
-          <Col xs={12} sm={4}>
-            <Select placeholder="Type" style={{ width: '100%' }}>
-              <Option value="all">All Types</Option>
-              <Option value="general">General</Option>
-              <Option value="community">Community</Option>
-              <Option value="specialty">Specialty</Option>
-              <Option value="research">Research</Option>
-            </Select>
+          <Col xs={24} sm={12} md={4}>
+            <Card className="stat-card fade-in-up" style={{ animationDelay: '0.2s' }}>
+              <Statistic title="Total Staff" value={hospitals.reduce((sum, h) => sum + (h.staffCount || 0), 0)} prefix={<TeamOutlined />} valueStyle={{ color: '#faad14' }} />
+            </Card>
           </Col>
-          <Col xs={24} sm={8}>
-            <Button icon={<FilterOutlined />} style={{ width: '100%' }}>More Filters</Button>
+          <Col xs={24} sm={12} md={4}>
+            <Card className="stat-card fade-in-up" style={{ animationDelay: '0.3s' }}>
+              <Statistic title="Total Beds" value={hospitals.reduce((sum, h) => sum + (h.beds || 0), 0)} prefix={<MedicineBoxOutlined />} valueStyle={{ color: '#722ed1' }} />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={4}>
+            <Card className="stat-card fade-in-up" style={{ animationDelay: '0.4s' }}>
+              <Statistic title="AI Services" value={aiServices.length} prefix={<RobotOutlined />} valueStyle={{ color: '#eb2f96' }} suffix="tools" />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={4}>
+            <Card className="stat-card fade-in-up" style={{ animationDelay: '0.5s' }}>
+              <Statistic title="Departments" value={departments.length} prefix={<ApartmentOutlined />} valueStyle={{ color: '#36cfc9' }} />
+            </Card>
           </Col>
         </Row>
-      </Card>
 
-      {/* Main Tabs */}
-      <Tabs activeKey={activeTab} onChange={setActiveTab} type="card" size="large" className="enterprise-tabs">
-        <TabPane tab={<span><DashboardOutlined /> Overview</span>} key="overview">
-          <EnterpriseOverviewDashboard 
-            hospitals={hospitals} 
-            staff={staff} 
-            departments={departments} 
-            aiServices={aiServices} 
-            recentActivity={recentActivity}
+        {/* AI Analysis Alert */}
+        {analysisResult && (
+          <Alert
+            message="AI Analysis Result"
+            description={analysisResult.diagnosis || 'Analysis completed successfully'}
+            type="success"
+            showIcon
+            closable
+            onClose={() => setAnalysisResult(null)}
+            style={{ marginBottom: 16 }}
           />
-        </TabPane>
-        
-        <TabPane tab={<span><UserOutlined /> Patient Flow</span>} key="patient-flow">
-          <PatientFlow />
-        </TabPane>
+        )}
 
-        <TabPane 
-          tab={
-            <span>
-              <SafetyIcon style={{ color: '#faad14' }} /> 
-              Safety Department
-            </span>
-          } 
-          key="safety"
-        >
-          <SafetyDepartment />
-        </TabPane>
-
-        <TabPane 
-          tab={<span><UserSwitchOutlined /> Doctor Dashboard</span>} 
-          key="doctor-dashboard"
-        >
-          <DoctorDashboard onDataUpdate={fetchAllData} />
-        </TabPane>
-
-        <TabPane tab={<span><BankOutlined /> Hospitals <Badge count={hospitals.length} /></span>} key="hospitals">
-          <Card>
-            <Table
-              className="hospital-table"
-              columns={hospitalColumns}
-              dataSource={filteredHospitals}
-              rowKey="id"
-              loading={loading}
-              pagination={{ pageSize: 10, showSizeChanger: true }}
-            />
-          </Card>
-        </TabPane>
-
-        <TabPane tab={<span><ApartmentOutlined /> Departments <Badge count={departments.length} /></span>} key="departments">
-          <Card>
-            <Table
-              className="hospital-table"
-              columns={[
-                { title: 'Department', dataIndex: 'name' },
-                { title: 'Head', dataIndex: 'head' },
-                { title: 'Staff', dataIndex: 'staffCount' },
-                { title: 'Beds', dataIndex: 'beds' },
-                { title: 'Status', dataIndex: 'status', render: (s) => <Tag color={getStatusColor(s)}>{s?.toUpperCase()}</Tag> }
-              ]}
-              dataSource={departments}
-              rowKey="id"
-              loading={loading}
-              pagination={{ pageSize: 10 }}
-            />
-          </Card>
-        </TabPane>
-
-        <TabPane tab={<span><TeamOutlined /> Staff <Badge count={staff.length} /></span>} key="staff">
-          <Card>
-            <Table
-              className="hospital-table"
-              columns={[
-                { title: 'Name', dataIndex: 'name', render: (t, r) => <Space><Avatar icon={<UserOutlined />} /><div><div>{t}</div><div style={{ fontSize: 12, color: '#666' }}>{r.role}</div></div></Space> },
-                { title: 'Department', dataIndex: 'department' },
-                { title: 'Status', dataIndex: 'status', render: (s) => <Tag color={getStatusColor(s)}>{s?.toUpperCase()}</Tag> }
-              ]}
-              dataSource={staff}
-              rowKey="id"
-              loading={loading}
-              pagination={{ pageSize: 10 }}
-            />
-          </Card>
-        </TabPane>
-
-        <TabPane tab={<span><SafetyCertificateOutlined /> Accreditation</span>} key="accreditation">
-          <AccreditationDashboard />
-        </TabPane>
-
-        <TabPane tab={<span><DashboardOutlined /> Quality Indicators</span>} key="quality-indicators">
-          <QualityIndicatorsDashboard />
-        </TabPane>
-
-        <TabPane tab={<span><SafetyOutlined /> Patient Safety</span>} key="patient-safety">
-          <PatientSafetyGoalsDashboard />
-        </TabPane>
-
-        <TabPane tab={<span><WarningOutlined /> Adverse Events</span>} key="adverse-events">
-          <AdverseEventDashboard />
-        </TabPane>
-
-        <TabPane tab={<span><AuditOutlined /> Risk Assessment</span>} key="risk-assessment">
-          <RiskAssessmentDashboard />
-        </TabPane>
-
-        <TabPane tab={<span><ExperimentOutlined /> Disease Control</span>} key="disease-control">
-          <DiseaseControlDashboard />
-        </TabPane>
-
-        <TabPane tab={<span><BugOutlined /> Infection Control</span>} key="infection-control">
-          <InfectionControlDashboard />
-        </TabPane>
-
-        <TabPane tab={<span><FireOutlined /> Emergency</span>} key="emergency">
-          <EmergencyPreparednessDashboard />
-        </TabPane>
-
-        <TabPane tab={<span><IdcardOutlined /> Competency</span>} key="competency">
-          <StaffCompetencyDashboard />
-        </TabPane>
-
-        <TabPane tab={<span><DollarOutlined /> Financial</span>} key="financial">
-          <FinancialDashboard />
-        </TabPane>
-
-        <TabPane tab={<span><SecurityScanOutlined /> System Health</span>} key="system-health">
-          <SystemHealthDashboard />
-        </TabPane>
-
-        <TabPane tab={<span><RobotOutlined /> AI Services <Badge count={aiServices.length} /></span>} key="ai-services">
-          <AIMedicalAnalysisTab 
-            onSymptomAnalysis={handleSymptomAnalysis}
-            analysisResult={analysisResult}
-            aiServices={aiServices}
-          />
-        </TabPane>
-
-        {/* ✅ USING THE IMPORTED AnalyticsDashboard COMPONENT */}
-        <TabPane tab={<span><BarChartOutlined /> Analytics</span>} key="analytics-dashboard">
-          <AnalyticsDashboard 
-            hospitals={hospitals} 
-            departments={departments} 
-            staff={staff} 
-            aiServices={aiServices} 
-            onRefresh={fetchAllData}
-          />
-        </TabPane>
-      </Tabs>
-    
-      {/* Add/Edit Hospital Modal */}
-      <Modal
-        title={selectedHospital ? 'Edit Hospital' : 'Add New Hospital'}
-        open={modalVisible}
-        onCancel={handleModalCancel}
-        footer={null}
-        width={700}
-        destroyOnClose
-        className="custom-modal"
-      >
-        <Form form={form} layout="vertical" onFinish={handleModalOk} initialValues={{ type: 'general', status: 'active' }}>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="name" label="Hospital Name" rules={[{ required: true }]}>
-                <Input placeholder="Enter hospital name" />
-              </Form.Item>
+        {/* Search */}
+        <Card style={{ marginBottom: 24 }}>
+          <Row gutter={[16, 16]} align="middle">
+            <Col xs={24} sm={8}>
+              <Input
+                placeholder="Search hospitals..."
+                prefix={<SearchOutlined />}
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                style={{ width: '100%' }}
+              />
             </Col>
-            <Col span={12}>
-              <Form.Item name="type" label="Hospital Type" rules={[{ required: true }]}>
-                <Select placeholder="Select type">
-                  <Option value="general">General Hospital</Option>
-                  <Option value="community">Community Hospital</Option>
-                  <Option value="specialty">Specialty Hospital</Option>
-                  <Option value="research">Research Hospital</Option>
-                </Select>
-              </Form.Item>
+            <Col xs={12} sm={4}>
+              <Select placeholder="Status" style={{ width: '100%' }}>
+                <Option value="all">All Status</Option>
+                <Option value="active">Active</Option>
+                <Option value="maintenance">Maintenance</Option>
+                <Option value="inactive">Inactive</Option>
+              </Select>
+            </Col>
+            <Col xs={12} sm={4}>
+              <Select placeholder="Type" style={{ width: '100%' }}>
+                <Option value="all">All Types</Option>
+                <Option value="general">General</Option>
+                <Option value="community">Community</Option>
+                <Option value="specialty">Specialty</Option>
+                <Option value="research">Research</Option>
+              </Select>
+            </Col>
+            <Col xs={24} sm={8}>
+              <Button icon={<FilterOutlined />} style={{ width: '100%' }}>More Filters</Button>
             </Col>
           </Row>
+        </Card>
 
-          <Form.Item name="address" label="Address" rules={[{ required: true }]}>
-            <TextArea rows={2} placeholder="Enter full address" />
-          </Form.Item>
+        {/* Main Tabs */}
+        <Tabs activeKey={activeTab} onChange={setActiveTab} type="card" size="large" className="enterprise-tabs">
+          <TabPane tab={<span><DashboardOutlined /> Overview</span>} key="overview">
+            <EnterpriseOverviewDashboard 
+              hospitals={hospitals} 
+              staff={staff} 
+              departments={departments} 
+              aiServices={aiServices} 
+              recentActivity={recentActivity}
+            />
+          </TabPane>
+          
+          <TabPane tab={<span><UserOutlined /> Patient Flow</span>} key="patient-flow">
+            <PatientFlow />
+          </TabPane>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="phone" label="Phone Number" rules={[{ required: true }]}>
-                <Input prefix={<PhoneOutlined />} placeholder="Phone number" />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="email" label="Email" rules={[{ required: true }, { type: 'email' }]}>
-                <Input prefix={<MailOutlined />} placeholder="Email address" />
-              </Form.Item>
-            </Col>
-          </Row>
+          <TabPane 
+            tab={
+              <span>
+                <SafetyIcon style={{ color: '#faad14' }} /> 
+                Safety Department
+              </span>
+            } 
+            key="safety"
+          >
+            <SafetyDepartment />
+          </TabPane>
 
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item name="beds" label="Number of Beds" rules={[{ required: true }]}>
-                <InputNumber min={1} max={2000} style={{ width: '100%' }} placeholder="Beds" />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item name="accreditation" label="Accreditation">
-                <Select placeholder="Select accreditation">
-                  <Option value="JCI">JCI</Option>
-                  <Option value="CAP">CAP</Option>
-                  <Option value="AAAHC">AAAHC</Option>
-                  <Option value="NABH">NABH</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item name="established" label="Established Date">
-                <DatePicker style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-          </Row>
+          <TabPane tab={<span><UserSwitchOutlined /> Doctor Dashboard</span>} key="doctor-dashboard">
+            <DoctorDashboard onDataUpdate={fetchAllData} />
+          </TabPane>
 
-          <Divider />
-          <Form.Item>
-            <Space>
-              <Button type="primary" htmlType="submit">{selectedHospital ? 'Update Hospital' : 'Add Hospital'}</Button>
-              <Button onClick={handleModalCancel}>Cancel</Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
-    </div>
-  );
+          <TabPane tab={<span><BankOutlined /> Hospitals <Badge count={hospitals.length} /></span>} key="hospitals">
+            <Card>
+              <Table
+                className="hospital-table"
+                columns={hospitalColumns}
+                dataSource={filteredHospitals}
+                rowKey="id"
+                loading={loading}
+                pagination={{ pageSize: 10, showSizeChanger: true }}
+              />
+            </Card>
+          </TabPane>
+
+          <TabPane tab={<span><ApartmentOutlined /> Departments <Badge count={departments.length} /></span>} key="departments">
+            <Card>
+              <Table
+                className="hospital-table"
+                columns={[
+                  { title: 'Department', dataIndex: 'name' },
+                  { title: 'Head', dataIndex: 'head' },
+                  { title: 'Staff', dataIndex: 'staffCount' },
+                  { title: 'Beds', dataIndex: 'beds' },
+                  { title: 'Status', dataIndex: 'status', render: (s) => <Tag color={getStatusColor(s)}>{s?.toUpperCase()}</Tag> }
+                ]}
+                dataSource={departments}
+                rowKey="id"
+                loading={loading}
+                pagination={{ pageSize: 10 }}
+              />
+            </Card>
+          </TabPane>
+
+          <TabPane tab={<span><TeamOutlined /> Staff <Badge count={staff.length} /></span>} key="staff">
+            <Card>
+              <Table
+                className="hospital-table"
+                columns={[
+                  { title: 'Name', dataIndex: 'name', render: (t, r) => <Space><Avatar icon={<UserOutlined />} /><div><div>{t}</div><div style={{ fontSize: 12, color: '#666' }}>{r.role}</div></div></Space> },
+                  { title: 'Department', dataIndex: 'department' },
+                  { title: 'Status', dataIndex: 'status', render: (s) => <Tag color={getStatusColor(s)}>{s?.toUpperCase()}</Tag> }
+                ]}
+                dataSource={staff}
+                rowKey="id"
+                loading={loading}
+                pagination={{ pageSize: 10 }}
+              />
+            </Card>
+          </TabPane>
+
+          <TabPane tab={<span><SafetyCertificateOutlined /> Accreditation</span>} key="accreditation">
+            <AccreditationDashboard />
+          </TabPane>
+
+          <TabPane tab={<span><DashboardOutlined /> Quality Indicators</span>} key="quality-indicators">
+            <QualityIndicatorsDashboard />
+          </TabPane>
+
+          <TabPane tab={<span><SafetyOutlined /> Patient Safety</span>} key="patient-safety">
+            <PatientSafetyGoalsDashboard />
+          </TabPane>
+
+          <TabPane tab={<span><WarningOutlined /> Adverse Events</span>} key="adverse-events">
+            <AdverseEventDashboard />
+          </TabPane>
+
+          <TabPane tab={<span><AuditOutlined /> Risk Assessment</span>} key="risk-assessment">
+            <RiskAssessmentDashboard />
+          </TabPane>
+
+          <TabPane tab={<span><ExperimentOutlined /> Disease Control</span>} key="disease-control">
+            <DiseaseControlDashboard />
+          </TabPane>
+
+          <TabPane tab={<span><BugOutlined /> Infection Control</span>} key="infection-control">
+            <InfectionControlDashboard />
+          </TabPane>
+
+          <TabPane tab={<span><FireOutlined /> Emergency</span>} key="emergency">
+            <EmergencyPreparednessDashboard />
+          </TabPane>
+
+          <TabPane tab={<span><IdcardOutlined /> Competency</span>} key="competency">
+            <StaffCompetencyDashboard />
+          </TabPane>
+
+          <TabPane tab={<span><DollarOutlined /> Financial</span>} key="financial">
+            <FinancialDashboard />
+          </TabPane>
+
+          <TabPane tab={<span><SecurityScanOutlined /> System Health</span>} key="system-health">
+            <SystemHealthDashboard />
+          </TabPane>
+
+          <TabPane tab={<span><RobotOutlined /> AI Services <Badge count={aiServices.length} /></span>} key="ai-services">
+            <AIMedicalAnalysisTab 
+              onSymptomAnalysis={handleSymptomAnalysis}
+              analysisResult={analysisResult}
+              aiServices={aiServices}
+            />
+          </TabPane>
+
+          <TabPane tab={<span><BarChartOutlined /> Analytics</span>} key="analytics-dashboard">
+            <AnalyticsDashboard 
+              hospitals={hospitals} 
+              departments={departments} 
+              staff={staff} 
+              aiServices={aiServices} 
+              onRefresh={fetchAllData}
+            />
+          </TabPane>
+        </Tabs>
+      </>
+    )}
+
+    {/* Add/Edit Hospital Modal — always render so create works */}
+    <Modal
+      title={selectedHospital ? 'Edit Hospital' : 'Add New Hospital'}
+      open={modalVisible}
+      onCancel={handleModalCancel}
+      footer={null}
+      width={700}
+      destroyOnClose
+      className="custom-modal"
+    >
+      <Form form={form} layout="vertical" onFinish={handleModalOk} initialValues={{ type: 'general', status: 'active' }}>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item name="name" label="Hospital Name" rules={[{ required: true }]}>
+              <Input placeholder="Enter hospital name" />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="type" label="Hospital Type" rules={[{ required: true }]}>
+              <Select placeholder="Select type">
+                <Option value="general">General Hospital</Option>
+                <Option value="community">Community Hospital</Option>
+                <Option value="specialty">Specialty Hospital</Option>
+                <Option value="research">Research Hospital</Option>
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Form.Item name="address" label="Address" rules={[{ required: true }]}>
+          <TextArea rows={2} placeholder="Enter full address" />
+        </Form.Item>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item name="phone" label="Phone Number" rules={[{ required: true }]}>
+              <Input prefix={<PhoneOutlined />} placeholder="Phone number" />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="email" label="Email" rules={[{ required: true }, { type: 'email' }]}>
+              <Input prefix={<MailOutlined />} placeholder="Email address" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={8}>
+            <Form.Item name="beds" label="Number of Beds" rules={[{ required: true }]}>
+              <InputNumber min={1} max={2000} style={{ width: '100%' }} placeholder="Beds" />
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item name="accreditation" label="Accreditation">
+              <Select placeholder="Select accreditation">
+                <Option value="JCI">JCI</Option>
+                <Option value="CAP">CAP</Option>
+                <Option value="AAAHC">AAAHC</Option>
+                <Option value="NABH">NABH</Option>
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item name="established" label="Established Date">
+              <DatePicker style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Divider />
+        <Form.Item>
+          <Space>
+            <Button type="primary" htmlType="submit">{selectedHospital ? 'Update Hospital' : 'Add Hospital'}</Button>
+            <Button onClick={handleModalCancel}>Cancel</Button>
+          </Space>
+        </Form.Item>
+      </Form>
+    </Modal>
+  </div>
+);
 }
 
 export default HospitalManagement;

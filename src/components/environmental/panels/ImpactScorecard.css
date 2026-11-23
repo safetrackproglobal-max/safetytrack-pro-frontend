@@ -228,62 +228,7 @@
 }
 
 /* Dark Mode */
-@media (prefers-color-scheme: dark) {
-  .impact-scorecard {
-    background: #141414;
-  }
-
-  .stat-card {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-
-  .stat-card .ant-statistic-title {
-    color: #8c8c8c;
-  }
-
-  .chart-card {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-
-  .chart-card .ant-card-head {
-    border-color: #303030;
-  }
-
-  .chart-card .ant-card-head-title {
-    color: #e8e8e8;
-  }
-
-  .impact-list .ant-list-item {
-    border-color: #303030;
-  }
-
-  .impact-list .ant-list-item:hover {
-    background: #2a2a2a;
-  }
-
-  .impact-list-item .impact-description {
-    color: #b8b8b8;
-  }
-
-  .impact-legend .ant-card {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-
-  .impact-tabs .ant-tabs-tab:hover {
-    background: #2a2a2a;
-  }
-
-  .impact-tabs .ant-tabs-tab-active {
-    background: #1f3a5f;
-  }
-
-  .impact-detail .ant-descriptions-item-label {
-    color: #e8e8e8;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* Animations */
 @keyframes fadeInUp {

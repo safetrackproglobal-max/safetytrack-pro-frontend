@@ -16,21 +16,28 @@ import {
 import ContactBrandInfo from "./ContactBrandInfo";
 import "./Footer.css";
 
+// ✅ Import the real logo
+import logoImage from '../assets/images/safetrack-logo.jpeg';
+
 function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
     <footer role="contentinfo" className="footer main-footer">
       <div className="container">
-        {/* ============================================
-             TOP SECTION - BRAND + CONTACT
-             ============================================ */}
+        
+        {/* TOP SECTION */}
         <div className="footer-top">
+          
           {/* Brand Column */}
           <div className="footer-brand-column">
             <Link to="/" className="footer-logo-link">
               <div className="footer-logo">
-                <span className="footer-logo-symbol">STP</span>
+                <img 
+                  src={logoImage} 
+                  alt="SafeTrack Pro Global" 
+                  className="footer-logo-image" 
+                />
                 <div className="footer-logo-text">
                   <span className="footer-logo-main">SafeTrack</span>
                   <span className="footer-logo-highlight">Pro</span>
@@ -40,53 +47,50 @@ function Footer() {
             </Link>
 
             <p className="footer-brand-description">
-              AI-powered HSE and safety management platform for healthcare, oil & gas,
-              construction, manufacturing, maritime, aviation, mining, chemical, and
-              education — trusted across 9+ industries.
+              AI-powered HSE, environmental, and compliance platform for
+              construction, oil &amp; gas, manufacturing, mining, maritime, aviation,
+              chemical, healthcare, and education — one platform.
             </p>
 
             {/* Trust badges */}
-            <div className="footer-trust-badges">
+            <div className="footer-trust-badges" style={{ marginBottom: '20px' }}>
               <span className="footer-trust-badge">
-                <SafetyCertificateOutlined /> ISO 27001
+                <SafetyCertificateOutlined /> Aligned with ISO 27001
               </span>
               <span className="footer-trust-badge">
-                <CheckCircleOutlined /> SOC2 Compliant
+                <CheckCircleOutlined /> SOC 2 aligned controls
               </span>
+            </div>
+
+            {/* ✅ LaunchIgniter Badge */}
+            <div className="footer-launch-badge" style={{ marginBottom: '20px' }}>
+              <a 
+                href="https://launchigniter.com/product/safetrack-pro-global?ref=badge-safetrack-pro-global" 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                <img 
+                  src="https://launchigniter.com/api/badge/safetrack-pro-global?theme=light" 
+                  alt="Featured on LaunchIgniter" 
+                  width="212" 
+                  height="55" 
+                  style={{ borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
+                />
+              </a>
             </div>
 
             {/* Social */}
             <div className="footer-social">
-              <a
-                href="https://twitter.com/safetrackproglobal"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Twitter"
-              >
+              <a href="https://twitter.com/safetrackproglobal" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
                 <TwitterOutlined />
               </a>
-              <a
-                href="https://linkedin.com/company/safetrackproglobal"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="LinkedIn"
-              >
+              <a href="https://linkedin.com/company/safetrackproglobal" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
                 <LinkedinOutlined />
               </a>
-              <a
-                href="https://facebook.com/safetrackproglobal"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Facebook"
-              >
+              <a href="https://facebook.com/safetrackproglobal" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
                 <FacebookOutlined />
               </a>
-              <a
-                href="https://youtube.com/@safetrackproglobal"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="YouTube"
-              >
+              <a href="https://youtube.com/@safetrackproglobal" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
                 <YoutubeOutlined />
               </a>
             </div>
@@ -94,8 +98,7 @@ function Footer() {
 
           {/* Contact Column */}
           <div className="footer-contact-column">
-            <h4 className="footer-heading">Contact Us</h4>
-
+            <h4 className="footer-heading">Contact</h4>
             <ul className="footer-contact-list">
               <li>
                 <a href="mailto:info@safetrackproglobal.com" className="footer-contact-item">
@@ -106,7 +109,6 @@ function Footer() {
                   </span>
                 </a>
               </li>
-
               <li>
                 <a href="tel:+97433251705" className="footer-contact-item">
                   <span className="contact-icon"><PhoneOutlined /></span>
@@ -116,14 +118,8 @@ function Footer() {
                   </span>
                 </a>
               </li>
-
               <li>
-                <a
-                  href="https://maps.google.com/?q=Doha,Qatar"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="footer-contact-item"
-                >
+                <a href="https://maps.google.com/?q=Doha,Qatar" target="_blank" rel="noopener noreferrer" className="footer-contact-item">
                   <span className="contact-icon"><EnvironmentOutlined /></span>
                   <span className="contact-text">
                     <span className="contact-label">Headquarters</span>
@@ -131,13 +127,12 @@ function Footer() {
                   </span>
                 </a>
               </li>
-
               <li>
                 <Link to="/contact" className="footer-contact-item">
                   <span className="contact-icon"><GlobalOutlined /></span>
                   <span className="contact-text">
                     <span className="contact-label">Enterprise Sales</span>
-                    <span className="contact-value">Contact our team →</span>
+                    <span className="contact-value">Talk to our team →</span>
                   </span>
                 </Link>
               </li>
@@ -150,74 +145,90 @@ function Footer() {
               <h4>Product</h4>
               <Link to="/features">Features</Link>
               <Link to="/pricing">Pricing</Link>
-              <Link to="/subscription">Subscription</Link>
-              <Link to="/demo">Request Demo</Link>
-              <Link to="/ai-documents">AI Documents</Link>
+              <Link to="/ai-hse-document-generator">AI Document Generator</Link>
+              <Link to="/ai-camera-monitoring">AI Camera Monitoring</Link>
+              <Link to="/demo">Request a Demo</Link>
+            </div>
+
+            <div className="link-group">
+              <h4>Solutions</h4>
+              <Link to="/hse-project-management-software">HSE Project Management</Link>
+              <Link to="/incident-reporting-software">Incident Reporting</Link>
+              <Link to="/permit-to-work-software">Permit to Work</Link>
+              <Link to="/document-control-software">Document Control</Link>
+              <Link to="/compliance-management-software">Compliance Management</Link>
+              <Link to="/environmental-monitoring-software">Environmental Monitoring</Link>
+              <Link to="/ai-risk-assessment-software">AI Risk Assessment</Link>
+              <Link to="/hse-analytics-software">HSE Analytics</Link>
             </div>
 
             <div className="link-group">
               <h4>Industries</h4>
-              <Link to="/industries/healthcare">Healthcare</Link>
-              <Link to="/industries/oil-gas">Oil & Gas</Link>
               <Link to="/industries/construction">Construction</Link>
+              <Link to="/industries/oil-and-gas">Oil &amp; Gas</Link>
               <Link to="/industries/manufacturing">Manufacturing</Link>
+              <Link to="/industries/mining">Mining</Link>
+              <Link to="/industries/aviation">Aviation</Link>
               <Link to="/industries/maritime">Maritime</Link>
+              <Link to="/industries/chemical">Chemical</Link>
+              <Link to="/industries/healthcare">Healthcare</Link>
+              <Link to="/industries/education">Education</Link>
             </div>
 
             <div className="link-group">
               <h4>Resources</h4>
-              <Link to="/documentation">Documentation</Link>
-              <Link to="/blog">Blog</Link>
-              <Link to="/support">Support</Link>
-              <Link to="/api-docs">API Docs</Link>
-              <Link to="/guides">Guides</Link>
+              <Link to="/info/documentation">Documentation</Link>
+              <Link to="/info/guides">Guides</Link>
+              <Link to="/info/blog">Blog</Link>
+              <Link to="/info/api-docs">API Docs</Link>
+              <Link to="/info/support">Support</Link>
             </div>
 
             <div className="link-group">
               <h4>Company</h4>
-              <Link to="/about">About</Link>
+              <Link to="/about">About Us</Link>
               <Link to="/contact">Contact</Link>
-              <Link to="/careers">Careers</Link>
-              <Link to="/security">Security</Link>
-              <Link to="/partners">Partners</Link>
+              <Link to="/info/careers">Careers</Link>
+              <Link to="/trust">Trust &amp; Security</Link>
+              <Link to="/info/partners">Partners</Link>
             </div>
 
             <div className="link-group">
               <h4>Legal</h4>
               <Link to="/terms">Terms of Service</Link>
               <Link to="/privacy">Privacy Policy</Link>
-              <Link to="/cookies">Cookie Policy</Link>
-              <Link to="/compliance">Compliance</Link>
-              <Link to="/sla">SLA</Link>
+              <Link to="/info/cookies">Cookie Policy</Link>
+              <Link to="/compliance/osha">OSHA</Link>
+              <Link to="/compliance/iso-45001">ISO 45001</Link>
+              <Link to="/compliance/iso-14001">ISO 14001</Link>
+              <Link to="/compliance/hipaa">HIPAA</Link>
+              <Link to="/info/sla">SLA</Link>
             </div>
           </div>
         </div>
 
-        {/* ============================================
-             LEGACY CONTACT BRAND INFO (if still used)
-             ============================================ */}
         <ContactBrandInfo />
 
-        {/* ============================================
-             BOTTOM SECTION
-             ============================================ */}
+        {/* BOTTOM SECTION */}
         <div className="footer-divider" />
 
         <div className="footer-bottom">
           <p className="footer-copyright">
-            © {currentYear} <strong>Abigalistic Studios</strong>. All rights reserved.
+            © {currentYear} <strong>AfdalTech Solutions</strong>. All rights reserved.
             <span className="footer-separator">•</span>
             SafeTrack Pro Global™
+            <span className="footer-separator">•</span>
+            Headquartered in Doha, Qatar
           </p>
 
           <div className="footer-bottom-links">
-            <Link to="/privacy">Privacy Policy</Link>
+            <Link to="/privacy">Privacy</Link>
             <span className="footer-separator">•</span>
-            <Link to="/terms">Terms of Service</Link>
+            <Link to="/terms">Terms</Link>
             <span className="footer-separator">•</span>
-            <Link to="/cookies">Cookie Policy</Link>
+            <Link to="/info/cookies">Cookies</Link>
             <span className="footer-separator">•</span>
-            <Link to="/sla">SLA</Link>
+            <Link to="/info/sla">SLA</Link>
           </div>
         </div>
       </div>

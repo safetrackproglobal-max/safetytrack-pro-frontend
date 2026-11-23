@@ -61,6 +61,9 @@ import {
 } from '@ant-design/icons';
 import { useAuth } from '../../context/AuthContext';
 import dashboardService from '../../services/dashboardService';
+import DashboardOverview from '../../components/dashboard/DashboardOverview';
+import ToolboxTalkWidget from '../../components/toolbox/ToolboxTalkWidget';
+import { useHistory } from 'react-router-dom';
 import notificationService from '../../services/notificationService';
 import './EmployeeDashboard.css';
 
@@ -68,6 +71,7 @@ const { Title, Text } = Typography;
 const { TabPane } = Tabs;
 
 function EmployeeDashboard() {
+  const history = useHistory();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [companyLogo, setCompanyLogo] = useState(null);
@@ -578,53 +582,9 @@ function EmployeeDashboard() {
         </Card>
       </div>
 
-      {/* Personal Stats */}
-      <div className="section-title">
-        <Title level={4}>My Personal Stats</Title>
-      </div>
-      <Row gutter={[16, 16]} className="stats-row">
-        <Col xs={24} sm={12} md={6}>
-          <Card className="stats-card">
-            <Statistic
-              title="My Documents"
-              value={dashboardData.personal.stats.documents}
-              prefix={<FileTextOutlined style={{ color: '#1890ff' }} />}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card className="stats-card">
-            <Statistic
-              title="My Incidents"
-              value={incidentStats.myIncidents}
-              prefix={<AlertOutlined style={{ color: '#ff4d4f' }} />}
-              valueStyle={{ color: '#ff4d4f' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card className="stats-card">
-            <Statistic
-              title="My Tasks"
-              value={dashboardData.personal.stats.tasks}
-              prefix={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card className="stats-card">
-            <Statistic
-              title="My Compliance"
-              value={dashboardData.personal.stats.compliance}
-              suffix="%"
-              prefix={<SafetyCertificateOutlined style={{ color: '#52c41a' }} />}
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Card>
-        </Col>
-      </Row>
+      <DashboardOverview title="My safety status" />
+
+      <ToolboxTalkWidget />
 
       {/* Incident Stats Cards */}
       <div className="section-title">
@@ -741,86 +701,24 @@ function EmployeeDashboard() {
         </Col>
       </Row>
 
-      {/* Company Overview (Limited for Employees) */}
-      <div className="section-title">
-        <Title level={4}>Company Overview</Title>
-      </div>
-      <Row gutter={[16, 16]}>
-        <Col span={24}>
-          <Card title={`${companyName} - Safety Stats`} className="company-card">
-            <Row gutter={[16, 16]}>
-              <Col xs={24} sm={12} md={8}>
-                <Statistic
-                  title="Active Incidents"
-                  value={dashboardData.company.activeIncidents}
-                  prefix={<WarningOutlined style={{ color: '#ff4d4f' }} />}
-                  valueStyle={{ color: '#ff4d4f' }}
-                />
-              </Col>
-              <Col xs={24} sm={12} md={8}>
-                <Statistic
-                  title="Days Safe"
-                  value={dashboardData.company.daysSinceLastIncident}
-                  prefix={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
-                  valueStyle={{ color: '#52c41a' }}
-                />
-              </Col>
-              <Col xs={24} sm={12} md={8}>
-                <Statistic
-                  title="Safety Protocols"
-                  value={dashboardData.company.safetyProtocols.length}
-                  prefix={<SafetyCertificateOutlined style={{ color: '#1890ff' }} />}
-                  valueStyle={{ color: '#1890ff' }}
-                />
-              </Col>
-            </Row>
-
-            <Divider />
-
-            <div className="company-metrics">
-              <Title level={5}>Environmental Metrics</Title>
-              <Row gutter={[16, 16]}>
-                {dashboardData.company.environmentalMetrics.map(metric => (
-                  <Col xs={24} sm={12} md={6} key={metric.parameter}>
-                    <Card size="small">
-                      <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: 20, fontWeight: 'bold', color: getStatusColor(metric.status) }}>
-                          {metric.current} {metric.unit}
-                        </div>
-                        <div style={{ color: '#666' }}>{metric.parameter}</div>
-                        <Progress
-                          percent={metric.target ? (metric.current / metric.target) * 100 : 0}
-                          size="small"
-                          strokeColor={getStatusColor(metric.status)}
-                        />
-                      </div>
-                    </Card>
-                  </Col>
-                ))}
-              </Row>
-            </div>
-          </Card>
-        </Col>
-      </Row>
-
       {/* Quick Actions */}
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col xs={24}>
           <Card title="Quick Actions" className="quick-actions-card">
             <Row gutter={[16, 16]}>
               <Col xs={12} sm={6}>
-                <Button icon={<FileTextOutlined />} block>Upload Document</Button>
+                <Button icon={<FileTextOutlined />} block onClick={() => history.push('/document-management?tab=documents')}>Upload Document</Button>
               </Col>
               <Col xs={12} sm={6}>
-                <Button icon={<AlertOutlined />} block onClick={() => window.location.href = '/incidents/report'}>
+                <Button icon={<AlertOutlined />} block onClick={() => history.push('/incidents')}>
                   Report Incident
                 </Button>
               </Col>
               <Col xs={12} sm={6}>
-                <Button icon={<RobotOutlined />} block>AI Analysis</Button>
+                <Button icon={<RobotOutlined />} block onClick={() => history.push('/ai-services')}>AI Analysis</Button>
               </Col>
               <Col xs={12} sm={6}>
-                <Button icon={<SafetyCertificateOutlined />} block>Check Compliance</Button>
+                <Button icon={<SafetyCertificateOutlined />} block onClick={() => history.push('/compliance')}>Check Compliance</Button>
               </Col>
             </Row>
           </Card>

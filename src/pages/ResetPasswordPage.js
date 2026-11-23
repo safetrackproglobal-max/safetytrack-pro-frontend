@@ -4,6 +4,7 @@ import { useLocation, useHistory } from 'react-router-dom';
 import { apiResetPassword } from '../services/dashboardService';
 import { Form, Input, Button, Alert, Card, Typography, Space } from 'antd';
 import { LockOutlined } from '@ant-design/icons';
+import { passwordValidator } from '../constants/accountFlow';
 import './AuthPages.css';
 
 const { Title, Text } = Typography;
@@ -22,15 +23,16 @@ function ResetPasswordPage() {
     setError('');
     
     try {
-      const res = await apiResetPassword(token, values.newPassword);
-      if (res.success) {
-        setSuccess('Password reset successfully! Redirecting to login...');
+      const res = await apiResetPassword({ token, new_password: values.newPassword });
+      if (res && (res.success || res.message) && !res.error) {
+        setSuccess('Password reset successfully! You have been signed out everywhere. Redirecting to login...');
         setTimeout(() => history.push('/login'), 2000);
       } else {
-        setError(res.message || 'Password reset failed. Please try again.');
+        setError(res?.error || 'Password reset failed. Please try again.');
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      // 400 responses explain the problem (weak password, expired or used link)
+      setError(err?.response?.data?.error || 'An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -80,8 +82,9 @@ function ResetPasswordPage() {
               label="New Password"
               rules={[
                 { required: true, message: 'Please enter your new password' },
-                { min: 8, message: 'Password must be at least 8 characters' }
+                { validator: passwordValidator } // same rules as signup and the backend policy
               ]}
+              extra="At least 12 characters, with an uppercase letter, a lowercase letter and a number."
               hasFeedback
             >
               <Input.Password 

@@ -74,7 +74,7 @@ export const apiVerifyEmail = async ({ email, code }) => {
 
 // Change password
 export const apiChangePassword = async ({ current_password, new_password }) => {
-  const res = await api.post('/user/change-password', { current_password, new_password });
+  const res = await api.post('/auth/change-password', { current_password, new_password, confirm_password: new_password });
   return res.data;
 };
 
@@ -1175,7 +1175,32 @@ export const checkApiHealth = async () => {
 
 // === DASHBOARD SERVICE OBJECT ===
 
+
+// === DASHBOARD OVERVIEW / ACCOUNT (2026-11-22) ===
+// Live status of every module + expiry / overdue warnings
+export const getDashboardOverview = async () => (await api.get('/dashboard/overview')).data;
+export const getMyTraining = async () => (await api.get('/me/training')).data;
+export const getCompanyInfo = async () => (await api.get('/company/info')).data;
+export const updateCompany = async (data) => (await api.put('/company/info', data)).data;
+export const changePassword = async ({ current_password, new_password, confirm_password }) =>
+  (await api.post('/auth/change-password', { current_password, new_password, confirm_password })).data;
+export const mfaSetup = async () => (await api.post('/auth/mfa/setup')).data;
+export const mfaVerify = async (code) => (await api.post('/auth/mfa/verify', { code })).data;
+export const mfaDisable = async (password) => (await api.post('/auth/mfa/disable', { password })).data;
+export const revokeAllSessions = async (password) => (await api.post('/user/sessions/revoke-all', { password })).data;
+export const updateMyProfile = async (data) => (await api.put('/user/profile', data)).data;
+
 const dashboardService = {
+  getDashboardOverview,
+  getMyTraining,
+  getCompanyInfo,
+  updateCompany,
+  changePassword,
+  mfaSetup,
+  mfaVerify,
+  mfaDisable,
+  revokeAllSessions,
+  updateMyProfile,
   // Authentication
   apiLogin,
   apiSignup,

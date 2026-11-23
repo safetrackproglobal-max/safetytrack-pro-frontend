@@ -16,7 +16,6 @@ import { LanguageProvider } from './context/LanguageContext';
 import { AdminProvider } from './context/AdminContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import { syncLanguage } from './services/languageSync';
-// ✅ Import ResponsiveWrapper
 import ResponsiveWrapper from './components/ResponsiveWrapper';
 
 // Import the HSE Industry API Service
@@ -40,14 +39,25 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
-import AdminSignupPage from './pages/AdminSignupPage';
+import AccountStatusPage from './pages/AccountStatusPage';
+import GuardianConsentPage from './pages/GuardianConsentPage';
+import ReviewsPage from './pages/ReviewsPage';
+import AcceptInvitePage from './pages/AcceptInvitePage';
+import BillingBanner from './components/BillingBanner';
 import EmployeeLogin from './pages/EmployeeLogin';
 import FeaturesPage from './pages/FeaturesPage';
 import PricingPage from './pages/PricingPage';
 import TermsPolicy from './components/TermsPolicy';
 import ContactBrandInfo from './components/ContactBrandInfo';
 import ContactTeamPage from './pages/ContactTeamPage';
+import CommandCenter from './pages/CommandCenter';
+import InfoPage from './pages/InfoPage';
+import About from './pages/About';
+import AcceptTermsPage from './pages/AcceptTermsPage';
 
+// ✅ SEO marketing pages (solutions, industries, compliance guides, trust, demo)
+import { marketingRoutes } from './pages/marketing/marketingRoutes';
+import './pages/marketing/marketing.css';
 // Dashboard Pages - Role Based
 import EmployeeDashboard from './pages/Dashboard/EmployeeDashboard';
 import UserDashboard from './pages/Dashboard/UserDashboard';
@@ -114,9 +124,47 @@ import IncidentPage from './pages/IncidentPage';
 import MonitoringPage from './pages/MonitoringPage';
 import PredictivePage from './pages/PredictivePage';
 
+// ============================================================
+// ✅ SAFETY FEATURE COMPONENT IMPORTS
+// ============================================================
+import SafetyObservations from './components/compliance/SafetyObservations';
+import LessonsLearned from './components/compliance/LessonsLearned';
+
+import FishboneDiagram from './components/incident/FishboneDiagram';
+import AIInvestigationAssistant from './components/incident/AIInvestigationAssistant';
+import IncidentTimeline from './components/incident/IncidentTimeline';
+import EditIncidentModal from './components/incident/EditIncidentModal';
+import CorrectiveActionTracker from './components/incident/CorrectiveActionTracker';
+import IncidentComments from './components/incident/IncidentComments';
+import InvestigationAssignment from './components/incident/InvestigationAssignment';
+import WitnessStatementForm from './components/incident/WitnessStatementForm';
+import AuditTrailViewer from './components/incident/AuditTrailViewer';
+
+import PredictiveAnalyticsDashboard from './components/analytics/PredictiveAnalyticsDashboard';
+import SimilarIncidentDetection from './components/analytics/SimilarIncidentDetection';
+import CostAnalysisModule from './components/analytics/CostAnalysisModule';
+
+import RegulatoryReporting from './components/compliance/RegulatoryReporting';
+import EscalationMatrix from './components/compliance/EscalationMatrix';
+
+// ============================================================
+// ✅ SAFETY DASHBOARD PAGES (Lazy)
+// ============================================================
+const SafetyDashboardPage = React.lazy(() => import('./pages/safety/SafetyDashboardPage').catch(() => ({ default: () => <div>Loading...</div> })));
+const SafetyObservationsPage = React.lazy(() => import('./pages/safety/SafetyObservationsPage').catch(() => ({ default: () => <div>Loading...</div> })));
+const LessonsLearnedPage = React.lazy(() => import('./pages/safety/LessonsLearnedPage').catch(() => ({ default: () => <div>Loading...</div> })));
+const PredictiveAnalyticsPage = React.lazy(() => import('./pages/safety/PredictiveAnalyticsPage').catch(() => ({ default: () => <div>Loading...</div> })));
+const CostAnalysisPage = React.lazy(() => import('./pages/safety/CostAnalysisPage').catch(() => ({ default: () => <div>Loading...</div> })));
+const RegulatoryCompliancePage = React.lazy(() => import('./pages/safety/RegulatoryCompliancePage').catch(() => ({ default: () => <div>Loading...</div> })));
+const EscalationManagementPage = React.lazy(() => import('./pages/safety/EscalationManagementPage').catch(() => ({ default: () => <div>Loading...</div> })));
+const InvestigationWorkspacePage = React.lazy(() => import('./pages/safety/InvestigationWorkspacePage').catch(() => ({ default: () => <div>Loading...</div> })));
+
 // Existing Protected Routes
 import SubscriptionPage from './pages/SubscriptionPage';
 import AIDocumentsPage from './pages/AIDocumentsPage';
+import ToolboxTalksPage from './pages/ToolboxTalksPage';
+import WorkplaceVoicePage from './pages/WorkplaceVoicePage';
+import { VoiceHome, VoiceReport, VoiceTrack, VoiceRewards } from './pages/voice/VoicePortal';
 import NotificationsPage from './pages/NotificationsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import TeamManagementPage from './pages/TeamManagementPage';
@@ -132,6 +180,10 @@ import ComplianceCenterPage from './pages/ComplianceCenterPage';
 import SupplyChainPage from './pages/SupplyChainPage';
 import TemplateMarketplacePage from './pages/TemplateMarketplacePage';
 import CameraMonitoringPage from './pages/CameraMonitoringPage';
+
+// ============================================================
+// DOCUMENT MANAGEMENT IMPORTS
+// ============================================================
 import DocumentControl from './components/DocumentControl';
 import DocumentManagementPage from './pages/DocumentManagementPage';
 import AccessControl from './components/documents/AccessControl';
@@ -163,6 +215,26 @@ import DocumentSignature from './components/documents/DocumentSignature';
 import DocumentDashboard from './components/documents/DocumentDashboard';
 import DocumentCompare from './components/documents/DocumentCompare';
 import TemplateLibrary from './components/documents/TemplateLibrary';
+import IncidentLinking from './components/documents/IncidentLinking';
+import SDSManagement from './components/documents/SDSManagement';
+import PTWIntegration from './components/documents/PTWIntegration';
+import AIClassification from './components/documents/AIClassification';
+import OCRProcessor from './components/documents/OCRProcessor';
+import ExpirationDashboard from './components/documents/ExpirationDashboard';
+import ApprovalChain from './components/documents/ApprovalChain';
+import ComplianceFramework from './components/documents/ComplianceFramework';
+
+// ============================================================
+// ✅ NEW: PDF EDITOR IMPORTS (Ribbon + PDF Viewer + Panels)
+// ============================================================
+import EditorRibbon from './components/editor/EditorRibbon';
+import PDFEditor from './components/editor/PDFEditor';
+import PageThumbnailPanel from './components/documents/PageThumbnailPanel';
+import PDFFormPanel from './components/documents/PDFFormPanel';
+import PDFSignaturePlacer from './components/documents/PDFSignaturePlacer';
+import './components/editor/EditorRibbon.css';
+
+// AI Components
 import RiskAssessment from './components/AI/RiskAssessment';
 import SafetyDocumentAnalyzer from './components/AI/SafetyDocumentAnalyzer';
 import VideoSafetyAnalysis from './components/AI/VideoSafetyAnalysis';
@@ -174,29 +246,20 @@ import MedicalTextAnalysis from './components/AI/MedicalTextAnalysis';
 import AIChatAssistant from './components/AI/AIChatAssistant';
 import AIAnalysis from './components/AI/AIAnalysis';
 import VideoAI from './components/AI/VideoAi';
-import IncidentLinking from './components/documents/IncidentLinking';
-import SDSManagement from './components/documents/SDSManagement';
-import PTWIntegration from './components/documents/PTWIntegration';
-import AIClassification from './components/documents/AIClassification';
-import OCRProcessor from './components/documents/OCRProcessor';
-import ExpirationDashboard from './components/documents/ExpirationDashboard';
-import ApprovalChain from './components/documents/ApprovalChain';
-import ComplianceFramework from './components/documents/ComplianceFramework';
-
+// dark-mode.css is intentionally NOT imported: it darkened page backgrounds while antd
+// components stayed light, making text unreadable. The app uses one light theme.
 import './styles/main.css';
 import './pages/safetyproDashboard.css';
 import './pages/PerformanceDashboard.css';
 import './App.css';
 
-// ============================================================
-// ✅ FULL-PAGE ROUTES — These routes bypass the global DashboardLayout
-// They render their OWN header + sidebar
-// ============================================================
+
 const FULL_PAGE_ROUTES = [
   '/document-management',
-  // Add more routes here as needed for future full-page workspaces:
-  // '/camera-monitoring-full',
-  // '/analytics-workspace',
+  '/investigation-workspace',
+  '/documents/pdf-editor',        // ✅ NEW: Standalone PDF editor
+  '/documents/editor-ribbon',     // ✅ NEW: Standalone ribbon editor
+  // Add more routes here as needed for future full-page workspaces
 ];
 
 // ============================================================
@@ -215,36 +278,34 @@ const MainLayoutWrapper = ({ children }) => (
 const DashboardLayoutWrapper = ({ children }) => {
   const location = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  
-  // ✅ Check if current route is a full-page route
-  const isFullPageRoute = FULL_PAGE_ROUTES.some(route => 
+
+  const isFullPageRoute = FULL_PAGE_ROUTES.some(route =>
     location.pathname.startsWith(route)
   );
-  
+
   console.log('🔍 [Layout] Path:', location.pathname, '| Full-page?', isFullPageRoute);
-  
-  // ✅ If full-page route → render children directly WITHOUT global layout
+
   if (isFullPageRoute) {
     return <>{children}</>;
   }
-  
-  // Otherwise → wrap in global DashboardLayout (existing behavior)
+
   const handleToggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
-  
+
   return (
-    <DashboardLayout 
-      sidebarCollapsed={sidebarCollapsed} 
+    <DashboardLayout
+      sidebarCollapsed={sidebarCollapsed}
       onToggleSidebar={handleToggleSidebar}
     >
+      <BillingBanner />
       {children}
     </DashboardLayout>
   );
 };
 
-// Export the API service for use in components
-export { 
+// Export the API services for use in components
+export {
   aviationApiService,
   chemicalApiService,
   constructionApiService,
@@ -260,111 +321,106 @@ export {
 };
 
 // ============================================
-// ✅ SMART DASHBOARD REDIRECT - Handles Stage and Role
+// ✅ SMART DASHBOARD REDIRECT
 // ============================================
 const SmartDashboardRedirect = () => {
   const { user } = useAuth();
-  
-  // Get user from localStorage for cross-checking
+
   const localUser = JSON.parse(localStorage.getItem('user') || '{}');
   const userData = user || localUser;
-  
-  // ✅ Get stage from user data or localStorage
+
   const stage = userData?.stage || localStorage.getItem('userStage') || 'complete';
   const requiresPayment = userData?.requires_payment || localStorage.getItem('requires_payment') === 'true';
   const requiresPlanSelection = userData?.requires_plan_selection || localStorage.getItem('requires_plan_selection') === 'true';
   const needsApproval = userData?.needs_approval || localStorage.getItem('requires_approval') === 'true';
   const requiresCompanySetup = userData?.requires_company_setup || localStorage.getItem('requires_company_setup') === 'true';
-  const requiresVerification = userData?.requires_verification || localStorage.getItem('requires_verification') === 'true';
-  
-  console.log('🔍 SmartDashboardRedirect:', { 
-    stage, 
-    requiresPayment, 
+
+  console.log('🔍 SmartDashboardRedirect:', {
+    stage,
+    requiresPayment,
     requiresPlanSelection,
     needsApproval,
     requiresCompanySetup,
-    requiresVerification,
+    verified: userData?.verified,
     userType: userData?.user_type,
-    email: userData?.email
+    email: userData?.email,
   });
-  
-  // ✅ Check verification first
-  if (requiresVerification || (userData && !userData.verified)) {
-    console.log('📧 Requires verification → Redirect to /verify-email');
+
+  // ✅ STAGE-FIRST ordering — consent must come before anything else
+  if (stage === 'needs_consent') {
+    console.log('📜 needs_consent → /accept-terms');
+    return <Redirect to="/accept-terms" />;
+  }
+
+  // ✅ Only block on verification when explicitly false (not undefined)
+  if (userData?.verified === false) {
+    console.log('📧 Requires verification → /verify-email');
     return <Redirect to="/verify-email" />;
   }
-  
-  // ✅ CRITICAL: Check STAGE first - these take priority over role
+
   if (stage === 'needs_plan' || requiresPlanSelection) {
-    console.log('📋 needs_plan → Redirect to /select-plan');
+    console.log('📋 needs_plan → /select-plan');
     return <Redirect to="/select-plan" />;
   }
-  
+
   if (stage === 'needs_payment' || requiresPayment) {
-    console.log('💳 needs_payment → Redirect to /payment');
+    console.log('💳 needs_payment → /payment');
     return <Redirect to="/payment" />;
   }
-  
+
   if (stage === 'needs_approval' || needsApproval) {
-    console.log('⏳ needs_approval → Redirect to /pending-approval');
+    console.log('⏳ needs_approval → /pending-approval');
     return <Redirect to="/pending-approval" />;
   }
-  
+
   if (stage === 'needs_company_setup' || requiresCompanySetup) {
-    console.log('🏢 needs_company_setup → Redirect to /company-setup');
+    console.log('🏢 needs_company_setup → /company-setup');
     return <Redirect to="/company-setup" />;
   }
-  
-  // ✅ If stage is 'complete', check user type for role-based routing
+
   if (stage === 'complete') {
-    const actualRole = userData?.role || localUser?.role;
     const actualUserType = userData?.user_type || localUser?.user_type;
-    const email = userData?.email || localUser?.email;
-    
-    // ✅ Super Admin Check
-    const isSuperAdmin = 
-      email === 'abigalisticstudious@gmail.com' ||
-      actualUserType === 'super_admin' ||
-      actualUserType === 'platform_owner' ||
-      actualRole === 'super_admin' ||
-      actualRole === 'Super Admin' ||
-      actualRole === 'Platform Admin' ||
-      localStorage.getItem('is_super_admin') === 'true';
-    
+
+    // platform access comes from the server's user record only (no hard-coded emails, no browser-storage flags)
+    const src = userData || localUser || {};
+    const isSuperAdmin = src.is_super_admin === true || src.is_platform_owner === true ||
+      ['super_admin', 'platform_owner'].includes(actualUserType);
+
+    if (actualUserType === 'client_reviewer') {
+      return <Redirect to="/reviews" />;
+    }
+
     if (isSuperAdmin) {
       console.log('👑 Super Admin → /safetypro/dashboard');
       return <Redirect to="/safetypro/dashboard" />;
     }
-    
-    // ✅ Safety Pro Check
+
     if (actualUserType === 'safetypro' || actualUserType === 'safety_pro') {
       console.log('🛡️ Safety Pro → /safetypro/dashboard');
       return <Redirect to="/safetypro/dashboard" />;
     }
-    
-    // ✅ Admin Check
+
     if (actualUserType === 'admin' || actualUserType === 'company_admin') {
       console.log('👤 Admin → /admin/dashboard');
       return <Redirect to="/admin/dashboard" />;
     }
-    
-    // ✅ Employee Check
+
     if (actualUserType === 'employee' || actualUserType === 'staff') {
       console.log('👤 Employee → /employee/dashboard');
       return <Redirect to="/employee/dashboard" />;
     }
-    
-    // ✅ Default User
+
     console.log('👤 User → /user/dashboard');
     return <Redirect to="/user/dashboard" />;
   }
-  
-  // ✅ Fallback - user dashboard
+
   console.log('⚠️ Fallback → /user/dashboard');
   return <Redirect to="/user/dashboard" />;
 };
 
-// AppContent component with language sync
+// ============================================================
+// AppContent
+// ============================================================
 const AppContent = () => {
   const { i18n } = useTranslation();
   const [loading, setLoading] = useState(true);
@@ -384,10 +440,10 @@ const AppContent = () => {
 
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         height: '100vh',
         fontSize: '18px'
       }}>
@@ -397,97 +453,133 @@ const AppContent = () => {
   }
 
   return (
-    <Router basename="/safetrack-pro-web">
+    <Router>
       <NotificationProvider>
-        
+
         <ToastNotifications />
-        
-        {/* ✅ UPGRADE MODAL - GLOBAL - RENDERED ONCE OUTSIDE SWITCH */}
+
         <UpgradeModal />
-        
+
         <Switch>
           {/* ============================================ */}
-          {/* PUBLIC ROUTES WITH MAIN LAYOUT */}
+          {/* PUBLIC ROUTES */}
           {/* ============================================ */}
           <Route path="/" exact>
             <MainLayoutWrapper>
               <HomePage />
             </MainLayoutWrapper>
           </Route>
-          
+
           <Route path="/home" exact>
             <Redirect to="/" />
           </Route>
-          
+
           <Route path="/features">
             <MainLayoutWrapper>
               <FeaturesPage />
             </MainLayoutWrapper>
           </Route>
-          
+
+          {/* Workplace Voice - public worker reporting (no login) */}
+          <Route path="/voice/track/:code?"><VoiceTrack /></Route>
+          <Route path="/voice/rewards" exact><VoiceRewards /></Route>
+          <Route path="/voice/:slug"><VoiceReport /></Route>
+          <Route path="/voice" exact><VoiceHome /></Route>
+
           <Route path="/pricing">
             <MainLayoutWrapper>
               <PricingPage />
             </MainLayoutWrapper>
           </Route>
-          
+
           <Route path="/login">
             <MainLayoutWrapper>
               <LoginPage />
             </MainLayoutWrapper>
           </Route>
-          
+
           <Route path="/signup">
             <MainLayoutWrapper>
               <SignupPage />
             </MainLayoutWrapper>
           </Route>
-          
+
+          {/* Admin signup is part of the single /signup flow */}
           <Route path="/admin-signup">
+            <Redirect to="/signup?type=admin" />
+          </Route>
+
+          {/* Public: approval / guardian / company-inactive status explanations */}
+          <Route path="/pending-approval" exact>
             <MainLayoutWrapper>
-              <AdminSignupPage />
+              <AccountStatusPage />
             </MainLayoutWrapper>
           </Route>
-          
+          {/* Public: parent/guardian approves or declines a minor's account (link from email) */}
+          <Route path="/guardian-consent" exact>
+            <MainLayoutWrapper>
+              <GuardianConsentPage />
+            </MainLayoutWrapper>
+          </Route>
+          {/* Public: client reviewer creates a password from the invitation email */}
+          <Route path="/accept-invite" exact>
+            <MainLayoutWrapper>
+              <AcceptInvitePage />
+            </MainLayoutWrapper>
+          </Route>
+          {/* Review portal: documents sent to me for signature / stamp / approval */}
+          <ProtectedRoute path="/reviews/:id">
+            <ReviewsPage />
+          </ProtectedRoute>
+          <ProtectedRoute path="/reviews" exact>
+            <ReviewsPage />
+          </ProtectedRoute>
+
           <Route path="/employee-login">
             <MainLayoutWrapper>
               <EmployeeLogin />
             </MainLayoutWrapper>
           </Route>
-          
+
           <Route path="/reset-password">
             <MainLayoutWrapper>
               <ResetPasswordPage />
             </MainLayoutWrapper>
           </Route>
-          
+
           <Route path="/terms">
             <MainLayoutWrapper>
               <TermsPolicy />
             </MainLayoutWrapper>
           </Route>
-          
+
           <Route path="/privacy">
             <MainLayoutWrapper>
               <TermsPolicy />
             </MainLayoutWrapper>
           </Route>
-          
+
           <Route path="/contact">
             <MainLayoutWrapper>
               <ContactBrandInfo />
             </MainLayoutWrapper>
           </Route>
-          
+                                                                                                                 
+          <Route path="/about">
+  <MainLayoutWrapper>
+    <About />
+  </MainLayoutWrapper>
+</Route>
+
+
           <Route path="/contact-team">
             <MainLayoutWrapper>
               <ContactTeamPage />
             </MainLayoutWrapper>
           </Route>
+                                                                                                                 
+                                                                                                          
 
-          {/* ============================================ */}
-          {/* ✅ RESUME REGISTRATION - Handles all stages */}
-          {/* ============================================ */}
           <Route path="/resume-registration">
             <MainLayoutWrapper>
               <ResumeRegistration />
@@ -495,49 +587,55 @@ const AppContent = () => {
           </Route>
 
           {/* ============================================ */}
-          {/* ✅ SMART DASHBOARD REDIRECT - Handles Stage + Role */}
+          {/* SEO MARKETING PAGES (public)                 */}
+          {/* MUST stay above the protected '/compliance'  */}
+          {/* route, which would otherwise swallow         */}
+          {/* /compliance/osha, /compliance/hipaa, etc.    */}
+          {/* ============================================ */}
+          {marketingRoutes.map((r) => (
+            <Route key={r.path} exact path={r.path}>
+              <MainLayoutWrapper>{r.element}</MainLayoutWrapper>
+            </Route>
+          ))}
+
+          {/* ============================================ */}
+          {/* DASHBOARD REDIRECT */}
           {/* ============================================ */}
           <ProtectedRoute path="/dashboard" exact>
             <SmartDashboardRedirect />
           </ProtectedRoute>
 
-          {/* ============================================ */}
-          {/* ✅ COMPANY SETUP PAGE - Combined with Plan & Payment */}
-          {/* ============================================ */}
           <ProtectedRoute path="/company-setup" exact>
-            <MainLayoutWrapper>
-              <CompanySetup />
-            </MainLayoutWrapper>
-          </ProtectedRoute>
+  <MainLayoutWrapper>
+    <CompanySetup />
+  </MainLayoutWrapper>
+</ProtectedRoute>
 
-          {/* ============================================ */}
-          {/* ✅ PAYMENT WAITING PAGE ROUTE */}
-          {/* ============================================ */}
-          <ProtectedRoute path="/payment-waiting">
-            <MainLayoutWrapper>
-              <PaymentWaitingPage />
-            </MainLayoutWrapper>
-          </ProtectedRoute>
+{/* ✅ NEW: Accept Terms (consent re-acceptance) */}
+<ProtectedRoute path="/accept-terms" exact>
+  <MainLayoutWrapper>
+    <AcceptTermsPage />
+  </MainLayoutWrapper>
+</ProtectedRoute>
 
-          {/* ============================================ */}
-          {/* ✅ PLAN SELECTION PAGE - MUST BE BEFORE DASHBOARD */}
-          {/* ============================================ */}
+<ProtectedRoute path="/payment-waiting">
+  <MainLayoutWrapper>
+    <PaymentWaitingPage />
+  </MainLayoutWrapper>
+</ProtectedRoute>
+
           <ProtectedRoute path="/select-plan" exact>
             <MainLayoutWrapper>
               <PricingPage />
             </MainLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ✅ Alias for plan selection */}
           <ProtectedRoute path="/plan-selection" exact>
             <MainLayoutWrapper>
               <PricingPage />
             </MainLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
-          {/* ✅ PAYMENT PAGE */}
-          {/* ============================================ */}
           <ProtectedRoute path="/payment" exact>
             <MainLayoutWrapper>
               <SubscriptionPage />
@@ -545,7 +643,7 @@ const AppContent = () => {
           </ProtectedRoute>
 
           {/* ============================================ */}
-          {/* ✅ SAFETY PRO DASHBOARD ROUTES */}
+          {/* SAFETY PRO DASHBOARD */}
           {/* ============================================ */}
           <ProtectedRoute path="/safetypro/dashboard">
             <DashboardLayoutWrapper>
@@ -560,24 +658,20 @@ const AppContent = () => {
           </ProtectedRoute>
 
           {/* ============================================ */}
-          {/* ✅ DIRECT DASHBOARD ROUTES */}
+          {/* DIRECT DASHBOARDS */}
           {/* ============================================ */}
-          
-          {/* EMPLOYEE DASHBOARD */}
           <ProtectedRoute path="/employee/dashboard">
             <DashboardLayoutWrapper>
               <EmployeeDashboard />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* USER DASHBOARD */}
           <ProtectedRoute path="/user/dashboard">
             <DashboardLayoutWrapper>
               <UserDashboard />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ADMIN DASHBOARD */}
           <ProtectedRoute path="/admin/dashboard">
             <DashboardLayoutWrapper>
               <AdminDashboard />
@@ -585,7 +679,7 @@ const AppContent = () => {
           </ProtectedRoute>
 
           {/* ============================================ */}
-          {/* USER PROFILE & SETTINGS ROUTES */}
+          {/* PROFILE & SETTINGS */}
           {/* ============================================ */}
           <ProtectedRoute path="/profile" exact>
             <DashboardLayoutWrapper>
@@ -606,7 +700,58 @@ const AppContent = () => {
           </ProtectedRoute>
 
           {/* ============================================ */}
-          {/* RISK ASSESSMENT ROUTES */}
+          {/* SAFETY FEATURES */}
+          {/* ============================================ */}
+          <ProtectedRoute path="/safety" exact>
+            <DashboardLayoutWrapper>
+              <SafetyDashboardPage />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          <ProtectedRoute path="/safety/observations" exact>
+            <DashboardLayoutWrapper>
+              <SafetyObservationsPage />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          <ProtectedRoute path="/safety/lessons-learned" exact>
+            <DashboardLayoutWrapper>
+              <LessonsLearnedPage />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          <ProtectedRoute path="/safety/predictive-analytics" exact>
+            <DashboardLayoutWrapper>
+              <PredictiveAnalyticsPage />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          <ProtectedRoute path="/safety/cost-analysis" exact>
+            <DashboardLayoutWrapper>
+              <CostAnalysisPage />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          <ProtectedRoute path="/safety/regulatory-compliance" exact>
+            <DashboardLayoutWrapper>
+              <RegulatoryCompliancePage />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          <ProtectedRoute path="/safety/escalation-management" exact>
+            <DashboardLayoutWrapper>
+              <EscalationManagementPage />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          <ProtectedRoute path="/investigation-workspace/:incidentId?">
+            <DashboardLayoutWrapper>
+              <InvestigationWorkspacePage />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ============================================ */}
+          {/* RISK ASSESSMENT */}
           {/* ============================================ */}
           <ProtectedRoute path="/risk-assessment" exact>
             <DashboardLayoutWrapper>
@@ -621,7 +766,7 @@ const AppContent = () => {
           </ProtectedRoute>
 
           {/* ============================================ */}
-          {/* AI SERVICES ROUTES */}
+          {/* AI SERVICES */}
           {/* ============================================ */}
           <ProtectedRoute path="/ai-services" exact>
             <DashboardLayoutWrapper>
@@ -694,7 +839,7 @@ const AppContent = () => {
               <EnvironmentalCameraMonitoringPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
-          
+
           <ProtectedRoute path="/ai-services/environmental-ai">
             <DashboardLayoutWrapper>
               <AIServiceTab />
@@ -708,13 +853,56 @@ const AppContent = () => {
           </ProtectedRoute>
 
           {/* ============================================================ */}
-          {/* ✅ DOCUMENT MANAGEMENT ROUTES - ALL NEW */}
+          {/* DOCUMENT MANAGEMENT ROUTES */}
           {/* ============================================================ */}
-          
-          {/* Main Document Management Page (Full-Page - bypasses global layout) */}
+
+          {/* Main Document Management Page */}
           <ProtectedRoute path="/document-management">
             <DashboardLayoutWrapper>
               <DocumentManagementPage />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ✅ NEW: Standalone PDF Editor (full-page, bypasses global layout) */}
+          <ProtectedRoute path="/documents/pdf-editor/:documentId">
+            <DashboardLayoutWrapper>
+              <PDFEditor
+                documentId={Number(window.location.pathname.split('/').filter(Boolean).pop())}
+              />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ✅ NEW: Standalone Ribbon Editor (full-page) */}
+          <ProtectedRoute path="/documents/editor-ribbon">
+            <DashboardLayoutWrapper>
+              <DocumentEditor />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ✅ NEW: Standalone Page Thumbnails (full-page) */}
+          <ProtectedRoute path="/documents/page-thumbnails/:documentId">
+            <DashboardLayoutWrapper>
+              <PageThumbnailPanel
+                documentId={Number(window.location.pathname.split('/').filter(Boolean).pop())}
+              />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ✅ NEW: Standalone Form Filler (full-page) */}
+          <ProtectedRoute path="/documents/form-filler/:documentId">
+            <DashboardLayoutWrapper>
+              <PDFFormPanel
+                documentId={Number(window.location.pathname.split('/').filter(Boolean).pop())}
+              />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          {/* ✅ NEW: Standalone Signature Placer (full-page) */}
+          <ProtectedRoute path="/documents/signature-placer/:documentId">
+            <DashboardLayoutWrapper>
+              <PDFSignaturePlacer
+                documentId={Number(window.location.pathname.split('/').filter(Boolean).pop())}
+              />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
@@ -726,7 +914,7 @@ const AppContent = () => {
           </ProtectedRoute>
 
           {/* ============================================ */}
-          {/* ✅ NEW: ACCESS CONTROL & SECURITY ROUTES */}
+          {/* ACCESS CONTROL */}
           {/* ============================================ */}
           <ProtectedRoute path="/documents/access-control/:documentId?">
             <DashboardLayoutWrapper>
@@ -734,261 +922,201 @@ const AppContent = () => {
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
-          {/* ✅ NEW: RETENTION POLICY ROUTES */}
-          {/* ============================================ */}
+          {/* RETENTION POLICY */}
           <ProtectedRoute path="/documents/retention/:documentId?">
             <DashboardLayoutWrapper>
               <RetentionPolicy />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
-          {/* ✅ NEW: WATERMARKING ROUTES */}
-          {/* ============================================ */}
+          {/* WATERMARKING */}
           <ProtectedRoute path="/documents/watermarking/:documentId?">
             <DashboardLayoutWrapper>
               <Watermarking />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
-          {/* ✅ NEW: WORKFLOW BUILDER ROUTES */}
-          {/* ============================================ */}
+          {/* WORKFLOW BUILDER */}
           <ProtectedRoute path="/documents/workflow-builder/:workflowId?">
             <DashboardLayoutWrapper>
               <WorkflowBuilder />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
-          {/* ✅ NEW: COMPLIANCE REPORTS ROUTES */}
-          {/* ============================================ */}
+          {/* COMPLIANCE REPORTS */}
           <ProtectedRoute path="/documents/compliance-reports/:documentId?">
             <DashboardLayoutWrapper>
               <ComplianceReports />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
-          {/* ✅ NEW: DOCUMENT BUNDLES ROUTES */}
-          {/* ============================================ */}
+          {/* DOCUMENT BUNDLES */}
           <ProtectedRoute path="/documents/bundles/:bundleId?">
             <DashboardLayoutWrapper>
               <DocumentBundles />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
-          {/* ✅ NEW: SHARE PORTAL ROUTES */}
-          {/* ============================================ */}
+          {/* SHARE PORTAL */}
           <ProtectedRoute path="/documents/share/:documentId?">
             <DashboardLayoutWrapper>
               <SharePortal />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
-          {/* ✅ NEW: SMART INTAKE ROUTES */}
-          {/* ============================================ */}
+          {/* SMART INTAKE */}
           <ProtectedRoute path="/documents/smart-intake">
             <DashboardLayoutWrapper>
               <SmartIntake />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
-          {/* ✅ NEW: ADVANCED SEARCH ROUTES */}
-          {/* ============================================ */}
+          {/* ADVANCED SEARCH */}
           <ProtectedRoute path="/documents/advanced-search">
             <DashboardLayoutWrapper>
               <AdvancedSearch />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
-          {/* ✅ NEW: DOCUMENT ASSISTANT (AI CHAT) ROUTES */}
-          {/* ============================================ */}
+          {/* DOCUMENT ASSISTANT */}
           <ProtectedRoute path="/documents/assistant/:documentId?">
             <DashboardLayoutWrapper>
               <DocumentAssistant />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
-          {/* ✅ NEW: BUSINESS INTELLIGENCE ROUTES */}
-          {/* ============================================ */}
+          {/* BUSINESS INTELLIGENCE */}
           <ProtectedRoute path="/documents/bi">
             <DashboardLayoutWrapper>
               <DocumentBI />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
-          {/* ✅ NEW: ANOMALY DETECTION ROUTES */}
-          {/* ============================================ */}
+          {/* ANOMALY DETECTION */}
           <ProtectedRoute path="/documents/anomaly-detection">
             <DashboardLayoutWrapper>
               <AnomalyDetection />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
-          {/* ✅ NEW: CUSTOM REPORT BUILDER ROUTES */}
-          {/* ============================================ */}
+          {/* CUSTOM REPORT BUILDER */}
           <ProtectedRoute path="/documents/report-builder">
             <DashboardLayoutWrapper>
               <CustomReportBuilder />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
-          {/* ✅ NEW: PREDICTIVE ANALYTICS ROUTES */}
-          {/* ============================================ */}
+          {/* PREDICTIVE ANALYTICS */}
           <ProtectedRoute path="/documents/predictive-analytics">
             <DashboardLayoutWrapper>
               <PredictiveAnalytics />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
-          {/* ✅ NEW: QUALITY MANAGEMENT ROUTES */}
-          {/* ============================================ */}
+          {/* QUALITY MANAGEMENT */}
           <ProtectedRoute path="/documents/quality-management">
             <DashboardLayoutWrapper>
               <QualityManagementSystem />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
-          {/* ✅ NEW: OFFLINE MANAGER ROUTES */}
-          {/* ============================================ */}
+          {/* OFFLINE MANAGER */}
           <ProtectedRoute path="/documents/offline">
             <DashboardLayoutWrapper>
               <OfflineManager />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
-          {/* ✅ NEW: INTEGRATION HUB ROUTES */}
-          {/* ============================================ */}
+          {/* INTEGRATION HUB */}
           <ProtectedRoute path="/documents/integrations">
             <DashboardLayoutWrapper>
               <IntegrationHub />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
-          {/* ✅ NEW: REALTIME COLLABORATIVE EDITOR ROUTES */}
-          {/* ============================================ */}
+          {/* REALTIME COLLABORATIVE EDITOR */}
           <ProtectedRoute path="/documents/collaborate/:documentId?">
             <DashboardLayoutWrapper>
               <RealtimeCollaborativeEditor />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
           {/* DOCUMENT REVIEW */}
-          {/* ============================================ */}
           <ProtectedRoute path="/documents/review">
             <DashboardLayoutWrapper>
               <DocumentReview />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
           {/* DOCUMENT AUDIT */}
-          {/* ============================================ */}
           <ProtectedRoute path="/documents/audit">
             <DashboardLayoutWrapper>
               <DocumentAudit />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
           {/* DOCUMENT INTEGRATION */}
-          {/* ============================================ */}
           <ProtectedRoute path="/documents/integration">
             <DashboardLayoutWrapper>
               <DocumentIntegration />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
           {/* DOCUMENT SEARCH */}
-          {/* ============================================ */}
           <ProtectedRoute path="/documents/search">
             <DashboardLayoutWrapper>
               <DocumentSearch />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
-          {/* DOCUMENT BULK OPERATIONS */}
-          {/* ============================================ */}
+          {/* DOCUMENT BULK */}
           <ProtectedRoute path="/documents/bulk">
             <DashboardLayoutWrapper>
               <DocumentBulk />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
           {/* DOCUMENT ANALYTICS */}
-          {/* ============================================ */}
           <ProtectedRoute path="/documents/analytics">
             <DashboardLayoutWrapper>
               <DocumentAnalytics />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
           {/* DOCUMENT DASHBOARD */}
-          {/* ============================================ */}
           <ProtectedRoute path="/documents/dashboard">
             <DashboardLayoutWrapper>
               <DocumentDashboard />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
           {/* DOCUMENT COMPARE */}
-          {/* ============================================ */}
           <ProtectedRoute path="/documents/compare">
             <DashboardLayoutWrapper>
               <DocumentCompare />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
           {/* TEMPLATE LIBRARY */}
-          {/* ============================================ */}
           <ProtectedRoute path="/documents/templates">
             <DashboardLayoutWrapper>
               <TemplateLibrary />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
-          {/* DOCUMENT EDITOR */}
-          {/* ============================================ */}
+          {/* DOCUMENT EDITOR (with :id) */}
           <ProtectedRoute path="/documents/edit/:id?">
             <DashboardLayoutWrapper>
               <DocumentEditor />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          {/* ============================================ */}
           {/* DOCUMENT SIGNATURES */}
-          {/* ============================================ */}
           <ProtectedRoute path="/documents/signatures/:id?">
             <DashboardLayoutWrapper>
               <DocumentSignature />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
-
-          {/* ============================================ */}
-          {/* HSE-SPECIFIC DOCUMENT ROUTES */}
-          {/* ============================================ */}
 
           {/* INCIDENT LINKING */}
           <ProtectedRoute path="/documents/incidents/:documentId?">
@@ -1047,7 +1175,7 @@ const AppContent = () => {
           </ProtectedRoute>
 
           {/* ============================================ */}
-          {/* NEW MODULE MANAGEMENT ROUTES */}
+          {/* MODULE MANAGEMENT */}
           {/* ============================================ */}
           <ProtectedRoute path="/hospital-management">
             <DashboardLayoutWrapper>
@@ -1082,7 +1210,6 @@ const AppContent = () => {
           {/* ============================================ */}
           {/* HSE INDUSTRY TAB ROUTES */}
           {/* ============================================ */}
-
           <ProtectedRoute path="/hse-management" exact>
             <DashboardLayoutWrapper>
               <HSEManagement />
@@ -1107,8 +1234,8 @@ const AppContent = () => {
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          <Route 
-            path="/hse/construction/:tab?" 
+          <Route
+            path="/hse/construction/:tab?"
             render={(props) => (
               <ProtectedRoute>
                 <DashboardLayoutWrapper>
@@ -1168,13 +1295,13 @@ const AppContent = () => {
               <IncidentPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
-          
+
           <ProtectedRoute path="/monitoring">
             <DashboardLayoutWrapper>
               <MonitoringPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
-          
+
           <ProtectedRoute path="/predictive">
             <DashboardLayoutWrapper>
               <PredictivePage />
@@ -1189,97 +1316,115 @@ const AppContent = () => {
               <OccupationalHealthPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
-          
+
           <ProtectedRoute path="/subscription">
             <DashboardLayoutWrapper>
               <SubscriptionPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
-          
+
+          <ProtectedRoute path="/workplace-voice">
+            <DashboardLayoutWrapper>
+              <WorkplaceVoicePage />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          <ProtectedRoute path="/toolbox-talks">
+            <DashboardLayoutWrapper>
+              <ToolboxTalksPage />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
           <ProtectedRoute path="/ai-documents">
             <DashboardLayoutWrapper>
               <AIDocumentsPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
-          
+
           <ProtectedRoute path="/notifications">
             <DashboardLayoutWrapper>
               <NotificationsPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
-          
+
           <ProtectedRoute path="/analytics">
             <DashboardLayoutWrapper>
               <AnalyticsPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
-          
+
           <ProtectedRoute path="/team">
             <DashboardLayoutWrapper>
               <TeamManagementPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
-          
+
           <ProtectedRoute path="/integrations">
             <DashboardLayoutWrapper>
               <IntegrationsPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
-          
+
+          <ProtectedRoute path="/admin/command-center">
+  <DashboardLayoutWrapper>
+    <CommandCenter />
+  </DashboardLayoutWrapper>
+</ProtectedRoute>
+
           <ProtectedRoute path="/admin">
             <DashboardLayoutWrapper>
               <AdminPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
-          
+
           <ProtectedRoute path="/templates">
             <DashboardLayoutWrapper>
               <TemplatesPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
-          
+
           <ProtectedRoute path="/editor">
             <DashboardLayoutWrapper>
               <EditorPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
-          
+
           <ProtectedRoute path="/workflow">
             <DashboardLayoutWrapper>
               <WorkflowPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
-          
+
           <ProtectedRoute path="/referral">
             <DashboardLayoutWrapper>
               <ReferralPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
-          
+
           <ProtectedRoute path="/reports">
             <DashboardLayoutWrapper>
               <ReportsPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
-          
+
           <ProtectedRoute path="/project-upload">
             <DashboardLayoutWrapper>
               <ProjectUploadPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
-          
+
           <ProtectedRoute path="/compliance">
             <DashboardLayoutWrapper>
               <ComplianceCenterPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
-          
+
           <ProtectedRoute path="/supply-chain">
             <DashboardLayoutWrapper>
               <SupplyChainPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
-          
+
           <ProtectedRoute path="/template-marketplace">
             <DashboardLayoutWrapper>
               <TemplateMarketplacePage />
@@ -1291,15 +1436,31 @@ const AppContent = () => {
               <HSEManagementPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
-          
+
           <ProtectedRoute path="/hse/compliance">
             <DashboardLayoutWrapper>
               <HSEManagementPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
-          
+
+         {/* ============================================ */}
+          {/* INFO PAGES (Consolidated: documentation, guides, blog, etc.) */}
           {/* ============================================ */}
-          {/* 404 FALLBACK - MUST BE LAST */}
+          <Route path="/info/:section">
+            <MainLayoutWrapper>
+              <InfoPage />
+            </MainLayoutWrapper>
+          </Route>
+
+          <Route path="/info" exact>
+            <MainLayoutWrapper>
+              <InfoPage />
+            </MainLayoutWrapper>
+          </Route>
+
+
+          {/* ============================================ */}
+          {/* 404 FALLBACK */}
           {/* ============================================ */}
           <Route path="*">
             <MainLayoutWrapper>
@@ -1324,7 +1485,9 @@ const AppContent = () => {
   );
 };
 
-// ✅ FIXED: App component with ResponsiveWrapper properly placed
+// ============================================================
+// App (root component)
+// ============================================================
 function App() {
   return (
     <I18nextProvider i18n={i18n}>

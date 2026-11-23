@@ -1,1686 +1,772 @@
-// src/pages/AnalyticsPage.js - Updated with Project Management
-import React, { useState, useEffect, useRef } from 'react';
+// src/pages/AnalyticsPage.js — Safety analytics dashboard
+import React, { useCallback, useEffect, useMemo, useRef, useState, memo } from 'react';
 import {
-  Layout, Card, Row, Col, Statistic, Select, Button, Space, Typography,
-  Modal, Form, Input, InputNumber, DatePicker, message, notification,
-  Badge, Tooltip, Dropdown, Divider, Progress, Tag, Radio, Switch, 
-  Collapse, Spin, Alert, Drawer, Checkbox, List, Empty, Result
+  Card, Select, Button, Space, Typography, Modal, Form, Input, DatePicker, message, Tooltip, Dropdown,
+  Tag, Radio, Switch, Spin, Alert, Drawer, List, Empty, Segmented, ColorPicker, Divider, Badge,
 } from 'antd';
 import {
-  DashboardOutlined, PlusOutlined, SettingOutlined, DownloadOutlined,
-  FullscreenOutlined, FullscreenExitOutlined, SaveOutlined, DeleteOutlined,
-  EditOutlined, CopyOutlined, ReloadOutlined, ExportOutlined, ImportOutlined,
-  FileExcelOutlined, FilePdfOutlined, FileImageOutlined, TeamOutlined,
-  WarningOutlined, ClockCircleOutlined, SafetyOutlined, AlertOutlined,
-  RiseOutlined, FieldTimeOutlined, ExperimentOutlined, EyeOutlined,
-  LineChartOutlined, BarChartOutlined, PieChartOutlined, AreaChartOutlined,
-  CameraOutlined, FileTextOutlined, ProjectOutlined,
-  FolderOpenOutlined, RocketOutlined, MedicineBoxOutlined
+  DashboardOutlined, PlusOutlined, SettingOutlined, DownloadOutlined, FullscreenOutlined, FullscreenExitOutlined,
+  SaveOutlined, DeleteOutlined, EditOutlined, CopyOutlined, ReloadOutlined, FilePdfOutlined, FileImageOutlined,
+  TeamOutlined, WarningOutlined, ClockCircleOutlined, SafetyOutlined, AlertOutlined, RiseOutlined, FieldTimeOutlined,
+  ExperimentOutlined, EyeOutlined, ProjectOutlined, DatabaseOutlined, MoreOutlined, HolderOutlined, ArrowLeftOutlined,
+  ArrowRightOutlined, ColumnWidthOutlined, ExportOutlined, FileExcelOutlined, InfoCircleOutlined, AppstoreAddOutlined,
+  UndoOutlined, BgColorsOutlined, EyeInvisibleOutlined, CheckOutlined,
 } from '@ant-design/icons';
-import {
-  LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie,
-  ComposedChart, Cell, XAxis, YAxis, CartesianGrid, ResponsiveContainer,
-  Legend, Tooltip as RechartsTooltip, ReferenceLine
-} from 'recharts';
-import { format } from 'date-fns';
+import { useHistory } from 'react-router-dom';
+import dayjs from 'dayjs';
 import { v4 as uuidv4 } from 'uuid';
-import moment from 'moment';
 import analyticsService from '../services/analyticsService';
-import notificationService from '../services/notificationService';
+import { useAuth } from '../context/AuthContext';
 import WidgetLibrary from '../components/analytics/WidgetLibrary';
 import WidgetConfigModal from '../components/analytics/WidgetConfigModal';
 import DataEntryForms from '../components/analytics/DataEntryForms';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
-
+import RecordsDrawer from '../components/analytics/RecordsDrawer';
+import { ProjectBanner, ProjectFormModal, ProjectsDrawer, StatusTag } from '../components/analytics/ProjectPanel';
+import { DynamicChart } from '../components/analytics/DynamicChart';
+import {
+  WIDGETS, PALETTES, SIZES, sizeCols, legacySize, DEFAULT_LAYOUT, RECORD_TO_FORM,
+} from '../components/analytics/widgetCatalog';
 import './AnalyticsPage.css';
-const { TextArea } = Input;
-const { Header, Content } = Layout;
+
 const { Title, Text } = Typography;
-const { Option } = Select;
-const { Panel } = Collapse;
 const { RangePicker } = DatePicker;
 
-// ==================== COLOR DEFINITIONS ====================
-const CHART_COLORS = {
-  primary: '#1890ff',
-  success: '#52c41a',
-  warning: '#faad14',
-  danger: '#f5222d',
-  info: '#13c2c2',
-  purple: '#722ed1',
-  magenta: '#eb2f96',
-  orange: '#fa8c16',
-  cyan: '#13c2c2',
-  geekblue: '#2f54eb',
-  red: '#f5222d',
-  volcano: '#fa541c',
-  gold: '#faad14',
-  lime: '#a0d911',
-  green: '#52c41a',
-  blue: '#1890ff'
+// ------------------------------------------------------------------ storage helpers (per user)
+const store = {
+  get(key, fallback) {
+    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; }
+  },
+  set(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* storage full / private mode */ }
+  },
 };
 
-const CHART_COLOR_LIST = [
-  '#1890ff', '#52c41a', '#faad14', '#f5222d', '#722ed1',
-  '#eb2f96', '#fa541c', '#13c2c2', '#2f54eb', '#fa8c16',
-  '#a0d911', '#bfbfbf', '#f759ab', '#7cb305', '#adc6ff',
-  '#b37feb', '#ff9c6e', '#ff7875', '#ffc53d', '#95de64',
-  '#fadb14', '#ff4d4f', '#ffa39e', '#ffd666', '#ffe58f'
+const DEFAULT_THEME = { accent: '#1677ff', palette: 'default', card: 'shadow', density: 'comfortable', dark: false };
+const RANGE_PRESETS = [
+  { label: 'Last 30 days', value: [dayjs().subtract(30, 'day'), dayjs()] },
+  { label: 'Last 90 days', value: [dayjs().subtract(90, 'day'), dayjs()] },
+  { label: 'This year', value: [dayjs().startOf('year'), dayjs()] },
+  { label: 'Last 12 months', value: [dayjs().subtract(12, 'month'), dayjs()] },
+  { label: 'Last 3 years', value: [dayjs().subtract(3, 'year'), dayjs()] },
+];
+const ENTRY_LABEL = { manpower: 'manpower', training: 'training', lti: 'lost-time injury', manhours: 'man-hours',
+  observations: 'observation', accidents: 'accident', severity: 'severity', injuries: 'injury', overdue: 'report submission' };
+const CREATE = { manpower: 'createManpower', training: 'createTraining', lti: 'createLTI', manhours: 'createManHours',
+  observations: 'createObservation', accidents: 'createAccident', severity: 'createSeverity', injuries: 'createInjury',
+  overdue: 'createOverdueReport' };
+
+const makeWidget = (type, palette) => {
+  const def = WIDGETS[type];
+  const cfg = { ...(def.config || {}) };
+  if (!cfg.colors) cfg.colors = [...(PALETTES[palette] || PALETTES.default)];
+  return { id: uuidv4(), type, title: def.name, sizeKey: def.size || 'md', config: cfg, visible: true };
+};
+
+// accept layouts saved by the old page ({size:{w}, position:{y}}) and drop unknown widget types
+const normaliseLayout = (widgets) => (Array.isArray(widgets) ? widgets : [])
+  .filter((w) => w && WIDGETS[w.type])
+  .map((w, i) => ({
+    id: w.id || uuidv4(), type: w.type, title: w.title || WIDGETS[w.type].name,
+    sizeKey: w.sizeKey || legacySize(w.size?.w || 6), config: w.config || {}, visible: w.visible !== false,
+    _order: w.position?.y ?? i,
+  }))
+  .sort((a, b) => a._order - b._order)
+  .map(({ _order, ...w }) => w);
+
+const fmt = (v, digits = 0) => (v === null || v === undefined ? '—'
+  : Number(v).toLocaleString(undefined, { maximumFractionDigits: digits, minimumFractionDigits: 0 }));
+
+// CSV cell that spreadsheet apps will not execute as a formula
+const csvCell = (v) => {
+  let s = v === null || v === undefined ? '' : String(v);
+  if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+};
+
+// ------------------------------------------------------------------ KPI widget
+const KPI_DEFS = [
+  { key: 'ltifr', label: 'LTIFR', icon: <WarningOutlined />, suffix: '/1M hrs', digits: 2, color: (v) => (v > 1 ? '#f5222d' : '#52c41a'),
+    help: (k) => `Lost-time cases × 1,000,000 ÷ man-hours. Based on ${k.lti_source || 'LTI records'} (${k.lti_cases ?? 0} cases).` },
+  { key: 'trir', label: 'TRIR', icon: <AlertOutlined />, suffix: '/200k hrs', digits: 2, color: (v) => (v > 3 ? '#fa8c16' : '#52c41a'),
+    help: () => 'Total recordable incident rate: incidents × 200,000 ÷ man-hours.' },
+  { key: 'total_incidents', label: 'Incidents', icon: <SafetyOutlined />, link: '/incidents',
+    sub: (k) => `${k.open_incidents ?? 0} open · ${k.serious_incidents ?? 0} serious`, color: () => '#1677ff' },
+  { key: 'total_man_hours', label: 'Man-hours', icon: <FieldTimeOutlined />, color: () => '#13c2c2', help: () => 'Hours worked in the selected period.' },
+  { key: 'total_manpower', label: 'Head-count', icon: <TeamOutlined />, color: () => '#2f54eb', sub: (k) => `from ${k.headcount_source || 'records'}` },
+  { key: 'training_rate', label: 'Training rate', icon: <ExperimentOutlined />, suffix: '%', digits: 1,
+    color: (v) => (v < 60 ? '#fa8c16' : '#52c41a'), sub: (k) => `${k.total_trained ?? 0} people trained` },
+  { key: 'positive_obs', label: 'Observations', icon: <EyeOutlined />, link: '/safety/observations',
+    value: (k) => (k.positive_obs || 0) + (k.negative_obs || 0), sub: (k) => `${k.positive_obs ?? 0} positive · ${k.negative_obs ?? 0} unsafe`, color: () => '#52c41a' },
+  { key: 'overdue_rate', label: 'Late reports', icon: <ClockCircleOutlined />, suffix: '%', digits: 1, color: (v) => (v > 20 ? '#f5222d' : '#52c41a') },
+  { key: 'avg_severity', label: 'Avg severity', icon: <RiseOutlined />, digits: 2, color: (v) => (v >= 5 ? '#f5222d' : v >= 3 ? '#fa8c16' : '#52c41a'),
+    help: () => 'Average incident severity: low 1, medium 3, high 5, critical 7.' },
+  { key: 'total_injuries', label: 'Injuries', icon: <SafetyOutlined />, color: () => '#faad14' },
 ];
 
-const PowerBIAnalytics = () => {
-  // ==================== STATE ====================
-  const [loading, setLoading] = useState(true);
-  const [widgets, setWidgets] = useState([]);
-  const [dateRange, setDateRange] = useState(() => {
-    const end = new Date();
-    const start = new Date();
-    start.setDate(end.getDate() - 365);
-    return [start, end];
-  });
-  const [projectModalVisible, setProjectModalVisible] = useState(false);
-  const [projectForm] = Form.useForm();
-  const [selectedDepartment, setSelectedDepartment] = useState('all');
-  const [selectedProject, setSelectedProject] = useState('all');
-  const [fullscreen, setFullscreen] = useState(false);
-  const [editMode, setEditMode] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const [settingsDrawer, setSettingsDrawer] = useState(false);
-  const [widgetLibraryVisible, setWidgetLibraryVisible] = useState(false);
-  const [configModalVisible, setConfigModalVisible] = useState(false);
-  const [configModalData, setConfigModalData] = useState(null);
-  const [dataEntryModal, setDataEntryModal] = useState(false);
-  const [dataEntryType, setDataEntryType] = useState(null);
-  const [dataEntryForm] = Form.useForm();
-  const [dashboardData, setDashboardData] = useState({
-    manpower: [],
-    training: [],
-    lti: [],
-    manhours: [],
-    observations: [],
-    accidents: [],
-    severity: [],
-    injuries: [],
-    overdue: [],
-    ltifr: [],
-    incidents: [],
-    incidentStats: {
-      total: 0,
-      byStatus: {},
-      bySeverity: {},
-      byDepartment: {},
-      byType: {},
-      trend: []
-    }
-  });
-  const [calculatedMetrics, setCalculatedMetrics] = useState({});
-  const [departments, setDepartments] = useState([]);
-  const [projects, setProjects] = useState([]);
-  const [hasProjects, setHasProjects] = useState(false);
-  const [autoRefresh, setAutoRefresh] = useState(false);
-  const [refreshInterval, setRefreshInterval] = useState(null);
-  const [lastUpdated, setLastUpdated] = useState(new Date());
-  const [savedDashboards, setSavedDashboards] = useState([]);
-  const [exportModal, setExportModal] = useState(false);
-  const [exportFormat, setExportFormat] = useState('excel');
-  const [exportLoading, setExportLoading] = useState(false);
-  const [exportQuality, setExportQuality] = useState(2);
-  
-  const dashboardContentRef = useRef(null);
-
-  // ==================== HELPER FUNCTIONS ====================
-  const ensureValidDates = (start, end) => {
-    const validStart = start instanceof Date && !isNaN(start) ? start : new Date();
-    const validEnd = end instanceof Date && !isNaN(end) ? end : new Date();
-    return validStart > validEnd ? [validEnd, validStart] : [validStart, validEnd];
-  };
-
-  const handleDateRangeChange = (dates) => {
-    if (dates && dates[0] && dates[1]) {
-      const validDates = ensureValidDates(dates[0].toDate(), dates[1].toDate());
-      setDateRange(validDates);
-      loadDashboardData();
-    }
-  };
-
-  // ==================== INCIDENT DATA PROCESSING ====================
-  const processIncidentData = (incidents) => {
-    if (!incidents || incidents.length === 0) {
-      return {
-        total: 0,
-        byStatus: {},
-        bySeverity: {},
-        byDepartment: {},
-        byType: {},
-        trend: []
-      };
-    }
-
-    const byStatus = {};
-    const bySeverity = {};
-    const byDepartment = {};
-    const byType = {};
-    const trendMap = {};
-
-    incidents.forEach(inc => {
-      const status = inc.status || 'unknown';
-      byStatus[status] = (byStatus[status] || 0) + 1;
-
-      const severity = inc.severity || 'unknown';
-      bySeverity[severity] = (bySeverity[severity] || 0) + 1;
-
-      const department = inc.department || 'unknown';
-      byDepartment[department] = (byDepartment[department] || 0) + 1;
-
-      const type = inc.incident_type || inc.type || 'unknown';
-      byType[type] = (byType[type] || 0) + 1;
-
-      const date = inc.date_occurred || inc.created_at;
-      if (date) {
-        const dateKey = moment(date).format('YYYY-MM');
-        if (!trendMap[dateKey]) {
-          trendMap[dateKey] = { month: dateKey, count: 0, investigating: 0, reported: 0, resolved: 0 };
-        }
-        trendMap[dateKey].count += 1;
-        if (status === 'investigating') trendMap[dateKey].investigating += 1;
-        if (status === 'reported') trendMap[dateKey].reported += 1;
-        if (status === 'resolved' || status === 'closed') trendMap[dateKey].resolved += 1;
-      }
-    });
-
-    const trend = Object.values(trendMap).sort((a, b) => a.month.localeCompare(b.month));
-
-    return {
-      total: incidents.length,
-      byStatus,
-      bySeverity,
-      byDepartment,
-      byType,
-      trend
-    };
-  };
-
-  const loadDashboardData = async () => {
-  try {
-    setLoading(true);
-    
-    const filters = {
-      start_date: format(dateRange[0], 'yyyy-MM-dd'),
-      end_date: format(dateRange[1], 'yyyy-MM-dd'),
-      department: selectedDepartment !== 'all' ? selectedDepartment : undefined,
-      project: selectedProject !== 'all' ? selectedProject : undefined,
-    };
-
-    // Fetch all data from backend
-    const [
-      manpowerData,
-      trainingData,
-      ltiDataFromApi,
-      manhoursData,
-      observationsData,
-      accidentsDataFromApi,
-      severityDataFromApi,
-      injuriesDataFromApi,
-      overdueData,
-      incidentsResponse
-    ] = await Promise.all([
-      analyticsService.fetchManpower(filters).catch(() => ({ data: [] })),
-      analyticsService.fetchTraining(filters).catch(() => ({ data: [] })),
-      analyticsService.fetchLTI(filters).catch(() => ({ data: [] })),
-      analyticsService.fetchManHours(filters).catch(() => ({ data: [] })),
-      analyticsService.fetchObservations(filters).catch(() => ({ data: [] })),
-      analyticsService.fetchAccidents(filters).catch(() => ({ data: [] })),
-      analyticsService.fetchSeverity(filters).catch(() => ({ data: [] })),
-      analyticsService.fetchInjuries(filters).catch(() => ({ data: [] })),
-      analyticsService.fetchOverdueReports(filters).catch(() => ({ data: [] })),
-      notificationService.getIncidents(filters).catch(() => ({ incidents: [], count: 0, success: false }))
-    ]);
-
-    // Process incident data
-    let incidentList = [];
-    if (incidentsResponse && incidentsResponse.success) {
-      incidentList = incidentsResponse.incidents || [];
-    } else if (Array.isArray(incidentsResponse)) {
-      incidentList = incidentsResponse;
-    } else if (incidentsResponse && incidentsResponse.data) {
-      incidentList = Array.isArray(incidentsResponse.data) ? incidentsResponse.data : [];
-    }
-    
-    // ✅ STEP 1: Get project_id
-    const projectId = selectedProject !== 'all' ? selectedProject : null;
-    
-    // ✅ STEP 2: Filter incidents by project_id
-    let filteredIncidents = incidentList;
-    if (projectId) {
-      filteredIncidents = incidentList.filter(inc => inc.project_id === projectId);
-      console.log(`✅ Filtered incidents: ${filteredIncidents.length} out of ${incidentList.length} for project ${projectId}`);
-    }
-    
-    // ✅ STEP 3: Map incident data to charts using FILTERED incidents ONLY
-    // 1. ACCIDENT RATE - from filtered incidents
-    const accidentRateMap = {};
-    filteredIncidents.forEach(inc => {
-      const date = inc.date_occurred || inc.created_at;
-      if (date) {
-        const monthKey = moment(date).format('YYYY-MM');
-        if (!accidentRateMap[monthKey]) {
-          accidentRateMap[monthKey] = { year: monthKey, rate: 0, per_10k_hours: 0 };
-        }
-        accidentRateMap[monthKey].rate += 1;
-        const totalManHours = manhoursData?.data?.reduce((sum, d) => sum + (d.hours || 0), 0) || 2000;
-        accidentRateMap[monthKey].per_10k_hours = (accidentRateMap[monthKey].rate / totalManHours) * 10000;
-      }
-    });
-    const mappedAccidentData = Object.values(accidentRateMap).sort((a, b) => a.year.localeCompare(b.year));
-    
-    // 2. SEVERITY TREND - from filtered incidents
-    const severityMap = {};
-    const severityScore = { low: 1, medium: 3, high: 5, critical: 7 };
-    filteredIncidents.forEach(inc => {
-      const date = inc.date_occurred || inc.created_at;
-      if (date) {
-        const monthKey = moment(date).format('YYYY-MM');
-        if (!severityMap[monthKey]) {
-          severityMap[monthKey] = { year: monthKey, value: 0, count: 0 };
-        }
-        const score = severityScore[inc.severity] || 3;
-        severityMap[monthKey].value += score;
-        severityMap[monthKey].count += 1;
-      }
-    });
-    const mappedSeverityData = Object.values(severityMap)
-      .map(d => ({ year: d.year, value: d.value / d.count }))
-      .sort((a, b) => a.year.localeCompare(b.year));
-
-    // 3. LTI - from filtered incidents
-    const ltiMap = {};
-    filteredIncidents.forEach(inc => {
-      const date = inc.date_occurred || inc.created_at;
-      if (date) {
-        const monthKey = moment(date).format('YYYY-MM');
-        if (!ltiMap[monthKey]) {
-          ltiMap[monthKey] = { year: monthKey, value: 0 };
-        }
-        if (inc.severity === 'high' || inc.severity === 'critical' || inc.status === 'investigating') {
-          ltiMap[monthKey].value += 1;
-        }
-      }
-    });
-    const mappedLTIData = Object.values(ltiMap).sort((a, b) => a.year.localeCompare(b.year));
-
-    // 4. INJURIES BY BODY PART - from filtered incidents
-    const bodyPartMap = {
-      'needle_stick': { body_part: 'Hand/Finger', count: 0 },
-      'patient_fall': { body_part: 'Leg/Foot', count: 0 },
-      'medication_error': { body_part: 'Head/Neck', count: 0 },
-      'fall': { body_part: 'Leg/Foot', count: 0 },
-      'default': { body_part: 'Other', count: 0 }
-    };
-    filteredIncidents.forEach(inc => {
-      const type = inc.incident_type || 'default';
-      const key = bodyPartMap[type] ? type : 'default';
-      bodyPartMap[key].count += 1;
-    });
-    const mappedInjuriesData = Object.values(bodyPartMap).filter(d => d.count > 0);
-
-    // ✅ STEP 4: Use mapped data ONLY (ignore API data for injuries, lti, severity)
-    // Since we're mapping from incidents, we don't need the API data for these
-    const finalAccidentsData = mappedAccidentData.length > 0 ? mappedAccidentData : (accidentsDataFromApi?.data || accidentsDataFromApi || []);
-    const finalSeverityData = mappedSeverityData.length > 0 ? mappedSeverityData : (severityDataFromApi?.data || severityDataFromApi || []);
-    const finalLTIData = mappedLTIData.length > 0 ? mappedLTIData : (ltiDataFromApi?.data || ltiDataFromApi || []);
-    const finalInjuriesData = mappedInjuriesData.length > 0 ? mappedInjuriesData : (injuriesDataFromApi?.data || injuriesDataFromApi || []);
-
-    // ✅ STEP 5: Build dashboard data with chart data from FILTERED incidents
-    const newDashboardData = {
-      manpower: manpowerData?.data || manpowerData || [],
-      training: trainingData?.data || trainingData || [],
-      lti: finalLTIData,           // ✅ From filtered incidents
-      manhours: manhoursData?.data || manhoursData || [],
-      observations: observationsData?.data || observationsData || [],
-      accidents: finalAccidentsData, // ✅ From filtered incidents
-      severity: finalSeverityData,   // ✅ From filtered incidents
-      injuries: finalInjuriesData,   // ✅ From filtered incidents
-      overdue: overdueData?.data || overdueData || [],
-      ltifr: [],
-      incidents: filteredIncidents,  // ✅ Filtered incidents
-    };
-
-    setDashboardData(newDashboardData);
-    
-    // ✅ STEP 6: Calculate incident stats from FILTERED incidents
-    const filteredIncidentStats = processIncidentData(filteredIncidents);
-    
-    // ✅ STEP 7: Send ONLY filtered data to backend
-    const metricsPayload = {
-      ...newDashboardData,
-      incidents: filteredIncidents,
-      incidentStats: filteredIncidentStats,
-      project_id: projectId,
-      project: projectId
-    };
-    
-    console.log('📊 Sending metrics payload:', {
-      totalIncidents: filteredIncidents.length,
-      totalInjuries: finalInjuriesData.reduce((sum, d) => sum + d.count, 0),
-      totalLTIs: finalLTIData.length,
-      projectId: projectId
-    });
-    
-    const metrics = await analyticsService.calculateMetrics(metricsPayload).catch(() => ({}));
-    
-    setCalculatedMetrics(metrics || {});
-    setLastUpdated(new Date());
-    
-    const savedConfig = localStorage.getItem('powerbi_dashboard_config');
-    if (savedConfig) {
-      const config = JSON.parse(savedConfig);
-      setWidgets(config.widgets || []);
-    } else {
-      setWidgets([]);
-    }
-    
-  } catch (error) {
-    console.error('Failed to load dashboard data:', error);
-    notification.error({ 
-      message: 'Data Load Failed', 
-      description: 'Unable to load analytics data from backend. Please check your connection.' 
-    });
-    setDashboardData({
-      manpower: [],
-      training: [],
-      lti: [],
-      manhours: [],
-      observations: [],
-      accidents: [],
-      severity: [],
-      injuries: [],
-      overdue: [],
-      ltifr: [],
-      incidents: [],
-      incidentStats: {
-        total: 0,
-        byStatus: {},
-        bySeverity: {},
-        byDepartment: {},
-        byType: {},
-        trend: []
-      }
-    });
-    setCalculatedMetrics({});
-  } finally {
-    setLoading(false);
-  }
-};
-
-  const loadDepartments = async () => {
-    try {
-      const data = await analyticsService.fetchDepartments();
-      setDepartments(data?.data || data || []);
-    } catch (error) {
-      console.error('Failed to load departments:', error);
-      setDepartments([]);
-    }
-  };
-
-  const loadProjects = async () => {
-    try {
-      const data = await analyticsService.fetchProjects();
-      const projectList = data?.data || data || [];
-      setProjects(projectList);
-      setHasProjects(projectList.length > 0);
-      
-      // If there are projects and none selected, select the first one
-      if (projectList.length > 0 && selectedProject === 'all') {
-        setSelectedProject(projectList[0].id);
-      }
-    } catch (error) {
-      console.error('Failed to load projects:', error);
-      setProjects([]);
-      setHasProjects(false);
-    }
-  };
-
-  const loadSavedDashboards = async () => {
-    try {
-      const data = await analyticsService.getSavedDashboards();
-      setSavedDashboards(data?.data || data || []);
-    } catch (error) {
-      console.error('Failed to load saved dashboards:', error);
-      setSavedDashboards([]);
-    }
-  };
-
-  // ==================== PROJECT MANAGEMENT ====================
-  const handleCreateProject = async (values) => {
-    try {
-      const response = await analyticsService.createProject({
-        name: values.name,
-        description: values.description,
-        status: values.status || 'active',
-        priority: values.priority || 'medium',
-        start_date: values.start_date?.format('YYYY-MM-DD'),
-        end_date: values.end_date?.format('YYYY-MM-DD'),
-        budget: values.budget,
-        department: values.department
-      });
-      
-      if (response && response.success) {
-        message.success('🎉 Project created successfully!');
-        projectForm.resetFields();
-        setProjectModalVisible(false);
-        await loadProjects();
-        // Auto-select the new project
-        if (response.data && response.data.id) {
-          setSelectedProject(response.data.id);
-          await loadDashboardData();
-        }
-      } else {
-        message.error('Failed to create project: ' + (response?.error || 'Unknown error'));
-      }
-    } catch (error) {
-      console.error('Failed to create project:', error);
-      message.error('Failed to create project: ' + (error.message || 'Unknown error'));
-    }
-  };
-
-  // ==================== WIDGET CONFIGURATION ====================
-  const getDefaultConfig = (type) => {
-    const baseConfig = {
-      chartType: 'bar',
-      showLegend: true,
-      showGrid: true,
-      colors: CHART_COLOR_LIST,
-      refreshInterval: 0,
-    };
-    
-    const typeSpecific = {
-      lti: { yAxisDomain: [0, 0.5], targetLine: 0.2 },
-      accidents: { yAxisDomain: [0, 0.04], targetLine: 0.02 },
-      severity: { yAxisDomain: [0, 6], targetLine: 3 },
-      ltifr: { showMovingAverage: true, movingAveragePeriod: 3 },
-      incident_summary: { showStatusColors: true },
-      incident_trend: { showMovingAverage: true },
-      incident_by_department: { showPercentages: true }
-    };
-    
-    return { ...baseConfig, ...typeSpecific[type] };
-  };
-
-  const getDefaultSize = (type) => {
-    const sizes = {
-      kpi: { w: 12, h: 2 },
-      manpower: { w: 6, h: 3 },
-      training: { w: 6, h: 3 },
-      lti: { w: 6, h: 3 },
-      manhours: { w: 6, h: 3 },
-      observations: { w: 6, h: 3 },
-      accidents: { w: 6, h: 3 },
-      severity: { w: 6, h: 3 },
-      injuries: { w: 8, h: 4 },
-      overdue: { w: 8, h: 4 },
-      ltifr: { w: 8, h: 4 },
-      incident_summary: { w: 6, h: 3 },
-      incident_trend: { w: 8, h: 4 },
-      incident_by_department: { w: 6, h: 3 }
-    };
-    return sizes[type] || { w: 6, h: 3 };
-  };
-
-  const getWidgetTitle = (type) => {
-    const titles = {
-      manpower: 'Manpower Distribution',
-      training: 'Training Statistics',
-      lti: 'Lost Time Injury Trend',
-      manhours: 'Man-Hours Analysis',
-      observations: 'Safety Observations',
-      accidents: 'Accident Rate',
-      severity: 'Injury Severity',
-      injuries: 'Injuries by Body Part',
-      overdue: 'Overdue Reports',
-      ltifr: 'LTIFR Trend',
-      kpi: 'Key Performance Indicators',
-      incident_summary: 'Incident Summary',
-      incident_trend: 'Incident Trend',
-      incident_by_department: 'Incidents by Department'
-    };
-    return titles[type] || type;
-  };
-
-  const getNextPosition = () => {
-    if (widgets.length === 0) return { x: 0, y: 0 };
-    let maxY = 0;
-    widgets.forEach(w => {
-      const bottomY = w.position.y + w.size.h;
-      if (bottomY > maxY) maxY = bottomY;
-    });
-    return { x: 0, y: maxY };
-  };
-
-  // ==================== WIDGET MANAGEMENT ====================
-  const addWidget = (widgetType) => {
-    const newWidget = {
-      id: uuidv4(),
-      type: widgetType,
-      title: getWidgetTitle(widgetType),
-      position: getNextPosition(),
-      size: getDefaultSize(widgetType),
-      config: getDefaultConfig(widgetType),
-      visible: true
-    };
-    const updatedWidgets = [...widgets, newWidget];
-    setWidgets(updatedWidgets);
-    saveConfigToLocalStorage(updatedWidgets);
-    message.success(`${getWidgetTitle(widgetType)} added to dashboard`);
-  };
-
-  const updateWidget = (id, updates) => {
-    const updatedWidgets = widgets.map(w => w.id === id ? { ...w, ...updates } : w);
-    setWidgets(updatedWidgets);
-    saveConfigToLocalStorage(updatedWidgets);
-  };
-
-  const removeWidget = (id) => {
-    const updatedWidgets = widgets.filter(w => w.id !== id);
-    setWidgets(updatedWidgets);
-    saveConfigToLocalStorage(updatedWidgets);
-    message.success('Widget removed');
-  };
-
-  const duplicateWidget = (widget) => {
-    const newWidget = { ...widget, id: uuidv4(), title: `${widget.title} (Copy)`, position: getNextPosition() };
-    const updatedWidgets = [...widgets, newWidget];
-    setWidgets(updatedWidgets);
-    saveConfigToLocalStorage(updatedWidgets);
-    message.success('Widget duplicated');
-  };
-
-  const openWidgetConfig = (widget) => {
-    setConfigModalData(widget);
-    setConfigModalVisible(true);
-  };
-
-  const saveWidgetConfig = (widgetId, config) => {
-    updateWidget(widgetId, { config });
-    message.success('Widget configuration saved');
-    setConfigModalVisible(false);
-  };
-
-  const saveConfigToLocalStorage = (updatedWidgets) => {
-    localStorage.setItem('powerbi_dashboard_config', JSON.stringify({ widgets: updatedWidgets, lastSaved: new Date().toISOString() }));
-  };
-
-  const saveDashboard = async (name) => {
-    try {
-      const dashboard = {
-        name, widgets,
-        dateRange: { start: format(dateRange[0], 'yyyy-MM-dd'), end: format(dateRange[1], 'yyyy-MM-dd') },
-        selectedDepartment, selectedProject
-      };
-      await analyticsService.saveDashboard(dashboard);
-      await loadSavedDashboards();
-      message.success('Dashboard saved successfully');
-    } catch (error) {
-      message.error('Failed to save dashboard');
-    }
-  };
-
-  const loadDashboard = (dashboardId) => {
-    const dashboard = savedDashboards.find(d => d.id === dashboardId);
-    if (dashboard) {
-      setWidgets(dashboard.widgets || []);
-      if (dashboard.dateRange) {
-        setDateRange([new Date(dashboard.dateRange.start), new Date(dashboard.dateRange.end)]);
-      }
-      setSelectedDepartment(dashboard.selectedDepartment || 'all');
-      setSelectedProject(dashboard.selectedProject || 'all');
-      saveConfigToLocalStorage(dashboard.widgets || []);
-      message.success('Dashboard loaded');
-    }
-  };
-
-  const refreshAllData = () => {
-    loadDashboardData();
-    notification.info({ message: 'Data Refreshed', description: 'Dashboard data has been updated' });
-  };
-
-  // ==================== EXPORT FUNCTIONS ====================
-  const captureDashboard = async () => {
-    if (!dashboardContentRef.current) {
-      message.error('Dashboard not found');
-      return null;
-    }
-
-    try {
-      const element = dashboardContentRef.current;
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const canvas = await html2canvas(element, {
-        scale: exportQuality || 2,
-        useCORS: true,
-        backgroundColor: darkMode ? '#141414' : '#ffffff',
-        logging: false,
-        width: element.scrollWidth,
-        height: element.scrollHeight,
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight,
-        onclone: (document) => {
-          const charts = document.querySelectorAll('.recharts-wrapper');
-          charts.forEach(chart => {
-            chart.style.width = '100%';
-            chart.style.height = '100%';
-          });
-        }
-      });
-      
-      return canvas;
-    } catch (error) {
-      console.error('Dashboard capture failed:', error);
-      throw error;
-    }
-  };
-
-  const exportPNG = async () => {
-    try {
-      const canvas = await captureDashboard();
-      if (!canvas) throw new Error('Failed to capture dashboard');
-      
-      const timestamp = format(new Date(), 'yyyyMMdd_HHmmss');
-      const link = document.createElement('a');
-      link.download = `dashboard_${timestamp}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-      
-      message.success('✅ Dashboard exported as PNG');
-      return true;
-    } catch (error) {
-      console.error('PNG export error:', error);
-      message.error('PNG export failed: ' + (error.message || 'Unknown error'));
-      return false;
-    }
-  };
-
-  const exportJPG = async () => {
-    try {
-      const canvas = await captureDashboard();
-      if (!canvas) throw new Error('Failed to capture dashboard');
-      
-      const timestamp = format(new Date(), 'yyyyMMdd_HHmmss');
-      const link = document.createElement('a');
-      link.download = `dashboard_${timestamp}.jpg`;
-      link.href = canvas.toDataURL('image/jpeg', 0.95);
-      link.click();
-      
-      message.success('✅ Dashboard exported as JPG');
-      return true;
-    } catch (error) {
-      console.error('JPG export error:', error);
-      message.error('JPG export failed: ' + (error.message || 'Unknown error'));
-      return false;
-    }
-  };
-
-  const exportPDF = async () => {
-    try {
-      setExportLoading(true);
-      const hide = message.loading('Generating PDF...', 0);
-      
-      const element = dashboardContentRef.current;
-      if (!element) throw new Error('Dashboard not found');
-      
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const totalHeight = element.scrollHeight;
-      const pageHeight = 1500;
-      const totalPages = Math.ceil(totalHeight / pageHeight);
-      
-      const pdf = new jsPDF({
-        orientation: 'landscape',
-        unit: 'px',
-        format: 'a4',
-        compress: true
-      });
-      
-      let capturedHeight = 0;
-      
-      for (let page = 0; page < totalPages; page++) {
-        if (page > 0) {
-          pdf.addPage();
-        }
-        
-        const canvas = await html2canvas(element, {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: darkMode ? '#141414' : '#ffffff',
-          logging: false,
-          width: element.scrollWidth,
-          height: Math.min(pageHeight, totalHeight - capturedHeight),
-          windowWidth: element.scrollWidth,
-          windowHeight: Math.min(pageHeight, totalHeight - capturedHeight),
-          y: capturedHeight,
-          onclone: (document) => {
-            const charts = document.querySelectorAll('.recharts-wrapper');
-            charts.forEach(chart => {
-              chart.style.width = '100%';
-              chart.style.height = '100%';
-            });
-          }
-        });
-        
-        const imgData = canvas.toDataURL('image/png');
-        
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        const imgWidth = canvas.width;
-        const imgHeight = canvas.height;
-        const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-        const imgX = (pdfWidth - imgWidth * ratio) / 2;
-        const imgY = (pdfHeight - imgHeight * ratio) / 2;
-        
-        pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
-        
-        capturedHeight += pageHeight;
-      }
-      
-      const timestamp = format(new Date(), 'yyyyMMdd_HHmmss');
-      pdf.save(`dashboard_${timestamp}.pdf`);
-      
-      hide();
-      message.success(`✅ Dashboard exported as PDF (${totalPages} pages)`);
-      return true;
-    } catch (error) {
-      console.error('PDF export error:', error);
-      message.error('PDF export failed: ' + (error.message || 'Unknown error'));
-      return false;
-    } finally {
-      setExportLoading(false);
-    }
-  };
-
-  const handleExport = async () => {
-    setExportLoading(true);
-    
-    try {
-      let success = false;
-      
-      switch (exportFormat) {
-        case 'png':
-          success = await exportPNG();
-          break;
-        case 'jpg':
-          success = await exportJPG();
-          break;
-        case 'pdf':
-          success = await exportPDF();
-          break;
-        default:
-          message.error('Unsupported format');
-      }
-      
-      if (success) {
-        setExportModal(false);
-      }
-    } catch (error) {
-      console.error('Export error:', error);
-      message.error('Export failed: ' + (error.message || 'Unknown error'));
-    } finally {
-      setExportLoading(false);
-    }
-  };
-
-  // ==================== DATA ENTRY ====================
-  const handleDataEntrySubmit = async (values) => {
-    try {
-      setLoading(true);
-      const processedValues = { ...values };
-      if (processedValues.date?.format) processedValues.date = processedValues.date.format('YYYY-MM-DD');
-      if (processedValues.completed_date?.format) processedValues.completed_date = processedValues.completed_date.format('YYYY-MM-DD');
-      if (processedValues.start_date?.format) processedValues.start_date = processedValues.start_date.format('YYYY-MM-DD');
-      if (processedValues.end_date?.format) processedValues.end_date = processedValues.end_date.format('YYYY-MM-DD');
-      
-      let response;
-      switch (dataEntryType) {
-        case 'manpower': response = await analyticsService.createManpower(processedValues); break;
-        case 'training': response = await analyticsService.createTraining(processedValues); break;
-        case 'lti': response = await analyticsService.createLTI(processedValues); break;
-        case 'manhours': response = await analyticsService.createManHours(processedValues); break;
-        case 'observations': response = await analyticsService.createObservation(processedValues); break;
-        case 'accidents': response = await analyticsService.createAccident(processedValues); break;
-        case 'severity': response = await analyticsService.createSeverity(processedValues); break;
-        case 'injuries': response = await analyticsService.createInjury(processedValues); break;
-        case 'overdue': response = await analyticsService.createOverdueReport(processedValues); break;
-        default: response = { success: false };
-      }
-      if (response && response.success) {
-        message.success(`${dataEntryType} data added successfully`);
-        setDataEntryModal(false);
-        dataEntryForm.resetFields();
-        await loadDashboardData();
-      } else {
-        message.error('Failed to add data');
-      }
-    } catch (error) {
-      console.error('Data entry error:', error);
-      message.error('Failed to add data: ' + (error.message || 'Unknown error'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ==================== WIDGET COMPONENTS ====================
-  const WidgetMenu = ({ onEdit, onDelete, onDuplicate }) => (
-    <Dropdown menu={{ items: [
-      { key: 'edit', icon: <EditOutlined />, label: 'Configure', onClick: onEdit },
-      { key: 'duplicate', icon: <CopyOutlined />, label: 'Duplicate', onClick: onDuplicate },
-      { key: 'delete', icon: <DeleteOutlined />, label: 'Remove', danger: true, onClick: onDelete }
-    ] }} trigger={['click']}>
-      <Button type="text" size="small" icon={<SettingOutlined />} />
-    </Dropdown>
-  );
-
-  const KPIWidget = ({ metrics, onEdit, onDelete }) => {
-    const displayMetrics = {
-      totalManpower: metrics?.total_manpower || metrics?.totalManpower || 0,
-      totalManHours: metrics?.total_man_hours || metrics?.totalManHours || 0,
-      ltifr: metrics?.ltifr || 0,
-      accidentRate: metrics?.accident_rate || metrics?.accidentRate || 0,
-      trainingRate: metrics?.training_rate || metrics?.trainingRate || 0,
-      overdueRate: metrics?.overdue_rate || metrics?.overdueRate || 0,
-      positiveObs: metrics?.positive_obs || metrics?.positiveObs || 0,
-      negativeObs: metrics?.negative_obs || metrics?.negativeObs || 0,
-      totalInjuries: metrics?.total_injuries || metrics?.totalInjuries || 0,
-      avgSeverity: metrics?.avg_severity || metrics?.avgSeverity || 0
-    };
-    return (
-      <Card className="widget-card kpi-widget" size="small" extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <Row gutter={[16, 16]}>
-          <Col xs={12} sm={8} md={8} lg={8}><Statistic title="Total Manpower" value={displayMetrics.totalManpower} prefix={<TeamOutlined />} valueStyle={{ color: CHART_COLORS.primary, fontSize: 24 }} formatter={v => v.toLocaleString()} /><div style={{ fontSize: 12, color: '#8c8c8c' }}>Active employees</div></Col>
-          <Col xs={12} sm={8} md={8} lg={8}><Statistic title="Man-Hours" value={displayMetrics.totalManHours} prefix={<FieldTimeOutlined />} valueStyle={{ color: CHART_COLORS.success, fontSize: 24 }} formatter={v => v.toLocaleString()} /><div style={{ fontSize: 12, color: '#8c8c8c' }}>Total hours worked</div></Col>
-          <Col xs={12} sm={8} md={8} lg={8}><Statistic title="LTIFR" value={displayMetrics.ltifr} suffix="/1M hrs" precision={2} prefix={<WarningOutlined />} valueStyle={{ color: displayMetrics.ltifr > 0.2 ? CHART_COLORS.danger : CHART_COLORS.success, fontSize: 24 }} /><div style={{ fontSize: 12, color: '#8c8c8c' }}>Lost Time Injury Rate</div></Col>
-          <Col xs={12} sm={8} md={8} lg={8}><Statistic title="Accident Rate" value={displayMetrics.accidentRate} suffix="/10K hrs" precision={3} prefix={<AlertOutlined />} valueStyle={{ color: CHART_COLORS.warning, fontSize: 24 }} /><div style={{ fontSize: 12, color: '#8c8c8c' }}>Per 10,000 hours</div></Col>
-          <Col xs={12} sm={8} md={8} lg={8}><Statistic title="Training Rate" value={displayMetrics.trainingRate} suffix="%" precision={1} prefix={<ExperimentOutlined />} valueStyle={{ color: CHART_COLORS.purple, fontSize: 24 }} /><div style={{ fontSize: 12, color: '#8c8c8c' }}>Completion rate</div></Col>
-          <Col xs={12} sm={8} md={8} lg={8}><Statistic title="Overdue Rate" value={displayMetrics.overdueRate} suffix="%" precision={1} prefix={<ClockCircleOutlined />} valueStyle={{ color: displayMetrics.overdueRate > 20 ? CHART_COLORS.danger : CHART_COLORS.success, fontSize: 24 }} /><div style={{ fontSize: 12, color: '#8c8c8c' }}>Reports overdue</div></Col>
-          <Col xs={12} sm={8} md={8} lg={8}><Statistic title="Observations" value={displayMetrics.positiveObs + displayMetrics.negativeObs} prefix={<EyeOutlined />} valueStyle={{ color: CHART_COLORS.info, fontSize: 24 }} formatter={v => v.toLocaleString()} /><div style={{ fontSize: 12, color: '#8c8c8c' }}><span style={{ color: CHART_COLORS.success }}>{displayMetrics.positiveObs} Positive</span> / <span style={{ color: CHART_COLORS.danger }}>{displayMetrics.negativeObs} Negative</span></div></Col>
-          <Col xs={12} sm={8} md={8} lg={8}><Statistic title="Injuries" value={displayMetrics.totalInjuries} prefix={<SafetyOutlined />} valueStyle={{ color: CHART_COLORS.orange, fontSize: 24 }} /><div style={{ fontSize: 12, color: '#8c8c8c' }}>Total reported injuries</div></Col>
-          <Col xs={12} sm={8} md={8} lg={8}><Statistic title="Avg Severity" value={displayMetrics.avgSeverity} precision={1} prefix={<RiseOutlined />} valueStyle={{ color: CHART_COLORS.magenta, fontSize: 24 }} /><div style={{ fontSize: 12, color: '#8c8c8c' }}>Average severity score</div></Col>
-        </Row>
-      </Card>
-    );
-  };
-
-  const ManpowerWidget = ({ data, onEdit, onDelete, setDataEntryModal, config }) => {
-    const colors = config?.colors || CHART_COLOR_LIST;
-    const showLegend = config?.showLegend !== false;
-    const chartData = data && data.length > 0 ? data : [{ section: 'No Data', count: 0 }];
-    return (
-      <Card className="widget-card" size="small" title={<Space><TeamOutlined style={{ color: CHART_COLORS.primary }} /><Text strong>Manpower Distribution</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <ResponsiveContainer width="100%" height={200}>
-          <PieChart><Pie data={chartData} dataKey="count" nameKey="section" cx="50%" cy="50%" outerRadius={70} label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}>{chartData?.map((e, i) => <Cell key={`cell-${i}`} fill={colors[i % colors.length]} />)}</Pie><RechartsTooltip />{showLegend && <Legend />}</PieChart>
-        </ResponsiveContainer>
-        <div className="widget-footer"><Space><Text type="secondary">Total: {data?.reduce((s, i) => s + (i.count || 0), 0) || 0}</Text><Button type="link" size="small" onClick={() => setDataEntryModal('manpower')}>Add Data</Button></Space></div>
-      </Card>
-    );
-  };
-
-  const TrainingWidget = ({ data, onEdit, onDelete, setDataEntryModal, config }) => {
-    const colors = config?.colors || CHART_COLOR_LIST;
-    const chartType = config?.chartType || 'bar';
-    const showLegend = config?.showLegend !== false;
-    const chartData = data && data.length > 0 ? data : [{ type: 'No Data', count: 0 }];
-    return (
-      <Card className="widget-card" size="small" title={<Space><ExperimentOutlined style={{ color: CHART_COLORS.purple }} /><Text strong>Training Statistics</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <ResponsiveContainer width="100%" height={200}>
-          {chartType === 'bar' ? (
-            <BarChart data={chartData} layout="vertical"><CartesianGrid strokeDasharray="3 3" /><XAxis type="number" /><YAxis type="category" dataKey="type" width={80} /><RechartsTooltip />{showLegend && <Legend />}<Bar dataKey="count" fill={colors[0]} /></BarChart>
-          ) : (
-            <LineChart data={chartData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="type" /><YAxis /><RechartsTooltip />{showLegend && <Legend />}<Line type="monotone" dataKey="count" stroke={colors[0]} strokeWidth={2} /></LineChart>
-          )}
-        </ResponsiveContainer>
-        <div className="widget-footer"><Space><Text type="secondary">Total Trained: {data?.reduce((s, i) => s + (i.count || 0), 0) || 0}</Text><Button type="link" size="small" onClick={() => setDataEntryModal('training')}>Add Data</Button></Space></div>
-      </Card>
-    );
-  };
-
-  const LTIWidget = ({ data, onEdit, onDelete, setDataEntryModal, config }) => {
-    const yAxisDomain = config?.yAxis?.min && config?.yAxis?.max ? [config.yAxis.min, config.yAxis.max] : [0, 0.5];
-    const targetLine = config?.targetLine || 0.2;
-    const colors = config?.colors || CHART_COLOR_LIST;
-    const chartData = data && data.length > 0 ? data : [{ year: 'No Data', value: 0 }];
-    return (
-      <Card className="widget-card" size="small" title={<Space><WarningOutlined style={{ color: CHART_COLORS.danger }} /><Text strong>Lost Time Injury Trend</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <ResponsiveContainer width="100%" height={200}>
-          <LineChart data={chartData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="year" /><YAxis domain={yAxisDomain} /><RechartsTooltip /><Line type="monotone" dataKey="value" stroke={colors[0]} strokeWidth={2} dot={{ r: 4 }} /><ReferenceLine y={targetLine} stroke={CHART_COLORS.warning} strokeDasharray="3 3" /></LineChart>
-        </ResponsiveContainer>
-        <div className="widget-footer"><Space><Text type="secondary">Average: {(data?.reduce((s, i) => s + (i.value || 0), 0) / (data?.length || 1)).toFixed(2) || 0}</Text><Button type="link" size="small" onClick={() => setDataEntryModal('lti')}>Add Data</Button></Space></div>
-      </Card>
-    );
-  };
-
-  const ManHoursWidget = ({ data, onEdit, onDelete, setDataEntryModal, config }) => {
-    const colors = config?.colors || CHART_COLOR_LIST;
-    const chartData = data && data.length > 0 ? data : [{ section: 'No Data', hours: 0 }];
-    return (
-      <Card className="widget-card" size="small" title={<Space><FieldTimeOutlined style={{ color: CHART_COLORS.cyan }} /><Text strong>Man-Hours Analysis</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={chartData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="section" /><YAxis /><RechartsTooltip /><Bar dataKey="hours" fill={colors[0]}>{chartData?.map((e, i) => <Cell key={`cell-${i}`} fill={colors[i % colors.length]} />)}</Bar></BarChart>
-        </ResponsiveContainer>
-        <div className="widget-footer"><Space><Text type="secondary">Total: {data?.reduce((s, i) => s + (i.hours || 0), 0).toLocaleString() || 0}</Text><Button type="link" size="small" onClick={() => setDataEntryModal('manhours')}>Add Data</Button></Space></div>
-      </Card>
-    );
-  };
-
-  const ObservationsWidget = ({ data, onEdit, onDelete, setDataEntryModal, config }) => {
-    const colors = config?.colors || CHART_COLOR_LIST;
-    const chartType = config?.chartType || 'bar';
-    const chartData = data && data.length > 0 ? data : [{ type: 'No Data', count: 0 }];
-    return (
-      <Card className="widget-card" size="small" title={<Space><EyeOutlined style={{ color: CHART_COLORS.success }} /><Text strong>Safety Observations</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <ResponsiveContainer width="100%" height={200}>
-          {chartType === 'pie' ? (
-            <PieChart><Pie data={chartData} dataKey="count" nameKey="type" cx="50%" cy="50%" outerRadius={70} label>{chartData?.map((e, i) => <Cell key={`cell-${i}`} fill={colors[i % colors.length]} />)}</Pie><RechartsTooltip /></PieChart>
-          ) : (
-            <BarChart data={chartData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="type" /><YAxis /><RechartsTooltip /><Bar dataKey="count"><Cell fill={colors[0]} /><Cell fill={colors[1] || CHART_COLORS.danger} /></Bar></BarChart>
-          )}
-        </ResponsiveContainer>
-        <div className="widget-footer"><Space><Text type="secondary">Positive: {data?.find(d => d.type === 'Positive')?.count || 0}</Text><Text type="secondary">Negative: {data?.find(d => d.type === 'Negative')?.count || 0}</Text><Button type="link" size="small" onClick={() => setDataEntryModal('observations')}>Add Data</Button></Space></div>
-      </Card>
-    );
-  };
-
-  const AccidentWidget = ({ data, onEdit, onDelete, setDataEntryModal, config }) => {
-    const colors = config?.colors || CHART_COLOR_LIST;
-    const chartData = data && data.length > 0 ? data : [{ year: 'No Data', rate: 0, per_10k_hours: 0 }];
-    return (
-      <Card className="widget-card" size="small" title={<Space><AlertOutlined style={{ color: CHART_COLORS.warning }} /><Text strong>Accident Rate</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <ResponsiveContainer width="100%" height={200}>
-          <ComposedChart data={chartData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="year" /><YAxis yAxisId="left" domain={[0, 0.04]} /><YAxis yAxisId="right" orientation="right" domain={[0, 3]} /><RechartsTooltip /><Line yAxisId="left" type="monotone" dataKey="rate" stroke={colors[0]} name="Rate" /><Bar yAxisId="right" dataKey="per_10k_hours" fill={colors[1] || CHART_COLORS.primary} name="Per 10K Hours" /></ComposedChart>
-        </ResponsiveContainer>
-        <div className="widget-footer"><Space><Text type="secondary">Latest Rate: {data?.[data?.length - 1]?.rate || 0}</Text><Button type="link" size="small" onClick={() => setDataEntryModal('accidents')}>Add Data</Button></Space></div>
-      </Card>
-    );
-  };
-
-  const SeverityWidget = ({ data, onEdit, onDelete, setDataEntryModal, config }) => {
-    const yAxisDomain = config?.yAxis?.min && config?.yAxis?.max ? [config.yAxis.min, config.yAxis.max] : [0, 6];
-    const targetLine = config?.targetLine || 3;
-    const colors = config?.colors || CHART_COLOR_LIST;
-    const chartData = data && data.length > 0 ? data : [{ year: 'No Data', value: 0 }];
-    return (
-      <Card className="widget-card" size="small" title={<Space><RiseOutlined style={{ color: CHART_COLORS.magenta }} /><Text strong>Injury Severity Trend</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <ResponsiveContainer width="100%" height={200}>
-          <AreaChart data={chartData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="year" /><YAxis domain={yAxisDomain} /><RechartsTooltip /><Area type="monotone" dataKey="value" stroke={colors[0]} fill={colors[0]} fillOpacity={0.3} /><ReferenceLine y={targetLine} stroke={CHART_COLORS.warning} strokeDasharray="3 3" /></AreaChart>
-        </ResponsiveContainer>
-        <div className="widget-footer"><Space><Text type="secondary">Average: {(data?.reduce((s, i) => s + (i.value || 0), 0) / (data?.length || 1)).toFixed(1) || 0}</Text><Button type="link" size="small" onClick={() => setDataEntryModal('severity')}>Add Data</Button></Space></div>
-      </Card>
-    );
-  };
-
-  const InjuriesWidget = ({ data, onEdit, onDelete, setDataEntryModal, config }) => {
-    const colors = config?.colors || CHART_COLOR_LIST;
-    const chartData = data && data.length > 0 ? data : [{ body_part: 'No Data', count: 0 }];
-    return (
-      <Card className="widget-card" size="small" title={<Space><SafetyOutlined style={{ color: CHART_COLORS.orange }} /><Text strong>Injuries by Body Part</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={chartData} layout="vertical"><CartesianGrid strokeDasharray="3 3" /><XAxis type="number" /><YAxis type="category" dataKey="body_part" width={100} /><RechartsTooltip /><Bar dataKey="count" fill={colors[0]}>{chartData?.map((e, i) => <Cell key={`cell-${i}`} fill={colors[i % colors.length]} />)}</Bar></BarChart>
-        </ResponsiveContainer>
-        <div className="widget-footer"><Space><Text type="secondary">Total: {data?.reduce((s, i) => s + (i.count || 0), 0) || 0}</Text><Button type="link" size="small" onClick={() => setDataEntryModal('injuries')}>Add Data</Button></Space></div>
-      </Card>
-    );
-  };
-
-  const OverdueWidget = ({ data, onEdit, onDelete, setDataEntryModal, config }) => {
-    const colors = config?.colors || CHART_COLOR_LIST;
-    const chartData = data && data.length > 0 ? data : [{ month: 'No Data', on_time: 0, late: 0 }];
-    return (
-      <Card className="widget-card" size="small" title={<Space><ClockCircleOutlined style={{ color: CHART_COLORS.danger }} /><Text strong>Overdue Reports</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={chartData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="month" angle={-45} textAnchor="end" height={60} /><YAxis /><RechartsTooltip /><Bar dataKey="on_time" stackId="a" fill={colors[0]} name="On Time" /><Bar dataKey="late" stackId="a" fill={colors[1] || CHART_COLORS.danger} name="Late" /></BarChart>
-        </ResponsiveContainer>
-        <div className="widget-footer"><Space><Text type="secondary">Overdue Rate: {((data?.reduce((s, i) => s + (i.late || 0), 0) / (data?.reduce((s, i) => s + (i.on_time || 0) + (i.late || 0), 0) || 1)) * 100).toFixed(1) || 0}%</Text><Button type="link" size="small" onClick={() => setDataEntryModal('overdue')}>Add Data</Button></Space></div>
-      </Card>
-    );
-  };
-
-  const LTIFRWidget = ({ data, metrics, onEdit, onDelete, config }) => {
-    const colors = config?.colors || CHART_COLOR_LIST;
-    const ltifrData = data && data.length > 0 ? data : [{ year: 'No Data', value: metrics?.ltifr || 0 }];
-    return (
-      <Card className="widget-card" size="small" title={<Space><LineChartOutlined style={{ color: CHART_COLORS.primary }} /><Text strong>LTIFR Trend</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <ResponsiveContainer width="100%" height={200}>
-          <LineChart data={ltifrData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="year" /><YAxis domain={[0, 0.5]} /><RechartsTooltip /><Line type="monotone" dataKey="value" stroke={colors[0]} strokeWidth={2} name="LTIFR" /><ReferenceLine y={metrics?.ltifr || 0} stroke={CHART_COLORS.success} strokeDasharray="3 3" label="Current" /></LineChart>
-        </ResponsiveContainer>
-        <div className="widget-footer"><Space><Text type="secondary">Current LTIFR: {metrics?.ltifr || 0}</Text><Tag color={metrics?.ltifr > 0.2 ? 'red' : 'green'}>{metrics?.ltifr > 0.2 ? 'Above Target' : 'Within Target'}</Tag></Space></div>
-      </Card>
-    );
-  };
-
-  // Incident Summary Widget
-  const IncidentSummaryWidget = ({ stats, onEdit, onDelete }) => {
-    const statusColors = {
-      reported: '#faad14',
-      investigating: '#1890ff',
-      resolved: '#52c41a',
-      closed: '#52c41a'
-    };
-    
-    return (
-      <Card className="widget-card" size="small" title={<Space><MedicineBoxOutlined style={{ color: CHART_COLORS.danger }} /><Text strong>Incident Summary</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <Row gutter={[16, 16]}>
-          <Col span={12}><Statistic title="Total Incidents" value={stats?.total || 0} valueStyle={{ color: CHART_COLORS.primary }} /></Col>
-          <Col span={12}>
-            <div><Text type="secondary">Status Breakdown</Text></div>
-            {Object.entries(stats?.byStatus || {}).map(([status, count]) => (
-              <div key={status} style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-                <Tag color={statusColors[status] || '#bfbfbf'}>{status}</Tag>
-                <Text strong>{count}</Text>
-              </div>
-            ))}
-          </Col>
-        </Row>
-        <div className="widget-footer"><Text type="secondary">Latest incident data from current period</Text></div>
-      </Card>
-    );
-  };
-
-  // Incident Trend Widget
-  const IncidentTrendWidget = ({ stats, onEdit, onDelete, config }) => {
-    const trendData = stats?.trend || [];
-    const showMovingAverage = config?.showMovingAverage !== false;
-    const colors = config?.colors || CHART_COLOR_LIST;
-    const chartData = trendData.length > 0 ? trendData : [{ month: 'No Data', count: 0 }];
-    
-    return (
-      <Card className="widget-card" size="small" title={<Space><LineChartOutlined style={{ color: CHART_COLORS.primary }} /><Text strong>Incident Trend</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <ResponsiveContainer width="100%" height={250}>
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis />
-            <RechartsTooltip />
-            <Legend />
-            <Line type="monotone" dataKey="count" stroke={colors[0]} name="Total Incidents" strokeWidth={2} />
-            <Line type="monotone" dataKey="investigating" stroke={CHART_COLORS.primary} name="Investigating" strokeDasharray="5 5" />
-            <Line type="monotone" dataKey="resolved" stroke={CHART_COLORS.success} name="Resolved" strokeDasharray="5 5" />
-            {showMovingAverage && (
-              <Line type="monotone" dataKey="count" stroke={CHART_COLORS.warning} name="3-Month Avg" strokeDasharray="3 3" />
-            )}
-          </LineChart>
-        </ResponsiveContainer>
-        <div className="widget-footer"><Text type="secondary">Monthly incident trend analysis</Text></div>
-      </Card>
-    );
-  };
-
-  // Incident By Department Widget
-  const IncidentByDepartmentWidget = ({ stats, onEdit, onDelete, config }) => {
-    const deptData = Object.entries(stats?.byDepartment || {}).map(([name, value]) => ({ name, value }));
-    const colors = config?.colors || CHART_COLOR_LIST;
-    const chartData = deptData.length > 0 ? deptData : [{ name: 'No Data', value: 0 }];
-    const showPercentages = config?.showPercentages !== false;
-    const total = chartData.reduce((sum, d) => sum + d.value, 0);
-    
-    return (
-      <Card className="widget-card" size="small" title={<Space><TeamOutlined style={{ color: CHART_COLORS.purple }} /><Text strong>Incidents by Department</Text></Space>} extra={<WidgetMenu onEdit={onEdit} onDelete={onDelete} />}>
-        <ResponsiveContainer width="100%" height={200}>
-          <PieChart>
-            <Pie data={chartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, value }) => showPercentages ? `${name}: ${((value / total) * 100).toFixed(0)}%` : name}>
-              {chartData?.map((e, i) => <Cell key={`cell-${i}`} fill={colors[i % colors.length]} />)}
-            </Pie>
-            <RechartsTooltip />
-            <Legend />
-          </PieChart>
-        </ResponsiveContainer>
-        <div className="widget-footer"><Text type="secondary">Total incidents by department</Text></div>
-      </Card>
-    );
-  };
-
-  // ==================== RENDER WIDGET ====================
-  const renderWidget = (widget) => {
-    const commonProps = {
-      key: widget.id,
-      data: dashboardData[widget.type] || [],
-      stats: dashboardData.incidentStats,
-      metrics: calculatedMetrics,
-      config: widget.config,
-      onEdit: () => openWidgetConfig(widget),
-      onDelete: () => removeWidget(widget.id),
-      onDuplicate: () => duplicateWidget(widget),
-      setDataEntryModal: (type) => { setDataEntryType(type); setDataEntryModal(true); }
-    };
-
-    switch (widget.type) {
-      case 'kpi': return <KPIWidget {...commonProps} />;
-      case 'manpower': return <ManpowerWidget {...commonProps} />;
-      case 'training': return <TrainingWidget {...commonProps} />;
-      case 'lti': return <LTIWidget {...commonProps} />;
-      case 'manhours': return <ManHoursWidget {...commonProps} />;
-      case 'observations': return <ObservationsWidget {...commonProps} />;
-      case 'accidents': return <AccidentWidget {...commonProps} />;
-      case 'severity': return <SeverityWidget {...commonProps} />;
-      case 'injuries': return <InjuriesWidget {...commonProps} />;
-      case 'overdue': return <OverdueWidget {...commonProps} />;
-      case 'ltifr': return <LTIFRWidget {...commonProps} />;
-      case 'incident_summary': return <IncidentSummaryWidget {...commonProps} />;
-      case 'incident_trend': return <IncidentTrendWidget {...commonProps} />;
-      case 'incident_by_department': return <IncidentByDepartmentWidget {...commonProps} />;
-      default: return null;
-    }
-  };
-
-  // ==================== EFFECTS ====================
-  useEffect(() => {
-    const init = async () => {
-      await loadProjects();
-      await loadDepartments();
-      await loadSavedDashboards();
-      
-      // If no projects, show the "Create Project" flow
-      // If projects exist, load dashboard data
-      if (hasProjects) {
-        await loadDashboardData();
-      } else {
-        setLoading(false);
-      }
-    };
-    init();
-    
-    return () => { if (refreshInterval) clearInterval(refreshInterval); };
-  }, []);
-
-  useEffect(() => {
-    if (autoRefresh && hasProjects) {
-      const interval = setInterval(() => {
-        loadDashboardData();
-        message.info('Dashboard auto-refreshed');
-      }, 300000);
-      setRefreshInterval(interval);
-    } else if (refreshInterval) {
-      clearInterval(refreshInterval);
-    }
-  }, [autoRefresh, hasProjects]);
-
-  useEffect(() => {
-    if (hasProjects && selectedProject !== 'all') {
-      loadDashboardData();
-    }
-  }, [selectedProject, selectedDepartment, dateRange]);
-
-  // ==================== RENDER ====================
-  
-  // ✅ Show "Create Project" screen if no projects
-  if (!hasProjects && !loading) {
-    return (
-      <div className="analytics-no-projects">
-        <Result
-          icon={<ProjectOutlined style={{ color: '#1890ff' }} />}
-          title="Welcome to Safety Analytics"
-          subTitle="You don't have any projects yet. Create your first project to start tracking safety metrics."
-          extra={[
-            <Button 
-              type="primary" 
-              size="large" 
-              icon={<PlusOutlined />}
-              onClick={() => setProjectModalVisible(true)}
-              style={{ background: '#1890ff' }}
-            >
-              Create Your First Project
-            </Button>
-          ]}
-        >
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 16 }}>
-            <Card style={{ width: 200, textAlign: 'center' }}>
-              <RocketOutlined style={{ fontSize: 32, color: '#1890ff' }} />
-              <p style={{ marginTop: 8 }}>Track Safety Metrics</p>
-              <Text type="secondary" style={{ fontSize: 12 }}>Monitor incidents, training, and compliance</Text>
-            </Card>
-            <Card style={{ width: 200, textAlign: 'center' }}>
-              <DashboardOutlined style={{ fontSize: 32, color: '#52c41a' }} />
-              <p style={{ marginTop: 8 }}>Visual Analytics</p>
-              <Text type="secondary" style={{ fontSize: 12 }}>View charts and trends in real-time</Text>
-            </Card>
-            <Card style={{ width: 200, textAlign: 'center' }}>
-              <SafetyOutlined style={{ fontSize: 32, color: '#faad14' }} />
-              <p style={{ marginTop: 8 }}>Improve Safety</p>
-              <Text type="secondary" style={{ fontSize: 12 }}>Make data-driven safety decisions</Text>
-            </Card>
-          </div>
-        </Result>
-        
-        {/* Project Creation Modal */}
-        <Modal
-          title="Create Your First Project"
-          open={projectModalVisible}
-          onCancel={() => setProjectModalVisible(false)}
-          footer={null}
-          width={600}
-        >
-          <Form form={projectForm} layout="vertical" onFinish={handleCreateProject}>
-            <Form.Item 
-              name="name" 
-              label="Project Name" 
-              rules={[{ required: true, message: 'Please enter project name' }]}
-            >
-              <Input placeholder="e.g., Safety Improvement Project 2024" size="large" />
-            </Form.Item>
-            <Form.Item 
-              name="description" 
-              label="Description" 
-              rules={[{ required: true, message: 'Please enter project description' }]}
-            >
-              <TextArea rows={3} placeholder="Describe the project's safety goals..." />
-            </Form.Item>
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item name="department" label="Department">
-                  <Select placeholder="Select department">
-                    <Option value="All">All Departments</Option>
-                    {departments.map(dept => (
-                      <Option key={dept.id} value={dept.id}>{dept.name}</Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item name="status" label="Status" initialValue="active">
-                  <Select>
-                    <Option value="active">Active</Option>
-                    <Option value="planning">Planning</Option>
-                    <Option value="on_hold">On Hold</Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item name="start_date" label="Start Date">
-                  <DatePicker style={{ width: '100%' }} />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item name="end_date" label="End Date">
-                  <DatePicker style={{ width: '100%' }} />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Form.Item>
-              <Button type="primary" htmlType="submit" size="large" block icon={<RocketOutlined />}>
-                Launch Project
-              </Button>
-            </Form.Item>
-          </Form>
-        </Modal>
+const KpiGrid = memo(({ kpis = {}, onOpen }) => (
+  <div className="pbi-kpis">
+    {KPI_DEFS.map((d) => {
+      const raw = d.value ? d.value(kpis) : kpis[d.key];
+      const has = raw !== null && raw !== undefined;
+      const tile = (
+        <div className={`pbi-kpi ${d.link ? 'pbi-clickable' : ''}`} key={d.key} role={d.link ? 'button' : undefined} tabIndex={d.link ? 0 : undefined}
+             onClick={d.link ? () => onOpen(d.link) : undefined} onKeyDown={d.link ? (e) => { if (e.key === 'Enter') onOpen(d.link); } : undefined}>
+          <span className="pbi-kpi-label">{d.icon} {d.label}{d.help && <Tooltip title={d.help(kpis)}><InfoCircleOutlined className="pbi-kpi-info" /></Tooltip>}</span>
+          <span className="pbi-kpi-value" style={{ color: has ? d.color(Number(raw)) : undefined }}>
+            {has ? fmt(raw, d.digits || 0) : '—'}{has && d.suffix && <small>{d.suffix}</small>}
+          </span>
+          <span className="pbi-kpi-sub">{d.sub ? d.sub(kpis) : has ? '' : 'not enough data'}</span>
+        </div>
+      );
+      return tile;
+    })}
+  </div>
+));
+
+// ------------------------------------------------------------------ one dashboard card
+const WidgetCard = memo(({ widget, summary, index, count, editMode, dragOver, onAction, onOpen, onDragStart, onDragOverCard, onDrop }) => {
+  const def = WIDGETS[widget.type];
+  if (!def) return null;
+  const cols = sizeCols(widget.sizeKey);
+  let body;
+  let footer = null;
+  if (def.special === 'kpi') {
+    body = <KpiGrid kpis={summary?.kpis} onOpen={onOpen} />;
+  } else if (def.special === 'project') {
+    const p = summary?.project;
+    body = p ? (
+      <div className="pbi-mini-project">
+        <Space wrap><Text strong>{p.name}</Text><StatusTag status={p.status} /></Space>
+        <div className="pbi-mini-bar"><span style={{ width: `${Math.min(100, p.progress || 0)}%`, background: p.late ? '#f5222d' : widget.config?.colors?.[0] || '#1677ff' }} /></div>
+        <Text type="secondary">{p.progress}% complete · {p.days_remaining === null || p.days_remaining === undefined ? 'no end date' : p.days_remaining >= 0 ? `${p.days_remaining} days left` : `${-p.days_remaining} days late`}</Text>
+        <Text type="secondary">{(p.milestones || []).filter((m) => m.status === 'achieved').length}/{(p.milestones || []).length} milestones</Text>
+      </div>
+    ) : <div className="pbi-chart-empty" style={{ height: 120 }}>Select a project at the top to see its status</div>;
+  } else {
+    const rows = def.data ? def.data(summary || {}) : [];
+    body = <DynamicChart data={rows} xKey={def.xKey} yKey={def.yKey} yKeys={def.yKeys} config={widget.config} />;
+    const total = (rows || []).reduce((s, r) => s + (Number(r[def.yKey || def.yKeys?.[0]?.key]) || 0), 0);
+    footer = (
+      <div className="pbi-widget-foot">
+        <Text type="secondary">{rows?.length ? `${rows.length} ${rows.length === 1 ? 'point' : 'points'}${def.yKey ? ` · total ${fmt(total, 1)}` : ''}` : ''}</Text>
+        <Space size={0}>
+          {def.link && <Button type="link" size="small" icon={<ExportOutlined />} onClick={() => onOpen(def.link)}>Open module</Button>}
+          {def.record && <Button type="link" size="small" icon={<DatabaseOutlined />} onClick={() => onAction('records', widget)}>Records</Button>}
+          {(def.record || def.entry) && <Button type="link" size="small" icon={<PlusOutlined />} onClick={() => onAction('add', widget)}>Add</Button>}
+        </Space>
       </div>
     );
   }
 
-  // ✅ Show loading state
-  if (loading && !dashboardData.manpower?.length) {
-    return <div className="loading-container"><Spin size="large" tip="Loading Analytics Dashboard..." /><Progress percent={30} status="active" style={{ width: 300, marginTop: 20 }} /></div>;
-  }
+  const menu = {
+    items: [
+      { key: 'config', icon: <BgColorsOutlined />, label: 'Customise…' },
+      { key: 'size', icon: <ColumnWidthOutlined />, label: 'Width', children: SIZES.map((s) => ({ key: `size:${s.key}`, label: s.label, icon: widget.sizeKey === s.key ? <CheckOutlined /> : null })) },
+      { key: 'left', icon: <ArrowLeftOutlined />, label: 'Move earlier', disabled: index === 0 },
+      { key: 'right', icon: <ArrowRightOutlined />, label: 'Move later', disabled: index === count - 1 },
+      { key: 'dup', icon: <CopyOutlined />, label: 'Duplicate' },
+      { key: 'hide', icon: <EyeInvisibleOutlined />, label: 'Hide' },
+      { type: 'divider' },
+      { key: 'remove', icon: <DeleteOutlined />, label: 'Remove', danger: true },
+    ],
+    onClick: ({ key }) => onAction(key, widget),
+  };
 
-  // ✅ Show full dashboard with projects
   return (
-    <Layout className={`powerbi-dashboard ${darkMode ? 'dark-mode' : ''} ${fullscreen ? 'fullscreen' : ''}`}>
-      <Header className="dashboard-header">
-        <div className="header-left">
-          <Title level={3} style={{ margin: 0, fontSize: '16px' }}>
-            <DashboardOutlined /> Safety Compliance Dashboard
-          </Title>
-          <Badge 
-            status="processing" 
-            text={`Last Updated: ${format(lastUpdated, 'HH:mm:ss')}`} 
-            style={{ marginLeft: 8, fontSize: '12px' }}
-          />
-        </div>
-        <div className="header-right">
-          <Space size="small" wrap={false} style={{ flexWrap: 'nowrap' }}>
-            <RangePicker 
-              value={[moment(dateRange[0]), moment(dateRange[1])]} 
-              onChange={handleDateRangeChange} 
-              allowClear={false}
-              size="small"
-              style={{ minWidth: 180 }}
-            />
-            <Select 
-              value={selectedDepartment} 
-              onChange={setSelectedDepartment} 
-              style={{ width: 120 }} 
-              size="small"
-              placeholder="Dept"
-            >
-              <Option value="all">All Depts</Option>
-              {departments.map(dept => (
-                <Option key={dept.id} value={dept.id}>{dept.name}</Option>
-              ))}
-            </Select>
-            
-            {/* ✅ Project Selector - Shows when projects exist */}
-            <Select 
-              value={selectedProject} 
-              onChange={setSelectedProject} 
-              style={{ width: 150 }} 
-              size="small"
-              placeholder="Select Project"
-            >
-              <Option value="all">All Projects</Option>
-              {projects.map(proj => (
-                <Option key={proj.id} value={proj.id}>
-                  <ProjectOutlined /> {proj.name}
-                </Option>
-              ))}
-            </Select>
-            
-            <Button 
-              type="primary" 
-              icon={<PlusOutlined />} 
-              onClick={() => setProjectModalVisible(true)}
-              style={{ background: '#52c41a', borderColor: '#52c41a' }}
-              size="small"
-            >
-              New Project
-            </Button>
-            
-            <Tooltip title="Refresh Data">
-              <Button 
-                icon={<ReloadOutlined />} 
-                onClick={refreshAllData} 
-                loading={loading} 
-                size="small"
-              />
-            </Tooltip>
-            <Tooltip title="Add Widget">
-              <Button 
-                type="primary" 
-                icon={<PlusOutlined />} 
-                onClick={() => setWidgetLibraryVisible(true)} 
-                size="small"
-              />
-            </Tooltip>
-            <Tooltip title="Save Dashboard">
-              <Button 
-                icon={<SaveOutlined />} 
-                onClick={() => saveDashboard('New Dashboard')} 
-                size="small"
-              />
-            </Tooltip>
-            
-            <Dropdown
-              menu={{
-                items: [
-                  { 
-                    key: 'png', 
-                    label: 'PNG (Screenshot)', 
-                    icon: <FileImageOutlined style={{ color: '#1890ff' }} />,
-                    onClick: () => { setExportFormat('png'); setExportModal(true); }
-                  },
-                  { 
-                    key: 'jpg', 
-                    label: 'JPG (Screenshot)', 
-                    icon: <FileImageOutlined style={{ color: '#fa8c16' }} />,
-                    onClick: () => { setExportFormat('jpg'); setExportModal(true); }
-                  },
-                  { 
-                    key: 'pdf', 
-                    label: 'PDF (Screenshot)', 
-                    icon: <FilePdfOutlined style={{ color: '#f5222d' }} />,
-                    onClick: () => { setExportFormat('pdf'); setExportModal(true); }
-                  },
-                ],
-              }}
-            >
-              <Tooltip title="Export Dashboard">
-                <Button 
-                  icon={<DownloadOutlined />} 
-                  size="small"
-                >
-                  Export
-                </Button>
-              </Tooltip>
-            </Dropdown>
-            
-            <Tooltip title="Settings">
-              <Button 
-                icon={<SettingOutlined />} 
-                onClick={() => setSettingsDrawer(true)} 
-                size="small"
-              />
-            </Tooltip>
-            <Tooltip title={fullscreen ? 'Exit Fullscreen' : 'Fullscreen'}>
-              <Button 
-                icon={fullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />} 
-                onClick={() => setFullscreen(!fullscreen)} 
-                size="small"
-              />
-            </Tooltip>
-            <Switch 
-              checked={editMode} 
-              onChange={setEditMode} 
-              checkedChildren="Edit" 
-              unCheckedChildren="View" 
-              size="small"
-            />
-          </Space>
-        </div>
-      </Header>
-      
-      <Content className="dashboard-content" ref={dashboardContentRef}>
-        <Row gutter={[16, 16]}>
-          {widgets.filter(w => w.visible).map(widget => {
-            let span = 24;
-            if (widget.size.w === 12) span = 24;
-            else if (widget.size.w === 8) span = 16;
-            else if (widget.size.w === 6) span = 12;
-            else span = 12;
-            return <Col key={widget.id} xs={24} sm={widget.size.w >= 8 ? 24 : 12} md={span} lg={span} xl={span} style={{ order: widget.position.y }}>{renderWidget(widget)}</Col>;
-          })}
-          {widgets.length === 0 && <Col span={24}><Card><Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={<Space direction="vertical"><Text>No widgets added yet</Text><Button type="primary" onClick={() => setWidgetLibraryVisible(true)}>Add Your First Widget</Button></Space>} /></Card></Col>}
-        </Row>
-      </Content>
+    <div className={`pbi-cell pbi-w-${widget.sizeKey || 'md'} ${dragOver ? 'drag-over' : ''}`} style={{ '--cols': cols }}
+         draggable={editMode} onDragStart={(e) => onDragStart(e, widget.id)} onDragOver={(e) => onDragOverCard(e, widget.id)} onDrop={(e) => onDrop(e, widget.id)}>
+      <Card size="small" className="pbi-widget" style={{ '--widget-accent': widget.config?.colors?.[0] || def.color }}
+            title={<span className="pbi-widget-title">
+              {editMode && <HolderOutlined className="pbi-drag" title="Drag to reorder" />}
+              <span className="pbi-widget-icon" style={{ color: widget.config?.colors?.[0] || def.color }}>{def.icon}</span>
+              <span className="pbi-widget-name" title={widget.title}>{widget.title}</span>
+            </span>}
+            extra={<Space size={0}>
+              {editMode && <Tooltip title="Customise"><Button type="text" size="small" icon={<EditOutlined />} onClick={() => onAction('config', widget)} /></Tooltip>}
+              <Dropdown menu={menu} trigger={['click']}><Button type="text" size="small" icon={<MoreOutlined />} aria-label="Widget menu" /></Dropdown>
+            </Space>}>
+        <div className="pbi-widget-body">{body}</div>
+        {footer}
+      </Card>
+    </div>
+  );
+});
 
-      {/* Project Creation Modal (reused) */}
-      <Modal
-        title="Create New Project"
-        open={projectModalVisible}
-        onCancel={() => setProjectModalVisible(false)}
-        footer={null}
-        width={600}
-      >
-        <Form form={projectForm} layout="vertical" onFinish={handleCreateProject}>
-          <Form.Item 
-            name="name" 
-            label="Project Name" 
-            rules={[{ required: true, message: 'Please enter project name' }]}
-          >
-            <Input placeholder="Enter project name" />
-          </Form.Item>
-          <Form.Item 
-            name="description" 
-            label="Description" 
-            rules={[{ required: true, message: 'Please enter project description' }]}
-          >
-            <TextArea rows={3} placeholder="Project description" />
-          </Form.Item>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="department" label="Department">
-                <Select placeholder="Select department">
-                  <Option value="All">All Departments</Option>
-                  {departments.map(dept => (
-                    <Option key={dept.id} value={dept.id}>{dept.name}</Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="status" label="Status" initialValue="active">
-                <Select>
-                  <Option value="planning">Planning</Option>
-                  <Option value="active">Active</Option>
-                  <Option value="on_hold">On Hold</Option>
-                  <Option value="completed">Completed</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="start_date" label="Start Date">
-                <DatePicker style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="end_date" label="End Date">
-                <DatePicker style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Form.Item name="budget" label="Budget (Optional)">
-            <InputNumber min={0} step={1000} style={{ width: '100%' }} placeholder="e.g., 50000" />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" block>
-              Create Project
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
+// ------------------------------------------------------------------ module status strip
+const StatusStrip = memo(({ modules, projects, onOpen, onProjects }) => {
+  const entries = Object.entries(modules || {});
+  const openProjects = projects.filter((p) => !['completed', 'cancelled', 'archived'].includes(p.status));
+  const lateProjects = openProjects.filter((p) => p.end_date && dayjs(p.end_date).isBefore(dayjs(), 'day'));
+  return (
+    <div className="pbi-status">
+      <button type="button" className="pbi-status-tile" onClick={onProjects}>
+        <span className="pbi-status-label"><ProjectOutlined /> Projects</span>
+        <span className="pbi-status-value">{openProjects.length}<small> open</small></span>
+        <span className={`pbi-status-sub ${lateProjects.length ? 'warn' : ''}`}>{lateProjects.length ? `${lateProjects.length} past end date` : `${projects.length} in total`}</span>
+      </button>
+      {entries.map(([key, m]) => {
+        const warn = (m.attention || 0) > 0;
+        const Tag2 = m.link ? 'button' : 'div';
+        return (
+          <Tag2 type={m.link ? 'button' : undefined} key={key} className={`pbi-status-tile ${m.link ? '' : 'static'}`} onClick={m.link ? () => onOpen(m.link) : undefined}>
+            <span className="pbi-status-label">{m.label}{m.link && <ExportOutlined className="pbi-status-go" />}</span>
+            <span className="pbi-status-value">{fmt(m.total)}{m.open !== null && m.open !== undefined && m.open_label && <small> · {fmt(m.open)} {m.open_label}</small>}</span>
+            <span className={`pbi-status-sub ${warn ? 'warn' : ''}`}>{m.attention !== null && m.attention !== undefined ? `${fmt(m.attention)} ${m.attention_label}` : ' '}</span>
+          </Tag2>
+        );
+      })}
+    </div>
+  );
+});
 
-      {/* Export Modal */}
-      <Modal 
-        title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <DownloadOutlined /> Export Dashboard
-          </div>
+// ================================================================== page
+const PowerBIAnalytics = () => {
+  const history = useHistory();
+  const { user } = useAuth() || {};
+  const uid = user?.id || 'anon';
+  const K = useMemo(() => ({ layout: `pbi:layout:${uid}`, prefs: `pbi:prefs:${uid}`, theme: `pbi:theme:${uid}` }), [uid]);
+
+  // ---- persisted preferences
+  const [theme, setTheme] = useState(() => ({ ...DEFAULT_THEME, ...store.get(`pbi:theme:${uid}`, {}) }));
+  const [filters, setFilters] = useState(() => {
+    const p = store.get(`pbi:prefs:${uid}`, {});
+    const days = p.rangeDays || 365;
+    return { range: [dayjs().subtract(days, 'day'), dayjs()], rangeDays: days, department: p.department || 'all', project: p.project || 'all', refresh: p.refresh || 0 };
+  });
+  const [widgets, setWidgets] = useState(() => {
+    const saved = store.get(`pbi:layout:${uid}`, null) || store.get('powerbi_dashboard_config', null);
+    const list = normaliseLayout(saved?.widgets);
+    return list.length ? list : DEFAULT_LAYOUT.map((t) => makeWidget(t, 'default'));
+  });
+
+  // ---- data
+  const [summary, setSummary] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [projects, setProjects] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [savedDashboards, setSavedDashboards] = useState([]);
+  const [lastUpdated, setLastUpdated] = useState(null);
+
+  // ---- ui
+  const [editMode, setEditMode] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [configWidget, setConfigWidget] = useState(null);
+  const [projectsOpen, setProjectsOpen] = useState(false);
+  const [projectForm, setProjectForm] = useState({ open: false, project: null });
+  const [records, setRecords] = useState({ open: false, kind: null });
+  const [entry, setEntry] = useState(null);
+  const [entrySaving, setEntrySaving] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [exportFormat, setExportFormat] = useState('png');
+  const [exporting, setExporting] = useState(false);
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [saveName, setSaveName] = useState('');
+  const [dragId, setDragId] = useState(null);
+  const [dragOverId, setDragOverId] = useState(null);
+  const [entryForm] = Form.useForm();
+  const contentRef = useRef(null);
+  const reqSeq = useRef(0);
+
+  // persist
+  useEffect(() => { store.set(K.layout, { widgets, lastSaved: new Date().toISOString() }); }, [widgets, K.layout]);
+  useEffect(() => { store.set(K.theme, theme); }, [theme, K.theme]);
+  useEffect(() => {
+    store.set(K.prefs, { rangeDays: filters.rangeDays, department: filters.department, project: filters.project, refresh: filters.refresh });
+  }, [filters, K.prefs]);
+
+  // ---- loading
+  const loadSummary = useCallback(async (quiet = false) => {
+    const seq = ++reqSeq.current;
+    if (!quiet) setLoading(true);
+    try {
+      const res = await analyticsService.fetchSummary({
+        start_date: filters.range[0].format('YYYY-MM-DD'), end_date: filters.range[1].format('YYYY-MM-DD'),
+        department: filters.department, project_id: filters.project,
+      });
+      if (seq !== reqSeq.current) return; // a newer request is on its way
+      if (res?.success === false) throw new Error(res.error);
+      setSummary(res?.data || null);
+      setLoadError(null);
+      setLastUpdated(new Date());
+    } catch (e) {
+      if (seq !== reqSeq.current) return;
+      const status = e?.response?.status || e?.status;
+      if (status === 404 && filters.project !== 'all') {
+        message.warning('That project is no longer available — showing all projects');
+        setFilters((f) => ({ ...f, project: 'all' }));
+        return;
+      }
+      setLoadError(e?.response?.data?.error || e?.message || 'Could not load analytics data');
+    } finally {
+      if (seq === reqSeq.current) setLoading(false);
+    }
+  }, [filters.range, filters.department, filters.project]);
+
+  const loadProjects = useCallback(async () => {
+    try {
+      const res = await analyticsService.fetchProjects();
+      setProjects(res?.data || []);
+    } catch (e) { setProjects([]); }
+  }, []);
+  const loadSaved = useCallback(async () => {
+    try {
+      const res = await analyticsService.getSavedDashboards();
+      setSavedDashboards(res?.data || []);
+    } catch (e) { setSavedDashboards([]); }
+  }, []);
+
+  useEffect(() => {
+    loadProjects();
+    loadSaved();
+    analyticsService.fetchDepartments().then((r) => setDepartments(r?.data || [])).catch(() => setDepartments([]));
+  }, [loadProjects, loadSaved]);
+  useEffect(() => { loadSummary(); }, [loadSummary]);
+  useEffect(() => {
+    if (!filters.refresh) return undefined;
+    const t = setInterval(() => { if (!document.hidden) loadSummary(true); }, filters.refresh * 60000);
+    return () => clearInterval(t);
+  }, [filters.refresh, loadSummary]);
+  useEffect(() => {
+    if (!fullscreen) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') setFullscreen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [fullscreen]);
+
+  const refreshAll = useCallback(() => { loadSummary(true); loadProjects(); }, [loadSummary, loadProjects]);
+  const openLink = useCallback((link) => history.push(link), [history]);
+
+  // ---- widget actions
+  const updateWidget = useCallback((id, patch) => setWidgets((ws) => ws.map((w) => (w.id === id ? { ...w, ...patch } : w))), []);
+  const addWidget = useCallback((type) => {
+    setWidgets((ws) => [...ws, makeWidget(type, theme.palette)]);
+    message.success(`${WIDGETS[type].name} added`);
+    setTimeout(() => contentRef.current?.lastElementChild?.scrollIntoView?.({ behavior: 'smooth', block: 'center' }), 150);
+  }, [theme.palette]);
+
+  const onWidgetAction = useCallback((key, w) => {
+    const def = WIDGETS[w.type];
+    if (key === 'config') setConfigWidget(w);
+    else if (key.startsWith('size:')) updateWidget(w.id, { sizeKey: key.slice(5) });
+    else if (key === 'left' || key === 'right') {
+      setWidgets((ws) => {
+        const vis = ws.filter((x) => x.visible);
+        const i = vis.findIndex((x) => x.id === w.id);
+        const j = key === 'left' ? i - 1 : i + 1;
+        if (i < 0 || j < 0 || j >= vis.length) return ws;
+        const a = ws.indexOf(vis[i]);
+        const b = ws.indexOf(vis[j]);
+        const next = [...ws];
+        [next[a], next[b]] = [next[b], next[a]];
+        return next;
+      });
+    } else if (key === 'dup') {
+      setWidgets((ws) => {
+        const i = ws.findIndex((x) => x.id === w.id);
+        const copy = { ...w, id: uuidv4(), title: `${w.title} (copy)`, config: { ...w.config } };
+        return [...ws.slice(0, i + 1), copy, ...ws.slice(i + 1)];
+      });
+    } else if (key === 'hide') {
+      updateWidget(w.id, { visible: false });
+      message.info('Widget hidden — show it again from Settings › Layout');
+    } else if (key === 'remove') {
+      let removed;
+      setWidgets((ws) => { removed = ws; return ws.filter((x) => x.id !== w.id); });
+      message.success({ content: <span>Widget removed <Button size="small" type="link" onClick={() => setWidgets(removed)}>Undo</Button></span>, duration: 5 });
+    } else if (key === 'records') setRecords({ open: true, kind: def.record });
+    else if (key === 'add') setEntry(def.record ? RECORD_TO_FORM[def.record] : def.entry);
+  }, [updateWidget]);
+
+  // native drag & drop reorder (edit mode)
+  const onDragStart = useCallback((e, id) => { setDragId(id); e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', id); } catch (x) { /* IE */ } }, []);
+  const onDragOverCard = useCallback((e, id) => { if (!dragId) return; e.preventDefault(); if (id !== dragOverId) setDragOverId(id); }, [dragId, dragOverId]);
+  const onDrop = useCallback((e, targetId) => {
+    e.preventDefault();
+    const from = dragId;
+    setDragId(null); setDragOverId(null);
+    if (!from || from === targetId) return;
+    setWidgets((ws) => {
+      const moving = ws.find((w) => w.id === from);
+      const rest = ws.filter((w) => w.id !== from);
+      const at = rest.findIndex((w) => w.id === targetId);
+      rest.splice(at < 0 ? rest.length : at, 0, moving);
+      return rest;
+    });
+  }, [dragId]);
+
+  const applyPaletteToAll = useCallback((colors, scheme) => {
+    setWidgets((ws) => ws.map((w) => (WIDGETS[w.type]?.special ? w : { ...w, config: { ...w.config, colors: [...colors], colorScheme: scheme || 'custom' } })));
+  }, []);
+  const resetLayout = () => {
+    Modal.confirm({
+      title: 'Reset the dashboard layout?', content: 'Your widgets, sizes and colours go back to the default set.', okText: 'Reset',
+      onOk: () => setWidgets(DEFAULT_LAYOUT.map((t) => makeWidget(t, theme.palette))),
+    });
+  };
+
+  // ---- data entry
+  const submitEntry = async (values) => {
+    const fn = analyticsService[CREATE[entry]];
+    if (!fn) return;
+    setEntrySaving(true);
+    const body = { ...values };
+    Object.keys(body).forEach((k) => { if (body[k] && typeof body[k].format === 'function') body[k] = body[k].format('YYYY-MM-DD'); });
+    if (filters.project !== 'all') body.project_id = filters.project;
+    try {
+      const res = await fn(body);
+      if (res?.success === false) throw new Error(res.error);
+      message.success(`${ENTRY_LABEL[entry] || 'Record'} saved`);
+      setEntry(null);
+      entryForm.resetFields();
+      loadSummary(true);
+    } catch (e) {
+      message.error(e?.response?.data?.error || e?.message || 'Could not save');
+    } finally {
+      setEntrySaving(false);
+    }
+  };
+
+  // ---- projects
+  const selectProject = (id) => { setFilters((f) => ({ ...f, project: id ?? 'all' })); setProjectsOpen(false); };
+  const onProjectSaved = (p) => {
+    setProjectForm({ open: false, project: null });
+    loadProjects();
+    if (p?.id && !projectForm.project) selectProject(p.id);
+    else loadSummary(true);
+  };
+  const deleteSelectedProject = async () => {
+    try {
+      await analyticsService.deleteProject(filters.project);
+      message.success('Project deleted');
+      setFilters((f) => ({ ...f, project: 'all' }));
+      loadProjects();
+    } catch (e) {
+      message.error(e?.response?.data?.error || 'Could not delete the project');
+    }
+  };
+
+  // ---- saved dashboards
+  const currentView = () => ({
+    widgets,
+    dateRange: { start: filters.range[0].format('YYYY-MM-DD'), end: filters.range[1].format('YYYY-MM-DD') },
+    selectedDepartment: filters.department, selectedProject: filters.project,
+  });
+  const saveView = async () => {
+    const name = saveName.trim();
+    if (!name) { message.warning('Give the view a name'); return; }
+    try {
+      const res = await analyticsService.saveDashboard({ name, ...currentView() });
+      if (res?.success === false) throw new Error(res.error);
+      message.success('View saved');
+      setSaveOpen(false); setSaveName('');
+      loadSaved();
+    } catch (e) { message.error(e?.response?.data?.error || 'Could not save the view'); }
+  };
+  const overwriteView = async (d) => {
+    try { await analyticsService.updateDashboard(d.id, currentView()); message.success(`"${d.name}" updated`); loadSaved(); } catch (e) { message.error('Could not update'); }
+  };
+  const renameView = (d) => {
+    let name = d.name;
+    Modal.confirm({
+      title: 'Rename view', icon: <EditOutlined />,
+      content: <Input defaultValue={d.name} maxLength={200} onChange={(e) => { name = e.target.value; }} />,
+      onOk: async () => { await analyticsService.updateDashboard(d.id, { name: name.trim() || d.name }); loadSaved(); },
+    });
+  };
+  const deleteView = async (d) => {
+    try { await analyticsService.deleteDashboard(d.id); message.success('View deleted'); loadSaved(); } catch (e) { message.error('Could not delete'); }
+  };
+  const loadView = (d) => {
+    const list = normaliseLayout(d.widgets);
+    if (list.length) setWidgets(list);
+    const r = d.dateRange || d.date_range || {};
+    const pid = d.selectedProject ?? d.project_id;
+    setFilters((f) => {
+      const start = r.start && dayjs(r.start).isValid() ? dayjs(r.start) : f.range[0];
+      const end = r.end && dayjs(r.end).isValid() ? dayjs(r.end) : f.range[1];
+      return { ...f, range: [start, end], rangeDays: Math.max(1, end.diff(start, 'day')),
+        project: pid && projects.some((p) => String(p.id) === String(pid)) ? pid : 'all',
+        department: d.selectedDepartment ?? d.department_id ?? 'all' };
+    });
+    setSettingsOpen(false);
+    message.success(`Loaded "${d.name}"`);
+  };
+
+  // ---- export
+  const download = (href, name) => {
+    const a = document.createElement('a');
+    a.href = href; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  };
+  const exportCSV = () => {
+    const s = summary || {};
+    const lines = [['Safety analytics export'], ['Period', s.period?.start, s.period?.end],
+      ['Project', filters.project === 'all' ? 'All projects' : (projects.find((p) => String(p.id) === String(filters.project))?.name || filters.project)], [],
+      ['KPI', 'Value']];
+    KPI_DEFS.forEach((d) => lines.push([d.label, d.value ? d.value(s.kpis || {}) : s.kpis?.[d.key]]));
+    widgets.filter((w) => w.visible && WIDGETS[w.type]?.data).forEach((w) => {
+      const def = WIDGETS[w.type];
+      const rows = def.data(s) || [];
+      if (!rows.length) return;
+      const keys = [def.xKey, ...(def.yKeys ? def.yKeys.map((y) => y.key) : [def.yKey])];
+      lines.push([], [w.title], keys);
+      rows.forEach((r) => lines.push(keys.map((k) => r[k])));
+    });
+    const csv = `﻿${lines.map((l) => l.map(csvCell).join(',')).join('\r\n')}`;
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    download(url, `safety_analytics_${dayjs().format('YYYYMMDD_HHmm')}.csv`);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  };
+  const runExport = async () => {
+    setExporting(true);
+    try {
+      if (exportFormat === 'csv') { exportCSV(); setExportOpen(false); return; }
+      const [{ default: html2canvas }, jspdf] = await Promise.all([import('html2canvas'), exportFormat === 'pdf' ? import('jspdf') : Promise.resolve(null)]);
+      const el = contentRef.current?.parentElement;
+      if (!el) throw new Error('Nothing to export');
+      const canvas = await html2canvas(el, { scale: 2, useCORS: true, logging: false, backgroundColor: theme.dark ? '#141414' : '#f5f7fa',
+        ignoreElements: (n) => n.classList?.contains('pbi-no-export') });
+      const stamp = dayjs().format('YYYYMMDD_HHmm');
+      if (exportFormat === 'pdf') {
+        const JsPDF = jspdf.jsPDF || jspdf.default;
+        const pdf = new JsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4', compress: true });
+        const pw = pdf.internal.pageSize.getWidth();
+        const ph = pdf.internal.pageSize.getHeight();
+        const margin = 20;
+        const scale = (pw - margin * 2) / canvas.width;
+        const sliceH = Math.floor((ph - margin * 2) / scale);
+        for (let y = 0, page = 0; y < canvas.height; y += sliceH, page += 1) {
+          const part = document.createElement('canvas');
+          part.width = canvas.width; part.height = Math.min(sliceH, canvas.height - y);
+          part.getContext('2d').drawImage(canvas, 0, y, canvas.width, part.height, 0, 0, canvas.width, part.height);
+          if (page) pdf.addPage();
+          pdf.addImage(part.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, canvas.width * scale, part.height * scale);
         }
-        open={exportModal} 
-        onCancel={() => setExportModal(false)} 
-        onOk={handleExport} 
-        confirmLoading={exportLoading}
-        okText="Export"
-        cancelText="Cancel"
-        width={550}
-      >
-        <Form layout="vertical">
-          <Form.Item label="Export Format" required>
-            <Radio.Group 
-              value={exportFormat} 
-              onChange={e => setExportFormat(e.target.value)}
-              buttonStyle="solid"
-              style={{ width: '100%', display: 'flex' }}
-            >
-              <Radio.Button value="png" style={{ flex: 1, textAlign: 'center' }}>
-                <FileImageOutlined /> PNG
-              </Radio.Button>
-              <Radio.Button value="jpg" style={{ flex: 1, textAlign: 'center' }}>
-                <FileImageOutlined /> JPG
-              </Radio.Button>
-              <Radio.Button value="pdf" style={{ flex: 1, textAlign: 'center' }}>
-                <FilePdfOutlined /> PDF
-              </Radio.Button>
-            </Radio.Group>
-          </Form.Item>
-          
-          <Form.Item label="Quality / Resolution">
-            <Select 
-              value={exportQuality}
-              onChange={setExportQuality}
-              style={{ width: '100%' }}
-            >
-              <Select.Option value={1}>Standard (1x) - Smaller file</Select.Option>
-              <Select.Option value={2}>High (2x) - Recommended</Select.Option>
-              <Select.Option value={3}>Retina (3x) - Best quality</Select.Option>
-            </Select>
-          </Form.Item>
-          
-          <div style={{ 
-            padding: 12, 
-            background: '#f5f5f5', 
-            borderRadius: 4,
-            fontSize: 12,
-            color: '#666'
-          }}>
-            <span><CameraOutlined /> Captures a screenshot of the entire dashboard with all visual elements</span>
-          </div>
-          
-          <div style={{ 
-            marginTop: 12,
-            padding: 8, 
-            background: '#e6f7ff', 
-            borderRadius: 4,
-            fontSize: 12,
-            color: '#0050b3',
-            display: 'flex',
-            justifyContent: 'space-between'
-          }}>
-            <span>📊 Visible Widgets: {widgets.filter(w => w.visible).length}</span>
-            <span>📅 Date Range: {format(dateRange[0], 'MMM dd, yyyy')} - {format(dateRange[1], 'MMM dd, yyyy')}</span>
-          </div>
-        </Form>
-      </Modal>
-      
-      <Drawer title="Widget Library" placement="right" width={400} onClose={() => setWidgetLibraryVisible(false)} open={widgetLibraryVisible}>
-        <WidgetLibrary onSelect={addWidget} />
+        pdf.save(`safety_analytics_${stamp}.pdf`);
+      } else {
+        download(canvas.toDataURL(exportFormat === 'jpg' ? 'image/jpeg' : 'image/png', 0.95), `safety_analytics_${stamp}.${exportFormat}`);
+      }
+      message.success('Export ready');
+      setExportOpen(false);
+    } catch (e) {
+      message.error(`Export failed: ${e.message || 'unknown error'}`);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  // ---- derived
+  const visible = useMemo(() => widgets.filter((w) => w.visible), [widgets]);
+  const hidden = widgets.filter((w) => !w.visible);
+  const selectedProject = summary?.project && String(summary.project.id) === String(filters.project) ? summary.project : null;
+  const configPreview = useMemo(() => {
+    if (!configWidget) return null;
+    const def = WIDGETS[configWidget.type];
+    return def?.data ? { rows: def.data(summary || {}), xKey: def.xKey, yKey: def.yKey, yKeys: def.yKeys } : null;
+  }, [configWidget, summary]);
+  const rootClass = ['pbi', `pbi-card-${theme.card}`, `pbi-${theme.density}`, theme.dark ? 'pbi-dark' : '', fullscreen ? 'pbi-fullscreen' : '', editMode ? 'pbi-editing' : ''].join(' ');
+
+  return (
+    <div className={rootClass} style={{ '--pbi-accent': theme.accent }}>
+      {/* ------------------------------------------------ header */}
+      <div className="pbi-header">
+        <div className="pbi-header-title">
+          <Title level={4} style={{ margin: 0 }}><DashboardOutlined /> Safety analytics</Title>
+          <Text type="secondary" className="pbi-updated">
+            {loading ? <><Spin size="small" /> Updating…</> : lastUpdated ? `Updated ${dayjs(lastUpdated).format('HH:mm')}` : ''}
+            {filters.refresh ? <Badge status="processing" text={`auto every ${filters.refresh} min`} style={{ marginLeft: 8 }} /> : null}
+          </Text>
+        </div>
+        <div className="pbi-filters">
+          <RangePicker value={filters.range} presets={RANGE_PRESETS} allowClear={false} format="DD MMM YYYY" disabledDate={(d) => d.isAfter(dayjs(), 'day')}
+                       onChange={(v) => v && v[0] && v[1] && setFilters((f) => ({ ...f, range: v, rangeDays: Math.max(1, v[1].diff(v[0], 'day')) }))} />
+          <Select value={filters.department} onChange={(v) => setFilters((f) => ({ ...f, department: v }))} className="pbi-select"
+                  showSearch optionFilterProp="label" popupMatchSelectWidth={false}
+                  options={[{ value: 'all', label: 'All departments' }, ...departments.map((d) => ({ value: d.id, label: d.name }))]} />
+          <Select value={filters.project} onChange={(v) => setFilters((f) => ({ ...f, project: v }))} className="pbi-select pbi-select-wide"
+                  showSearch optionFilterProp="label" popupMatchSelectWidth={false}
+                  options={[{ value: 'all', label: 'All projects (company-wide)' }, ...projects.map((p) => ({ value: p.id, label: p.name }))]}
+                  dropdownRender={(menu) => (<>{menu}<Divider style={{ margin: '4px 0' }} />
+                    <Space style={{ padding: '0 8px 4px' }}>
+                      <Button type="link" size="small" icon={<PlusOutlined />} onClick={() => setProjectForm({ open: true, project: null })}>New project</Button>
+                      <Button type="link" size="small" icon={<ProjectOutlined />} onClick={() => setProjectsOpen(true)}>Manage</Button>
+                    </Space></>)} />
+        </div>
+        <div className="pbi-actions pbi-no-export">
+          <Tooltip title="Refresh"><Button icon={<ReloadOutlined spin={loading} />} onClick={refreshAll} /></Tooltip>
+          <Button icon={<AppstoreAddOutlined />} onClick={() => setLibraryOpen(true)}>Widgets</Button>
+          <Button icon={<DatabaseOutlined />} onClick={() => setRecords({ open: true, kind: null })}>Data</Button>
+          <Button icon={<ProjectOutlined />} onClick={() => setProjectsOpen(true)}>Projects</Button>
+          <Dropdown trigger={['click']} menu={{ items: [
+            { key: 'png', icon: <FileImageOutlined />, label: 'Image (PNG)' }, { key: 'jpg', icon: <FileImageOutlined />, label: 'Image (JPG)' },
+            { key: 'pdf', icon: <FilePdfOutlined />, label: 'PDF' }, { key: 'csv', icon: <FileExcelOutlined />, label: 'Data (CSV / Excel)' },
+          ], onClick: ({ key }) => { setExportFormat(key); setExportOpen(true); } }}>
+            <Button icon={<DownloadOutlined />}>Export</Button>
+          </Dropdown>
+          <Tooltip title="Save this view"><Button icon={<SaveOutlined />} onClick={() => setSaveOpen(true)} /></Tooltip>
+          <Tooltip title="Look & layout"><Button icon={<SettingOutlined />} onClick={() => setSettingsOpen(true)} /></Tooltip>
+          <Tooltip title={fullscreen ? 'Exit full screen (Esc)' : 'Full screen'}>
+            <Button icon={fullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />} onClick={() => setFullscreen((v) => !v)} />
+          </Tooltip>
+          <Switch checked={editMode} onChange={setEditMode} checkedChildren="Editing" unCheckedChildren="Edit layout" />
+        </div>
+      </div>
+
+      {loadError && (
+        <Alert type="error" showIcon className="pbi-alert" message="Analytics data could not be loaded" description={loadError}
+               action={<Button size="small" onClick={() => loadSummary()}>Try again</Button>} />
+      )}
+      {(summary?.notes || []).map((n) => <Alert key={n} type="info" showIcon className="pbi-alert pbi-no-export" message={n} closable
+                                                 action={<Button size="small" onClick={() => setEntry('manhours')}>Add man-hours</Button>} />)}
+      {editMode && (
+        <Alert className="pbi-alert pbi-no-export" type="success" showIcon
+               message="Layout editing is on: drag cards to reorder, use ✎ to change chart type, colours and width." />
+      )}
+
+      {selectedProject && (
+        <ProjectBanner project={selectedProject} onEdit={() => setProjectForm({ open: true, project: selectedProject })}
+                       onChanged={(p) => { if (p) setSummary((s) => ({ ...s, project: { ...p, can_manage: s?.project?.can_manage } })); loadProjects(); }}
+                       onDelete={deleteSelectedProject} />
+      )}
+
+      <StatusStrip modules={summary?.modules} projects={projects} onOpen={openLink} onProjects={() => setProjectsOpen(true)} />
+
+      {/* ------------------------------------------------ widgets */}
+      {!summary && loading ? (
+        <div className="pbi-loading"><Spin size="large" /><Text type="secondary">Loading analytics…</Text></div>
+      ) : (
+        <div className="pbi-grid" ref={contentRef} onDragEnd={() => { setDragId(null); setDragOverId(null); }}>
+          {visible.map((w, i) => (
+            <WidgetCard key={w.id} widget={w} summary={summary} index={i} count={visible.length} editMode={editMode}
+                        dragOver={dragOverId === w.id && dragId !== w.id} onAction={onWidgetAction} onOpen={openLink}
+                        onDragStart={onDragStart} onDragOverCard={onDragOverCard} onDrop={onDrop} />
+          ))}
+          {!visible.length && (
+            <Card className="pbi-cell pbi-w-full" style={{ '--cols': 12 }}>
+              <Empty description="No widgets on this dashboard">
+                <Space><Button type="primary" icon={<PlusOutlined />} onClick={() => setLibraryOpen(true)}>Add widgets</Button>
+                  <Button icon={<UndoOutlined />} onClick={() => setWidgets(DEFAULT_LAYOUT.map((t) => makeWidget(t, theme.palette)))}>Use default layout</Button></Space>
+              </Empty>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* ------------------------------------------------ drawers & modals */}
+      <Drawer title="Add widgets" open={libraryOpen} onClose={() => setLibraryOpen(false)} width={440}>
+        <WidgetLibrary onSelect={addWidget} activeTypes={widgets.map((w) => w.type)} />
       </Drawer>
-      
-      <Drawer title="Dashboard Settings" placement="right" width={400} onClose={() => setSettingsDrawer(false)} open={settingsDrawer}>
-        <Collapse defaultActiveKey={['1']}>
-          <Panel header="Appearance" key="1">
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <Switch checked={darkMode} onChange={setDarkMode} checkedChildren="Dark Mode" unCheckedChildren="Light Mode" />
-              <Divider />
-              <Text>Refresh Interval</Text>
-              <Select value={autoRefresh ? '5' : '0'} onChange={v => setAutoRefresh(v !== '0')}>
-                <Option value="0">Manual</Option>
-                <Option value="5">Every 5 minutes</Option>
-                <Option value="15">Every 15 minutes</Option>
-                <Option value="30">Every 30 minutes</Option>
-                <Option value="60">Every hour</Option>
-              </Select>
-            </Space>
-          </Panel>
-          <Panel header="Saved Dashboards" key="2">
-            <List 
-              dataSource={savedDashboards} 
-              renderItem={item => (
-                <List.Item 
-                  actions={[
-                    <Button type="link" onClick={() => loadDashboard(item.id)}>Load</Button>, 
-                    <Button type="link" danger>Delete</Button>
-                  ]}
-                >
-                  <List.Item.Meta 
-                    title={item.name} 
-                    description={`Last modified: ${item.updatedAt ? format(new Date(item.updatedAt), 'MMM dd, yyyy') : 'N/A'}`} 
-                  />
-                </List.Item>
-              )} 
-            />
-          </Panel>
-          <Panel header="Data Management" key="3">
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <Button icon={<ImportOutlined />} block>Import Data</Button>
-              <Button icon={<ExportOutlined />} block>Export All Data</Button>
-              <Button icon={<DeleteOutlined />} danger block onClick={() => { localStorage.removeItem('powerbi_dashboard_config'); message.success('Cache cleared'); }}>
-                Clear Cache
-              </Button>
-            </Space>
-          </Panel>
-        </Collapse>
+
+      <WidgetConfigModal open={!!configWidget} widget={configWidget} preview={configPreview} onCancel={() => setConfigWidget(null)}
+                         onApplyToAll={applyPaletteToAll}
+                         onSave={(id, patch) => { updateWidget(id, patch); setConfigWidget(null); message.success('Widget updated'); }} />
+
+      <Drawer title="Look & layout" open={settingsOpen} onClose={() => setSettingsOpen(false)} width={400}>
+        <div className="pbi-settings">
+          <Text strong>Accent colour</Text>
+          <Space wrap>
+            {['#1677ff', '#2f54eb', '#722ed1', '#13c2c2', '#52c41a', '#fa8c16', '#f5222d', '#262626'].map((c) => (
+              <button type="button" key={c} aria-label={`accent ${c}`} className={`pbi-swatch ${theme.accent === c ? 'active' : ''}`} style={{ background: c }}
+                      onClick={() => setTheme((t) => ({ ...t, accent: c }))} />
+            ))}
+            <ColorPicker disabledAlpha value={theme.accent} onChangeComplete={(v) => setTheme((t) => ({ ...t, accent: v.toHexString() }))} />
+          </Space>
+
+          <Text strong>Chart colours for every widget</Text>
+          <div className="pbi-palettes">
+            {Object.entries(PALETTES).map(([name, pal]) => (
+              <button type="button" key={name} className={`pbi-palette ${theme.palette === name ? 'active' : ''}`}
+                      onClick={() => { setTheme((t) => ({ ...t, palette: name })); applyPaletteToAll(pal, name); }}>
+                <span className="pbi-palette-swatches">{pal.slice(0, 6).map((c) => <i key={c} style={{ background: c }} />)}</span>
+                <span className="pbi-palette-name">{name.replace(/([A-Z])/g, ' $1')}</span>
+              </button>
+            ))}
+          </div>
+
+          <Text strong>Card style</Text>
+          <Segmented block value={theme.card} onChange={(v) => setTheme((t) => ({ ...t, card: v }))}
+                     options={[{ value: 'shadow', label: 'Shadow' }, { value: 'bordered', label: 'Outlined' }, { value: 'flat', label: 'Flat' }]} />
+          <Text strong>Spacing</Text>
+          <Segmented block value={theme.density} onChange={(v) => setTheme((t) => ({ ...t, density: v }))}
+                     options={[{ value: 'comfortable', label: 'Comfortable' }, { value: 'compact', label: 'Compact' }]} />
+          <Space><Switch checked={theme.dark} onChange={(v) => setTheme((t) => ({ ...t, dark: v }))} /> <Text>Dark dashboard</Text></Space>
+
+          <Text strong>Auto refresh</Text>
+          <Select value={filters.refresh} onChange={(v) => setFilters((f) => ({ ...f, refresh: v }))}
+                  options={[{ value: 0, label: 'Off' }, { value: 5, label: 'Every 5 minutes' }, { value: 15, label: 'Every 15 minutes' },
+                    { value: 30, label: 'Every 30 minutes' }, { value: 60, label: 'Every hour' }]} />
+
+          <Divider style={{ margin: '8px 0' }} />
+          <Text strong>Layout</Text>
+          {hidden.length > 0 && (
+            <List size="small" bordered header={<Text type="secondary">Hidden widgets</Text>} dataSource={hidden}
+                  renderItem={(w) => <List.Item actions={[<Button key="s" size="small" type="link" onClick={() => updateWidget(w.id, { visible: true })}>Show</Button>]}>{w.title}</List.Item>} />
+          )}
+          <Space wrap>
+            <Button icon={<UndoOutlined />} onClick={resetLayout}>Reset to default</Button>
+            <Button onClick={() => setTheme(DEFAULT_THEME)}>Reset look</Button>
+          </Space>
+
+          <Divider style={{ margin: '8px 0' }} />
+          <Space style={{ justifyContent: 'space-between', width: '100%' }}>
+            <Text strong>Saved views</Text>
+            <Button size="small" icon={<SaveOutlined />} onClick={() => setSaveOpen(true)}>Save current</Button>
+          </Space>
+          <List size="small" dataSource={savedDashboards} locale={{ emptyText: 'No saved views yet' }}
+                renderItem={(d) => (
+                  <List.Item actions={[
+                    <Button key="l" size="small" type="link" onClick={() => loadView(d)}>Open</Button>,
+                    <Dropdown key="m" trigger={['click']} menu={{ items: [
+                      { key: 'o', label: 'Replace with current layout', icon: <SaveOutlined /> }, { key: 'r', label: 'Rename', icon: <EditOutlined /> },
+                      { key: 'd', label: 'Delete', danger: true, icon: <DeleteOutlined /> }],
+                      onClick: ({ key }) => (key === 'o' ? overwriteView(d) : key === 'r' ? renameView(d)
+                        : Modal.confirm({ title: `Delete "${d.name}"?`, okType: 'danger', onOk: () => deleteView(d) })) }}>
+                      <Button size="small" type="text" icon={<MoreOutlined />} />
+                    </Dropdown>]}>
+                    <List.Item.Meta title={d.name} description={d.updated_at ? dayjs(d.updated_at).format('DD MMM YYYY HH:mm') : ''} />
+                  </List.Item>
+                )} />
+        </div>
       </Drawer>
-      
-      <Modal 
-        title={`Add ${dataEntryType ? dataEntryType.charAt(0).toUpperCase() + dataEntryType.slice(1) : ''} Data`} 
-        open={dataEntryModal} 
-        onCancel={() => setDataEntryModal(false)} 
-        footer={null} 
-        width={600}
-      >
-        <DataEntryForms type={dataEntryType} form={dataEntryForm} onFinish={handleDataEntrySubmit} loading={loading} />
+
+      <Modal title="Save this view" open={saveOpen} onCancel={() => setSaveOpen(false)} onOk={saveView} okText="Save">
+        <Text type="secondary">Saves widgets, colours, the date range and filters so you can reopen them from any device.</Text>
+        <Input style={{ marginTop: 12 }} autoFocus maxLength={200} placeholder="e.g. Monthly HSE board report" value={saveName}
+               onChange={(e) => setSaveName(e.target.value)} onPressEnter={saveView} />
       </Modal>
-      
-      <WidgetConfigModal visible={configModalVisible} widget={configModalData} onSave={saveWidgetConfig} onCancel={() => setConfigModalVisible(false)} />
-    </Layout>
+
+      <Modal title={<Space><DownloadOutlined /> Export dashboard</Space>} open={exportOpen} onCancel={() => setExportOpen(false)}
+             onOk={runExport} okText="Export" confirmLoading={exporting}>
+        <Radio.Group value={exportFormat} onChange={(e) => setExportFormat(e.target.value)} optionType="button" buttonStyle="solid"
+                     options={[{ value: 'png', label: 'PNG' }, { value: 'jpg', label: 'JPG' }, { value: 'pdf', label: 'PDF' }, { value: 'csv', label: 'CSV data' }]} />
+        <div style={{ marginTop: 12 }}>
+          <Text type="secondary">
+            {exportFormat === 'csv' ? 'KPIs and the numbers behind every visible chart — opens in Excel.' : 'A picture of the dashboard exactly as shown (buttons are left out). Long dashboards are split over several PDF pages.'}
+          </Text>
+        </div>
+        <div className="pbi-export-meta">
+          <Tag>{visible.length} widgets</Tag>
+          <Tag>{filters.range[0].format('DD MMM YYYY')} – {filters.range[1].format('DD MMM YYYY')}</Tag>
+          {filters.project !== 'all' && <Tag color="blue">{projects.find((p) => String(p.id) === String(filters.project))?.name}</Tag>}
+        </div>
+      </Modal>
+
+      <Modal title={`Add ${ENTRY_LABEL[entry] || ''} data`} open={!!entry} onCancel={() => setEntry(null)} footer={null} destroyOnClose width={560}>
+        {filters.project !== 'all' && <Alert type="info" showIcon style={{ marginBottom: 12 }} message={`Will be linked to project "${projects.find((p) => String(p.id) === String(filters.project))?.name || ''}"`} />}
+        {entry === 'observations' && <Alert type="info" showIcon style={{ marginBottom: 12 }} message={<span>For full observations with photos, use the <Button type="link" size="small" style={{ padding: 0 }} onClick={() => openLink('/safety/observations')}>observation module</Button>.</span>} />}
+        <DataEntryForms type={entry} form={entryForm} onFinish={submitEntry} loading={entrySaving} />
+      </Modal>
+
+      <RecordsDrawer open={records.open} kind={records.kind} projectId={filters.project} projects={projects}
+                     onClose={() => setRecords({ open: false, kind: null })} onAdd={(t) => setEntry(t)} onChanged={() => loadSummary(true)} />
+      <ProjectsDrawer open={projectsOpen} projects={projects} selected={filters.project} onClose={() => setProjectsOpen(false)}
+                      onSelect={selectProject} onReload={() => { loadProjects(); loadSummary(true); }}
+                      onCreate={() => setProjectForm({ open: true, project: null })} onEdit={(p) => setProjectForm({ open: true, project: p })} />
+      <ProjectFormModal open={projectForm.open} project={projectForm.project} departments={departments}
+                        onClose={() => setProjectForm({ open: false, project: null })} onSaved={onProjectSaved} />
+    </div>
   );
 };
 

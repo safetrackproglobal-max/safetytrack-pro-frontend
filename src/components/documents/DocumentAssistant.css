@@ -343,51 +343,7 @@
 }
 
 /* Dark Mode */
-@media (prefers-color-scheme: dark) {
-  .assistant-header {
-    background: #1f1f1f;
-  }
-  
-  .messages-area {
-    background: #141414;
-  }
-  
-  .assistant-message.assistant .message-content {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-  
-  .assistant-message.user .message-content {
-    background: #177ddc;
-  }
-  
-  .input-wrapper {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-  
-  .assistant-input-area {
-    background: #1f1f1f;
-    border-top-color: #303030;
-  }
-  
-  .conversation-item:hover {
-    background: #262626;
-  }
-  
-  .conversation-item.active {
-    background: #111a2c;
-  }
-  
-  .suggested-prompt-item {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-  
-  .suggested-prompt-item:hover {
-    background: #111a2c;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* Streaming Text Cursor */
 .streaming-cursor {

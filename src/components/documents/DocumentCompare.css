@@ -110,21 +110,7 @@
 /* ============================================================
    DARK MODE
    ============================================================ */
-@media (prefers-color-scheme: dark) {
-  .comparison-selector {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-  
-  .comparison-diff {
-    background: #1f1f1f;
-  }
-  
-  .diff-viewer {
-    background: #262626;
-    color: #e6e6e6;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* ============================================================
    PRINT

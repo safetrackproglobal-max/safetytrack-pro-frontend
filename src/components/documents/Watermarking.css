@@ -285,33 +285,7 @@
 }
 
 /* Dark Mode */
-@media (prefers-color-scheme: dark) {
-  .watermarking-header {
-    background: #1f1f1f;
-  }
-  
-  .watermark-preview-container {
-    background: #141414;
-    border-color: #303030;
-  }
-  
-  .watermark-mock-line {
-    background: #303030;
-  }
-  
-  .watermark-mock-block {
-    background: #262626;
-  }
-  
-  .watermark-resolved-text {
-    background: #262626;
-    color: #e6e6e6;
-  }
-  
-  .watermark-template-preview {
-    background: #262626;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* Animations */
 @keyframes watermark-pulse {

@@ -1,11 +1,21 @@
 // src/components/environmental/panels/LiveMonitoringPanel.jsx
+
+/* ============================================================
+   IMPORTS
+   ============================================================ */
+
+// --- React ---
 import React, { useState, useEffect, useRef } from 'react';
+
+// --- Ant Design Components ---
 import {
   Row, Col, Card, Statistic, Tag, Button, Space, Spin, Alert,
   List, Avatar, Badge, Divider, Progress, Tooltip, message,
   Modal, Descriptions, Table, Switch, Select, Tabs, Empty,
-  Timeline, Collapse, DatePicker, Drawer, Input, Popconfirm
+  Timeline, Collapse, DatePicker, Drawer, Input, Popconfirm, AutoComplete
 } from 'antd';
+
+// --- Ant Design Icons ---
 import {
   EnvironmentOutlined,
   CameraOutlined,
@@ -35,16 +45,25 @@ import {
   LoadingOutlined,
   SearchOutlined,
   SaveOutlined,
-  DeleteOutlined
+  DeleteOutlined,
+  CopyOutlined
 } from '@ant-design/icons';
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap, useMapEvents } from 'react-leaflet';
+
+// --- Leaflet & React-Leaflet ---
+import { MapContainer, TileLayer, Marker, Popup, Circle, LayersControl, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+
+// --- Services & Utilities ---
 import advancedEnvironmentalService from '../../../services/advancedEnvironmentalService';
-import './LiveMonitoringPanel.css';
 import html2canvas from 'html2canvas';
 
-// Fix for default marker icons in Leaflet
+// --- Styles ---
+import './LiveMonitoringPanel.css';
+
+/* ============================================================
+   LEAFLET ICON FIX
+   ============================================================ */
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -52,10 +71,17 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
+/* ============================================================
+   ANT DESIGN DESTRUCTURED CONSTANTS
+   ============================================================ */
 const { Option } = Select;
 const { TabPane } = Tabs;
 const { Panel } = Collapse;
 const { Search } = Input;
+
+/* ============================================================
+   CONFIGURATION CONSTANTS
+   ============================================================ */
 
 // Detection type configuration
 const DETECTION_TYPES = {
@@ -69,6 +95,102 @@ const DETECTION_TYPES = {
   flood: { label: 'Flooding', icon: <GlobalOutlined />, color: '#096dd9' },
   accident: { label: 'Accident/Incident', icon: <AlertFilled />, color: '#f5222d' }
 };
+
+// Neutral default location (center of the world, not country-specific)
+const NEUTRAL_LOCATION = {
+  lat: 0,
+  lng: 0,
+  name: 'Global View'
+};
+
+/* ============================================================
+   LOCATION HELPERS — one implementation for search, click, pin drag and "My Location"
+   ============================================================ */
+const escapeHtml = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// 0 is a valid latitude/longitude (equator / Greenwich meridian — e.g. Tema, Ghana)
+const isCoord = (lat, lng) => Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+const coordLabel = (lat, lng) => `${Number(lat).toFixed(5)}, ${Number(lng).toFixed(5)}`;
+const SOURCE_LABELS = { auto: 'Your location', search: 'Searched', click: 'Picked on map', saved: 'Saved location', neutral: 'World view' };
+const geocodeCache = new Map();
+
+const reverseGeocode = async (lat, lng) => {
+  const key = `${lat.toFixed(4)},${lng.toFixed(4)}`;
+  if (geocodeCache.has(key)) return geocodeCache.get(key);
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 6000);
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=16`,
+      { signal: ctrl.signal, headers: { 'Accept-Language': navigator.language || 'en' } });
+    const data = res.ok ? await res.json() : null;
+    const name = data?.display_name || coordLabel(lat, lng);
+    geocodeCache.set(key, name);
+    return name;
+  } catch (e) {
+    return coordLabel(lat, lng);
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
+const searchPlaces = async (q) => {
+  const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=5&q=${encodeURIComponent(q)}`,
+    { headers: { 'Accept-Language': navigator.language || 'en' } });
+  if (!res.ok) throw new Error('search failed');
+  const data = await res.json();
+  return (Array.isArray(data) ? data : [])
+    .map((d) => ({ lat: parseFloat(d.lat), lng: parseFloat(d.lon), name: d.display_name }))
+    .filter((d) => isCoord(d.lat, d.lng));
+};
+
+const parseCoords = (q) => {
+  const m = String(q || '').match(/^\s*(-?\d+(?:\.\d+)?)\s*[,;\s]\s*(-?\d+(?:\.\d+)?)\s*$/);
+  if (!m) return null;
+  const lat = parseFloat(m[1]);
+  const lng = parseFloat(m[2]);
+  return isCoord(lat, lng) ? { lat, lng } : null;
+};
+
+const GEO_ERRORS = { 1: 'denied', 2: 'unavailable', 3: 'timeout' };
+// Precise GPS first; if that times out or is unavailable, a quicker network-based fix.
+// The browser's permission prompt does not count towards these timeouts.
+const getBrowserPosition = () => new Promise((resolve, reject) => {
+  if (typeof window !== 'undefined' && window.isSecureContext === false) { reject({ reason: 'insecure' }); return; }
+  if (!navigator.geolocation || !navigator.geolocation.getCurrentPosition) { reject({ reason: 'unsupported' }); return; }
+  const ok = (p) => resolve({ lat: p.coords.latitude, lng: p.coords.longitude, accuracy: p.coords.accuracy });
+  try {
+    navigator.geolocation.getCurrentPosition(ok, (err) => {
+      if (err && err.code === 1) { reject({ reason: 'denied' }); return; }
+      navigator.geolocation.getCurrentPosition(ok, (err2) => reject({ reason: GEO_ERRORS[err2 && err2.code] || 'error' }),
+        { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 });
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+  } catch (e) {
+    reject({ reason: 'error' });
+  }
+});
+
+const SELECTED_ICON = L.divIcon({
+  className: 'selected-location-marker',
+  html: '<div style="width:26px;height:26px;border-radius:50% 50% 50% 0;background:#722ed1;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4)"></div>',
+  iconSize: [26, 26],
+  iconAnchor: [13, 26],
+  popupAnchor: [0, -26]
+});
+
+// Moves the existing map instead of re-creating it on every location change
+const MapViewSync = ({ center, zoom, onReady }) => {
+  const map = useMap();
+  useEffect(() => { if (onReady) onReady(map); }, [map]);
+  useEffect(() => {
+    if (isCoord(center[0], center[1])) {
+      try { map.setView(center, zoom, { animate: true }); } catch (e) { /* map not ready yet */ }
+    }
+  }, [map, center[0], center[1], zoom]);
+  return null;
+};
+
+/* ============================================================
+   HELPER FUNCTIONS
+   ============================================================ */
 
 // Custom marker icons
 const createCustomIcon = (status, size = 32) => {
@@ -111,51 +233,29 @@ const createCustomIcon = (status, size = 32) => {
   });
 };
 
-// =============================================================
-// NEUTRAL DEFAULT LOCATION (Center of the world, not country-specific)
-// =============================================================
-const NEUTRAL_LOCATION = {
-  lat: 0,
-  lng: 0,
-  name: 'Global View'
-};
+/* ============================================================
+   SUB-COMPONENTS
+   ============================================================ */
 
 // =============================================================
 // SAFE MAP CONTAINER
 // =============================================================
-const SafeMapContainer = ({ children, ...props }) => {
+const SafeMapContainer = ({ children, onMapReady, ...props }) => {
   const [isMounted, setIsMounted] = useState(false);
-  const [isReady, setIsReady] = useState(false);
   const mapRef = useRef(null);
 
   useEffect(() => {
     setIsMounted(true);
-    const timer = setTimeout(() => {
-      setIsReady(true);
-    }, 100);
-
-    return () => {
-      clearTimeout(timer);
-      setIsMounted(false);
-      setIsReady(false);
-      if (mapRef.current) {
-        try {
-          mapRef.current.invalidateSize();
-        } catch (e) {
-          // Ignore
-        }
-      }
-    };
   }, []);
 
-  if (!isMounted || !isReady) {
+  if (!isMounted) {
     return (
-      <div style={{ 
-        height: '100%', 
-        width: '100%', 
-        background: '#1a1a2e', 
-        display: 'flex', 
-        alignItems: 'center', 
+      <div style={{
+        height: '100%',
+        width: '100%',
+        background: '#1a1a2e',
+        display: 'flex',
+        alignItems: 'center',
         justifyContent: 'center',
         borderRadius: '8px'
       }}>
@@ -175,9 +275,10 @@ const SafeMapContainer = ({ children, ...props }) => {
           try {
             if (mapRef.current) {
               mapRef.current.invalidateSize();
+              if (onMapReady) onMapReady(mapRef.current);
             }
           } catch (e) {
-            console.warn('Map invalidateSize error:', e);
+            console.warn('Map whenReady error:', e);
           }
         }, 200);
       }}
@@ -193,234 +294,142 @@ const SafeMapContainer = ({ children, ...props }) => {
 const MapClickHandler = ({ onLocationSelect }) => {
   useMapEvents({
     click: (e) => {
-      const { lat, lng } = e.latlng;
-      if (onLocationSelect) {
-        // Reverse geocode to get location name
-        fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=10`)
-          .then(res => res.json())
-          .then(data => {
-            const displayName = data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-            onLocationSelect({ lat, lng, name: displayName });
-          })
-          .catch(() => {
-            onLocationSelect({ lat, lng, name: `${lat.toFixed(4)}, ${lng.toFixed(4)}` });
-          });
-      }
+      if (onLocationSelect) onLocationSelect({ lat: e.latlng.lat, lng: e.latlng.lng });
     }
   });
   return null;
 };
 
 // =============================================================
-// MAP CONTROLS
+// MAP CONTROLS (rendered outside the Leaflet container so clicks never select a location)
 // =============================================================
-const MapControls = ({ onReset }) => {
-  const map = useMap();
-  
-  const handleZoomIn = () => {
+const MapControls = ({ map, onReset, fullscreenTarget }) => {
+  const run = (fn) => {
     try {
-      if (map) map.zoomIn();
+      if (map) fn(map);
     } catch (e) {
-      console.warn('Zoom in error:', e);
+      console.warn('Map control error:', e);
     }
   };
-  
-  const handleZoomOut = () => {
-    try {
-      if (map) map.zoomOut();
-    } catch (e) {
-      console.warn('Zoom out error:', e);
+  const toggleFullscreen = () => {
+    const el = fullscreenTarget && fullscreenTarget.current;
+    if (!el) return;
+    if (document.fullscreenElement) {
+      if (document.exitFullscreen) document.exitFullscreen();
+    } else if (el.requestFullscreen) {
+      el.requestFullscreen();
     }
+    setTimeout(() => run((m) => m.invalidateSize()), 350);
   };
-  
-  const handleReset = () => {
-    try {
-      if (onReset) {
-        onReset();
-      } else if (map) {
-        map.setView([0, 0], 2);
-      }
-    } catch (e) {
-      console.warn('Reset view error:', e);
-    }
-  };
-  
-  const handleFullscreen = () => {
-    try {
-      const container = map?.getContainer();
-      if (container && container.requestFullscreen) {
-        container.requestFullscreen();
-      }
-    } catch (e) {
-      console.warn('Fullscreen error:', e);
-    }
-  };
-  
   return (
     <div className="map-controls" style={{
-      position: 'absolute',
-      top: 10,
-      right: 10,
-      zIndex: 1000,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '8px'
+      position: 'absolute', top: 70, right: 12, zIndex: 1000, display: 'flex', flexDirection: 'column', gap: '8px'
     }}>
-      <Tooltip title="Zoom In">
-        <Button size="small" icon={<ZoomInOutlined />} onClick={handleZoomIn} />
-      </Tooltip>
-      <Tooltip title="Zoom Out">
-        <Button size="small" icon={<ZoomOutOutlined />} onClick={handleZoomOut} />
-      </Tooltip>
-      <Tooltip title="Reset View">
-        <Button size="small" icon={<CompassOutlined />} onClick={handleReset} />
-      </Tooltip>
-      <Tooltip title="Fullscreen">
-        <Button size="small" icon={<FullscreenOutlined />} onClick={handleFullscreen} />
-      </Tooltip>
+      <Tooltip title="Zoom in" placement="left"><Button size="small" icon={<ZoomInOutlined />} onClick={() => run((m) => m.zoomIn())} /></Tooltip>
+      <Tooltip title="Zoom out" placement="left"><Button size="small" icon={<ZoomOutOutlined />} onClick={() => run((m) => m.zoomOut())} /></Tooltip>
+      <Tooltip title="World view" placement="left"><Button size="small" icon={<CompassOutlined />} onClick={onReset} /></Tooltip>
+      <Tooltip title="Full screen" placement="left"><Button size="small" icon={<FullscreenOutlined />} onClick={toggleFullscreen} /></Tooltip>
     </div>
   );
 };
 
 // =============================================================
-// MAP SEARCH
+// MAP SEARCH — suggestions while typing, coordinates accepted
 // =============================================================
-const MapSearch = ({ onSearch, analyzing }) => {
-  const map = useMap();
+const MapSearch = ({ onSearch }) => {
+  const [value, setValue] = useState('');
+  const [options, setOptions] = useState([]);
   const [searching, setSearching] = useState(false);
-  
-  const handleSearch = async (value) => {
-    if (!value) return;
-    
+  const timer = useRef(null);
+  const found = useRef({});
+  const skipNext = useRef(false);
+
+  useEffect(() => () => clearTimeout(timer.current), []);
+
+  const go = (place) => {
+    setOptions([]);
+    if (onSearch) onSearch(place);
+  };
+
+  const handleChange = (v) => {
+    setValue(v);
+    clearTimeout(timer.current);
+    if (skipNext.current) { skipNext.current = false; return; }
+    const q = (v || '').trim();
+    if (q.length < 3 || parseCoords(q)) { setOptions([]); return; }
+    timer.current = setTimeout(async () => {
+      try {
+        const list = await searchPlaces(q);
+        found.current = Object.fromEntries(list.map((p) => [p.name, p]));
+        setOptions(list.map((p) => ({ value: p.name, label: p.name })));
+      } catch (e) {
+        setOptions([]);
+      }
+    }, 600);
+  };
+
+  const handleSubmit = async (raw) => {
+    const q = String(raw ?? value ?? '').trim();
+    if (!q) return;
+    const c = parseCoords(q);
+    if (c) { go({ ...c, name: coordLabel(c.lat, c.lng) }); return; }
+    if (found.current[q]) { go(found.current[q]); return; }
     setSearching(true);
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(value)}&limit=1`
-      );
-      const data = await response.json();
-      
-      if (data && data.length > 0) {
-        const { lat, lon } = data[0];
-        try {
-          map.setView([parseFloat(lat), parseFloat(lon)], 15);
-          if (onSearch) {
-            onSearch({ 
-              lat: parseFloat(lat), 
-              lng: parseFloat(lon), 
-              name: data[0].display_name 
-            });
-          }
-          message.success(`📍 Navigated to ${data[0].display_name}`);
-        } catch (e) {
-          console.warn('Map setView error:', e);
-          message.error('Failed to navigate to location');
-        }
-      } else {
-        message.warning('Location not found');
-      }
-    } catch (error) {
-      console.error('Search error:', error);
-      message.error('Failed to search location');
+      const list = await searchPlaces(q);
+      if (list.length) go(list[0]);
+      else message.warning(`Location not found: ${q}`);
+    } catch (e) {
+      message.error('Search failed — check your connection');
     } finally {
       setSearching(false);
     }
   };
-  
+
   return (
-    <div style={{
-      position: 'absolute',
-      top: 20,
-      left: '50%',
-      transform: 'translateX(-50%)',
-      zIndex: 1000,
-      width: '400px',
-      maxWidth: '90%'
+    <div className="map-search-box" style={{
+      position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 1001,
+      width: 440, maxWidth: 'calc(100% - 24px)'
     }}>
-      <Search
-        placeholder="Search any location worldwide..."
-        onSearch={handleSearch}
-        enterButton={<SearchOutlined />}
-        loading={searching}
-        size="middle"
-        style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
-      />
+      <AutoComplete
+        value={value}
+        options={options}
+        onChange={handleChange}
+        onSelect={(v) => { skipNext.current = true; setValue(v); if (found.current[v]) go(found.current[v]); }}
+        style={{ width: '100%' }}
+        popupMatchSelectWidth
+      >
+        <Input.Search
+          placeholder="Search a place, or paste coordinates (lat, lng)"
+          enterButton={<SearchOutlined />}
+          loading={searching}
+          onSearch={handleSubmit}
+          allowClear
+          size="large"
+          style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.2)', borderRadius: 8 }}
+        />
+      </AutoComplete>
     </div>
   );
 };
 
 // =============================================================
-// AUTO LOCATION DETECTION
+// AUTO LOCATION BUTTON
 // =============================================================
-const AutoLocationButton = ({ onLocationFound, analyzing }) => {
-  const [detecting, setDetecting] = useState(false);
-  const map = useMap();
-  
-  const detectLocation = () => {
-    setDetecting(true);
-    if (!navigator.geolocation) {
-      message.error('Geolocation is not supported by your browser');
-      setDetecting(false);
-      return;
-    }
-    
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        try {
-          map.setView([latitude, longitude], 15);
-          // Reverse geocode to get location name
-          fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&zoom=10`)
-            .then(res => res.json())
-            .then(data => {
-              const displayName = data.display_name || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-              if (onLocationFound) {
-                onLocationFound({ lat: latitude, lng: longitude, name: displayName });
-              }
-              message.success(`📍 Location detected: ${displayName}`);
-            })
-            .catch(() => {
-              if (onLocationFound) {
-                onLocationFound({ lat: latitude, lng: longitude, name: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}` });
-              }
-              message.success('Location detected');
-            });
-        } catch (e) {
-          console.warn('Map setView error:', e);
-          message.error('Failed to navigate to location');
-        }
-        setDetecting(false);
-      },
-      (error) => {
-        console.error('Geolocation error:', error);
-        message.error('Failed to detect location. Please search manually.');
-        setDetecting(false);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 60000
-      }
-    );
-  };
-  
-  return (
-    <Tooltip title="Detect My Location">
-      <Button
-        type="primary"
-        icon={detecting ? <LoadingOutlined /> : <AimOutlined />}
-        onClick={detectLocation}
-        loading={detecting}
-        size="small"
-        style={{
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-          marginRight: '8px'
-        }}
-      >
-        {detecting ? 'Detecting...' : 'My Location'}
-      </Button>
-    </Tooltip>
-  );
-};
+const AutoLocationButton = ({ onClick, detecting }) => (
+  <Tooltip title="Use my current location">
+    <Button
+      type="primary"
+      size="small"
+      icon={detecting ? <LoadingOutlined /> : <AimOutlined />}
+      onClick={onClick}
+      disabled={detecting}
+      style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+    >
+      {detecting ? 'Detecting…' : 'My Location'}
+    </Button>
+  </Tooltip>
+);
 
 // =============================================================
 // HEATMAP LAYER
@@ -440,6 +449,7 @@ const HeatmapLayer = ({ data }) => {
       const heatLayer = L.layerGroup();
       
       data.forEach(point => {
+        if (!isCoord(Number(point.lat), Number(point.lng))) return;
         const intensity = Math.min(point.intensity || 0.1, 1);
         const radius = 50 + intensity * 150;
         const opacity = 0.2 + intensity * 0.5;
@@ -450,14 +460,15 @@ const HeatmapLayer = ({ data }) => {
           color: color,
           fillColor: color,
           fillOpacity: opacity,
-          weight: 0
+          weight: 0,
+          bubblingMouseEvents: false   // clicking a circle opens its popup, it does not pick a new location
         });
         
         circle.bindPopup(`
           <div style="font-size:12px;">
-            <strong>${point.site_name || 'Location'}</strong><br/>
+            <strong>${escapeHtml(point.site_name || 'Location')}</strong><br/>
             Risk: ${Math.round(intensity * 100)}%<br/>
-            ${point.type ? `Type: ${point.type}` : ''}
+            ${point.type ? `Type: ${escapeHtml(point.type)}` : ''}
           </div>
         `);
         
@@ -484,10 +495,14 @@ const HeatmapLayer = ({ data }) => {
   return null;
 };
 
-// =============================================================
-// MAIN COMPONENT
-// =============================================================
+/* ============================================================
+   MAIN COMPONENT
+   ============================================================ */
 const LiveMonitoringPanel = () => {
+
+  /* ------------------------------------------------------------
+     STATE
+     ------------------------------------------------------------ */
   const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState(null);
@@ -516,7 +531,10 @@ const LiveMonitoringPanel = () => {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [isLocationDetected, setIsLocationDetected] = useState(false);
-  const [mapKey, setMapKey] = useState(0);
+  const [mapReady, setMapReady] = useState(false);
+  const [locationModalVisible, setLocationModalVisible] = useState(false);
+  const [locationError, setLocationError] = useState(null);
+  const [retryingLocation, setRetryingLocation] = useState(false);
   const [currentLocation, setCurrentLocation] = useState({
     lat: NEUTRAL_LOCATION.lat,
     lng: NEUTRAL_LOCATION.lng,
@@ -531,11 +549,15 @@ const LiveMonitoringPanel = () => {
   });
   
   const mapRef = useRef(null);
-  const intervalRef = useRef(null);
+  const wrapperRef = useRef(null);
+  const requestSeq = useRef(0);          // ignore responses for locations the user already left
+  const userPickedRef = useRef(false);   // a late GPS fix must not override a place the user chose
+  const [mapInstance, setMapInstance] = useState(null);
+  const [detecting, setDetecting] = useState(false);
 
-  // =============================================================
-  // LOAD SAVED PREFERENCE FROM localStorage
-  // =============================================================
+  /* ------------------------------------------------------------
+     PREFERENCES (localStorage)
+     ------------------------------------------------------------ */
   const loadSavedPreference = () => {
     try {
       const saved = localStorage.getItem('userLocationPreference');
@@ -573,229 +595,103 @@ const LiveMonitoringPanel = () => {
     }
   };
 
-  // =============================================================
-  // CAPTURE MAP IMAGE
-  // =============================================================
+  /* ------------------------------------------------------------
+     MAP IMAGE CAPTURE
+     ------------------------------------------------------------ */
   const captureMapImage = async () => {
     try {
-      const mapContainer = mapRef.current?.getContainer();
-      if (!mapContainer) {
-        console.warn('Map container not found');
-        return null;
-      }
-      
-      const canvas = await html2canvas(mapContainer, {
-        useCORS: true,
-        allowTaint: true,
-        scale: 1.2,
-        backgroundColor: '#1a1a2e',
-        logging: false,
-        width: 800,
-        height: 600
-      });
-      
-      return canvas.toDataURL('image/jpeg', 0.85);
+      if (!mapReady) return null;
+      const mapContainer = mapRef.current?.getContainer?.();
+      if (!mapContainer) return null;
+
+      const canvas = await Promise.race([
+        html2canvas(mapContainer, {
+          useCORS: true,
+          allowTaint: false,
+          scale: 1,
+          backgroundColor: '#1a1a2e',
+          logging: false,
+          ignoreElements: (el) =>
+            el.classList?.contains('leaflet-tile') ||
+            el.classList?.contains('leaflet-tile-container')
+        }),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('html2canvas timeout')), 3000)
+        )
+      ]);
+
+      return canvas.toDataURL('image/jpeg', 0.8);
     } catch (error) {
-      console.error('Failed to capture map image:', error);
+      console.warn('Map capture skipped (non-fatal):', error.message);
       return null;
     }
   };
 
-  // =============================================================
-  // LOAD MONITORING DATA
-  // =============================================================
-  const loadMonitoringData = async (lat, lng, locationName = null) => {
-    setLoading(true);
-    setError(null);
-
+  /* ------------------------------------------------------------
+     DATA LOADING
+     ------------------------------------------------------------ */
+  const loadMonitoringData = async (lat, lng, locationName = null, opts = {}) => {
+    const { quiet = false, quietSuccess = false } = opts;
+    if (!isCoord(lat, lng)) {
+      const fallback = userLocation || loadSavedPreference();
+      if (!fallback || !isCoord(fallback.lat, fallback.lng)) return;
+      lat = fallback.lat;
+      lng = fallback.lng;
+      locationName = locationName || fallback.name;
+    }
+    const seq = ++requestSeq.current;
+    const label = locationName || coordLabel(lat, lng);
+    if (!quiet) {
+      setLoading(true);
+      setAnalyzing(true);
+      setError(null);
+    }
     try {
-      // Get coordinates
-      let finalLat = lat;
-      let finalLng = lng;
-      
-      if (!finalLat || !finalLng) {
-        // Try user location first
-        if (userLocation) {
-          finalLat = userLocation.lat;
-          finalLng = userLocation.lng;
-        } else {
-          // Try saved preference
-          const saved = loadSavedPreference();
-          if (saved) {
-            finalLat = saved.lat;
-            finalLng = saved.lng;
-          } else {
-            // Use neutral default
-            finalLat = NEUTRAL_LOCATION.lat;
-            finalLng = NEUTRAL_LOCATION.lng;
-          }
-        }
-      }
-      
-      // Update current location
-      setCurrentLocation({
-        lat: finalLat,
-        lng: finalLng,
-        name: locationName || `${finalLat.toFixed(4)}, ${finalLng.toFixed(4)}`,
-        source: locationName ? 'search' : 'auto'
-      });
-      
-      // Update map
-      setMapCenter([finalLat, finalLng]);
-      setMapZoom(locationName ? 15 : 3);
-      
-      // Capture map image
-      let mapImage = await captureMapImage();
-      
-      const params = {
-        lat: finalLat,
-        lng: finalLng,
-        zoom: locationName ? 15 : 10
-      };
-      
-      if (mapImage) {
-        params.image = mapImage;
-      }
-      
-      // Call API
+      const mapImage = quiet ? null : await captureMapImage();
+      const params = { lat, lng, zoom: 15 };
+      if (mapImage) params.image = mapImage;
+
       const monitoringResponse = await advancedEnvironmentalService.analyzeWithImage(params);
-      
+      if (seq !== requestSeq.current) return;   // a newer location was chosen meanwhile
+
       if (monitoringResponse?.success) {
         const sitesList = monitoringResponse.sites || [];
         setSites(sitesList);
-        
         setStats({
           totalSites: sitesList.length,
           activeDetections: sitesList.reduce((sum, s) => sum + (s.detections?.length || 0), 0),
           activeAlerts: 0,
           predictionsCount: 0
         });
-        
-        if (sitesList.length === 0) {
-          message.info(`📍 ${currentLocation.name || 'Location'} - No sites found. Try another area.`);
-        } else {
-          message.success(`📍 ${currentLocation.name || 'Location'} - Found ${sitesList.length} sites`);
+        if (!quiet && !quietSuccess) {
+          if (sitesList.length === 0) message.info(`📍 ${label} — no monitored sites here yet`);
+          else message.success(`📍 ${label} — ${sitesList.length} site(s)`);
         }
+      } else if (!quiet) {
+        setError(monitoringResponse?.error || 'No monitoring data is available for this location');
       }
-      
-      // Fetch other data
+
       const [heatmapResponse, esgResponse] = await Promise.allSettled([
-        advancedEnvironmentalService.getHeatmapData({ lat: finalLat, lng: finalLng }),
-        advancedEnvironmentalService.getESGData({ lat: finalLat, lng: finalLng })
+        advancedEnvironmentalService.getHeatmapData({ lat, lng }),
+        advancedEnvironmentalService.getESGData({ lat, lng })
       ]);
-      
-      if (heatmapResponse.status === 'fulfilled') {
-        setHeatmapData(heatmapResponse.value?.data || []);
-      }
-      
-      if (esgResponse.status === 'fulfilled') {
-        setEsgData(esgResponse.value);
-      }
-
+      if (seq !== requestSeq.current) return;
+      if (heatmapResponse.status === 'fulfilled') setHeatmapData(heatmapResponse.value?.data || []);
+      if (esgResponse.status === 'fulfilled') setEsgData(esgResponse.value);
     } catch (err) {
-      console.error('Failed to load monitoring data:', err);
-      setError(err.message || 'Failed to load monitoring data');
-      message.error('Failed to load data for this location');
+      if (seq === requestSeq.current && !quiet) {
+        console.error('Failed to load monitoring data:', err);
+        setError(err?.response?.data?.error || err.message || 'Failed to load monitoring data');
+        message.error('Failed to load data for this location');
+      }
     } finally {
-      setLoading(false);
-      setAnalyzing(false);
+      if (seq === requestSeq.current) {
+        setLoading(false);
+        setAnalyzing(false);
+      }
     }
   };
 
-  // =============================================================
-  // LOCATION HANDLERS
-  // =============================================================
-  
-  // Auto-detect location
-  const handleLocationFound = (location) => {
-    setUserLocation(location);
-    setIsLocationDetected(true);
-    setCurrentLocation({
-      lat: location.lat,
-      lng: location.lng,
-      name: location.name || 'Your Location',
-      source: 'auto'
-    });
-    setMapCenter([location.lat, location.lng]);
-    setMapZoom(15);
-    setMapKey(prev => prev + 1);
-    // Save as preference
-    saveLocationPreference(location);
-    loadMonitoringData(location.lat, location.lng, location.name);
-  };
-
-  // User searches for location
-  const handleSearchLocation = (location) => {
-    setCurrentLocation({
-      lat: location.lat,
-      lng: location.lng,
-      name: location.name || 'Searched Location',
-      source: 'search'
-    });
-    setMapCenter([location.lat, location.lng]);
-    setMapZoom(15);
-    setMapKey(prev => prev + 1);
-    // Save as preference
-    saveLocationPreference(location);
-    loadMonitoringData(location.lat, location.lng, location.name);
-  };
-
-  // User clicks on map
-  const handleMapClick = (location) => {
-    setCurrentLocation({
-      lat: location.lat,
-      lng: location.lng,
-      name: location.name || 'Selected Location',
-      source: 'click'
-    });
-    setMapCenter([location.lat, location.lng]);
-    setMapZoom(15);
-    setMapKey(prev => prev + 1);
-    // Save as preference
-    saveLocationPreference(location);
-    loadMonitoringData(location.lat, location.lng, location.name);
-  };
-
-  // Use saved preference
-  const handleUseSavedLocation = () => {
-    const saved = loadSavedPreference();
-    if (saved) {
-      setCurrentLocation({
-        lat: saved.lat,
-        lng: saved.lng,
-        name: saved.name || 'Saved Location',
-        source: 'saved'
-      });
-      setMapCenter([saved.lat, saved.lng]);
-      setMapZoom(15);
-      setMapKey(prev => prev + 1);
-      loadMonitoringData(saved.lat, saved.lng, saved.name);
-      message.success(`📍 Using saved location: ${saved.name}`);
-    } else {
-      message.info('No saved location found. Search or click on the map.');
-    }
-  };
-
-  // Reset to neutral view
-  const handleResetView = () => {
-    setCurrentLocation({
-      lat: NEUTRAL_LOCATION.lat,
-      lng: NEUTRAL_LOCATION.lng,
-      name: NEUTRAL_LOCATION.name,
-      source: 'neutral'
-    });
-    setMapCenter([NEUTRAL_LOCATION.lat, NEUTRAL_LOCATION.lng]);
-    setMapZoom(2);
-    setMapKey(prev => prev + 1);
-    setSites([]);
-    setHeatmapData([]);
-    setEsgData(null);
-    message.info('🌍 Reset to global view');
-  };
-
-  // =============================================================
-  // SITE DETAILS
-  // =============================================================
   const loadSiteDetails = async (siteId) => {
     try {
       const response = await advancedEnvironmentalService.getSiteDetails(siteId);
@@ -819,6 +715,107 @@ const LiveMonitoringPanel = () => {
     }
   };
 
+  /* ------------------------------------------------------------
+     LOCATION HANDLERS
+     ------------------------------------------------------------ */
+  
+  // Show a location on the map and load its data
+  const applyLocation = (loc, source, { save = true, zoom = 15 } = {}) => {
+    const name = loc.name || coordLabel(loc.lat, loc.lng);
+    setCurrentLocation({ lat: loc.lat, lng: loc.lng, name, source });
+    setMapCenter([loc.lat, loc.lng]);
+    setMapZoom(zoom);
+    setLocationModalVisible(false);
+    setLocationError(null);
+    if (save) saveLocationPreference({ ...loc, name });
+    loadMonitoringData(loc.lat, loc.lng, name);
+  };
+
+  // GPS / network position found
+  const handleLocationFound = (location, { auto = false } = {}) => {
+    setUserLocation(location);
+    setIsLocationDetected(true);
+    if (!auto) userPickedRef.current = true;
+    applyLocation(location, 'auto', { zoom: 15 });
+  };
+
+  // "My Location": returns true when a position was found
+  const detectMyLocation = async ({ silent = false, auto = false } = {}) => {
+    setDetecting(true);
+    try {
+      const pos = await getBrowserPosition();
+      if (auto && userPickedRef.current) return true;
+      const name = await reverseGeocode(pos.lat, pos.lng);
+      if (auto && userPickedRef.current) return true;
+      handleLocationFound({ ...pos, name }, { auto });
+      if (!silent) message.success(`📍 ${name}${pos.accuracy ? ` (±${Math.round(pos.accuracy)} m)` : ''}`);
+      return true;
+    } catch (err) {
+      if (!silent) {
+        setLocationError((err && err.reason) || 'error');
+        setLocationModalVisible(true);
+      }
+      return false;
+    } finally {
+      setDetecting(false);
+    }
+  };
+
+  // User searched for a place
+  const handleSearchLocation = (location) => {
+    userPickedRef.current = true;
+    applyLocation(location, 'search', { zoom: 15 });
+  };
+
+  // User clicked the map or dragged the pin: show it at once, then fetch the place name
+  const handleMapClick = (location) => {
+    userPickedRef.current = true;
+    const zoom = Math.max(mapInstance ? mapInstance.getZoom() : 13, 13);
+    applyLocation({ lat: location.lat, lng: location.lng, name: coordLabel(location.lat, location.lng) }, 'click', { zoom });
+    reverseGeocode(location.lat, location.lng).then((name) => {
+      setCurrentLocation((prev) => (prev.lat === location.lat && prev.lng === location.lng ? { ...prev, name } : prev));
+      saveLocationPreference({ lat: location.lat, lng: location.lng, name });
+    });
+  };
+
+  // Use saved preference
+  const handleUseSavedLocation = () => {
+    const saved = loadSavedPreference();
+    if (saved) {
+      userPickedRef.current = true;
+      applyLocation(saved, 'saved', { save: false, zoom: 15 });
+      message.success(`📍 Using saved location: ${saved.name}`);
+    } else {
+      message.info('No saved location found. Search or click on the map.');
+    }
+  };
+
+  // Reset to world view
+  const handleResetView = () => {
+    userPickedRef.current = true;
+    requestSeq.current += 1;               // ignore any request still running
+    setCurrentLocation({ lat: NEUTRAL_LOCATION.lat, lng: NEUTRAL_LOCATION.lng, name: NEUTRAL_LOCATION.name, source: 'neutral' });
+    setMapCenter([NEUTRAL_LOCATION.lat, NEUTRAL_LOCATION.lng]);
+    setMapZoom(2);
+    setSites([]);
+    setHeatmapData([]);
+    setEsgData(null);
+    setLoading(false);
+    setAnalyzing(false);
+  };
+
+  const copyCoordinates = () => {
+    const text = coordLabel(currentLocation.lat, currentLocation.lng);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => message.success(`Copied ${text}`)).catch(() => message.info(text));
+    } else {
+      message.info(text);
+    }
+  };
+
+  /* ------------------------------------------------------------
+     SITE / ALERT / DETECTION HANDLERS
+     ------------------------------------------------------------ */
   const handleViewSite = async (site) => {
     setSelectedSite(site);
     setDetailsVisible(true);
@@ -827,12 +824,11 @@ const LiveMonitoringPanel = () => {
   };
 
   const handleRefresh = () => {
-    if (currentLocation.lat || currentLocation.lng) {
-      loadMonitoringData(currentLocation.lat, currentLocation.lng, currentLocation.name);
-    } else {
-      loadMonitoringData();
+    if (currentLocation.source === 'neutral') {
+      message.info('Choose a location first — search, click the map or use My Location');
+      return;
     }
-    message.success('Monitoring data refreshed');
+    loadMonitoringData(currentLocation.lat, currentLocation.lng, currentLocation.name);
   };
 
   const handleAcknowledgeAlert = async (alertId) => {
@@ -850,92 +846,52 @@ const LiveMonitoringPanel = () => {
     setDrawerVisible(true);
   };
 
-  // =============================================================
-  // EFFECTS
-  // =============================================================
+  /* ------------------------------------------------------------
+     EFFECTS
+     ------------------------------------------------------------ */
   
-  // Auto-detect on mount
+  // On open: show the saved place straight away; detect the user's position without
+  // giving up while the browser's permission prompt is still open.
   useEffect(() => {
-    // Check for saved preference first
+    let cancelled = false;
     const saved = loadSavedPreference();
-    
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          // Reverse geocode to get name
-          fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&zoom=10`)
-            .then(res => res.json())
-            .then(data => {
-              const displayName = data.display_name || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-              handleLocationFound({ lat: latitude, lng: longitude, name: displayName });
-            })
-            .catch(() => {
-              handleLocationFound({ lat: latitude, lng: longitude, name: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}` });
-            });
-        },
-        (error) => {
-          console.log('Auto-location failed:', error);
-          if (saved) {
-            // Use saved preference
-            handleUseSavedLocation();
-          } else {
-            // Use neutral default
-            loadMonitoringData(NEUTRAL_LOCATION.lat, NEUTRAL_LOCATION.lng, NEUTRAL_LOCATION.name);
-            message.info('🌍 Please search for a location or click on the map');
-          }
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 60000
-        }
-      );
-    } else if (saved) {
-      // Use saved preference
-      handleUseSavedLocation();
-    } else {
-      // Use neutral default
-      loadMonitoringData(NEUTRAL_LOCATION.lat, NEUTRAL_LOCATION.lng, NEUTRAL_LOCATION.name);
-      message.info('🌍 Search for a location or click on the map to get started');
+    if (saved && isCoord(saved.lat, saved.lng)) {
+      setCurrentLocation({ lat: saved.lat, lng: saved.lng, name: saved.name || 'Saved location', source: 'saved' });
+      setMapCenter([saved.lat, saved.lng]);
+      setMapZoom(13);
+      loadMonitoringData(saved.lat, saved.lng, saved.name, { quietSuccess: true });
     }
-
-    // Auto-refresh
-    if (autoRefresh) {
-      intervalRef.current = setInterval(() => {
-        if (currentLocation.lat || currentLocation.lng) {
-          loadMonitoringData(currentLocation.lat, currentLocation.lng, currentLocation.name);
+    const start = async () => {
+      let state = 'prompt';
+      try {
+        if (navigator.permissions && navigator.permissions.query) {
+          state = (await navigator.permissions.query({ name: 'geolocation' })).state;
         }
-      }, refreshInterval * 1000);
-    }
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+      } catch (e) { /* Permissions API not available */ }
+      if (cancelled) return;
+      if (state === 'denied') {
+        if (!saved) { setLocationError('denied'); setLocationModalVisible(true); }
+        return;
       }
+      if (saved && state !== 'granted') return;   // don't prompt people who already chose a place
+      await detectMyLocation({ silent: Boolean(saved), auto: true });
     };
+    start();
+    return () => { cancelled = true; };
   }, []);
 
-  // Update auto-refresh
+  // Quiet auto-refresh of the current place (no pop-ups, no map screenshot, paused in background tabs)
   useEffect(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-    if (autoRefresh && (currentLocation.lat || currentLocation.lng)) {
-      intervalRef.current = setInterval(() => {
-        loadMonitoringData(currentLocation.lat, currentLocation.lng, currentLocation.name);
-      }, refreshInterval * 1000);
-    }
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [autoRefresh, refreshInterval, currentLocation]);
+    if (!autoRefresh || currentLocation.source === 'neutral') return undefined;
+    const timer = setInterval(() => {
+      if (!document.hidden) loadMonitoringData(currentLocation.lat, currentLocation.lng, currentLocation.name, { quiet: true });
+    }, Math.max(15, refreshInterval) * 1000);
+    return () => clearInterval(timer);
+  }, [autoRefresh, refreshInterval, currentLocation.lat, currentLocation.lng, currentLocation.source]);
 
-  // =============================================================
-  // HELPER FUNCTIONS
-  // =============================================================
+  /* ------------------------------------------------------------
+     HELPER FUNCTIONS
+     ------------------------------------------------------------ */
   const getStatusColor = (status) => {
     const colors = {
       'normal': '#52c41a',
@@ -997,11 +953,13 @@ const LiveMonitoringPanel = () => {
     return { value: val, label, color };
   };
 
-  // =============================================================
-  // RENDER FUNCTIONS
-  // =============================================================
+  /* ============================================================
+     RENDER FUNCTIONS
+     ============================================================ */
 
-  // Render ESG Scorecard
+  /* ------------------------------------------------------------
+     RENDER: ESG Scorecard
+     ------------------------------------------------------------ */
   const renderESGScorecard = () => {
     if (!esgData) {
       return <Empty description="No ESG data available" />;
@@ -1223,7 +1181,9 @@ const LiveMonitoringPanel = () => {
     );
   };
 
-  // Render Detection Drawer
+  /* ------------------------------------------------------------
+     RENDER: Detection Drawer
+     ------------------------------------------------------------ */
   const renderDetectionDrawer = () => {
     if (!selectedDetection) return null;
     
@@ -1308,7 +1268,9 @@ const LiveMonitoringPanel = () => {
     );
   };
 
-  // Render site details modal
+  /* ------------------------------------------------------------
+     RENDER: Site Details Modal
+     ------------------------------------------------------------ */
   const renderSiteDetailsModal = () => {
     if (!selectedSite) return null;
 
@@ -1685,7 +1647,9 @@ const LiveMonitoringPanel = () => {
     );
   };
 
-  // Render detection cards
+  /* ------------------------------------------------------------
+     RENDER: Detection Cards
+     ------------------------------------------------------------ */
   const renderDetectionCards = () => {
     const allDetections = sites.flatMap(site => 
       (site.detections || []).map(d => ({
@@ -1768,7 +1732,9 @@ const LiveMonitoringPanel = () => {
     );
   };
 
-  // Render predictive analysis
+  /* ------------------------------------------------------------
+     RENDER: Predictive Analysis
+     ------------------------------------------------------------ */
   const renderPredictiveAnalysis = () => {
     if (!predictions.length) {
       return <Empty description="No predictive analysis available" />;
@@ -1854,7 +1820,9 @@ const LiveMonitoringPanel = () => {
     );
   };
 
-  // Render historical data
+  /* ------------------------------------------------------------
+     RENDER: Historical Data
+     ------------------------------------------------------------ */
   const renderHistoricalData = () => {
     if (!historicalData.length) {
       return <Empty description="No historical data available" />;
@@ -1906,72 +1874,82 @@ const LiveMonitoringPanel = () => {
     );
   };
 
-  // =============================================================
-  // RENDER MAP - UPDATED WITH LOCATION INDICATOR
-  // =============================================================
+  /* ------------------------------------------------------------
+     RENDER: Map (with location indicator)
+     ------------------------------------------------------------ */
   const renderMap = () => {
-    const filteredSites = filterStatus === 'all' 
-      ? sites 
+    const filteredSites = filterStatus === 'all'
+      ? sites
       : sites.filter(s => s.status === filterStatus);
+    const hasPlace = currentLocation.source !== 'neutral' && isCoord(currentLocation.lat, currentLocation.lng);
+    const overlay = { position: 'absolute', zIndex: 1000 };
 
     return (
-      <div className="map-wrapper" style={{ 
-        position: 'relative', 
-        height: '550px', 
-        borderRadius: '12px', 
+      <div ref={wrapperRef} className="map-wrapper" style={{
+        position: 'relative',
+        height: '550px',
+        borderRadius: '12px',
         overflow: 'hidden',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        background: '#1a1a2e'
       }}>
-        <SafeMapContainer
-          key={mapKey}
-          center={mapCenter}
-          zoom={mapZoom}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        <SafeMapContainer center={mapCenter} zoom={mapZoom} minZoom={2} worldCopyJump>
+          <LayersControl position="bottomright">
+            <LayersControl.BaseLayer checked name="Streets">
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                maxZoom={19}
+              />
+            </LayersControl.BaseLayer>
+            <LayersControl.BaseLayer name="Satellite">
+              <TileLayer
+                attribution='Imagery &copy; Esri'
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                maxZoom={19}
+              />
+            </LayersControl.BaseLayer>
+            <LayersControl.Overlay name="Place names (for satellite)">
+              <TileLayer
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+                maxZoom={19}
+              />
+            </LayersControl.Overlay>
+          </LayersControl>
+
+          <MapViewSync
+            center={mapCenter}
+            zoom={mapZoom}
+            onReady={(m) => { mapRef.current = m; setMapInstance(m); setMapReady(true); }}
           />
-          
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-          />
-          
           <MapClickHandler onLocationSelect={handleMapClick} />
-          <MapControls onReset={handleResetView} />
-          <MapSearch onSearch={handleSearchLocation} analyzing={analyzing} />
-          
+
           {showHeatmap && heatmapData.length > 0 && (
             <HeatmapLayer data={heatmapData} />
           )}
-          
+
           {/* Site Markers */}
           {filteredSites.map((site) => {
-            if (!site.latitude || !site.longitude) return null;
-            
+            const lat = Number(site.latitude);
+            const lng = Number(site.longitude);
+            if (site.latitude == null || site.longitude == null || !isCoord(lat, lng)) return null;
+
             const markerColor = getStatusColor(site.status);
             const customIcon = createCustomIcon(
-              site.status, 
+              site.status,
               site.status === 'critical' ? 44 : site.status === 'anomaly' ? 38 : 32
             );
-            
+
             return (
               <Marker
                 key={site.id}
-                position={[site.latitude, site.longitude]}
+                position={[lat, lng]}
                 icon={customIcon}
-                eventHandlers={{
-                  click: () => handleViewSite(site),
-                }}
+                eventHandlers={{ click: () => handleViewSite(site) }}
               >
                 <Popup minWidth={250} maxWidth={300}>
                   <div style={{ padding: '4px 0' }}>
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'space-between',
-                      marginBottom: '8px'
-                    }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                       <h4 style={{ margin: 0, fontSize: '14px' }}>
                         <EnvironmentOutlined /> {site.name}
                       </h4>
@@ -1979,43 +1957,28 @@ const LiveMonitoringPanel = () => {
                         {getStatusText(site.status)}
                       </Tag>
                     </div>
-                    
                     <div style={{ fontSize: '12px', lineHeight: '1.8' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <span><strong>Risk Score:</strong></span>
-                        <span style={{ color: site.risk_score > 50 ? '#f5222d' : '#52c41a' }}>
-                          {site.risk_score || 0}%
-                        </span>
+                        <span style={{ color: site.risk_score > 50 ? '#f5222d' : '#52c41a' }}>{site.risk_score || 0}%</span>
                       </div>
-                      {site.temperature && (
+                      {site.temperature != null && (
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span><strong>Temperature:</strong></span>
-                          <span>{site.temperature}°C</span>
+                          <span><strong>Temperature:</strong></span><span>{site.temperature}°C</span>
                         </div>
                       )}
-                      {site.aqi && (
+                      {site.aqi != null && (
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span><strong>AQI:</strong></span>
-                          <span>{site.aqi}</span>
+                          <span><strong>AQI:</strong></span><span>{site.aqi}</span>
                         </div>
                       )}
                     </div>
-                    
                     <Divider style={{ margin: '8px 0' }} />
-                    
-                    <Button 
-                      size="small" 
-                      type="primary" 
-                      block
-                      onClick={() => handleViewSite(site)}
-                    >
-                      View Details
-                    </Button>
+                    <Button size="small" type="primary" block onClick={() => handleViewSite(site)}>View Details</Button>
                   </div>
                 </Popup>
-                
                 <Circle
-                  center={[site.latitude, site.longitude]}
+                  center={[lat, lng]}
                   radius={site.status === 'critical' ? 300 : site.status === 'anomaly' ? 200 : 120}
                   pathOptions={{
                     color: markerColor,
@@ -2024,188 +1987,144 @@ const LiveMonitoringPanel = () => {
                     weight: 1.5,
                     dashArray: site.status === 'warning' ? '5,5' : undefined
                   }}
+                  bubblingMouseEvents={false}
+                  eventHandlers={{ click: () => handleViewSite(site) }}
                 />
               </Marker>
             );
           })}
-          
-          {/* User Location Marker */}
-          {userLocation && isLocationDetected && (
+
+          {/* Selected place — drag the pin to fine-tune the location */}
+          {hasPlace && currentLocation.source !== 'auto' && (
             <Marker
-              position={[userLocation.lat, userLocation.lng]}
-              icon={L.divIcon({
-                className: 'user-location-marker',
-                html: `
-                  <div style="
-                    width: 20px;
-                    height: 20px;
-                    background: #1890ff;
-                    border-radius: 50%;
-                    border: 3px solid white;
-                    box-shadow: 0 0 20px rgba(24,144,255,0.5);
-                    animation: pulse 1.5s infinite;
-                  "></div>
-                `,
-                iconSize: [20, 20],
-                iconAnchor: [10, 10]
-              })}
+              position={[currentLocation.lat, currentLocation.lng]}
+              icon={SELECTED_ICON}
+              draggable
+              eventHandlers={{
+                dragend: (e) => {
+                  const p = e.target.getLatLng();
+                  handleMapClick({ lat: p.lat, lng: p.lng });
+                }
+              }}
             >
               <Popup>
-                <div>
-                  <strong>📍 Your Location</strong>
-                  <br />
-                  Lat: {userLocation.lat.toFixed(4)}
-                  <br />
-                  Lng: {userLocation.lng.toFixed(4)}
+                <div style={{ maxWidth: 240 }}>
+                  <strong>{currentLocation.name}</strong>
+                  <div style={{ fontSize: 11, color: '#888' }}>{coordLabel(currentLocation.lat, currentLocation.lng)}</div>
+                  <div style={{ fontSize: 11, marginTop: 4 }}>Drag the pin to adjust the location.</div>
                 </div>
               </Popup>
             </Marker>
           )}
-          
-          {/* Map Controls Overlay */}
-          <div style={{
-            position: 'absolute',
-            top: 80,
-            left: 20,
-            zIndex: 1000,
-            display: 'flex',
-            gap: '8px',
-            alignItems: 'center',
-            flexWrap: 'wrap'
-          }}>
-            <AutoLocationButton 
-              onLocationFound={handleLocationFound} 
-              analyzing={analyzing}
-            />
-            <Button
-              size="small"
-              icon={<SaveOutlined />}
-              onClick={() => {
-                if (currentLocation.lat || currentLocation.lng) {
-                  saveLocationPreference(currentLocation);
-                  message.success('📍 Location saved as preference');
-                }
-              }}
-            >
-              Save Location
-            </Button>
-            <Popconfirm
-              title="Clear saved location?"
-              onConfirm={clearSavedPreference}
-              okText="Yes"
-              cancelText="No"
-            >
-              <Button
-                size="small"
-                icon={<DeleteOutlined />}
-                danger
+
+          {/* User Location Marker + accuracy circle */}
+          {userLocation && isLocationDetected && (
+            <>
+              {userLocation.accuracy > 0 && userLocation.accuracy < 5000 && (
+                <Circle
+                  center={[userLocation.lat, userLocation.lng]}
+                  radius={userLocation.accuracy}
+                  pathOptions={{ color: '#1890ff', fillColor: '#1890ff', fillOpacity: 0.08, weight: 1 }}
+                />
+              )}
+              <Marker
+                position={[userLocation.lat, userLocation.lng]}
+                icon={L.divIcon({
+                  className: 'user-location-marker',
+                  html: '<div style="width:20px;height:20px;background:#1890ff;border-radius:50%;border:3px solid white;box-shadow:0 0 20px rgba(24,144,255,0.5);animation:pulse 1.5s infinite;"></div>',
+                  iconSize: [20, 20],
+                  iconAnchor: [10, 10]
+                })}
               >
-                Clear Saved
-              </Button>
-            </Popconfirm>
-            <Switch
-              checked={showHeatmap}
-              onChange={setShowHeatmap}
-              checkedChildren="Heat ON"
-              unCheckedChildren="Heat OFF"
-              size="small"
-            />
-            <Button
-              size="small"
-              icon={<ReloadOutlined />}
-              onClick={handleRefresh}
-              loading={loading}
-            >
-              Refresh
-            </Button>
-            <Select
-              value={filterStatus}
-              onChange={setFilterStatus}
-              style={{ width: 110 }}
-              size="small"
-            >
-              <Option value="all">All Sites</Option>
-              <Option value="normal">Normal</Option>
-              <Option value="warning">Warning</Option>
-              <Option value="anomaly">Anomaly</Option>
-              <Option value="critical">Critical</Option>
-            </Select>
-          </div>
-          
-          {/* Location Info Overlay */}
-          <div style={{
-            position: 'absolute',
-            bottom: 80,
-            left: 20,
-            zIndex: 1000,
-            background: 'rgba(0,0,0,0.8)',
-            color: 'white',
-            padding: '8px 16px',
-            borderRadius: '8px',
-            fontSize: '12px',
-            backdropFilter: 'blur(10px)',
-            maxWidth: '300px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <GlobalOutlined />
-              <span style={{ fontWeight: 'bold' }}>
-                {currentLocation.name || 'Unknown Location'}
-              </span>
-            </div>
-            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', marginTop: '2px' }}>
-              {currentLocation.lat.toFixed(4)}, {currentLocation.lng.toFixed(4)}
-              {' • '}
-              Source: {currentLocation.source}
-            </div>
-          </div>
-          
-          {/* Site Count Overlay */}
-          <div style={{
-            position: 'absolute',
-            top: 80,
-            right: 20,
-            zIndex: 1000,
-            background: 'rgba(255,255,255,0.95)',
-            padding: '8px 16px',
-            borderRadius: '8px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            fontSize: '13px',
-            textAlign: 'center'
-          }}>
-            <div><strong>{filteredSites.length}</strong> / {sites.length} sites</div>
-            <div style={{ fontSize: '11px', color: '#8c8c8c' }}>
-              {stats.activeDetections} detections • {stats.activeAlerts} alerts
-            </div>
-            {isLocationDetected && (
-              <div style={{ fontSize: '10px', color: '#1890ff', marginTop: '2px' }}>
-                <AimOutlined /> Location detected
-              </div>
-            )}
-          </div>
-          
-          {/* Loading Overlay */}
-          {analyzing && (
-            <div style={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              zIndex: 2000,
-              background: 'rgba(0,0,0,0.7)',
-              color: 'white',
-              padding: '20px 30px',
-              borderRadius: '12px',
-              backdropFilter: 'blur(10px)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px'
-            }}>
-              <Spin />
-              <span>Analyzing location...</span>
-            </div>
+                <Popup>
+                  <div>
+                    <strong>📍 Your location</strong><br />
+                    {coordLabel(userLocation.lat, userLocation.lng)}
+                    {userLocation.accuracy ? <><br />Accuracy ±{Math.round(userLocation.accuracy)} m</> : null}
+                  </div>
+                </Popup>
+              </Marker>
+            </>
           )}
         </SafeMapContainer>
-        
+
+        {/* Overlays sit outside the Leaflet container: clicking them never selects a map location */}
+        <MapSearch onSearch={handleSearchLocation} />
+        <MapControls map={mapInstance} onReset={handleResetView} fullscreenTarget={wrapperRef} />
+
+        <div style={{ ...overlay, top: 70, left: 12, display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', maxWidth: 'calc(100% - 220px)' }}>
+          <AutoLocationButton onClick={() => detectMyLocation()} detecting={detecting} />
+          <Button
+            size="small"
+            icon={<SaveOutlined />}
+            disabled={!hasPlace}
+            onClick={() => {
+              saveLocationPreference(currentLocation);
+              message.success('📍 Location saved — it will open here next time');
+            }}
+          >
+            Save Location
+          </Button>
+          <Popconfirm title="Clear saved location?" onConfirm={clearSavedPreference} okText="Yes" cancelText="No">
+            <Button size="small" icon={<DeleteOutlined />} danger>Clear Saved</Button>
+          </Popconfirm>
+          <Switch checked={showHeatmap} onChange={setShowHeatmap} checkedChildren="Heat ON" unCheckedChildren="Heat OFF" size="small" />
+          <Button size="small" icon={<ReloadOutlined />} onClick={handleRefresh} loading={loading}>Refresh</Button>
+          <Select value={filterStatus} onChange={setFilterStatus} style={{ width: 110 }} size="small">
+            <Option value="all">All Sites</Option>
+            <Option value="normal">Normal</Option>
+            <Option value="warning">Warning</Option>
+            <Option value="anomaly">Anomaly</Option>
+            <Option value="critical">Critical</Option>
+          </Select>
+        </div>
+
+        {/* Site count */}
+        <div style={{
+          ...overlay, top: 70, right: 52, background: 'rgba(255,255,255,0.95)', padding: '8px 16px', borderRadius: '8px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)', fontSize: '13px', textAlign: 'center'
+        }}>
+          <div><strong>{filteredSites.length}</strong> / {sites.length} sites</div>
+          <div style={{ fontSize: '11px', color: '#8c8c8c' }}>
+            {stats.activeDetections} detections • {stats.activeAlerts} alerts
+          </div>
+        </div>
+
+        {/* Current place / hint */}
+        <div style={{
+          ...overlay, bottom: 12, left: '50%', transform: 'translateX(-50%)', maxWidth: 'min(520px, calc(100% - 330px))',
+          minWidth: 200, background: 'rgba(0,0,0,0.78)', color: 'white', padding: '8px 14px', borderRadius: '8px', fontSize: '12px'
+        }}>
+          {hasPlace ? (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <GlobalOutlined />
+                <span style={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={currentLocation.name}>
+                  {currentLocation.name}
+                </span>
+              </div>
+              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                {coordLabel(currentLocation.lat, currentLocation.lng)} • {SOURCE_LABELS[currentLocation.source] || currentLocation.source}
+                <Tooltip title="Copy coordinates">
+                  <CopyOutlined style={{ cursor: 'pointer' }} onClick={copyCoordinates} />
+                </Tooltip>
+              </div>
+            </>
+          ) : (
+            <span><AimOutlined /> {detecting ? 'Finding your location… allow access in your browser if asked.' : 'Search a place, click the map, or use My Location to choose an area.'}</span>
+          )}
+        </div>
+
+        {analyzing && (
+          <div style={{
+            ...overlay, zIndex: 2000, top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'rgba(0,0,0,0.7)',
+            color: 'white', padding: '20px 30px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px', pointerEvents: 'none'
+          }}>
+            <Spin />
+            <span>Analyzing location...</span>
+          </div>
+        )}
+
         {/* Map Legend */}
         <div className="map-legend" style={{
           position: 'absolute',
@@ -2244,12 +2163,15 @@ const LiveMonitoringPanel = () => {
     );
   };
 
-  // =============================================================
-  // MAIN RENDER
-  // =============================================================
+  /* ============================================================
+     MAIN RENDER
+     ============================================================ */
   return (
     <div className="live-monitoring-panel">
-      {/* Header */}
+
+      {/* --------------------------------------------------------
+         HEADER
+         -------------------------------------------------------- */}
       <div style={{ marginBottom: 16 }}>
         <Row gutter={[16, 16]} align="middle">
           <Col xs={24} sm={12}>
@@ -2307,7 +2229,9 @@ const LiveMonitoringPanel = () => {
         </Row>
       </div>
 
-      {/* Current Location Indicator */}
+      {/* --------------------------------------------------------
+         CURRENT LOCATION INDICATOR
+         -------------------------------------------------------- */}
       <div style={{ marginBottom: 16 }}>
         <Card size="small" style={{ background: '#f0f5ff' }}>
           <Space>
@@ -2328,7 +2252,9 @@ const LiveMonitoringPanel = () => {
         </Card>
       </div>
 
-      {/* Statistics */}
+      {/* --------------------------------------------------------
+         STATISTICS
+         -------------------------------------------------------- */}
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
         <Col xs={24} sm={6}>
           <Card size="small">
@@ -2357,12 +2283,16 @@ const LiveMonitoringPanel = () => {
         </Col>
       </Row>
 
-      {/* ESG Scorecard */}
+      {/* --------------------------------------------------------
+         ESG SCORECARD
+         -------------------------------------------------------- */}
       <div style={{ marginBottom: 16 }}>
         {renderESGScorecard()}
       </div>
 
-      {/* Main Tabs */}
+      {/* --------------------------------------------------------
+         MAIN TABS
+         -------------------------------------------------------- */}
       <Tabs activeKey={activeTab} onChange={setActiveTab}>
         <TabPane 
           tab={<span><GlobalOutlined /> Live Map</span>} 
@@ -2488,10 +2418,150 @@ const LiveMonitoringPanel = () => {
         </TabPane>
       </Tabs>
 
-      {/* Site Details Modal */}
+      {/* --------------------------------------------------------
+         SITE DETAILS MODAL
+         -------------------------------------------------------- */}
       {renderSiteDetailsModal()}
 
-      {/* Detection Drawer */}
+      {/* --------------------------------------------------------
+         LOCATION PROMPT MODAL (shown when auto-location fails)
+         -------------------------------------------------------- */}
+      <Modal
+        title={
+          <Space>
+            <AimOutlined style={{ color: '#1890ff', fontSize: 20 }} />
+            <span style={{ fontSize: 16 }}>
+              {locationError === 'denied'
+                ? '📍 Location Access Denied'
+                : locationError === 'unavailable'
+                ? '📍 Location Unavailable'
+                : locationError === 'timeout'
+                ? '📍 Location Request Timed Out'
+                : locationError === 'unsupported'
+                ? '📍 Location Not Supported'
+                : locationError === 'insecure'
+                ? '📍 Secure Connection Needed'
+                : '📍 Set Your Location'}
+            </span>
+          </Space>
+        }
+        open={locationModalVisible}
+        onCancel={() => setLocationModalVisible(false)}
+        footer={null}
+        width={520}
+        maskClosable={false}
+        closable={true}
+      >
+        <div style={{ padding: '8px 0' }}>
+          <Alert
+            type={locationError === 'denied' ? 'warning' : 'info'}
+            showIcon
+            message={
+              locationError === 'denied'
+                ? 'You did not allow access to your location. To use auto-location, enable it in your browser settings. Or simply search for a city below.'
+                : locationError === 'unavailable'
+                ? 'Your device location could not be determined. Make sure location services are turned ON in your device settings, or search for a city below.'
+                : locationError === 'timeout'
+                ? 'Detecting your location took too long. Try again with location services enabled, or search for a city below.'
+                : locationError === 'unsupported'
+                ? 'Your browser does not support geolocation. Please search for a city or click on the map to select a location.'
+                : locationError === 'insecure'
+                ? 'Browsers only share your location on secure (https) pages. Open the site with https://, or search for a city below.'
+                : 'We need a location to show environmental monitoring data. Allow location access, or search for a city below.'
+            }
+            style={{ marginBottom: 20, borderRadius: 8 }}
+          />
+
+          <Space direction="vertical" style={{ width: '100%' }} size="middle">
+            <Button
+              type="primary"
+              block
+              size="large"
+              icon={<SearchOutlined />}
+              onClick={() => {
+                setLocationModalVisible(false);
+                setTimeout(() => {
+                  const el = document.querySelector('.map-search-box input');
+                  if (el) el.focus();
+                }, 200);
+              }}
+            >
+              Search a City or Address
+            </Button>
+
+            <Button
+              block
+              size="large"
+              icon={retryingLocation ? <LoadingOutlined /> : <AimOutlined />}
+              loading={retryingLocation}
+              onClick={async () => {
+                setRetryingLocation(true);
+                const ok = await detectMyLocation();
+                setRetryingLocation(false);
+                if (!ok) message.warning('Still cannot detect your location. Please search for a city instead.');
+              }}
+            >
+              Try My Location Again
+            </Button>
+
+            <Button block size="large" onClick={() => setLocationModalVisible(false)}>
+              Continue with World Map
+            </Button>
+          </Space>
+
+          <div style={{
+            marginTop: 20,
+            padding: 12,
+            background: '#f0f5ff',
+            borderRadius: 8,
+            fontSize: 12,
+            color: '#595959'
+          }}>
+            <div style={{ fontWeight: 600, marginBottom: 6 }}>
+              <InfoCircleOutlined style={{ color: '#1890ff', marginRight: 6 }} />
+              How to enable location in your browser
+            </div>
+            <div style={{ lineHeight: 1.7 }}>
+              <div><strong>Chrome / Edge:</strong> Click the lock icon left of the URL → Site settings → Location → Allow</div>
+              <div><strong>Firefox:</strong> Click the lock icon → Clear permissions → Reload and allow location</div>
+              <div><strong>Safari:</strong> Safari menu → Settings for this website → Location → Allow</div>
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* --------------------------------------------------------
+         PERSISTENT WARNING WHEN NO LOCATION SET
+         -------------------------------------------------------- */}
+      {currentLocation.source === 'neutral' && !locationModalVisible && (
+        <div style={{ marginBottom: 16 }}>
+          <Alert
+            type="warning"
+            showIcon
+            icon={<AimOutlined />}
+            message="No location selected yet"
+            description={
+              <Space wrap>
+                <span>Enable location services and click</span>
+                <Button
+                  type="link"
+                  size="small"
+                  style={{ padding: 0, height: 'auto' }}
+                  onClick={() => setLocationModalVisible(true)}
+                >
+                  use my location
+                </Button>
+                <span>or search for any city using the search bar on the map.</span>
+              </Space>
+            }
+            style={{ borderRadius: 8 }}
+          />
+        </div>
+      )}
+
+      {/* --------------------------------------------------------
+         DETECTION DRAWER
+         -------------------------------------------------------- */}
       {renderDetectionDrawer()}
     </div>
   );

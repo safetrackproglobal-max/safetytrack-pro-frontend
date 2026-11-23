@@ -235,49 +235,7 @@
 }
 
 /* Dark Mode */
-@media (prefers-color-scheme: dark) {
-  .offline-header {
-    background: #1f1f1f;
-  }
-
-  .connection-status-card {
-    background: linear-gradient(to right, #162312, #1f1f1f);
-    border-color: #274916;
-  }
-
-  .connection-status-card.offline {
-    background: linear-gradient(to right, #2c1618, #1f1f1f);
-    border-color: #58181c;
-  }
-
-  .cache-strategy-item {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-
-  .cache-strategy-item:hover {
-    background: #111a2c;
-    border-color: #177ddc;
-  }
-
-  .sync-queue-item {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-
-  .conflict-item {
-    background: #2c1618;
-  }
-
-  .conflict-version-content {
-    background: #262626;
-    color: #e6e6e6;
-  }
-
-  .storage-chart {
-    background: #262626;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* Animations */
 @keyframes pulse-border {

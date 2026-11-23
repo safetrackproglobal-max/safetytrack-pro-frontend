@@ -175,39 +175,7 @@
 }
 
 /* Dark Mode */
-@media (prefers-color-scheme: dark) {
-  .integration-header {
-    background: #1f1f1f;
-  }
-  
-  .integration-card {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-  
-  .integration-card.connected {
-    background: linear-gradient(to bottom right, #162312, #1f1f1f);
-  }
-  
-  .api-key-display {
-    background: #262626;
-    border-color: #303030;
-    color: #e6e6e6;
-  }
-  
-  .webhook-item:hover {
-    background: #262626;
-  }
-  
-  .integration-hub .ant-table-thead > tr > th {
-    background: #262626;
-  }
-  
-  .oauth-notice {
-    background: #111a2c;
-    border-color: #15395b;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* Animations */
 @keyframes integration-pulse {

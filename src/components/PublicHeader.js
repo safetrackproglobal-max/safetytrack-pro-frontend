@@ -1,15 +1,9 @@
 // src/components/PublicHeader.js
 import React, { useState } from 'react';
-import { Layout, Menu, Button, Space, Dropdown, Avatar } from 'antd';
+import { Layout, Button, Dropdown, Avatar, Drawer, Space } from 'antd';
 import { 
-  UserOutlined,
-  SafetyCertificateOutlined,
-  LoginOutlined,
-  UserAddOutlined,
-  LogoutOutlined,
-  ProfileOutlined,
-  DashboardOutlined,
-  GlobalOutlined
+  UserOutlined, LoginOutlined, UserAddOutlined, LogoutOutlined,
+  ProfileOutlined, DashboardOutlined, MenuOutlined 
 } from '@ant-design/icons';
 import { Link, useLocation, useHistory } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -17,131 +11,83 @@ import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from 'react-i18next';
 import LanguageSelector from './LanguageSelector';
 import './PublicHeader.css';
+import logoImage from '../assets/images/safetrack-logo.jpeg';
 
 const { Header } = Layout;
 
 function PublicHeader() {
-  const [current, setCurrent] = useState('home');
   const location = useLocation();
   const history = useHistory();
   const { user, logout } = useAuth();
   const { t } = useTranslation();
-  const { currentLanguage, isRTL } = useLanguage();
-
-  // Update current menu item based on location
-  React.useEffect(() => {
-    const path = location.pathname;
-    if (path === '/') setCurrent('home');
-    else if (path.includes('/features')) setCurrent('features');
-    else if (path.includes('/pricing')) setCurrent('pricing');
-    else if (path.includes('/contact')) setCurrent('contact');
-    else if (path.includes('/dashboard')) setCurrent('dashboard');
-    else if (path.includes('/profile')) setCurrent('profile');
-  }, [location]);
-
-  const handleMenuClick = (e) => {
-    setCurrent(e.key);
-  };
+  const { isRTL } = useLanguage();
+  
+  // ✅ State for mobile menu drawer
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     history.push('/');
   };
 
-  // User menu items with translations
   const userMenuItems = [
-    {
-      key: 'profile',
-      icon: <ProfileOutlined />,
-      label: t('navigation.profile'),
-      onClick: () => history.push('/profile')
-    },
-    {
-      key: 'dashboard',
-      icon: <DashboardOutlined />,
-      label: t('navigation.dashboard'),
-      onClick: () => history.push('/dashboard')
-    },
-    {
-      type: 'divider',
-    },
-    {
-      key: 'logout',
-      icon: <LogoutOutlined />,
-      label: t('navigation.logout'),
-      danger: true,
-      onClick: handleLogout,
-    },
+    { key: 'profile', icon: <ProfileOutlined />, label: t('navigation.profile'), onClick: () => history.push('/profile') },
+    { key: 'dashboard', icon: <DashboardOutlined />, label: t('navigation.dashboard'), onClick: () => history.push('/dashboard') },
+    { type: 'divider' },
+    { key: 'logout', icon: <LogoutOutlined />, label: t('navigation.logout'), danger: true, onClick: handleLogout },
   ];
 
-  // Navigation menu items with translations
-  const menuItems = [
-    {
-      key: 'home',
-      label: <Link to="/">{t('navigation.home')}</Link>,
-    },
-    {
-      key: 'features',
-      label: <Link to="/features">{t('navigation.features')}</Link>,
-    },
-    {
-      key: 'pricing',
-      label: <Link to="/pricing">{t('navigation.pricing')}</Link>,
-    },
-    {
-      key: 'contact',
-      label: <Link to="/contact">{t('navigation.contact')}</Link>,
-    }
+  const navLinks = [
+    { path: '/', label: t('navigation.home') },
+    { path: '/features', label: t('navigation.features') },
+    { path: '/pricing', label: t('navigation.pricing') },
+    { path: '/contact', label: t('navigation.contact') },
   ];
 
-  // Get user display name
-  const getUserDisplayName = () => {
-    if (user?.name) return user.name;
-    if (user?.email) return user.email.split('@')[0];
-    return t('common.user');
-  };
-
-  // Get user initials for avatar
-  const getUserInitials = () => {
-    const name = getUserDisplayName();
-    if (name && name.length > 0) {
-      return name.charAt(0).toUpperCase();
-    }
-    return 'U';
+  // Close mobile menu when a link is clicked
+  const handleNavClick = (path) => {
+    history.push(path);
+    setMobileMenuOpen(false);
   };
 
   return (
-    <Header className={`public-header ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
-      <div className="header-container">
-        {/* Logo */}
-        <div className="logo">
-          <Link to="/" className="logo-link">
-            <div className="logo-icon">
-              <SafetyCertificateOutlined />
+    <>
+      <Header className={`public-header ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="header-container">
+          
+          {/* 1. LOGO SECTION */}
+          <div className="logo">
+            <Link to="/" className="logo-link">
+              <img src={logoImage} alt="SafeTrack Pro" className="logo-img" />
+              <span className="logo-text">
+                SafeTrack<span className="logo-pro">Pro</span>
+              </span>
+            </Link>
+          </div>
+
+          {/* 2. DESKTOP NAVIGATION LINKS */}
+          <nav className="nav-menu">
+            {navLinks.map((link) => (
+              <Link 
+                key={link.path} 
+                to={link.path} 
+                className={`nav-link ${location.pathname === link.path ? 'active' : ''}`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+
+          {/* 3. HEADER ACTIONS (Desktop & Mobile) */}
+          <div className="header-actions">
+            
+            {/* Language Selector (Hidden on very small screens to save space) */}
+            <div className="desktop-only">
+              <LanguageSelector />
             </div>
-            <span className="logo-text">
-              SafeTrack <span className="logo-pro">Pro</span>
-            </span>
-          </Link>
-        </div>
-
-        {/* Navigation Menu */}
-        <Menu 
-          mode="horizontal" 
-          selectedKeys={[current]} 
-          onClick={handleMenuClick}
-          className="nav-menu"
-          items={menuItems}
-        />
-
-        {/* Auth Buttons / User Menu */}
-        <div className="header-actions">
-          <Space size="middle" wrap>
-            {/* Language Selector */}
-            <LanguageSelector />
 
             {user ? (
-              <>
+              <div className="auth-group desktop-only">
                 <Button 
                   type="primary" 
                   icon={<DashboardOutlined />}
@@ -150,30 +96,16 @@ function PublicHeader() {
                 >
                   {t('navigation.dashboard')}
                 </Button>
-                <Dropdown
-                  menu={{ items: userMenuItems }}
-                  trigger={['click']}
-                  placement="bottomRight"
-                  overlayClassName="user-dropdown"
-                >
-                  <div className="user-avatar" role="button" tabIndex={0}>
-                    <Avatar 
-                      size="default" 
-                      icon={<UserOutlined />} 
-                      src={user?.avatar}
-                      alt={`${getUserDisplayName()} avatar`}
-                      style={{ backgroundColor: '#1890ff' }}
-                    >
-                      {!user?.avatar && getUserInitials()}
-                    </Avatar>
-                    <span className="user-name">
-                      {getUserDisplayName()}
-                    </span>
+                
+                <Dropdown menu={{ items: userMenuItems }} trigger={['click']} placement="bottomRight">
+                  <div className="user-avatar">
+                    <Avatar size="default" icon={<UserOutlined />} src={user?.avatar} style={{ backgroundColor: '#1890ff' }} />
+                    <span className="user-name">{user?.name || user?.email?.split('@')[0]}</span>
                   </div>
                 </Dropdown>
-              </>
+              </div>
             ) : (
-              <>
+              <div className="auth-group desktop-only">
                 <Button 
                   type="text" 
                   icon={<LoginOutlined />}
@@ -182,6 +114,7 @@ function PublicHeader() {
                 >
                   {t('navigation.login')}
                 </Button>
+                
                 <Button 
                   type="primary" 
                   icon={<UserAddOutlined />}
@@ -190,12 +123,78 @@ function PublicHeader() {
                 >
                   {t('navigation.signup')}
                 </Button>
-              </>
+              </div>
             )}
-          </Space>
+
+            {/* ✅ Mobile Hamburger Button (Only visible on mobile) */}
+            <Button 
+              type="text" 
+              icon={<MenuOutlined style={{ fontSize: '20px' }} />} 
+              className="mobile-menu-btn"
+              onClick={() => setMobileMenuOpen(true)}
+            />
+          </div>
+          
         </div>
-      </div>
-    </Header>
+      </Header>
+
+      {/* ✅ MOBILE MENU DRAWER */}
+      <Drawer
+        title={
+          <div className="drawer-logo">
+            <img src={logoImage} alt="Logo" className="logo-img" />
+            <span>SafeTrack<span className="logo-pro">Pro</span></span>
+          </div>
+        }
+        placement="right"
+        onClose={() => setMobileMenuOpen(false)}
+        open={mobileMenuOpen}
+        width={280}
+        className="mobile-drawer"
+      >
+        <div className="mobile-nav-links">
+          {navLinks.map((link) => (
+            <Link 
+              key={link.path} 
+              to={link.path} 
+              className={`mobile-nav-link ${location.pathname === link.path ? 'active' : ''}`}
+              onClick={() => handleNavClick(link.path)}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+
+        <div className="mobile-drawer-actions">
+          <LanguageSelector />
+          
+          <hr className="drawer-divider" />
+
+          {user ? (
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Button type="primary" block icon={<DashboardOutlined />} onClick={() => handleNavClick('/dashboard')}>
+                Dashboard
+              </Button>
+              <Button block icon={<ProfileOutlined />} onClick={() => handleNavClick('/profile')}>
+                Profile
+              </Button>
+              <Button danger block icon={<LogoutOutlined />} onClick={handleLogout}>
+                Logout
+              </Button>
+            </Space>
+          ) : (
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Button type="text" block icon={<LoginOutlined />} onClick={() => handleNavClick('/login')}>
+                {t('navigation.login')}
+              </Button>
+              <Button type="primary" block icon={<UserAddOutlined />} onClick={() => handleNavClick('/signup')}>
+                {t('navigation.signup')}
+              </Button>
+            </Space>
+          )}
+        </div>
+      </Drawer>
+    </>
   );
 }
 

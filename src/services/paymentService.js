@@ -1,5 +1,6 @@
 // src/services/paymentService.js
 import { apiGet, apiPost, apiPut, apiDelete, apiUpload } from './api.js';
+import { PAYMENT_ACCOUNTS } from '../constants/accountFlow';
 
 class PaymentService {
   
@@ -486,60 +487,19 @@ class PaymentService {
 
   static getStaticManualDetails(country, method) {
     const details = {
+      // Only REAL accounts (see PAYMENT_ACCOUNTS in constants/accountFlow.js).
       "Ghana": {
         "bank_transfer": {
-          "account_name": "SafetyTrack Pro Ltd",
-          "account_number": "1234567890",
-          "bank_name": "Ecobank Ghana",
-          "branch": "Accra Main Branch",
-          "swift_code": "ECO CGH ACC",
-          "instructions": "Make transfer to account above. Use your email as reference. Send receipt to payments@safetytrack.com"
-        }
-      },
-      "Qatar": {
-        "qnb": {
-          "account_name": "SafetyTrack Qatar LLC",
-          "account_number": "QA12 3456 7890 1234 5678 90",
-          "bank_name": "Qatar National Bank",
-          "branch": "Doha Main Branch",
-          "swift_code": "QNBAQAQA",
-          "iban": "QA12 3456 7890 1234 5678 90",
-          "instructions": "Transfer to QNB account above. Include email in reference. Email receipt to payments@safetytrack.com"
+          "account_name": PAYMENT_ACCOUNTS.bank.accountName,
+          "account_number": PAYMENT_ACCOUNTS.bank.accountNumber,
+          "bank_name": PAYMENT_ACCOUNTS.bank.bankName,
+          "instructions": "Make transfer to the account above. Use your email as reference."
         },
-        "paypal": {
-          "paypal_email": "payments@safetytrack.com",
-          "paypal_me": "https://paypal.me/safetytrack",
-          "instructions": "Send payment via PayPal to email above. Use invoice number as reference."
-        }
-      },
-      "India": {
-        "bank_transfer": {
-          "account_name": "SafetyTrack India Pvt Ltd",
-          "account_number": "9876543210",
-          "bank_name": "HDFC Bank",
-          "branch": "Mumbai Main Branch",
-          "ifsc_code": "HDFC0000123",
-          "instructions": "NEFT/RTGS/IMPS transfer. Use email as reference. Email receipt to payments@safetytrack.com"
-        },
-        "paypal": {
-          "paypal_email": "payments@safetytrack.com",
-          "paypal_me": "https://paypal.me/safetytrack",
-          "instructions": "Send payment via PayPal to email above. For INR payments, PayPal will handle conversion."
-        }
-      },
-      "United States": {
-        "bank_transfer": {
-          "account_name": "SafetyTrack Inc",
-          "account_number": "123456789012",
-          "bank_name": "Bank of America",
-          "routing_number": "021000322",
-          "swift_code": "BOFAUS3N",
-          "instructions": "ACH/Wire transfer. Include email in memo. Email receipt to payments@safetytrack.com"
-        },
-        "paypal": {
-          "paypal_email": "payments@safetytrack.com",
-          "paypal_me": "https://paypal.me/safetytrack",
-          "instructions": "Send payment via PayPal to email above."
+        "mobile_money": {
+          "account_name": PAYMENT_ACCOUNTS.momo.accountName,
+          "account_number": PAYMENT_ACCOUNTS.momo.number,
+          "bank_name": PAYMENT_ACCOUNTS.momo.network,
+          "instructions": "Send the exact amount to the number above. Use your email as reference."
         }
       },
       "default": {

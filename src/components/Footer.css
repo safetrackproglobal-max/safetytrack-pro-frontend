@@ -417,29 +417,7 @@
 /* ============================================
    DARK MODE SUPPORT
    ============================================ */
-@media (prefers-color-scheme: dark) {
-  .footer,
-  .main-footer {
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-    border-top-color: #1890ff;
-  }
-  
-  .footer-bottom {
-    background: rgba(0, 0, 0, 0.5);
-    border-top-color: #404040;
-  }
-  
-  .footer-section p,
-  .link-group a,
-  .contact-item,
-  .footer-bottom p {
-    color: #a0a0a0;
-  }
-  
-  .link-group h4 {
-    border-bottom-color: #404040;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* ============================================
    HIGH CONTRAST MODE
@@ -633,19 +611,15 @@
   gap: 12px;
 }
 
-.footer-logo-symbol {
+/* ✅ UPDATED: Replaced the STP text block with actual logo image styling */
+.footer-logo-image {
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 14px;
-  color: #ffffff;
-  letter-spacing: 0.5px;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+  object-fit: contain;
+  background: #ffffff; /* Ensures logo is visible on dark backgrounds */
+  padding: 2px;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
 }
 
 .footer-logo-text {

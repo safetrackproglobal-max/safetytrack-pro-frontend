@@ -28,6 +28,7 @@ const checkHospitalModule = () => {
     error.code = 'HOSPITAL_MODULE_NOT_SETUP';
     error.userMessage = 'Please set up your hospital profile first to access healthcare features.';
     error.requiresSetup = true;
+    error.silent = true; // ✅ Prevents console spam
     throw error;
   }
 };
@@ -123,6 +124,32 @@ export const deleteHospital = async (id) => {
   }
 };
 
+/**
+ * Get current user's company information
+ * Uses /api/company/info — derives company from authenticated user
+ * @returns {Promise} Company data
+ */
+export const getCompany = async () => {
+  try {
+    console.log('🔄 Fetching company info...');
+    const res = await api.get('/company/info');
+    console.log('✅ Company info received:', res.data);
+    return res.data;
+  } catch (error) {
+    if (error.response?.status === 404) {
+      // No company associated — not an error, just a state
+      console.log('ℹ️ No company associated with user');
+      return {
+        success: false,
+        error: 'No company associated with your account',
+        code: 'NO_COMPANY_ASSOCIATED'
+      };
+    }
+    console.error('❌ Error fetching company info:', error);
+    throw error;
+  }
+};
+
 // ============================================
 // DEPARTMENT MANAGEMENT
 // ============================================
@@ -136,7 +163,9 @@ export const getDepartments = async (hospitalId = null) => {
     console.log('✅ Departments data received:', res.data);
     return res.data;
   } catch (error) {
-    console.error('❌ Error fetching departments:', error);
+    if (!error.silent) {  // ✅ ADD THIS
+      console.error('❌ Error fetching departments:', error);
+    }
     throw error;
   }
 };
@@ -2176,27 +2205,28 @@ export const getAIServices = async (hospitalId = null) => {
     
     const effectiveId = getEffectiveHospitalId(hospitalId);
     if (!effectiveId) {
-      console.warn('⚠️ No hospital ID found for AI services');
       return { success: true, data: [], message: 'No hospital found' };
     }
     
-    console.log(`🔄 Fetching AI services for hospital ${effectiveId}...`);
     const res = await api.get(`/hospital/${effectiveId}/ai-services`);
-    console.log('✅ AI services data received:', res.data);
     return res.data;
   } catch (error) {
-    if (error.code === 'HOSPITAL_MODULE_NOT_SETUP' || error.requiresSetup) {
+    if (!error.silent) {  // ✅ ADD THIS
+      console.error('❌ Error fetching AI services:', error);
+    }
+    if (error.requiresSetup) {
       return { 
         success: true, 
         data: [], 
-        message: error.userMessage || 'Hospital module not set up',
+        message: error.userMessage,
         requiresSetup: true
       };
     }
-    console.error('❌ Error fetching AI services:', error);
     throw error;
   }
 };
+    
+    
 
 export const getHospitalAICapabilities = async (hospitalId = null) => {
   try {
@@ -2249,6 +2279,67 @@ export const getAIAnalytics = async (hospitalId = null) => {
 // ============================================
 // ANALYTICS & REPORTS
 // ============================================
+/**
+ * List financial records (paginated)
+ */
+export const listFinancialRecords = async (hospitalId = null, filters = {}) => {
+  try {
+    checkHospitalModule();
+    const effectiveId = validateHospitalId(hospitalId, 'listFinancialRecords');
+    const params = new URLSearchParams(filters).toString();
+    const res = await api.get(`/hospital/${effectiveId}/financial/records?${params}`);
+    return res.data;
+  } catch (error) {
+    if (!error.silent) console.error('❌ Error listing financial records:', error);
+    throw error;
+  }
+};
+
+/**
+ * Create a financial record
+ */
+export const createFinancialRecord = async (hospitalId, data) => {
+  try {
+    checkHospitalModule();
+    const effectiveId = validateHospitalId(hospitalId, 'createFinancialRecord');
+    const res = await api.post(`/hospital/${effectiveId}/financial`, data);
+    return res.data;
+  } catch (error) {
+    if (!error.silent) console.error('❌ Error creating financial record:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update a financial record
+ */
+export const updateFinancialRecord = async (hospitalId, recordId, data) => {
+  try {
+    checkHospitalModule();
+    const effectiveId = validateHospitalId(hospitalId, 'updateFinancialRecord');
+    const res = await api.put(`/hospital/${effectiveId}/financial/${recordId}`, data);
+    return res.data;
+  } catch (error) {
+    if (!error.silent) console.error('❌ Error updating financial record:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a financial record
+ */
+export const deleteFinancialRecord = async (hospitalId, recordId) => {
+  try {
+    checkHospitalModule();
+    const effectiveId = validateHospitalId(hospitalId, 'deleteFinancialRecord');
+    const res = await api.delete(`/hospital/${effectiveId}/financial/${recordId}`);
+    return res.data;
+  } catch (error) {
+    if (!error.silent) console.error('❌ Error deleting financial record:', error);
+    throw error;
+  }
+};
+
 
 export const getHospitalAnalytics = async (hospitalId = null) => {
   try {
@@ -2282,6 +2373,108 @@ export const generateQualityReport = async (hospitalId, dateRange) => {
     return res.data;
   } catch (error) {
     console.error(`❌ Error generating quality report:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Get financial data for hospital
+ * @param {string} hospitalId - Optional hospital ID
+ * @returns {Promise} Financial data (revenue, receivables, claims, etc.)
+ */
+export const getFinancialData = async (hospitalId = null) => {
+  try {
+    checkHospitalModule();
+    const effectiveId = validateHospitalId(hospitalId, 'getFinancialData');
+
+    console.log(`🔄 Fetching financial data for hospital ${effectiveId}...`);
+    const res = await api.get(`/hospital/${effectiveId}/financial`);
+
+    // Normalize response shape
+    const payload = res.data?.data || res.data || {};
+    const normalized = {
+      totalRevenue: payload.totalRevenue || 0,
+      outstandingReceivables: payload.outstandingReceivables || 0,
+      collectionRate: payload.collectionRate || 0,
+      pendingClaims: payload.pendingClaims || 0,
+      revenueByDepartment: Array.isArray(payload.revenueByDepartment)
+        ? payload.revenueByDepartment
+        : [],
+      payerMix: Array.isArray(payload.payerMix) ? payload.payerMix : [],
+    };
+
+    console.log('✅ Financial data received:', normalized);
+    return { success: true, data: normalized };
+  } catch (error) {
+    console.error('❌ Error fetching financial data:', error);
+
+    // Return empty shape so the UI doesn't crash
+    if (error.code === 'HOSPITAL_MODULE_NOT_SETUP' || error.requiresSetup) {
+      return {
+        success: true,
+        data: {
+          totalRevenue: 0,
+          outstandingReceivables: 0,
+          collectionRate: 0,
+          pendingClaims: 0,
+          revenueByDepartment: [],
+          payerMix: [],
+        },
+        requiresSetup: true,
+        message: error.userMessage,
+      };
+    }
+
+    throw error;
+  }
+};
+
+/**
+ * Get system health & integration status
+ * @param {string} hospitalId - Optional hospital ID
+ * @returns {Promise} System health data (uptime, services, integrations)
+ */
+export const getSystemHealth = async (hospitalId = null) => {
+  try {
+    checkHospitalModule();
+    const effectiveId = validateHospitalId(hospitalId, 'getSystemHealth');
+
+    console.log(`🔄 Fetching system health for hospital ${effectiveId}...`);
+    const res = await api.get(`/hospital/${effectiveId}/system-health`);
+
+    // Normalize response shape
+    const payload = res.data?.data || res.data || {};
+    const normalized = {
+      uptime: payload.uptime || '0%',
+      responseTime: payload.responseTime || '0ms',
+      activeUsers: payload.activeUsers || 0,
+      pendingJobs: payload.pendingJobs || 0,
+      services: Array.isArray(payload.services) ? payload.services : [],
+      integrations: Array.isArray(payload.integrations) ? payload.integrations : [],
+    };
+
+    console.log('✅ System health received:', normalized);
+    return { success: true, data: normalized };
+  } catch (error) {
+    console.error('❌ Error fetching system health:', error);
+
+    // Return empty shape so the UI doesn't crash
+    if (error.code === 'HOSPITAL_MODULE_NOT_SETUP' || error.requiresSetup) {
+      return {
+        success: true,
+        data: {
+          uptime: '0%',
+          responseTime: '0ms',
+          activeUsers: 0,
+          pendingJobs: 0,
+          services: [],
+          integrations: [],
+        },
+        requiresSetup: true,
+        message: error.userMessage,
+      };
+    }
+
     throw error;
   }
 };
@@ -2434,18 +2627,41 @@ export const getReports = async (hospitalId = null, filters = {}) => {
 
 
 
-const getHospitalDisplayName = () => {
-  // Get from session storage
-  const hospitalId = sessionStorage.getItem('hospital_id');
-  if (hospitalId && hospitals.length > 0) {
-    const hospital = hospitals.find(h => h.id == hospitalId);
-    if (hospital) return hospital.name;
+/**
+ * Get the display name of the current hospital
+ * Returns null if no hospital exists — caller must handle the empty state
+ * @param {Array} hospitals - Array of hospitals (defaults to empty)
+ * @returns {string|null} Hospital name, or null if none exists
+ */
+const getHospitalDisplayName = (hospitals = []) => {
+  // Ensure hospitals is an array
+  if (!Array.isArray(hospitals)) {
+    hospitals = [];
   }
-  // Fallback to first hospital
-  if (hospitals.length > 0) {
-    return hospitals[0].name || 'Hospital';
+
+  // If there are no hospitals at all, return null
+  if (hospitals.length === 0) {
+    return null;
   }
-  return 'Hospital';
+
+  // Try to get hospital ID from storage
+  const hospitalId =
+    sessionStorage.getItem('hospital_id') ||
+    sessionStorage.getItem('hospitalId') ||
+    localStorage.getItem('hospitalId');
+
+  // If no ID stored, but hospitals exist, return the first one
+  if (!hospitalId) {
+    return hospitals[0]?.name || null;
+  }
+
+  // Find the hospital matching the stored ID
+  const hospital = hospitals.find(h =>
+    String(h.id) === String(hospitalId)
+  );
+
+  // Return the matched hospital name, or null if not found
+  return hospital?.name || null;
 };
 
 export const deleteReport = async (id, hospitalId = null) => {
@@ -2474,7 +2690,7 @@ export const hospitalService = {
   createHospital,
   updateHospital,
   deleteHospital,
-  
+  getCompany,
   
 
   
@@ -2707,7 +2923,13 @@ export const hospitalService = {
   getHospitalAnalytics,
   getComplianceReport,
   generateQualityReport,
-  
+  getFinancialData,    // ✅ ADD THIS
+  getSystemHealth,
+  getFinancialData,
+  listFinancialRecords,
+  createFinancialRecord,
+  updateFinancialRecord,
+  deleteFinancialRecord,
   // Audit & Logging
   getAuditLogs,
   createAuditLog,

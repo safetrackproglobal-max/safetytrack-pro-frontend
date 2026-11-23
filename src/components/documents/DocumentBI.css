@@ -174,28 +174,7 @@
 }
 
 /* Dark Mode */
-@media (prefers-color-scheme: dark) {
-  .bi-header {
-    background: #1f1f1f;
-  }
-  
-  .document-bi.fullscreen {
-    background: #000;
-  }
-  
-  .bi-kpi-card {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-  
-  .document-bi .recharts-cartesian-grid line {
-    stroke: #303030;
-  }
-  
-  .document-bi .ant-statistic-title {
-    color: #8c8c8c;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* Animations */
 @keyframes kpi-update {

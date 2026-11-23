@@ -486,11 +486,7 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  .export-status-card.loading::after {
-    background: rgba(0, 0, 0, 0.7);
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* ============================================
    SMOOTH TRANSITIONS
@@ -514,67 +510,7 @@
 /* ============================================
    DARK MODE SUPPORT
    ============================================ */
-@media (prefers-color-scheme: dark) {
-  .export-status-card.processing {
-    background: linear-gradient(135deg, #111d2c 0%, #1f1f1f 100%);
-    border-color: #153450;
-  }
-  
-  .export-status-card.completed {
-    background: linear-gradient(135deg, #162312 0%, #1f1f1f 100%);
-    border-color: #274916;
-  }
-  
-  .export-status-card.failed {
-    background: linear-gradient(135deg, #2a1215 0%, #1f1f1f 100%);
-    border-color: #58181c;
-  }
-  
-  .export-status-card.cancelled {
-    background: linear-gradient(135deg, #2b2111 0%, #1f1f1f 100%);
-    border-color: #593815;
-  }
-  
-  .status-header {
-    border-bottom-color: #434343;
-  }
-  
-  .progress-details,
-  .export-timeline,
-  .export-meta {
-    background: #141414;
-    border-color: #434343;
-  }
-  
-  .detail-item {
-    border-bottom-color: #434343;
-  }
-  
-  .detail-label {
-    color: rgba(255, 255, 255, 0.65);
-  }
-  
-  .detail-value {
-    color: rgba(255, 255, 255, 0.85);
-  }
-  
-  .error-stack {
-    background: #0d0d0d;
-    color: #a8a8a8;
-  }
-  
-  .export-meta .ant-statistic-title {
-    color: rgba(255, 255, 255, 0.45);
-  }
-  
-  .export-meta .ant-statistic-content {
-    color: rgba(255, 255, 255, 0.85);
-  }
-  
-  .export-status-card .ant-result-subtitle {
-    color: rgba(255, 255, 255, 0.65);
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* ============================================
    CUSTOM SCROLLBAR
@@ -594,15 +530,7 @@
   border-radius: 3px;
 }
 
-@media (prefers-color-scheme: dark) {
-  .error-stack::-webkit-scrollbar-track {
-    background: #1a1a1a;
-  }
-  
-  .error-stack::-webkit-scrollbar-thumb {
-    background: #3a3a3a;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* ============================================
    ACCESSIBILITY

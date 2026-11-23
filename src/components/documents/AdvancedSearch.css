@@ -235,44 +235,7 @@
 }
 
 /* Dark Mode */
-@media (prefers-color-scheme: dark) {
-  .search-header {
-    background: #1f1f1f;
-  }
-  
-  .boolean-help {
-    background: #262626;
-    border-left-color: #722ed1;
-  }
-  
-  .boolean-help .ant-tag {
-    background: #1f1f1f;
-    border-color: #303030;
-    color: #e6e6e6;
-  }
-  
-  .search-result-card {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-  
-  .search-result-card:hover {
-    border-color: #177ddc;
-  }
-  
-  .search-result-card mark {
-    background: #7c5914;
-    color: #ffe58f;
-  }
-  
-  .advanced-search .ant-segmented {
-    background: #1f1f1f;
-  }
-  
-  .filters-panel .ant-divider {
-    color: #e6e6e6;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* Animations */
 @keyframes search-fade-in {

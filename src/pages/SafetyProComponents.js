@@ -68,6 +68,7 @@ import SafetyProService from '../services/safetyproservice';
 import ApprovalActions from './ApprovalActions';
 import StatsOverview from './StatsOverview';
 import CSVUserUpload from '../components/CSVUserUpload';
+import CommandCenter from './CommandCenter';
 import api, { apiGet, apiPost } from '../services/api';
 
 const { Search } = Input;
@@ -470,34 +471,10 @@ export const BulkOperationsModal = ({ visible, onClose, onSuccess }) => {
   );
 };
 
-// ==================== SYSTEM HEALTH CARD ====================
-export const SystemHealthCard = () => {
-  const [health, setHealth] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => { fetchHealth(); }, []);
-
-  const fetchHealth = async () => {
-    setLoading(true);
-    try {
-      const response = await SafetyProService.getSystemHealth();
-      if (response.success) setHealth(response.data);
-    } catch (error) { console.error('Error fetching health:', error); }
-    finally { setLoading(false); }
-  };
-
-  return (
-    <Card title={<Space><HeartOutlined style={{ color: '#ff4d4f' }} /><span>System Health</span></Space>} extra={<Button size="small" onClick={fetchHealth} icon={<ReloadOutlined />} />} loading={loading}>
-      <Row gutter={[16, 16]}>
-        <Col span={12}><Statistic title="API Status" value={health?.api?.status || 'Checking'} valueStyle={{ color: health?.api?.healthy ? '#52c41a' : '#ff4d4f' }} prefix={<ApiOutlined />} /></Col>
-        <Col span={12}><Statistic title="Database" value={health?.database?.status || 'Checking'} valueStyle={{ color: health?.database?.healthy ? '#52c41a' : '#ff4d4f' }} prefix={<DatabaseOutlined />} /></Col>
-        <Col span={12}><Statistic title="Storage" value={`${health?.storage?.used || 0}%`} valueStyle={{ color: health?.storage?.healthy ? '#52c41a' : '#faad14' }} prefix={<CloudOutlined />} /></Col>
-        <Col span={12}><Statistic title="Active Users" value={health?.active_users || 0} prefix={<TeamOutlined />} /></Col>
-      </Row>
-    </Card>
-  );
+// ==================== COMMAND CENTER TAB (Replaces SystemHealthCard) ====================
+export const CommandCenterTab = () => {
+  return <CommandCenter />;
 };
-
 // ==================== MANUAL USER CREATION COMPONENT ====================
 export const ManualUserCreation = ({ onUserCreated }) => {
   const [formData, setFormData] = useState({

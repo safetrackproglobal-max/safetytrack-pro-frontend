@@ -6,7 +6,7 @@
   background: #141414;
   color: rgba(255,255,255,0.85);
 }
-.dashboard-header {
+.powerbi-dashboard .dashboard-header {
   background: white;
   padding: 0 24px;
   display: flex;
@@ -18,7 +18,7 @@
   z-index: 100;
   height: 64px;
 }
-.dark-mode .dashboard-header {
+.powerbi-dashboard.dark-mode .dashboard-header {
   background: #1f1f1f;
   border-bottom: 1px solid #303030;
 }
@@ -32,7 +32,7 @@
   align-items: center;
   gap: 8px;
 }
-.dashboard-content {
+.powerbi-dashboard .dashboard-content {
   padding: 24px;
   min-height: calc(100vh - 64px);
 }
@@ -97,7 +97,7 @@
   margin-bottom: 8px;
 }
 @media (max-width: 768px) {
-  .dashboard-header {
+  .powerbi-dashboard .dashboard-header {
     flex-direction: column;
     height: auto;
     padding: 12px;
@@ -107,7 +107,7 @@
     width: 100%;
     overflow-x: auto;
   }
-  .dashboard-content {
+  .powerbi-dashboard .dashboard-content {
     padding: 12px;
   }
   .widget-library .widget-grid {
@@ -134,10 +134,10 @@
   background: #141414;
 }
 @media print {
-  .dashboard-header, .header-right, .ant-btn, .ant-picker, .ant-select, .ant-switch, .ant-drawer, .ant-modal, .widget-footer button {
+  .powerbi-dashboard .dashboard-header, .header-right, .ant-btn, .ant-picker, .ant-select, .ant-switch, .ant-drawer, .ant-modal, .widget-footer button {
     display: none !important;
   }
-  .dashboard-content { padding: 0; }
+  .powerbi-dashboard .dashboard-content { padding: 0; }
   .widget-card { break-inside: avoid; box-shadow: none; border: 1px solid #ddd; }
   @page { size: landscape; margin: 1cm; }
 }

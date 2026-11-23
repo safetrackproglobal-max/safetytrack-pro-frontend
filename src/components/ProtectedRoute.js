@@ -100,45 +100,10 @@ const ProtectedRoute = ({
     return false;
   };
 
-  // ✅ Check if user is super admin
-  const isSuperAdmin = () => {
-    // Check from user object
-    if (user) {
-      if (user.user_type === 'super_admin' || 
-          user.user_type === 'platform_owner' ||
-          user.is_super_admin === true) {
-        return true;
-      }
-    }
-    
-    // Check from localStorage
-    const role = localStorage.getItem('user_role');
-    const type = localStorage.getItem('user_type');
-    const isSuperAdminFlag = localStorage.getItem('is_super_admin') === 'true';
-    
-    if (isSuperAdminFlag || 
-        role === 'super_admin' || 
-        role === 'platform_owner' ||
-        type === 'super_admin' ||
-        type === 'platform_owner') {
-      return true;
-    }
-    
-    // Check stored user data
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser);
-        if (userData.user_type === 'super_admin' || 
-            userData.user_type === 'platform_owner' ||
-            userData.is_super_admin === true) {
-          return true;
-        }
-      } catch (e) {}
-    }
-    
-    return false;
-  };
+  // Super admin comes ONLY from the signed-in user object the server returned (never from editable browser storage).
+  // The server checks every admin request again, so this only decides which screens to show.
+  const isSuperAdmin = () => !!user && (user.is_super_admin === true || user.is_platform_owner === true
+    || user.is_system_team === true || ['super_admin', 'platform_owner'].includes(user.user_type));
 
   // ✅ Get the correct dashboard path based on role
   const getDashboardPath = (role) => {
@@ -170,6 +135,11 @@ const ProtectedRoute = ({
         // Check if user is authenticated
         if (!isAuthenticated || !user) {
           return <Redirect to="/login" />;
+        }
+
+        // Invited client reviewers (e.g. a client's HSE lead) only use the review portal
+        if (user.user_type === 'client_reviewer' && !props.location.pathname.startsWith('/reviews')) {
+          return <Redirect to="/reviews" />;
         }
 
         // Check plan access if required

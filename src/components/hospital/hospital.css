@@ -539,57 +539,7 @@
 /* ============================================
    DARK MODE SUPPORT
    ============================================ */
-@media (prefers-color-scheme: dark) {
-  .hospital-safety-dashboard {
-    background: #141414;
-  }
-  
-  .dashboard-header {
-    border-bottom-color: #404040;
-  }
-  
-  .dashboard-header h2 {
-    color: #e6e6e6;
-  }
-  
-  .department-card,
-  .summary-card {
-    background: #1f1f1f;
-  }
-  
-  .card-header h3,
-  .stat-value,
-  .incident-title,
-  .summary-value {
-    color: #e6e6e6;
-  }
-  
-  .incident-item {
-    background: #2a2a2a;
-  }
-  
-  .incident-item:hover {
-    background: #333;
-  }
-  
-  .stat-label,
-  .incident-time,
-  .summary-label {
-    color: #a6a6a6;
-  }
-  
-  .progress-bar {
-    background: #3a3a3a;
-  }
-  
-  .view-all-link {
-    color: #3498db;
-  }
-  
-  .view-all-link:hover {
-    background: rgba(52, 152, 219, 0.1);
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* ============================================
    ACCESSIBILITY

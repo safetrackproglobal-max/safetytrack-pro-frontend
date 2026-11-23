@@ -206,24 +206,7 @@
 }
 
 /* Dark Mode */
-@media (prefers-color-scheme: dark) {
-  .bundles-header {
-    background: #1f1f1f;
-  }
-  
-  .bundle-card .ant-card-actions {
-    background: #262626;
-    border-top-color: #303030;
-  }
-  
-  .bundle-document-item {
-    border-color: #303030;
-  }
-  
-  .bundle-document-item:hover {
-    background: #262626;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* Animations */
 @keyframes bundle-fade-in {

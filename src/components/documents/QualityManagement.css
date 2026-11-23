@@ -240,35 +240,7 @@
 }
 
 /* Dark Mode */
-@media (prefers-color-scheme: dark) {
-  .qms-header {
-    background: #1f1f1f;
-  }
-  
-  .qms-stat-card {
-    background: #1f1f1f;
-  }
-  
-  .action-item {
-    background: #262626;
-  }
-  
-  .action-item:hover {
-    background: #303030;
-  }
-  
-  .rca-section {
-    background: #262626;
-  }
-  
-  .record-number {
-    background: #111a2c;
-  }
-  
-  .quality-management .overdue-row > td {
-    background: #2c1618 !important;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* Animations */
 @keyframes qms-pulse {

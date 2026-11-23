@@ -446,20 +446,7 @@
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .header {
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-    border-bottom-color: #1890ff;
-  }
-  
-  .logo-text h1 {
-    color: #ffffff;
-  }
-  
-  .logo-subtitle {
-    color: #a0a0a0;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {

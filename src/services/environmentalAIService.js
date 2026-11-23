@@ -21,8 +21,7 @@ const checkSuperAdminAccess = () => {
       user.role === 'super_admin' ||
       user.role === 'admin' ||
       user.plan === 'super_admin' ||
-      (user.plan === 'enterprise' && user.role === 'admin') ||
-      user.email === 'abigalisticstudious@gmail.com'; // Direct email check as fallback
+      (user.plan === 'enterprise' && user.role === 'admin'); // the server still enforces plans
     
     if (isSuperAdmin) {
       console.log('👑 Superadmin detected - bypassing all plan checks', {

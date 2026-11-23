@@ -699,82 +699,7 @@
 /* ============================================
    DARK MODE SUPPORT
    ============================================ */
-@media (prefers-color-scheme: dark) {
-  .analytics-export {
-    background: #141414;
-    color: rgba(255, 255, 255, 0.85);
-  }
-  
-  .stat-card,
-  .export-filters,
-  .export-table-container,
-  .export-empty-state,
-  .export-loading {
-    background: #1f1f1f;
-    border-color: #434343;
-  }
-  
-  .export-file-icon {
-    background: #2a2a2a;
-  }
-  
-  .export-filename {
-    color: rgba(255, 255, 255, 0.85);
-  }
-  
-  .filter-group .ant-typography,
-  .export-form-label {
-    color: rgba(255, 255, 255, 0.65);
-  }
-  
-  .ant-table-thead > tr > th {
-    background: #1f1f1f;
-    color: rgba(255, 255, 255, 0.85);
-  }
-  
-  .ant-table-tbody > tr:hover > td {
-    background: #2a2a2a;
-  }
-  
-  .status-pending {
-    background: #2b2111;
-    color: #fa8c16;
-    border-color: #593815;
-  }
-  
-  .status-processing {
-    background: #111d2c;
-    color: #1890ff;
-    border-color: #153450;
-  }
-  
-  .status-completed {
-    background: #162312;
-    color: #52c41a;
-    border-color: #274916;
-  }
-  
-  .status-failed {
-    background: #2a1215;
-    color: #ff4d4f;
-    border-color: #58181c;
-  }
-  
-  .status-scheduled {
-    background: #1a1325;
-    color: #722ed1;
-    border-color: #391085;
-  }
-  
-  .export-divider {
-    border-color: #434343;
-  }
-  
-  .export-preview {
-    background: #2a2a2a;
-    border-color: #434343;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* ============================================
    ACCESSIBILITY
@@ -812,15 +737,7 @@
   border-radius: 3px;
 }
 
-@media (prefers-color-scheme: dark) {
-  .export-modal .ant-modal-body::-webkit-scrollbar-track {
-    background: #2f2f2f;
-  }
-  
-  .export-modal .ant-modal-body::-webkit-scrollbar-thumb {
-    background: #555;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* ============================================
    PRINT STYLES

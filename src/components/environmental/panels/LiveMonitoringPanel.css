@@ -832,114 +832,7 @@
 /* ============================================
    DARK MODE SUPPORT
    ============================================ */
-@media (prefers-color-scheme: dark) {
-  .live-monitoring-panel .site-card {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-  
-  .live-monitoring-panel .site-card .ant-card-head {
-    border-color: #303030;
-  }
-  
-  .live-monitoring-panel .site-card .ant-card-head-title {
-    color: #e8e8e8;
-  }
-  
-  .live-monitoring-panel .site-card .ant-card-meta-title {
-    color: #e8e8e8;
-  }
-  
-  .live-monitoring-panel .site-card .ant-card-meta-description {
-    color: #a8a8a8;
-  }
-  
-  .prediction-card .prediction-weather {
-    background: rgba(255, 255, 255, 0.05);
-  }
-  
-  .historical-timeline .ant-timeline-item .timeline-card {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-  
-  .historical-timeline .ant-timeline-item .timeline-card .event-description {
-    color: #a8a8a8;
-  }
-  
-  .detection-list .ant-list-item:hover {
-    background: rgba(24, 144, 255, 0.08);
-  }
-  
-  .detection-list .ant-list-item .detection-details .detection-meta {
-    color: #a8a8a8;
-  }
-  
-  .camera-feed-card .feed-container .feed-overlay-bottom .overlay-item {
-    background: rgba(0, 0, 0, 0.85);
-  }
-  
-  .site-details-modal .ant-modal-content {
-    background: #1f1f1f;
-  }
-  
-  .site-details-modal .ant-modal-header {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-  
-  .site-details-modal .ant-modal-title {
-    color: #e8e8e8;
-  }
-  
-  .site-details-modal .ant-modal-body {
-    color: #e8e8e8;
-  }
-  
-  .site-details-modal .ant-descriptions-item-label {
-    color: #a8a8a8;
-  }
-  
-  .site-details-modal .ant-descriptions-item-content {
-    color: #e8e8e8;
-  }
-  
-  .site-details-modal .ant-tabs-tab {
-    color: #a8a8a8;
-  }
-  
-  .site-details-modal .ant-tabs-tab-active {
-    color: #1890ff;
-  }
-  
-  .esg-scorecard .esg-card {
-    background: #1f1f1f;
-  }
-  
-  .esg-scorecard .esg-card .ant-statistic-title {
-    color: #a8a8a8;
-  }
-  
-  .esg-scorecard .esg-card .ant-statistic-content {
-    color: #e8e8e8;
-  }
-  
-  .map-container .map-legend {
-    background: rgba(0, 0, 0, 0.9);
-  }
-  
-  .alert-list .ant-list-item:hover {
-    background: rgba(245, 34, 45, 0.08);
-  }
-  
-  .alert-list .ant-list-item .ant-list-item-meta-title {
-    color: #e8e8e8;
-  }
-  
-  .alert-list .ant-list-item .ant-list-item-meta-description {
-    color: #a8a8a8;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* ============================================
    SCROLLBAR STYLING
@@ -962,19 +855,7 @@
   background: #bfbfbf;
 }
 
-@media (prefers-color-scheme: dark) {
-  .live-monitoring-panel::-webkit-scrollbar-track {
-    background: #1f1f1f;
-  }
-  
-  .live-monitoring-panel::-webkit-scrollbar-thumb {
-    background: #303030;
-  }
-  
-  .live-monitoring-panel::-webkit-scrollbar-thumb:hover {
-    background: #404040;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* ============================================
    PRINT STYLES

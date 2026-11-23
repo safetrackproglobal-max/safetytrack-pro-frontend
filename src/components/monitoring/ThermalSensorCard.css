@@ -167,32 +167,4 @@
 }
 
 /* Dark mode support (if needed) */
-@media (prefers-color-scheme: dark) {
-  .thermal-sensor-card {
-    background: #141414;
-  }
-  
-  .sensor-name {
-    color: #e6e6e6;
-  }
-  
-  .sensor-location {
-    color: #a6a6a6;
-  }
-  
-  .sensor-details {
-    background: #1f1f1f;
-  }
-  
-  .detail-label {
-    color: #a6a6a6;
-  }
-  
-  .detail-value {
-    color: #e6e6e6;
-  }
-  
-  .last-reading {
-    color: #a6a6a6;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */

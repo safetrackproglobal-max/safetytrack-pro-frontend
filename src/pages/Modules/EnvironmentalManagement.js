@@ -79,6 +79,7 @@ import useEnvironmentalData from '../../hooks/useEnvironmentalData';
 import aiService from '../../services/aiService';
 import AIServiceTab from '../../components/AI/AIServiceTab';
 import AdvancedEnvironmentalDashboard from '../../components/environmental/AdvancedEnvironmentalDashboard';
+import EnvironmentalDocumentGenerator from '../../components/environmental/EnvironmentalDocumentGenerator';
 
 // Import the enhanced components
 import ImpactScorecard from '../../components/environmental/panels/ImpactScorecard';
@@ -389,20 +390,6 @@ function EnvironmentalManagement() {
     }
   };
 
-  const handleGenerateComplianceReport = async () => {
-    setSubmitting(true);
-    try {
-      const automationData = await environmentalService.getComplianceAutomation();
-      message.success(`Compliance report generated with ${automationData.overall_compliance || 85}% score`);
-      setComplianceModalVisible(false);
-      refetch();
-    } catch (err) {
-      message.error('Failed to generate compliance report: ' + (err.message || 'Unknown error'));
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const handleExportData = async () => {
     try {
       const filters = {
@@ -423,7 +410,13 @@ function EnvironmentalManagement() {
       document.body.removeChild(a);
       message.success('Data exported successfully');
     } catch (err) {
-      message.error('Failed to export data: ' + (err.message || 'Unknown error'));
+      let msg = err.message || 'Unknown error';
+      const data = err.response?.data;
+      try {
+        if (data instanceof Blob) msg = JSON.parse(await data.text()).error || msg;
+        else if (data?.error) msg = data.error;
+      } catch (e) { /* keep the generic message */ }
+      message.error('Export failed: ' + msg, 6);
     }
   };
 
@@ -1826,34 +1819,16 @@ function EnvironmentalManagement() {
         </Form>
       </Modal>
 
-      {/* Compliance Report Modal */}
+      {/* Compliance Report — real ISO 14001 report from your data */}
       <Modal
         title="Generate Compliance Report"
         open={complianceModalVisible}
         onCancel={() => setComplianceModalVisible(false)}
-        footer={[
-          <Button key="cancel" onClick={() => setComplianceModalVisible(false)}>
-            Cancel
-          </Button>,
-          <Button 
-            key="generate" 
-            type="primary" 
-            onClick={handleGenerateComplianceReport}
-            loading={submitting}
-          >
-            Generate Report
-          </Button>
-        ]}
+        footer={null}
+        width={1000}
+        destroyOnClose
       >
-        <div>
-          <p>This will generate a comprehensive compliance report including:</p>
-          <ul>
-            <li>Current compliance status</li>
-            <li>Pending violations</li>
-            <li>Upcoming deadlines</li>
-            <li>AI-powered recommendations</li>
-          </ul>
-        </div>
+        <EnvironmentalDocumentGenerator kinds={['iso14001']} compact onGenerated={() => refetch()} />
       </Modal>
     </div>
   );

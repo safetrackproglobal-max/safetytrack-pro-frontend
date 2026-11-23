@@ -24,6 +24,7 @@ import {
 import { useHistory } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import PaymentService from '../services/paymentService';
+import { INDUSTRY_OPTIONS } from '../constants/accountFlow';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -165,7 +166,7 @@ function CompanySetup() {
         layout="vertical"
         initialValues={{
           companyName: user?.company_name || '',
-          industry: user?.industry || 'Healthcare',
+          industry: user?.industry || 'Other', // same default as signup
           employeeCount: user?.employee_count || 1,
           country: user?.country || 'Ghana',
           phone: user?.phone || '',
@@ -187,15 +188,9 @@ function CompanySetup() {
           rules={[{ required: true, message: 'Please select industry' }]}
         >
           <Select placeholder="Select your industry" size="large">
-            <Option value="Healthcare">Healthcare</Option>
-            <Option value="Manufacturing">Manufacturing</Option>
-            <Option value="Construction">Construction</Option>
-            <Option value="Oil & Gas">Oil & Gas</Option>
-            <Option value="Mining">Mining</Option>
-            <Option value="Education">Education</Option>
-            <Option value="Government">Government</Option>
-            <Option value="Pharmaceutical">Pharmaceutical</Option>
-            <Option value="Other">Other</Option>
+            {INDUSTRY_OPTIONS.map((o) => (
+              <Option key={o.value} value={o.value}>{o.label}</Option>
+            ))}
           </Select>
         </Form.Item>
 

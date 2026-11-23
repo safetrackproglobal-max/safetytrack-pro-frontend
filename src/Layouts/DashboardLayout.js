@@ -1,14 +1,8 @@
 // src/layouts/DashboardLayout.js - Quick Nav Bar REMOVED
 
 import React, { useState, useEffect } from 'react';
-import { Layout, Spin, Alert, Button, Tooltip } from 'antd';
+import { Layout, Spin, Alert, Button } from 'antd';
 import { useLocation, useHistory } from 'react-router-dom';
-import { 
-  MenuUnfoldOutlined, 
-  MenuFoldOutlined,
-  HomeOutlined,
-  DashboardOutlined
-} from '@ant-design/icons';
 import DashboardHeader from '../components/DashboardHeader';
 import Sidebar from './Sidebar';
 import { useAuth } from '../context/AuthContext';
@@ -16,40 +10,42 @@ import './DashboardLayout.css';
 
 const { Sider, Content } = Layout;
 
+const MOBILE_BREAKPOINT = 992;
+const SIDEBAR_PREF_KEY = 'sidebarClosed';
+
+const readSidebarPref = () => {
+  try { return localStorage.getItem(SIDEBAR_PREF_KEY) === '1'; } catch (e) { return false; }
+};
+
 function DashboardLayout({ children }) {
-  const [collapsed, setCollapsed] = useState(false);
+  // Desktop: "collapsed" = sidebar fully hidden and content uses the full width (remembered).
+  // Mobile: sidebar is an overlay drawer, closed by default.
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < MOBILE_BREAKPOINT);
+  const [collapsed, setCollapsed] = useState(readSidebarPref);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [sidebarKey, setSidebarKey] = useState(0);
   const location = useLocation();
   const history = useHistory();
-  const { user, loading, isSuperAdmin, isRegularAdmin, isEmployee } = useAuth();
+  const { user, loading } = useAuth();
 
-  const getDashboardPath = () => {
-    if (isSuperAdmin()) return '/safetypro/dashboard';
-    if (isRegularAdmin()) return '/admin/dashboard';
-    if (isEmployee()) return '/employee/dashboard';
-    return '/user/dashboard';
-  };
-
-  // Check if mobile - DO NOT auto-open sidebar
+  // Only react when crossing the breakpoint (phone rotation, window resize) —
+  // ordinary resizes no longer reopen a sidebar the user closed.
   useEffect(() => {
     const checkMobile = () => {
-      const mobile = window.innerWidth < 992;
-      setIsMobile(mobile);
-      if (mobile) {
-        setMobileOpen(false);
-        setCollapsed(true);
-      } else {
-        setMobileOpen(true);
-        setCollapsed(false);
-      }
+      const mobile = window.innerWidth < MOBILE_BREAKPOINT;
+      setIsMobile((prev) => {
+        if (prev !== mobile) setMobileOpen(false);
+        return mobile;
+      });
     };
-
-    checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Close the mobile drawer after navigating
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
 
   useEffect(() => {
     setSidebarKey(prev => prev + 1);
@@ -60,7 +56,9 @@ function DashboardLayout({ children }) {
     if (isMobile) {
       setMobileOpen(!mobileOpen);
     } else {
-      setCollapsed(!collapsed);
+      const next = !collapsed;
+      setCollapsed(next);
+      try { localStorage.setItem(SIDEBAR_PREF_KEY, next ? '1' : '0'); } catch (e) { /* ignore */ }
     }
   };
 
@@ -98,55 +96,21 @@ function DashboardLayout({ children }) {
     );
   }
 
-  const dashboardPath = getDashboardPath();
-  const isDashboardHome = location.pathname === dashboardPath || location.pathname === '/';
-
-  // Determine sidebar position
-  const getSidebarLeft = () => {
-    if (isMobile) {
-      return mobileOpen ? 0 : -280;
-    }
-    return collapsed ? -80 : 0;
-  };
-
-  // Determine content margin
-  const getContentMargin = () => {
-    if (isMobile) {
-      return 0;
-    }
-    return collapsed ? 80 : 280;
-  };
-
-  const sidebarLeft = getSidebarLeft();
-  const contentMargin = getContentMargin();
+  // One source of truth: is the sidebar visible right now?
+  const sidebarOpen = isMobile ? mobileOpen : !collapsed;
 
   return (
     <Layout className="dashboard-layout">
-      {/* Sidebar */}
-      <Sider 
+      {/* Sidebar — always full width (280px); it slides out completely when closed */}
+      <Sider
         key={sidebarKey}
-        trigger={null} 
-        collapsible 
-        collapsed={isMobile ? false : collapsed}
-        className={`dashboard-sider ${isMobile ? 'mobile-sider' : ''}`}
+        trigger={null}
         width={280}
-        collapsedWidth={isMobile ? 0 : 80}
-        style={{
-          position: 'fixed',
-          left: sidebarLeft,
-          top: 0,
-          height: '100vh',
-          zIndex: isMobile ? 1001 : 1000,
-          transition: 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          display: 'block',
-          background: '#ffffff',
-          overflow: 'hidden',
-          boxShadow: isMobile ? '2px 0 12px rgba(0, 0, 0, 0.15)' : '2px 0 8px rgba(0, 0, 0, 0.06)',
-          borderRight: '1px solid #e8e8e8'
-        }}
+        className={`dashboard-sider ${sidebarOpen ? 'is-open' : 'is-closed'} ${isMobile ? 'mobile-sider' : ''}`}
+        aria-hidden={!sidebarOpen}
       >
-        <Sidebar 
-          collapsed={isMobile ? false : collapsed}
+        <Sidebar
+          collapsed={false}
           userType={user?.role || user?.user_type || 'user'}
           userModule={user?.module || 'hse'}
           currentPath={location.pathname}
@@ -157,19 +121,11 @@ function DashboardLayout({ children }) {
       </Sider>
       
       {/* Content Layout */}
-      <Layout 
-        className={`dashboard-content-layout ${collapsed ? 'collapsed' : ''}`}
-        style={{
-          marginLeft: isMobile ? 0 : contentMargin,
-          transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          width: isMobile ? '100%' : `calc(100% - ${contentMargin}px)`,
-          minHeight: '100vh',
-          background: '#f0f2f5'
-        }}
-      >
-        <DashboardHeader 
-          onMenuToggle={handleMenuToggle} 
-          sidebarCollapsed={collapsed}
+      {/* Content takes the full width whenever the sidebar is closed (and always on mobile) */}
+      <Layout className={`dashboard-content-layout ${!isMobile && sidebarOpen ? 'with-sider' : 'full-width'}`}>
+        <DashboardHeader
+          onMenuToggle={handleMenuToggle}
+          sidebarCollapsed={!sidebarOpen}
           isMobile={isMobile}
           mobileOpen={mobileOpen}
         />
@@ -185,20 +141,7 @@ function DashboardLayout({ children }) {
       
       {/* Mobile overlay */}
       {isMobile && mobileOpen && (
-        <div 
-          className="mobile-sidebar-overlay"
-          onClick={closeMobileSidebar}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0, 0, 0, 0.5)',
-            zIndex: 1000,
-            animation: 'fadeInOverlay 0.3s ease'
-          }}
-        />
+        <div className="mobile-sidebar-overlay" onClick={closeMobileSidebar} />
       )}
     </Layout>
   );

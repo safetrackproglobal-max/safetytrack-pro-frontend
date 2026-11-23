@@ -619,76 +619,7 @@
    DARK MODE SUPPORT
    ============================================================================ */
 
-@media (prefers-color-scheme: dark) {
-  .compliance-automation-panel {
-    background: #141414;
-  }
-  
-  .compliance-automation-panel .ant-card {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-  
-  .stat-card {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-  
-  .stat-card .ant-statistic-title {
-    color: #8c8c8c;
-  }
-  
-  .chart-card {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-  
-  .chart-card .ant-card-head {
-    border-color: #303030;
-  }
-  
-  .chart-card .ant-card-head-title {
-    color: #e8e8e8;
-  }
-  
-  .task-list .ant-list-item {
-    border-color: #303030;
-  }
-  
-  .task-list .ant-list-item:hover {
-    background: #2a2a2a;
-  }
-  
-  .timeline-item-content {
-    background: #2a2a2a;
-    border-color: #303030;
-  }
-  
-  .timeline-item-content:hover {
-    background: #333333;
-  }
-  
-  .compliance-tabs .ant-tabs-tab:hover {
-    background: #2a2a2a;
-  }
-  
-  .compliance-tabs .ant-tabs-tab-active {
-    background: #1f3a5f;
-  }
-  
-  .compliance-alert.ant-alert-success {
-    background: linear-gradient(135deg, #1a3a1a 0%, #1a4a1a 100%);
-  }
-  
-  .compliance-alert.ant-alert-warning {
-    background: linear-gradient(135deg, #3a3a1a 0%, #4a4a1a 100%);
-  }
-  
-  .recharts-tooltip-wrapper {
-    background: rgba(30, 30, 30, 0.95) !important;
-    color: #e8e8e8 !important;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* ============================================================================
    PRINT STYLES

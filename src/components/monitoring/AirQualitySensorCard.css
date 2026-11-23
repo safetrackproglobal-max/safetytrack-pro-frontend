@@ -278,72 +278,7 @@
 /* ============================================
    DARK MODE SUPPORT
    ============================================ */
-@media (prefers-color-scheme: dark) {
-  .sensor-card {
-    background: #2d3748;
-    border-color: #4a5568;
-    color: #e2e8f0;
-  }
-  
-  .sensor-header h4 {
-    color: #e2e8f0;
-  }
-  
-  .sensor-info {
-    color: #a0aec0;
-  }
-  
-  .sensor-id {
-    background-color: #4a5568;
-    color: #e2e8f0;
-  }
-  
-  .reading-item .label {
-    color: #a0aec0;
-  }
-  
-  .reading-item .value {
-    color: #e2e8f0;
-  }
-  
-  .reading-item {
-    border-bottom-color: #4a5568;
-  }
-  
-  .no-data {
-    color: #a0aec0;
-  }
-  
-  /* Status badges in dark mode */
-  .status-active {
-    background-color: #1b4d2e;
-    color: #6fbf73;
-  }
-  
-  .status-maintenance {
-    background-color: #5c3d1a;
-    color: #f5b042;
-  }
-  
-  .status-offline {
-    background-color: #4a5568;
-    color: #a0aec0;
-  }
-  
-  /* Error state in dark mode */
-  .sensor-card.error {
-    border-color: #fc8181;
-    background-color: #742a2a;
-  }
-  
-  .error-message {
-    color: #fc8181;
-  }
-  
-  .last-update {
-    color: #718096;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* ============================================
    ACCESSIBILITY
@@ -420,11 +355,7 @@
   justify-content: center;
 }
 
-@media (prefers-color-scheme: dark) {
-  .sensor-card.loading::after {
-    background: rgba(45, 55, 72, 0.7);
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* ============================================
    UTILITY CLASSES

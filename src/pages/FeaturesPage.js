@@ -41,6 +41,7 @@ import {
   RadarChartOutlined,
   HeatMapOutlined
 } from '@ant-design/icons';
+import Seo from '../components/SEO';
 import './FeaturesPage.css';
 
 const { Title, Paragraph, Text } = Typography;
@@ -54,7 +55,7 @@ function FeaturesPage() {
       title: "AI-Powered Document Analysis",
       description: "Automated analysis of safety documents with entity recognition and compliance scoring",
       details: "Upload PDF, DOCX, or images. Our AI extracts entities, assesses risks, and checks regulatory compliance across all industries.",
-      benefits: ["95% accuracy in entity extraction", "Real-time compliance scoring", "Multi-language support"]
+      benefits: ["AI entity extraction", "Real-time compliance scoring", "Multi-language support"]
     },
     {
       icon: <WarningOutlined />,
@@ -74,7 +75,7 @@ function FeaturesPage() {
       icon: <SafetyCertificateOutlined />,
       title: "Compliance Management",
       description: "Automated compliance tracking across all regulations",
-      details: "Stay compliant with OSHA, ISO, FDA, EPA, and industry-specific regulations with automated tracking and alerts.",
+      details: "Track requirements aligned with OSHA, ISO, and industry-specific regulations with automated tracking and alerts.",
       benefits: ["Regulatory update alerts", "Compliance calendar", "Documentation management", "Audit trails"]
     },
     {
@@ -403,6 +404,11 @@ function FeaturesPage() {
 
   return (
     <div className="features-page">
+      <Seo
+        title="HSE Software Features | SafeTrack Pro Global"
+        description="Explore SafeTrack Pro Global features: AI document analysis, incident management, dashboards, compliance tracking, analytics, and integrations for every industry."
+        canonical="https://www.safetrackproglobal.com/features"
+      />
       <div className="container">
         {/* Hero Section */}
         <div className="features-hero">
@@ -606,13 +612,13 @@ function FeaturesPage() {
             <div className="features-cta-content">
               <Title level={2}>Ready to Transform Your Safety Management?</Title>
               <Paragraph>
-                Join thousands of organizations using SafeTrack Pro to protect their workforce
+                See how SafeTrack Pro helps your team protect its workforce
               </Paragraph>
               <Space size="large">
                 <Button type="primary" size="large" href="/signup" className="cta-primary">
                   Start Free Trial
                 </Button>
-                <Button size="large" href="/subscription" className="cta-secondary">
+                <Button size="large" href="/pricing" className="cta-secondary">
                   View Pricing
                 </Button>
                 <Button size="large" href="/contact" className="cta-secondary">

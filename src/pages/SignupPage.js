@@ -1,15 +1,25 @@
-// src/pages/SignupPage.js - Complete Verification with Resume Support
-import React, { useState, useContext, useEffect } from 'react';
-import { 
-  Form, 
-  Input, 
-  Button, 
-  Select, 
-  Alert, 
-  Card, 
-  Typography, 
-  Space, 
-  Divider, 
+// src/pages/SignupPage.js
+// Signup for individual users and company administrators.
+//
+// USER  : Type -> Basic info -> Security & consents -> Plan -> Create account
+//         -> verify email -> Free: active now | Paid: checkout | Enterprise: sales team
+// ADMIN : Type -> Basic info -> Security & consents (incl. DPA) -> Plan -> Submit
+//         -> verify email -> /pending-approval (our team approves) -> sign in
+//
+// Backend: POST /api/auth/register (users)   POST /api/admin/register (admins)
+//          POST /api/verify                   GET  /api/plans/country-pricing
+//          POST /api/contact                  POST /api/payment/... (checkout)
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  Form,
+  Input,
+  Button,
+  Select,
+  Alert,
+  Card,
+  Typography,
+  Space,
+  Divider,
   message,
   Steps,
   Tag,
@@ -17,15 +27,16 @@ import {
   Row,
   Col,
   Spin,
-  Radio
+  Checkbox,
+  ConfigProvider,
+  theme
 } from 'antd';
-import { 
-  UserOutlined, 
-  MailOutlined, 
-  LockOutlined, 
+import {
+  UserOutlined,
+  MailOutlined,
+  LockOutlined,
   SafetyCertificateOutlined,
   BankOutlined,
-  IdcardOutlined,
   ArrowRightOutlined,
   ArrowLeftOutlined,
   CheckCircleOutlined,
@@ -34,84 +45,81 @@ import {
   CrownOutlined,
   CreditCardOutlined,
   DollarOutlined,
-  InfoCircleOutlined,
   GlobalOutlined
 } from '@ant-design/icons';
-import AuthContext from '../context/AuthContext';
+import { useHistory, useLocation } from 'react-router-dom';
+
 import VerificationModal from '../components/VerificationModal';
+import ManualPaymentModal from '../components/ManualPaymentModal';
 import { useLanguage } from '../context/LanguageContext';
-import { useHistory } from 'react-router-dom';
 import PaymentService from '../services/paymentService';
+import api from '../services/api';
+import {
+  POLICY_VERSIONS,
+  MIN_AGE,
+  MINOR_AGE_FLOOR,
+  PASSWORD_RULES,
+  getPasswordProblems,
+  passwordValidator,
+  DURATION_OPTIONS,
+  durationLabel,
+  durationPer,
+  FALLBACK_COUNTRY_PRICING,
+  fetchCountryPricing,
+  getPlanPrice,
+  formatPrice,
+  USER_JOURNEY,
+  ADMIN_JOURNEY,
+  INDUSTRY_OPTIONS
+} from '../constants/accountFlow';
 import './AuthPages.css';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
-const { Step } = Steps;
 
-// ============================================
-// PRICING DATA (From Backend)
-// ============================================
-const COUNTRY_PRICING = {
-  "Ghana": {
-    "free": {"1_month": 0, "6_month": 0, "1_year": 0, "currency": "GHS"},
-    "basic": {
-      "1_month": 100, "6_month": 500, "1_year": 900, "currency": "GHS",
-      "payment_method": "Paystack (MTN MoMo & Cards)"
-    },
-    "pro": {
-      "1_month": 200, "6_month": 1000, "1_year": 1800, "currency": "GHS",
-      "payment_method": "Paystack (MTN MoMo & Cards)"
-    },
-    "enterprise": {
-      "1_month": 299, "6_month": 1499, "1_year": 2699, "currency": "GHS",
-      "payment_method": "Paystack (MTN MoMo & Cards)"
-    }
-  },
-  "Qatar": {
-    "free": {"1_month": 0, "6_month": 0, "1_year": 0, "currency": "QAR"},
-    "basic": {
-      "1_month": 100, "6_month": 500, "1_year": 900, "currency": "QAR",
-      "payment_method": "Paystack (Cards)"
-    },
-    "pro": {
-      "1_month": 300, "6_month": 1500, "1_year": 2700, "currency": "QAR",
-      "payment_method": "Paystack (Cards)"
-    },
-    "enterprise": {
-      "1_month": 299, "6_month": 1499, "1_year": 2699, "currency": "QAR",
-      "payment_method": "Paystack (Cards)"
-    }
-  },
-  "United States": {
-    "free": {"1_month": 0, "6_month": 0, "1_year": 0, "currency": "USD"},
-    "basic": {
-      "1_month": 20, "6_month": 150, "1_year": 270, "currency": "USD",
-      "payment_method": "Paystack (Cards)"
-    },
-    "pro": {
-      "1_month": 50, "6_month": 250, "1_year": 450, "currency": "USD",
-      "payment_method": "Paystack (Cards)"
-    },
-    "enterprise": {
-      "1_month": 299, "6_month": 1499, "1_year": 2699, "currency": "USD",
-      "payment_method": "Paystack (Cards)"
-    }
-  },
-  "default": {
-    "free": {"1_month": 0, "6_month": 0, "1_year": 0, "currency": "USD"},
-    "basic": {
-      "1_month": 20, "6_month": 100, "1_year": 180, "currency": "USD",
-      "payment_method": "Paystack (Cards)"
-    },
-    "pro": {
-      "1_month": 50, "6_month": 250, "1_year": 450, "currency": "USD",
-      "payment_method": "Paystack (Cards)"
-    },
-    "enterprise": {
-      "1_month": 299, "6_month": 1499, "1_year": 2699, "currency": "USD",
-      "payment_method": "Paystack (Cards)"
-    }
-  }
+// Policy versions (shared with backend CURRENT_*_VERSION)
+const TERMS_VERSION = POLICY_VERSIONS.TERMS;
+const PRIVACY_VERSION = POLICY_VERSIONS.PRIVACY;
+const DPA_VERSION = POLICY_VERSIONS.DPA;
+const BAA_VERSION = POLICY_VERSIONS.BAA;
+
+const scorePassword = (pw) => {
+  if (!pw) return { score: 0, label: '', color: '#ff4d4f' };
+  if (getPasswordProblems(pw).length) return { score: 1, label: 'Does not meet the requirements yet', color: '#ff4d4f' };
+  let score = 2;
+  if (pw.length >= 16) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  const labels = ['', 'Weak', 'Good', 'Strong', 'Very strong'];
+  const colors = ['#ff4d4f', '#ff4d4f', '#faad14', '#52c41a', '#237804'];
+  return { score, label: labels[score], color: colors[score] };
+};
+
+const PHONE_PATTERN = /^[+\d\s()-]{7,30}$/; // same rule as backend /api/contact
+const SIGNUP_PHONE_PATTERN = /^[+\d\s()-]{7,20}$/; // same rule as backend _clean_phone (VARCHAR 20)
+
+// INDUSTRY_OPTIONS now comes from constants/accountFlow (shared with company setup and admin user creation)
+
+const REGION_BY_COUNTRY = (country) => {
+  const EU = ['Austria', 'Belgium', 'Bulgaria', 'Croatia', 'Cyprus', 'Czech Republic', 'Denmark', 'Estonia', 'Finland', 'France', 'Germany', 'Greece', 'Hungary', 'Ireland', 'Italy', 'Latvia', 'Lithuania', 'Luxembourg', 'Malta', 'Netherlands', 'Poland', 'Portugal', 'Romania', 'Slovakia', 'Slovenia', 'Spain', 'Sweden', 'Iceland', 'Liechtenstein', 'Norway'];
+  if (EU.includes(country)) return { region: 'EU', regulator: 'GDPR / EU supervisory authority', residency: 'EU (Frankfurt)' };
+  if (country === 'Qatar') return { region: 'GCC-QA', regulator: 'Qatar NDPPL 2016', residency: 'Qatar / GCC' };
+  if (country === 'United Arab Emirates') return { region: 'GCC-AE', regulator: 'UAE PDPL', residency: 'UAE / GCC' };
+  if (country === 'Saudi Arabia') return { region: 'GCC-SA', regulator: 'Saudi PDPL', residency: 'KSA / GCC' };
+  if (country === 'United States') return { region: 'US', regulator: 'HIPAA (if ePHI) / state laws', residency: 'United States' };
+  if (country === 'United Kingdom') return { region: 'UK', regulator: 'UK GDPR / DPA 2018', residency: 'United Kingdom' };
+  if (country === 'Ghana') return { region: 'AF-GH', regulator: 'Ghana DPA 2012 (Act 843)', residency: 'Ghana' };
+  return { region: 'GLOBAL', regulator: 'Local data-protection law', residency: 'Default region' };
+};
+
+const getAge = (dob) => {
+  if (!dob) return null;
+  const d = new Date(dob);
+  if (Number.isNaN(d.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - d.getFullYear();
+  const m = today.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age -= 1;
+  return age;
 };
 
 // ============================================
@@ -120,15 +128,7 @@ const COUNTRY_PRICING = {
 const PLANS = {
   "free": {
     "label": "Free Forever",
-    "limits": {
-      "uploads_per_month": 5,
-      "api_calls_per_month": 50,
-      "team_members": 1,
-      "monitoring_stations": 1,
-      "ai_requests_per_month": 10,
-      "camera_feeds": 1,
-      "video_analysis_minutes": 10
-    },
+    "limits": { "uploads_per_month": 5, "api_calls_per_month": 50, "team_members": 1, "monitoring_stations": 1, "ai_requests_per_month": 10, "camera_feeds": 1, "video_analysis_minutes": 10 },
     "features": [
       "Basic document analysis",
       "Email notifications",
@@ -143,15 +143,7 @@ const PLANS = {
   },
   "basic": {
     "label": "Basic",
-    "limits": {
-      "uploads_per_month": 100,
-      "api_calls_per_month": 1000,
-      "team_members": 10,
-      "monitoring_stations": 5,
-      "ai_requests_per_month": 100,
-      "camera_feeds": 3,
-      "video_analysis_minutes": 120
-    },
+    "limits": { "uploads_per_month": 100, "api_calls_per_month": 1000, "team_members": 10, "monitoring_stations": 5, "ai_requests_per_month": 100, "camera_feeds": 3, "video_analysis_minutes": 120 },
     "features": [
       "All Free features",
       "PDF/Word/Excel generation",
@@ -167,15 +159,7 @@ const PLANS = {
   },
   "pro": {
     "label": "Professional",
-    "limits": {
-      "uploads_per_month": 500,
-      "api_calls_per_month": 5000,
-      "team_members": 50,
-      "monitoring_stations": 20,
-      "ai_requests_per_month": 500,
-      "camera_feeds": 10,
-      "video_analysis_minutes": 600
-    },
+    "limits": { "uploads_per_month": 500, "api_calls_per_month": 5000, "team_members": 50, "monitoring_stations": 20, "ai_requests_per_month": 500, "camera_feeds": 10, "video_analysis_minutes": 600 },
     "features": [
       "All Basic features",
       "ML image analysis",
@@ -195,15 +179,7 @@ const PLANS = {
   },
   "enterprise": {
     "label": "Enterprise",
-    "limits": {
-      "uploads_per_month": "Unlimited",
-      "api_calls_per_month": "Unlimited",
-      "team_members": "Unlimited",
-      "monitoring_stations": "Unlimited",
-      "ai_requests_per_month": "Unlimited",
-      "camera_feeds": "Unlimited",
-      "video_analysis_minutes": "Unlimited"
-    },
+    "limits": { "uploads_per_month": "Unlimited", "api_calls_per_month": "Unlimited", "team_members": "Unlimited", "monitoring_stations": "Unlimited", "ai_requests_per_month": "Unlimited", "camera_feeds": "Unlimited", "video_analysis_minutes": "Unlimited" },
     "features": [
       "All Pro features",
       "Custom workflows & forms",
@@ -244,201 +220,71 @@ const PLANS = {
 // COUNTRY OPTIONS
 // ============================================
 const countryOptions = [
-  { code: 'AF', name: 'Afghanistan' },
-  { code: 'AL', name: 'Albania' },
-  { code: 'DZ', name: 'Algeria' },
-  { code: 'AD', name: 'Andorra' },
-  { code: 'AO', name: 'Angola' },
-  { code: 'AG', name: 'Antigua and Barbuda' },
-  { code: 'AR', name: 'Argentina' },
-  { code: 'AM', name: 'Armenia' },
-  { code: 'AU', name: 'Australia' },
-  { code: 'AT', name: 'Austria' },
-  { code: 'AZ', name: 'Azerbaijan' },
-  { code: 'BS', name: 'Bahamas' },
-  { code: 'BH', name: 'Bahrain' },
-  { code: 'BD', name: 'Bangladesh' },
-  { code: 'BB', name: 'Barbados' },
-  { code: 'BY', name: 'Belarus' },
-  { code: 'BE', name: 'Belgium' },
-  { code: 'BZ', name: 'Belize' },
-  { code: 'BJ', name: 'Benin' },
-  { code: 'BT', name: 'Bhutan' },
-  { code: 'BO', name: 'Bolivia' },
-  { code: 'BA', name: 'Bosnia and Herzegovina' },
-  { code: 'BW', name: 'Botswana' },
-  { code: 'BR', name: 'Brazil' },
-  { code: 'BN', name: 'Brunei' },
-  { code: 'BG', name: 'Bulgaria' },
-  { code: 'BF', name: 'Burkina Faso' },
-  { code: 'BI', name: 'Burundi' },
-  { code: 'CV', name: 'Cabo Verde' },
-  { code: 'KH', name: 'Cambodia' },
-  { code: 'CM', name: 'Cameroon' },
-  { code: 'CA', name: 'Canada' },
-  { code: 'CF', name: 'Central African Republic' },
-  { code: 'TD', name: 'Chad' },
-  { code: 'CL', name: 'Chile' },
-  { code: 'CN', name: 'China' },
-  { code: 'CO', name: 'Colombia' },
-  { code: 'KM', name: 'Comoros' },
-  { code: 'CG', name: 'Congo' },
-  { code: 'CD', name: 'Congo (Democratic Republic)' },
-  { code: 'CR', name: 'Costa Rica' },
-  { code: 'CI', name: 'Côte d\'Ivoire' },
-  { code: 'HR', name: 'Croatia' },
-  { code: 'CU', name: 'Cuba' },
-  { code: 'CY', name: 'Cyprus' },
-  { code: 'CZ', name: 'Czech Republic' },
-  { code: 'DK', name: 'Denmark' },
-  { code: 'DJ', name: 'Djibouti' },
-  { code: 'DM', name: 'Dominica' },
-  { code: 'DO', name: 'Dominican Republic' },
-  { code: 'EC', name: 'Ecuador' },
-  { code: 'EG', name: 'Egypt' },
-  { code: 'SV', name: 'El Salvador' },
-  { code: 'GQ', name: 'Equatorial Guinea' },
-  { code: 'ER', name: 'Eritrea' },
-  { code: 'EE', name: 'Estonia' },
-  { code: 'SZ', name: 'Eswatini' },
-  { code: 'ET', name: 'Ethiopia' },
-  { code: 'FJ', name: 'Fiji' },
-  { code: 'FI', name: 'Finland' },
-  { code: 'FR', name: 'France' },
-  { code: 'GA', name: 'Gabon' },
-  { code: 'GM', name: 'Gambia' },
-  { code: 'GE', name: 'Georgia' },
-  { code: 'DE', name: 'Germany' },
-  { code: 'GH', name: 'Ghana' },
-  { code: 'GR', name: 'Greece' },
-  { code: 'GD', name: 'Grenada' },
-  { code: 'GT', name: 'Guatemala' },
-  { code: 'GN', name: 'Guinea' },
-  { code: 'GW', name: 'Guinea-Bissau' },
-  { code: 'GY', name: 'Guyana' },
-  { code: 'HT', name: 'Haiti' },
-  { code: 'HN', name: 'Honduras' },
-  { code: 'HU', name: 'Hungary' },
-  { code: 'IS', name: 'Iceland' },
-  { code: 'IN', name: 'India' },
-  { code: 'ID', name: 'Indonesia' },
-  { code: 'IR', name: 'Iran' },
-  { code: 'IQ', name: 'Iraq' },
-  { code: 'IE', name: 'Ireland' },
-  { code: 'IL', name: 'Israel' },
-  { code: 'IT', name: 'Italy' },
-  { code: 'JM', name: 'Jamaica' },
-  { code: 'JP', name: 'Japan' },
-  { code: 'JO', name: 'Jordan' },
-  { code: 'KZ', name: 'Kazakhstan' },
-  { code: 'KE', name: 'Kenya' },
-  { code: 'KI', name: 'Kiribati' },
-  { code: 'KP', name: 'Korea (North)' },
-  { code: 'KR', name: 'Korea (South)' },
-  { code: 'KW', name: 'Kuwait' },
-  { code: 'KG', name: 'Kyrgyzstan' },
-  { code: 'LA', name: 'Laos' },
-  { code: 'LV', name: 'Latvia' },
-  { code: 'LB', name: 'Lebanon' },
-  { code: 'LS', name: 'Lesotho' },
-  { code: 'LR', name: 'Liberia' },
-  { code: 'LY', name: 'Libya' },
-  { code: 'LI', name: 'Liechtenstein' },
-  { code: 'LT', name: 'Lithuania' },
-  { code: 'LU', name: 'Luxembourg' },
-  { code: 'MG', name: 'Madagascar' },
-  { code: 'MW', name: 'Malawi' },
-  { code: 'MY', name: 'Malaysia' },
-  { code: 'MV', name: 'Maldives' },
-  { code: 'ML', name: 'Mali' },
-  { code: 'MT', name: 'Malta' },
-  { code: 'MH', name: 'Marshall Islands' },
-  { code: 'MR', name: 'Mauritania' },
-  { code: 'MU', name: 'Mauritius' },
-  { code: 'MX', name: 'Mexico' },
-  { code: 'FM', name: 'Micronesia' },
-  { code: 'MD', name: 'Moldova' },
-  { code: 'MC', name: 'Monaco' },
-  { code: 'MN', name: 'Mongolia' },
-  { code: 'ME', name: 'Montenegro' },
-  { code: 'MA', name: 'Morocco' },
-  { code: 'MZ', name: 'Mozambique' },
-  { code: 'MM', name: 'Myanmar' },
-  { code: 'NA', name: 'Namibia' },
-  { code: 'NR', name: 'Nauru' },
-  { code: 'NP', name: 'Nepal' },
-  { code: 'NL', name: 'Netherlands' },
-  { code: 'NZ', name: 'New Zealand' },
-  { code: 'NI', name: 'Nicaragua' },
-  { code: 'NE', name: 'Niger' },
-  { code: 'NG', name: 'Nigeria' },
-  { code: 'MK', name: 'North Macedonia' },
-  { code: 'NO', name: 'Norway' },
-  { code: 'OM', name: 'Oman' },
-  { code: 'PK', name: 'Pakistan' },
-  { code: 'PW', name: 'Palau' },
-  { code: 'PS', name: 'Palestine' },
-  { code: 'PA', name: 'Panama' },
-  { code: 'PG', name: 'Papua New Guinea' },
-  { code: 'PY', name: 'Paraguay' },
-  { code: 'PE', name: 'Peru' },
-  { code: 'PH', name: 'Philippines' },
-  { code: 'PL', name: 'Poland' },
-  { code: 'PT', name: 'Portugal' },
-  { code: 'QA', name: 'Qatar' },
-  { code: 'RO', name: 'Romania' },
-  { code: 'RU', name: 'Russia' },
-  { code: 'RW', name: 'Rwanda' },
-  { code: 'KN', name: 'Saint Kitts and Nevis' },
-  { code: 'LC', name: 'Saint Lucia' },
-  { code: 'VC', name: 'Saint Vincent and the Grenadines' },
-  { code: 'WS', name: 'Samoa' },
-  { code: 'SM', name: 'San Marino' },
-  { code: 'ST', name: 'Sao Tome and Principe' },
-  { code: 'SA', name: 'Saudi Arabia' },
-  { code: 'SN', name: 'Senegal' },
-  { code: 'RS', name: 'Serbia' },
-  { code: 'SC', name: 'Seychelles' },
-  { code: 'SL', name: 'Sierra Leone' },
-  { code: 'SG', name: 'Singapore' },
-  { code: 'SK', name: 'Slovakia' },
-  { code: 'SI', name: 'Slovenia' },
-  { code: 'SB', name: 'Solomon Islands' },
-  { code: 'SO', name: 'Somalia' },
-  { code: 'ZA', name: 'South Africa' },
-  { code: 'SS', name: 'South Sudan' },
-  { code: 'ES', name: 'Spain' },
-  { code: 'LK', name: 'Sri Lanka' },
-  { code: 'SD', name: 'Sudan' },
-  { code: 'SR', name: 'Suriname' },
-  { code: 'SE', name: 'Sweden' },
-  { code: 'CH', name: 'Switzerland' },
-  { code: 'SY', name: 'Syria' },
-  { code: 'TW', name: 'Taiwan' },
-  { code: 'TJ', name: 'Tajikistan' },
-  { code: 'TZ', name: 'Tanzania' },
-  { code: 'TH', name: 'Thailand' },
-  { code: 'TL', name: 'Timor-Leste' },
-  { code: 'TG', name: 'Togo' },
-  { code: 'TO', name: 'Tonga' },
-  { code: 'TT', name: 'Trinidad and Tobago' },
-  { code: 'TN', name: 'Tunisia' },
-  { code: 'TR', name: 'Turkey' },
-  { code: 'TM', name: 'Turkmenistan' },
-  { code: 'TV', name: 'Tuvalu' },
-  { code: 'UG', name: 'Uganda' },
-  { code: 'UA', name: 'Ukraine' },
-  { code: 'AE', name: 'United Arab Emirates' },
-  { code: 'GB', name: 'United Kingdom' },
-  { code: 'US', name: 'United States' },
-  { code: 'UY', name: 'Uruguay' },
-  { code: 'UZ', name: 'Uzbekistan' },
-  { code: 'VU', name: 'Vanuatu' },
-  { code: 'VA', name: 'Vatican City' },
-  { code: 'VE', name: 'Venezuela' },
-  { code: 'VN', name: 'Vietnam' },
-  { code: 'YE', name: 'Yemen' },
-  { code: 'ZM', name: 'Zambia' },
+  { code: 'AF', name: 'Afghanistan' }, { code: 'AL', name: 'Albania' }, { code: 'DZ', name: 'Algeria' },
+  { code: 'AD', name: 'Andorra' }, { code: 'AO', name: 'Angola' }, { code: 'AG', name: 'Antigua and Barbuda' },
+  { code: 'AR', name: 'Argentina' }, { code: 'AM', name: 'Armenia' }, { code: 'AU', name: 'Australia' },
+  { code: 'AT', name: 'Austria' }, { code: 'AZ', name: 'Azerbaijan' }, { code: 'BS', name: 'Bahamas' },
+  { code: 'BH', name: 'Bahrain' }, { code: 'BD', name: 'Bangladesh' }, { code: 'BB', name: 'Barbados' },
+  { code: 'BY', name: 'Belarus' }, { code: 'BE', name: 'Belgium' }, { code: 'BZ', name: 'Belize' },
+  { code: 'BJ', name: 'Benin' }, { code: 'BT', name: 'Bhutan' }, { code: 'BO', name: 'Bolivia' },
+  { code: 'BA', name: 'Bosnia and Herzegovina' }, { code: 'BW', name: 'Botswana' }, { code: 'BR', name: 'Brazil' },
+  { code: 'BN', name: 'Brunei' }, { code: 'BG', name: 'Bulgaria' }, { code: 'BF', name: 'Burkina Faso' },
+  { code: 'BI', name: 'Burundi' }, { code: 'CV', name: 'Cabo Verde' }, { code: 'KH', name: 'Cambodia' },
+  { code: 'CM', name: 'Cameroon' }, { code: 'CA', name: 'Canada' }, { code: 'CF', name: 'Central African Republic' },
+  { code: 'TD', name: 'Chad' }, { code: 'CL', name: 'Chile' }, { code: 'CN', name: 'China' },
+  { code: 'CO', name: 'Colombia' }, { code: 'KM', name: 'Comoros' }, { code: 'CG', name: 'Congo' },
+  { code: 'CD', name: 'Congo (Democratic Republic)' }, { code: 'CR', name: 'Costa Rica' }, { code: 'CI', name: "Côte d'Ivoire" },
+  { code: 'HR', name: 'Croatia' }, { code: 'CU', name: 'Cuba' }, { code: 'CY', name: 'Cyprus' },
+  { code: 'CZ', name: 'Czech Republic' }, { code: 'DK', name: 'Denmark' }, { code: 'DJ', name: 'Djibouti' },
+  { code: 'DM', name: 'Dominica' }, { code: 'DO', name: 'Dominican Republic' }, { code: 'EC', name: 'Ecuador' },
+  { code: 'EG', name: 'Egypt' }, { code: 'SV', name: 'El Salvador' }, { code: 'GQ', name: 'Equatorial Guinea' },
+  { code: 'ER', name: 'Eritrea' }, { code: 'EE', name: 'Estonia' }, { code: 'SZ', name: 'Eswatini' },
+  { code: 'ET', name: 'Ethiopia' }, { code: 'FJ', name: 'Fiji' }, { code: 'FI', name: 'Finland' },
+  { code: 'FR', name: 'France' }, { code: 'GA', name: 'Gabon' }, { code: 'GM', name: 'Gambia' },
+  { code: 'GE', name: 'Georgia' }, { code: 'DE', name: 'Germany' }, { code: 'GH', name: 'Ghana' },
+  { code: 'GR', name: 'Greece' }, { code: 'GD', name: 'Grenada' }, { code: 'GT', name: 'Guatemala' },
+  { code: 'GN', name: 'Guinea' }, { code: 'GW', name: 'Guinea-Bissau' }, { code: 'GY', name: 'Guyana' },
+  { code: 'HT', name: 'Haiti' }, { code: 'HN', name: 'Honduras' }, { code: 'HU', name: 'Hungary' },
+  { code: 'IS', name: 'Iceland' }, { code: 'IN', name: 'India' }, { code: 'ID', name: 'Indonesia' },
+  { code: 'IR', name: 'Iran' }, { code: 'IQ', name: 'Iraq' }, { code: 'IE', name: 'Ireland' },
+  { code: 'IL', name: 'Israel' }, { code: 'IT', name: 'Italy' }, { code: 'JM', name: 'Jamaica' },
+  { code: 'JP', name: 'Japan' }, { code: 'JO', name: 'Jordan' }, { code: 'KZ', name: 'Kazakhstan' },
+  { code: 'KE', name: 'Kenya' }, { code: 'KI', name: 'Kiribati' }, { code: 'KP', name: 'Korea (North)' },
+  { code: 'KR', name: 'Korea (South)' }, { code: 'KW', name: 'Kuwait' }, { code: 'KG', name: 'Kyrgyzstan' },
+  { code: 'LA', name: 'Laos' }, { code: 'LV', name: 'Latvia' }, { code: 'LB', name: 'Lebanon' },
+  { code: 'LS', name: 'Lesotho' }, { code: 'LR', name: 'Liberia' }, { code: 'LY', name: 'Libya' },
+  { code: 'LI', name: 'Liechtenstein' }, { code: 'LT', name: 'Lithuania' }, { code: 'LU', name: 'Luxembourg' },
+  { code: 'MG', name: 'Madagascar' }, { code: 'MW', name: 'Malawi' }, { code: 'MY', name: 'Malaysia' },
+  { code: 'MV', name: 'Maldives' }, { code: 'ML', name: 'Mali' }, { code: 'MT', name: 'Malta' },
+  { code: 'MH', name: 'Marshall Islands' }, { code: 'MR', name: 'Mauritania' }, { code: 'MU', name: 'Mauritius' },
+  { code: 'MX', name: 'Mexico' }, { code: 'FM', name: 'Micronesia' }, { code: 'MD', name: 'Moldova' },
+  { code: 'MC', name: 'Monaco' }, { code: 'MN', name: 'Mongolia' }, { code: 'ME', name: 'Montenegro' },
+  { code: 'MA', name: 'Morocco' }, { code: 'MZ', name: 'Mozambique' }, { code: 'MM', name: 'Myanmar' },
+  { code: 'NA', name: 'Namibia' }, { code: 'NR', name: 'Nauru' }, { code: 'NP', name: 'Nepal' },
+  { code: 'NL', name: 'Netherlands' }, { code: 'NZ', name: 'New Zealand' }, { code: 'NI', name: 'Nicaragua' },
+  { code: 'NE', name: 'Niger' }, { code: 'NG', name: 'Nigeria' }, { code: 'MK', name: 'North Macedonia' },
+  { code: 'NO', name: 'Norway' }, { code: 'OM', name: 'Oman' }, { code: 'PK', name: 'Pakistan' },
+  { code: 'PW', name: 'Palau' }, { code: 'PS', name: 'Palestine' }, { code: 'PA', name: 'Panama' },
+  { code: 'PG', name: 'Papua New Guinea' }, { code: 'PY', name: 'Paraguay' }, { code: 'PE', name: 'Peru' },
+  { code: 'PH', name: 'Philippines' }, { code: 'PL', name: 'Poland' }, { code: 'PT', name: 'Portugal' },
+  { code: 'QA', name: 'Qatar' }, { code: 'RO', name: 'Romania' }, { code: 'RU', name: 'Russia' },
+  { code: 'RW', name: 'Rwanda' }, { code: 'KN', name: 'Saint Kitts and Nevis' }, { code: 'LC', name: 'Saint Lucia' },
+  { code: 'VC', name: 'Saint Vincent and the Grenadines' }, { code: 'WS', name: 'Samoa' }, { code: 'SM', name: 'San Marino' },
+  { code: 'ST', name: 'Sao Tome and Principe' }, { code: 'SA', name: 'Saudi Arabia' }, { code: 'SN', name: 'Senegal' },
+  { code: 'RS', name: 'Serbia' }, { code: 'SC', name: 'Seychelles' }, { code: 'SL', name: 'Sierra Leone' },
+  { code: 'SG', name: 'Singapore' }, { code: 'SK', name: 'Slovakia' }, { code: 'SI', name: 'Slovenia' },
+  { code: 'SB', name: 'Solomon Islands' }, { code: 'SO', name: 'Somalia' }, { code: 'ZA', name: 'South Africa' },
+  { code: 'SS', name: 'South Sudan' }, { code: 'ES', name: 'Spain' }, { code: 'LK', name: 'Sri Lanka' },
+  { code: 'SD', name: 'Sudan' }, { code: 'SR', name: 'Suriname' }, { code: 'SE', name: 'Sweden' },
+  { code: 'CH', name: 'Switzerland' }, { code: 'SY', name: 'Syria' }, { code: 'TW', name: 'Taiwan' },
+  { code: 'TJ', name: 'Tajikistan' }, { code: 'TZ', name: 'Tanzania' }, { code: 'TH', name: 'Thailand' },
+  { code: 'TL', name: 'Timor-Leste' }, { code: 'TG', name: 'Togo' }, { code: 'TO', name: 'Tonga' },
+  { code: 'TT', name: 'Trinidad and Tobago' }, { code: 'TN', name: 'Tunisia' }, { code: 'TR', name: 'Turkey' },
+  { code: 'TM', name: 'Turkmenistan' }, { code: 'TV', name: 'Tuvalu' }, { code: 'UG', name: 'Uganda' },
+  { code: 'UA', name: 'Ukraine' }, { code: 'AE', name: 'United Arab Emirates' }, { code: 'GB', name: 'United Kingdom' },
+  { code: 'US', name: 'United States' }, { code: 'UY', name: 'Uruguay' }, { code: 'UZ', name: 'Uzbekistan' },
+  { code: 'VU', name: 'Vanuatu' }, { code: 'VA', name: 'Vatican City' }, { code: 'VE', name: 'Venezuela' },
+  { code: 'VN', name: 'Vietnam' }, { code: 'YE', name: 'Yemen' }, { code: 'ZM', name: 'Zambia' },
   { code: 'ZW', name: 'Zimbabwe' }
 ];
 
@@ -460,7 +306,6 @@ const userRoleOptions = [
 ];
 
 const adminRoleOptions = [
-  { value: 'System Administrator', label: 'System Administrator' },
   { value: 'Hospital Administrator', label: 'Hospital Administrator' },
   { value: 'IT Manager', label: 'IT Manager' },
   { value: 'Safety Director', label: 'Safety Director' },
@@ -469,212 +314,179 @@ const adminRoleOptions = [
 ];
 
 // ============================================
-// PAYMENT METHODS - SAME FOR ALL PLANS
+// PAYMENT METHODS
 // ============================================
 const PAYMENT_METHODS = [
-  { 
-    id: 'paystack', 
-    name: 'Paystack / Credit Card', 
-    icon: <CreditCardOutlined />, 
-    description: 'Pay with Credit/Debit Card - Instant activation',
-    color: '#1890ff'
-  },
-  { 
-    id: 'paypal', 
-    name: 'PayPal', 
-    icon: <DollarOutlined />, 
-    description: 'Secure PayPal payment - Instant activation',
-    color: '#003087'
-  },
-  { 
-    id: 'bank_transfer', 
-    name: 'Bank Transfer', 
-    icon: <BankOutlined />, 
-    description: 'Manual verification (24-48h)',
-    color: '#faad14'
-  }
+  { id: 'paystack', name: 'Paystack — Card / Mobile Money', icon: <CreditCardOutlined />, description: 'Pay online. Your plan activates immediately.', instant: true, color: '#1890ff' },
+  { id: 'paypal', name: 'PayPal', icon: <DollarOutlined />, description: 'Pay online. Your plan activates immediately.', instant: true, color: '#003087' },
+  { id: 'bank_transfer', name: 'Bank Transfer', icon: <BankOutlined />, description: 'Activates after our team confirms the transfer (24–48h).', instant: false, color: '#faad14' },
+  { id: 'mobile_money', name: 'Mobile Money (manual transfer)', icon: <PhoneOutlined />, description: 'Activates after our team confirms the transfer (24–48h).', instant: false, color: '#faad14' }
 ];
 
 // ============================================
 // MAIN COMPONENT
 // ============================================
 function SignupPage() {
+  const history = useHistory();
+  const location = useLocation();
+  const initialType = new URLSearchParams(location.search).get('type') === 'admin' ? 'admin' : 'user';
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showVerification, setShowVerification] = useState(false);
   const [currentEmail, setCurrentEmail] = useState('');
   const [currentStep, setCurrentStep] = useState(0);
-  const [userType, setUserType] = useState('user');
+  const [userType, setUserType] = useState(initialType);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [selectedCountry, setSelectedCountry] = useState('default');
   const [selectedDuration, setSelectedDuration] = useState('1_month');
+  const [pricing, setPricing] = useState(FALLBACK_COUNTRY_PRICING.default);
   const [formData, setFormData] = useState({});
+  const [registrationComplete, setRegistrationComplete] = useState(false);
+  const [verificationCompleted, setVerificationCompleted] = useState(false);
+  const [userId, setUserId] = useState(null);
+
+  // payment / contact
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentProcessing, setPaymentProcessing] = useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
+  const [manualMethod, setManualMethod] = useState(null);
   const [showCustomPlanModal, setShowCustomPlanModal] = useState(false);
-  const [contactMessage, setContactMessage] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [contactPhone, setContactPhone] = useState('');
-  const [registrationComplete, setRegistrationComplete] = useState(false);
-  const [userId, setUserId] = useState(null);
-  const [companyId, setCompanyId] = useState(null);
-  const [planActivationLoading, setPlanActivationLoading] = useState(false);
-  const [paymentProcessing, setPaymentProcessing] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
-  const [verificationCompleted, setVerificationCompleted] = useState(false);
-  const [resumeStep, setResumeStep] = useState(null);
-  
-  const { signup } = useContext(AuthContext);
+  const [contactMessage, setContactMessage] = useState('');
+  const [contactSending, setContactSending] = useState(false);
+
+  // compliance / security
+  const [isMinor, setIsMinor] = useState(false);
+  const [passwordValue, setPasswordValue] = useState('');
+  const [residency, setResidency] = useState(REGION_BY_COUNTRY('default'));
+  const [honeypot, setHoneypot] = useState('');
+
+  const passwordRef = useRef(null);   // password lives only in memory, never in storage
+  const restoredRef = useRef(false);
+  const finishedRef = useRef(false);
+
   const { availableLanguages } = useLanguage();
   const [form] = Form.useForm();
-  const history = useHistory();
+
+  const isAdmin = userType === 'admin';
 
   // ============================================
-  // CHECK FOR SAVED STATE ON LOAD
+  // PLAN HELPERS
+  // ============================================
+  const getAvailablePlans = () => (isAdmin ? ['enterprise', 'custom'] : ['free', 'basic', 'pro', 'enterprise']);
+  const activePlan = getAvailablePlans().includes(selectedPlan) ? selectedPlan : (isAdmin ? 'enterprise' : 'free');
+  const priceOf = (planId) => getPlanPrice(pricing, planId, selectedDuration);
+
+  // ============================================
+  // RESTORE SAVED PROGRESS (never includes the password)
   // ============================================
   useEffect(() => {
-    // Check if user was in the middle of signup
-    const savedState = sessionStorage.getItem('signupState');
-    if (savedState) {
+    const saved = sessionStorage.getItem('signupState');
+    if (saved) {
       try {
-        const state = JSON.parse(savedState);
-        console.log('🔵 Restoring signup state:', state);
-        
-        setUserId(state.userId);
-        setUserType(state.userType || 'user');
+        const state = JSON.parse(saved);
+        setUserId(state.userId || null);
+        setUserType(state.userType === 'admin' ? 'admin' : 'user');
         setCurrentEmail(state.email || '');
+        setContactEmail(state.email || '');
         setSelectedCountry(state.country || 'default');
-        setRegistrationComplete(state.registrationComplete || false);
+        setResidency(REGION_BY_COUNTRY(state.country || 'default'));
+        setRegistrationComplete(!!state.registrationComplete);
         setSelectedPlan(state.selectedPlan || null);
+        setSelectedDuration(state.selectedDuration || '1_month');
         setCurrentStep(state.currentStep || 0);
-        
-        // If user was already verified, mark as completed
-        if (state.verified) {
-          setVerificationCompleted(true);
-        }
-        
-        // If user was at plan selection step, show the plan selection
-        if (state.currentStep === 3 && state.registrationComplete) {
-          setRegistrationComplete(true);
-        }
-        
-        // Restore form data
+        setVerificationCompleted(!!state.verified);
+
         if (state.formData) {
-          setFormData(state.formData);
-          form.setFieldsValue(state.formData);
+          const restored = { ...state.formData };
+          // Force re-consent if policy versions changed since the user ticked them
+          if (state.termsVersion !== TERMS_VERSION || state.privacyVersion !== PRIVACY_VERSION) {
+            restored.termsAccepted = false;
+            restored.eConsent = false;
+            restored.dpaAccepted = false;
+          }
+          delete restored.password;
+          delete restored.confirmPassword;
+          setFormData(restored);
+          form.setFieldsValue(restored);
+          const age = getAge(restored.dateOfBirth);
+          setIsMinor(age !== null && age < MIN_AGE);
         }
-        
-        // If verification was shown, show it again
-        if (state.showVerification) {
-          setShowVerification(true);
-        }
-        
-        message.info('Resuming your signup process...');
+        if (state.showVerification) setShowVerification(true);
+        message.info('Welcome back — we restored your signup progress.');
       } catch (e) {
-        console.error('Error restoring signup state:', e);
+        sessionStorage.removeItem('signupState');
       }
     }
-    
-    // Check if user just verified email
-    const verifiedEmail = localStorage.getItem('verifiedEmail');
-    if (verifiedEmail) {
-      console.log('✅ User just verified email:', verifiedEmail);
-      setCurrentEmail(verifiedEmail);
-      setVerificationCompleted(true);
-      localStorage.removeItem('verifiedEmail');
-      message.success('Email verified successfully! Continue with plan selection.');
-    }
-  }, []);
+    restoredRef.current = true;
+  }, []); // run once on mount
 
   // ============================================
-  // SAVE STATE FUNCTION
+  // AUTO-SAVE PROGRESS (runs after state is committed, so it is never stale)
   // ============================================
-  const saveSignupState = () => {
-    const state = {
-      userId: userId,
-      userType: userType,
-      email: currentEmail || formData.email,
+  useEffect(() => {
+    if (!restoredRef.current || finishedRef.current) return;
+    if (currentStep === 0 && !registrationComplete && Object.keys(formData).length === 0) return;
+    const safeFormData = { ...formData };
+    delete safeFormData.password;
+    delete safeFormData.confirmPassword;
+    sessionStorage.setItem('signupState', JSON.stringify({
+      userId,
+      userType,
+      email: currentEmail || safeFormData.email,
       country: selectedCountry,
-      registrationComplete: registrationComplete,
-      selectedPlan: selectedPlan,
-      currentStep: currentStep,
-      verified: verificationCompleted || false,
-      formData: formData,
-      showVerification: showVerification,
+      registrationComplete,
+      selectedPlan,
+      selectedDuration,
+      currentStep,
+      verified: verificationCompleted,
+      formData: safeFormData,
+      showVerification,
+      termsVersion: TERMS_VERSION,
+      privacyVersion: PRIVACY_VERSION,
       timestamp: new Date().toISOString()
-    };
-    sessionStorage.setItem('signupState', JSON.stringify(state));
-    console.log('💾 Saved signup state:', state);
+    }));
+  }, [userId, userType, currentEmail, selectedCountry, registrationComplete, selectedPlan,
+      selectedDuration, currentStep, verificationCompleted, formData, showVerification]);
+
+  // ============================================
+  // PRICES — exactly what the backend will charge for this country
+  // ============================================
+  useEffect(() => {
+    let cancelled = false;
+    fetchCountryPricing(selectedCountry).then((p) => { if (!cancelled) setPricing(p); });
+    return () => { cancelled = true; };
+  }, [selectedCountry]);
+
+  const clearSignupState = () => {
+    finishedRef.current = true;
+    sessionStorage.removeItem('signupState');
   };
 
   // ============================================
-  // HELPERS
+  // STEP 1: Account type
   // ============================================
-
-  const getCountryPricing = () => {
-    return COUNTRY_PRICING[selectedCountry] || COUNTRY_PRICING.default;
-  };
-
-  const getPlanPrice = (planId) => {
-    if (planId === 'custom') return { amount: 'Custom', currency: 'USD' };
-    
-    const pricing = getCountryPricing();
-    const planPricing = pricing[planId];
-    if (!planPricing) return { amount: 0, currency: 'USD' };
-    
-    let amount = planPricing[selectedDuration] || planPricing['1_month'] || 0;
-    const currency = planPricing.currency || 'USD';
-    
-    return { amount, currency };
-  };
-
-  const formatCurrency = (amount, currency = 'USD') => {
-    if (amount === 'Custom' || amount === 'Custom Pricing') return 'Custom Pricing';
-    const symbols = { USD: '$', GHS: 'GH₵', QAR: 'QR', INR: '₹', EUR: '€', GBP: '£' };
-    const symbol = symbols[currency] || currency;
-    return `${symbol}${typeof amount === 'number' ? amount.toLocaleString() : amount}`;
-  };
-
-  const getDurationLabel = (duration) => {
-    const labels = {
-      '1_month': 'Monthly',
-      '6_month': '6 Months',
-      '1_year': 'Annual'
-    };
-    return labels[duration] || duration;
-  };
-
-  // ============================================
-  // GET AVAILABLE PLANS BASED ON USER TYPE
-  // ============================================
-
-  const getAvailablePlans = () => {
-    if (userType === 'admin') {
-      return ['enterprise', 'custom'];
-    } else {
-      return ['free', 'basic', 'pro', 'enterprise', 'custom'];
-    }
-  };
-
-  // ============================================
-  // RENDER STEPS
-  // ============================================
-
-  // STEP 1: User Type
   const renderUserTypeStep = () => (
     <div className="step-content">
       <div className="user-type-selection">
         <Title level={4}>Choose Account Type</Title>
         <Text type="secondary">Select the type of account that best fits your needs</Text>
-        
-        <div className="user-type-cards">
-          <div 
+
+        <div className="user-type-cards" role="radiogroup" aria-label="Account type">
+          <div
+            role="radio"
+            aria-checked={userType === 'user'}
+            tabIndex={0}
             className={`user-type-card ${userType === 'user' ? 'selected' : ''}`}
             onClick={() => setUserType('user')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setUserType('user'); } }}
           >
             <div className="card-icon"><UserOutlined /></div>
             <div className="card-content">
               <Title level={5}>Standard User</Title>
-              <Text>For healthcare professionals and staff</Text>
+              <Text>For safety, health and quality professionals</Text>
               <ul>
                 <li>Safety modules</li>
                 <li>Incident reporting</li>
@@ -683,252 +495,398 @@ function SignupPage() {
             </div>
           </div>
 
-          <div 
+          <div
+            role="radio"
+            aria-checked={userType === 'admin'}
+            tabIndex={0}
             className={`user-type-card ${userType === 'admin' ? 'selected' : ''}`}
             onClick={() => setUserType('admin')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setUserType('admin'); } }}
           >
             <div className="card-icon admin"><BankOutlined /></div>
             <div className="card-content">
-              <Title level={5}>Administrator</Title>
-              <Text>For system administrators</Text>
+              <Title level={5}>Company Administrator</Title>
+              <Text>Register your organization and manage its team</Text>
               <ul>
-                <li>User management</li>
-                <li>System configuration</li>
+                <li>User & employee management</li>
+                <li>Company-wide configuration</li>
                 <li>Advanced analytics</li>
               </ul>
             </div>
           </div>
         </div>
 
-        {userType === 'admin' && (
-          <Alert
-            message="Company Registration"
-            description="Administrators register their company. Enterprise and Custom plans available."
-            type="info"
-            showIcon
-            style={{ marginTop: 16 }}
-          />
+        <Alert
+          type="info"
+          showIcon
+          style={{ marginTop: 16 }}
+          message={isAdmin ? 'How company registration works' : 'How signup works'}
+          description={
+            <ol style={{ margin: '8px 0 0', paddingLeft: 20 }}>
+              {(isAdmin ? ADMIN_JOURNEY : USER_JOURNEY).map((s) => <li key={s}>{s}</li>)}
+            </ol>
+          }
+        />
+        {!isAdmin && (
+          <Text type="secondary" style={{ display: 'block', marginTop: 8, fontSize: 12 }}>
+            Employees don't sign up here — your company administrator creates your account and sends you the sign-in details.
+          </Text>
         )}
       </div>
     </div>
   );
 
-  // STEP 2: Basic Info
+  // ============================================
+  // STEP 2: Basic info
+  // ============================================
   const renderBasicInfoStep = () => (
     <div className="step-content">
-      <Form.Item
-        name="name"
-        label="Full Name"
-        rules={[{ required: true, message: 'Please enter your full name' }]}
-      >
-        <Input placeholder="Enter your full name" prefix={<UserOutlined />} size="large" />
+      {/* Honeypot (bots fill it, people never see it) */}
+      <div style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, overflow: 'hidden' }} aria-hidden="true">
+        <label htmlFor="hp_company_url">Website</label>
+        <input
+          id="hp_company_url"
+          name="company_url"
+          tabIndex={-1}
+          autoComplete="off"
+          value={honeypot}
+          onChange={(e) => setHoneypot(e.target.value)}
+        />
+      </div>
+
+      <Form.Item name="name" label="Full Name" rules={[{ required: true, whitespace: true, message: 'Please enter your full name' }]}>
+        <Input placeholder="Enter your full name" prefix={<UserOutlined />} size="large" autoComplete="name" />
       </Form.Item>
 
       <Form.Item
         name="email"
-        label="Email Address"
+        label={isAdmin ? 'Work Email Address' : 'Email Address'}
+        extra="We'll send a 6-digit verification code to this address."
         rules={[
           { required: true, message: 'Please enter your email' },
           { type: 'email', message: 'Please enter a valid email' }
         ]}
       >
-        <Input placeholder="Enter your email" prefix={<MailOutlined />} size="large" />
+        <Input placeholder="you@example.com" prefix={<MailOutlined />} size="large" autoComplete="email" />
       </Form.Item>
 
       <Form.Item
         name="phone"
         label="Phone Number"
-        rules={[{ required: userType === 'admin', message: 'Phone required for admin' }]}
+        rules={[
+          { required: isAdmin, message: 'Phone number is required for administrators' },
+          // Account phone is stored in a 20-character column (users.phone / companies.phone)
+          { pattern: SIGNUP_PHONE_PATTERN, message: 'Use digits, spaces, + ( ) - only (7–20 characters)' }
+        ]}
       >
-        <Input placeholder="Enter your phone number" prefix={<IdcardOutlined />} size="large" />
+        <Input placeholder="+233 55 123 4567" prefix={<PhoneOutlined />} size="large" autoComplete="tel" />
       </Form.Item>
 
-      {userType === 'admin' && (
+      <Form.Item
+        name="dateOfBirth"
+        label="Date of Birth"
+        extra={isAdmin ? `Company administrators must be at least ${MIN_AGE}.` : undefined}
+        rules={[
+          { required: true, message: 'Please enter your date of birth' },
+          {
+            validator: (_, v) => {
+              if (!v) return Promise.resolve();
+              const age = getAge(v);
+              if (age === null) return Promise.reject(new Error('Invalid date'));
+              if (age > 120) return Promise.reject(new Error('Please enter a valid date of birth'));
+              if (age < MINOR_AGE_FLOOR) return Promise.reject(new Error(`You must be at least ${MINOR_AGE_FLOOR} to use this service.`));
+              if (isAdmin && age < MIN_AGE) return Promise.reject(new Error(`Company administrators must be at least ${MIN_AGE}.`));
+              return Promise.resolve();
+            }
+          }
+        ]}
+      >
+        <Input
+          type="date"
+          size="large"
+          max={new Date().toISOString().split('T')[0]}
+          onChange={(e) => {
+            const age = getAge(e.target.value);
+            setIsMinor(age !== null && age < MIN_AGE);
+          }}
+        />
+      </Form.Item>
+
+      {isMinor && !isAdmin && (
         <>
+          <Alert
+            type="warning"
+            showIcon
+            message="Parent / Guardian Consent Required"
+            description={`Because you are under ${MIN_AGE}, a parent or guardian must approve your account before you can sign in.`}
+            style={{ marginBottom: 16 }}
+          />
           <Form.Item
-            name="companyName"
-            label="Organization"
-            rules={[{ required: true, message: 'Please enter organization name' }]}
+            name="guardianEmail"
+            label="Parent / Guardian Email"
+            rules={[
+              { required: true, message: 'Guardian email is required for users under 18' },
+              { type: 'email', message: 'Enter a valid guardian email' },
+              {
+                validator: (_, v) => {
+                  const selfEmail = form.getFieldValue('email');
+                  if (v && selfEmail && v.toLowerCase() === selfEmail.toLowerCase()) {
+                    return Promise.reject(new Error('Guardian email must be different from your own'));
+                  }
+                  return Promise.resolve();
+                }
+              }
+            ]}
           >
+            <Input placeholder="guardian@example.com" prefix={<MailOutlined />} size="large" />
+          </Form.Item>
+        </>
+      )}
+
+      <Form.Item name="industry" label="Organization Industry" rules={[{ required: true, message: 'Please select your industry' }]}>
+        <Select placeholder="Select industry" size="large">
+          {INDUSTRY_OPTIONS.map((o) => (
+            <Option key={o.value} value={o.value}>{o.label}</Option>
+          ))}
+        </Select>
+      </Form.Item>
+
+      {isAdmin && (
+        <>
+          <Form.Item name="companyName" label="Organization Name" rules={[{ required: true, whitespace: true, message: 'Please enter organization name' }]}>
             <Input placeholder="Organization name" prefix={<BankOutlined />} size="large" />
           </Form.Item>
-
-          <Form.Item
-            name="employeeCount"
-            label="Employees"
-            rules={[{ required: true, message: 'Please enter employee count' }]}
-          >
-            <Input type="number" placeholder="Number of employees" size="large" min="1" />
+          <Form.Item name="employeeCount" label="Number of Employees" rules={[{ required: true, message: 'Please enter employee count' }]}>
+            <Input type="number" placeholder="e.g. 120" size="large" min={1} max={1000000} />
           </Form.Item>
         </>
       )}
     </div>
   );
 
-  // STEP 3: Security (Password)
-  const renderSecurityStep = () => (
-    <div className="step-content">
-      <Form.Item
-        name="password"
-        label="Create Password"
-        rules={[
-          { required: true, message: 'Please enter password' },
-          { min: 8, message: 'Password must be at least 8 characters' },
-          { 
-            pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 
-            message: 'Must contain uppercase, lowercase & numbers' 
-          }
-        ]}
-        hasFeedback
-      >
-        <Input.Password 
-          placeholder="Create strong password" 
-          prefix={<LockOutlined />}
-          size="large"
-        />
-      </Form.Item>
+  // ============================================
+  // STEP 3: Security & consents
+  // ============================================
+  const renderSecurityStep = () => {
+    const currentCountry = form.getFieldValue('country');
+    const score = scorePassword(passwordValue);
+    return (
+      <div className="step-content">
+        <Form.Item
+          name="password"
+          label="Create Password"
+          rules={[{ required: true, message: 'Please enter a password' }, { validator: passwordValidator }]}
+          hasFeedback
+        >
+          <Input.Password
+            placeholder="Create a strong password"
+            prefix={<LockOutlined />}
+            size="large"
+            autoComplete="new-password"
+            onChange={(e) => setPasswordValue(e.target.value)}
+          />
+        </Form.Item>
 
-      <Form.Item
-        name="confirmPassword"
-        label="Confirm Password"
-        dependencies={['password']}
-        hasFeedback
-        rules={[
-          { required: true, message: 'Please confirm password' },
-          ({ getFieldValue }) => ({
-            validator(_, value) {
-              if (!value || getFieldValue('password') === value) {
-                return Promise.resolve();
+        <div style={{ marginTop: -8, marginBottom: 16 }}>
+          {PASSWORD_RULES.map((r) => {
+            const ok = r.test(passwordValue);
+            return (
+              <div key={r.id} style={{ fontSize: 12, color: ok ? '#52c41a' : '#8c8c8c' }}>
+                <CheckCircleOutlined style={{ marginRight: 6 }} />{r.label}
+              </div>
+            );
+          })}
+          {score.label && (
+            <>
+              <div style={{ height: 6, borderRadius: 3, background: '#f0f0f0', overflow: 'hidden', marginTop: 6 }}>
+                <div style={{ width: `${(score.score / 4) * 100}%`, height: '100%', background: score.color, transition: 'width 0.2s' }} />
+              </div>
+              <Text style={{ color: score.color, fontSize: 12 }}>{score.label}</Text>
+            </>
+          )}
+        </div>
+
+        <Form.Item
+          name="confirmPassword"
+          label="Confirm Password"
+          dependencies={['password']}
+          hasFeedback
+          rules={[
+            { required: true, message: 'Please confirm your password' },
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                if (!value || getFieldValue('password') === value) return Promise.resolve();
+                return Promise.reject(new Error('Passwords do not match'));
               }
-              return Promise.reject(new Error('Passwords do not match'));
-            },
-          }),
-        ]}
-      >
-        <Input.Password 
-          placeholder="Confirm password" 
-          prefix={<LockOutlined />}
-          size="large"
-        />
-      </Form.Item>
+            })
+          ]}
+        >
+          <Input.Password placeholder="Confirm password" prefix={<LockOutlined />} size="large" autoComplete="new-password" />
+        </Form.Item>
 
-      <Form.Item
-        name="country"
-        label="Country"
-        rules={[{ required: true, message: 'Please select country' }]}
-      >
-        <Select
-          showSearch
-          placeholder="Select country"
-          optionFilterProp="children"
-          size="large"
-          onChange={setSelectedCountry}
-          filterOption={(input, option) =>
-            option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+        <Form.Item name="country" label="Country" extra="Used for your local prices and data-protection rules." rules={[{ required: true, message: 'Please select your country' }]}>
+          <Select
+            showSearch
+            placeholder="Select country"
+            optionFilterProp="children"
+            size="large"
+            onChange={(val) => {
+              setSelectedCountry(val);
+              setResidency(REGION_BY_COUNTRY(val));
+            }}
+            filterOption={(input, option) => String(option.children).toLowerCase().includes(input.toLowerCase())}
+          >
+            {countryOptions.map((c) => (
+              <Option key={c.code} value={c.name}>{c.name}</Option>
+            ))}
+          </Select>
+        </Form.Item>
+
+        {currentCountry && (
+          <Alert
+            type="info"
+            showIcon
+            icon={<GlobalOutlined />}
+            message={`Data protection: ${residency.regulator}`}
+            description={`Your data is processed under ${residency.regulator}.`}
+            style={{ marginBottom: 16 }}
+          />
+        )}
+
+        <Form.Item
+          name="role"
+          label={isAdmin ? 'Your Role' : 'Professional Role'}
+          rules={[{ required: true, message: 'Please select your role' }]}
+        >
+          <Select placeholder="Select your role" size="large">
+            {(isAdmin ? adminRoleOptions : userRoleOptions).map((r) => (
+              <Option key={r.value} value={r.value}>{r.label}</Option>
+            ))}
+          </Select>
+        </Form.Item>
+
+        <Form.Item name="preferredLanguage" label="Language" initialValue="en" rules={[{ required: true, message: 'Please select language' }]}>
+          <Select placeholder="Select language" size="large" data-testid="language-select">
+            {availableLanguages.map((lang) => (
+              <Option key={lang.code} value={lang.code}>
+                <span className="language-flag">{lang.flag}</span>
+                {lang.nativeName}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
+
+        <Divider orientation="left">Consents & Agreements</Divider>
+
+        <Alert
+          type="info"
+          showIcon
+          style={{ marginBottom: 16 }}
+          message="What we collect and why"
+          description={
+            <>
+              We collect your name, email, phone, date of birth, country, role and organization to create and secure your
+              account and to provide our HSE services. We do not sell your data. See our{' '}
+              <a href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a> for your rights and retention periods.
+            </>
           }
-        >
-          {countryOptions.map(country => (
-            <Option key={country.code} value={country.name}>
-              {country.name}
-            </Option>
-          ))}
-        </Select>
-      </Form.Item>
+        />
 
-      <Form.Item
-        name="role"
-        label={userType === 'admin' ? 'Admin Role' : 'Professional Role'}
-        rules={[{ required: true, message: 'Please select role' }]}
-      >
-        <Select 
-          placeholder={`Select ${userType === 'admin' ? 'admin' : 'professional'} role`}
-          size="large"
+        {/* Required — never pre-ticked */}
+        <Form.Item
+          name="termsAccepted"
+          valuePropName="checked"
+          rules={[{ validator: (_, v) => (v === true ? Promise.resolve() : Promise.reject(new Error('You must accept the Terms and Privacy Policy'))) }]}
         >
-          {(userType === 'admin' ? adminRoleOptions : userRoleOptions).map(role => (
-            <Option key={role.value} value={role.value}>
-              {role.label}
-            </Option>
-          ))}
-        </Select>
-      </Form.Item>
+          <Checkbox>
+            I have read and agree to the{' '}
+            <a href="/terms" target="_blank" rel="noopener noreferrer">Terms of Service</a> (v{TERMS_VERSION}) and{' '}
+            <a href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a> (v{PRIVACY_VERSION}).
+            <span style={{ fontSize: 11, color: '#888', display: 'block' }}>
+              Your acceptance, IP address, timestamp and policy version will be recorded.
+            </span>
+          </Checkbox>
+        </Form.Item>
 
-      <Form.Item
-        name="preferredLanguage"
-        label="Language"
-        initialValue="en"
-        rules={[{ required: true, message: 'Please select language' }]}
-      >
-        <Select 
-          placeholder="Select language" 
-          size="large"
-          data-testid="language-select"
+        <Form.Item
+          name="eConsent"
+          valuePropName="checked"
+          rules={[{ validator: (_, v) => (v === true ? Promise.resolve() : Promise.reject(new Error('Consent to electronic records is required'))) }]}
         >
-          {availableLanguages.map(lang => (
-            <Option key={lang.code} value={lang.code}>
-              <span className="language-flag">{lang.flag}</span>
-              {lang.nativeName}
-            </Option>
-          ))}
-        </Select>
-      </Form.Item>
-    </div>
-  );
+          <Checkbox>
+            I consent to receive account notices, invoices, security alerts and legal communications electronically.
+          </Checkbox>
+        </Form.Item>
 
-  // STEP 4: Plan Selection
+        {isAdmin && (
+          <Form.Item
+            name="dpaAccepted"
+            valuePropName="checked"
+            rules={[{ validator: (_, v) => (v === true ? Promise.resolve() : Promise.reject(new Error('You must accept the Data Processing Agreement to register a company'))) }]}
+          >
+            <Checkbox>
+              On behalf of my organization, I accept the{' '}
+              <a href="/dpa" target="_blank" rel="noopener noreferrer">Data Processing Agreement</a> (v{DPA_VERSION}) and, where applicable, the{' '}
+              <a href="/baa" target="_blank" rel="noopener noreferrer">Business Associate Agreement</a> (v{BAA_VERSION}).
+            </Checkbox>
+          </Form.Item>
+        )}
+
+        <Form.Item name="marketingConsent" valuePropName="checked">
+          <Checkbox>Send me product updates, HSE compliance news and training invitations (optional).</Checkbox>
+        </Form.Item>
+      </div>
+    );
+  };
+
+  // ============================================
+  // STEP 4: Plan
+  // ============================================
+  const renderPlanInstructions = () => {
+    if (registrationComplete && !verificationCompleted) {
+      return (
+        <Alert
+          type="warning"
+          showIcon
+          style={{ marginBottom: 24 }}
+          message="Verify your email to continue"
+          description={`Enter the 6-digit code we sent to ${currentEmail || formData.email || 'your email'}.`}
+          action={<Button size="small" type="primary" onClick={() => setShowVerification(true)}>Enter code</Button>}
+        />
+      );
+    }
+    if (registrationComplete && verificationCompleted) {
+      return (
+        <Alert type="success" showIcon style={{ marginBottom: 24 }} message="Email verified"
+          description="Confirm your plan below to finish." />
+      );
+    }
+    return (
+      <Alert
+        type="info"
+        showIcon
+        style={{ marginBottom: 24 }}
+        message={isAdmin ? 'Choose your organization plan' : 'Choose your plan'}
+        description={isAdmin
+          ? 'Enterprise and Custom prices are agreed with our sales team after your account is approved. Nothing is charged now.'
+          : 'Free starts right after you verify your email. Paid plans go to secure checkout after verification. Enterprise connects you with our sales team.'}
+      />
+    );
+  };
+
   const renderPlanStep = () => {
     const availablePlans = getAvailablePlans();
-
-    // Show verification status if user is verified
-    const isVerified = verificationCompleted || localStorage.getItem('verifiedEmail');
+    const showBilling = !isAdmin && !priceOf(activePlan).isCustom;
 
     return (
       <div className="step-content">
-        {isVerified && (
-          <Alert
-            message="✅ Email Verified"
-            description="Your email has been verified. Select a plan to activate your account."
-            type="success"
-            showIcon
-            style={{ marginBottom: 24 }}
-          />
-        )}
+        {renderPlanInstructions()}
 
-        {!isVerified && registrationComplete && (
-          <Alert
-            message="⚠️ Email Verification Required"
-            description="Please verify your email before selecting a plan. Check your inbox for the verification code."
-            type="warning"
-            showIcon
-            style={{ marginBottom: 24 }}
-            action={
-              <Button size="small" type="primary" onClick={() => setShowVerification(true)}>
-                Verify Now
-              </Button>
-            }
-          />
-        )}
-
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <Title level={4}>
-            {userType === 'admin' ? 'Choose Your Plan' : 'Choose Your Plan'}
-          </Title>
-          <Text type="secondary">
-            Select a plan that fits your needs
-          </Text>
-        </div>
-
-        {/* Billing Cycle Selector - Hide for Custom */}
-        {selectedPlan !== 'custom' && (
+        {showBilling && (
           <div style={{ marginBottom: 16, textAlign: 'center' }}>
-            <Text strong>Billing Cycle: </Text>
-            <Select
-              value={selectedDuration}
-              onChange={setSelectedDuration}
-              style={{ width: 150 }}
-            >
-              <Option value="1_month">Monthly</Option>
-              <Option value="6_month">6 Months</Option>
-              <Option value="1_year">Annual</Option>
+            <Text strong>Billing cycle: </Text>
+            <Select value={selectedDuration} onChange={setSelectedDuration} style={{ width: 150 }}>
+              {DURATION_OPTIONS.map((d) => <Option key={d.value} value={d.value}>{d.label}</Option>)}
             </Select>
           </div>
         )}
@@ -936,82 +894,44 @@ function SignupPage() {
         <Row gutter={[16, 16]}>
           {availablePlans.map((planId) => {
             const plan = PLANS[planId];
-            const price = getPlanPrice(planId);
-            const isCustom = planId === 'custom';
-            const isEnterprise = planId === 'enterprise';
-            const isSelected = selectedPlan === planId;
+            const price = priceOf(planId);
+            const isSelected = activePlan === planId;
+            const select = () => { if (!registrationComplete || !isAdmin) setSelectedPlan(planId); };
 
             return (
-              <Col xs={24} md={userType === 'admin' ? 12 : 8} key={planId}>
+              <Col xs={24} md={isAdmin ? 12 : 12} lg={isAdmin ? 12 : 6} key={planId}>
                 <Card
+                  role="radio"
+                  aria-checked={isSelected}
+                  tabIndex={0}
                   className={`plan-card ${isSelected ? 'selected' : ''}`}
-                  style={{
-                    border: isSelected ? '2px solid #1890ff' : undefined,
-                    height: '100%',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s'
-                  }}
-                  onClick={() => setSelectedPlan(planId)}
+                  style={{ border: isSelected ? '2px solid #1890ff' : undefined, height: '100%', cursor: 'pointer' }}
+                  onClick={select}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(); } }}
                   hoverable
                 >
-                  {isCustom && (
-                    <Tag color="orange" style={{ marginBottom: 8 }}>
-                      <CrownOutlined /> Custom
-                    </Tag>
-                  )}
-                  {isEnterprise && !isCustom && (
-                    <Tag color="gold" style={{ marginBottom: 8 }}>
-                      <CrownOutlined /> Enterprise
-                    </Tag>
-                  )}
-                  {planId === 'pro' && !isEnterprise && !isCustom && (
-                    <Tag color="purple" style={{ marginBottom: 8 }}>
-                      Most Popular
-                    </Tag>
-                  )}
-                  {planId === 'free' && !isCustom && (
-                    <Tag color="green" style={{ marginBottom: 8 }}>
-                      Free
-                    </Tag>
-                  )}
+                  {planId === 'pro' && <Tag color="purple" style={{ marginBottom: 8 }}>Most Popular</Tag>}
+                  {planId === 'free' && <Tag color="green" style={{ marginBottom: 8 }}>Free</Tag>}
+                  {price.isCustom && <Tag color="gold" style={{ marginBottom: 8 }}><CrownOutlined /> Contact sales</Tag>}
 
                   <Title level={4} style={{ marginBottom: 4 }}>{plan.label}</Title>
-                  
                   <div style={{ marginBottom: 8 }}>
-                    <Text strong style={{ fontSize: 24, color: isCustom ? '#fa8c16' : (isEnterprise ? '#faad14' : '#1890ff') }}>
-                      {isCustom ? 'Custom Pricing' : 
-                       price.amount === 0 ? 'Free' : 
-                       formatCurrency(price.amount, price.currency)}
+                    <Text strong style={{ fontSize: 22, color: price.isCustom ? '#fa8c16' : '#1890ff' }}>
+                      {formatPrice(price.amount, price.currency)}
                     </Text>
-                    {!isCustom && price.amount !== 0 && (
-                      <Text type="secondary" style={{ fontSize: 12 }}>
-                        /{getDurationLabel(selectedDuration).toLowerCase()}
-                      </Text>
+                    {!price.isCustom && !price.isFree && (
+                      <Text type="secondary" style={{ fontSize: 12 }}> / {durationPer(selectedDuration)}</Text>
                     )}
                   </div>
 
-                  {isCustom && (
-                    <Text type="secondary" style={{ fontSize: 12 }}>
-                      Contact us for custom pricing
-                    </Text>
-                  )}
-
                   <Divider style={{ margin: '12px 0' }} />
-
-                  <div style={{ marginBottom: 12 }}>
-                    {(isCustom ? plan.features : plan.features.slice(0, 6)).map((feature, idx) => (
-                      <div key={idx} style={{ padding: '4px 0', fontSize: 13 }}>
-                        <CheckCircleOutlined style={{ color: isCustom ? '#fa8c16' : '#52c41a', marginRight: 8 }} />
-                        {feature}
-                      </div>
-                    ))}
-                  </div>
-
-                  {isSelected && (
-                    <Tag color="blue" style={{ marginTop: 8 }}>
-                      <CheckCircleOutlined /> Selected
-                    </Tag>
-                  )}
+                  {plan.features.slice(0, 6).map((feature) => (
+                    <div key={feature} style={{ padding: '3px 0', fontSize: 13 }}>
+                      <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 8 }} />
+                      {feature}
+                    </div>
+                  ))}
+                  {isSelected && <Tag color="blue" style={{ marginTop: 8 }}><CheckCircleOutlined /> Selected</Tag>}
                 </Card>
               </Col>
             );
@@ -1022,868 +942,505 @@ function SignupPage() {
   };
 
   // ============================================
-  // PAYMENT MODAL - SAME FOR ALL PLANS
+  // ACCOUNT CREATION
   // ============================================
+  const handleCreateAccount = async () => {
+    setError('');
+    const live = form.getFieldsValue(true);
+
+    if (live.termsAccepted !== true || live.eConsent !== true || (isAdmin && live.dpaAccepted !== true)) {
+      setError('Please accept the required agreements in the Security step.');
+      setCurrentStep(2);
+      return;
+    }
+    if (!passwordRef.current) {
+      setError('For your security we never store your password between steps. Please re-enter it in the Security step.');
+      setCurrentStep(2);
+      return;
+    }
+    const all = { ...formData, ...live };
+    if (!all.email || !all.name || !all.dateOfBirth || (isAdmin && !all.companyName)) {
+      setError('Some details are missing. Please complete the Basic Info step.');
+      setCurrentStep(1);
+      return;
+    }
+    if (honeypot) {
+      setError('Registration failed. Please try again.');
+      return;
+    }
+
+    // Individuals always start on Free; paid plans are bought right after email verification.
+    const plan = isAdmin ? activePlan : 'free';
+    const email = all.email.toLowerCase().trim();
+    const payload = {
+      name: all.name.trim(),
+      email,
+      password: passwordRef.current,
+      phone: all.phone || '',
+      country: all.country || '',
+      role: all.role || '',
+      preferred_language: all.preferredLanguage || 'en',
+      user_type: userType,
+      company_name: (all.companyName || '').trim(),
+      employee_count: parseInt(all.employeeCount, 10) || 0,
+      industry: all.industry || 'Other',
+      date_of_birth: all.dateOfBirth,
+      guardian_email: isMinor && !isAdmin ? all.guardianEmail : null,
+      terms_version: TERMS_VERSION,
+      terms_accepted: true,
+      privacy_version: PRIVACY_VERSION,
+      privacy_accepted: true,
+      e_consent: true,
+      marketing_consent: live.marketingConsent === true,
+      dpa_version: isAdmin ? DPA_VERSION : null,
+      dpa_accepted: isAdmin ? true : null,
+      baa_version: isAdmin ? BAA_VERSION : null,
+      baa_accepted: isAdmin ? true : null,
+      honeypot,
+      plan,
+      subscription_plan: plan
+    };
+
+    setLoading(true);
+    try {
+      const res = await api.post(isAdmin ? '/admin/register' : '/auth/register', payload, { validateStatus: () => true });
+      const data = res.data || {};
+
+      if (res.status === 201 || (res.status === 200 && data.success)) {
+        passwordRef.current = null;
+        form.setFieldsValue({ password: undefined, confirmPassword: undefined });
+        setPasswordValue('');
+        setUserId(data.user_id || null);
+        setCurrentEmail(email);
+        setContactEmail(email);
+        setRegistrationComplete(true);
+
+        if (data.stage === 'needs_guardian_consent') {
+          clearSignupState();
+          message.info("Account created. Your parent or guardian must approve it before you can sign in.");
+          history.push('/pending-approval?status=guardian');
+          return;
+        }
+
+        setShowVerification(true);
+        message.success('Account created! Enter the 6-digit code we emailed you.');
+        return;
+      }
+
+      if (Array.isArray(data.missing_consents)) {
+        setCurrentStep(2);
+      }
+      setError(data.error || data.message || 'Registration failed. Please try again.');
+    } catch (err) {
+      setError('Network error. Please check your connection and try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ============================================
+  // AFTER VERIFICATION
+  // ============================================
+  const finishFreePlan = () => {
+    clearSignupState();
+    message.success('Your Free plan is active. Sign in to open your dashboard.');
+    history.push('/login');
+  };
+
+  const continueWithPlan = (planId) => {
+    const price = priceOf(planId);
+    if (price.isFree) { finishFreePlan(); return; }
+    if (price.isCustom) { setShowCustomPlanModal(true); return; }
+    setShowPaymentModal(true);
+  };
+
+  const handleVerificationComplete = (data = {}) => {
+    setShowVerification(false);
+    setVerificationCompleted(true);
+
+    if (isAdmin || data.stage === 'needs_approval') {
+      clearSignupState();
+      history.push('/pending-approval');
+      return;
+    }
+    if (data.stage === 'needs_guardian_consent') {
+      clearSignupState();
+      history.push('/pending-approval?status=guardian');
+      return;
+    }
+    setCurrentStep(3);
+    continueWithPlan(activePlan);
+  };
+
+  const handlePlanSelection = () => {
+    if (!verificationCompleted) {
+      setShowVerification(true);
+      return;
+    }
+    continueWithPlan(activePlan);
+  };
+
+  // ============================================
+  // PAYMENT
+  // ============================================
+  const handlePayment = async (method) => {
+    const price = priceOf(activePlan);
+    if (price.isCustom || price.isFree) return;
+    setSelectedPaymentMethod(method);
+
+    if (method === 'bank_transfer' || method === 'mobile_money') {
+      setShowPaymentModal(false);
+      setManualMethod(method);
+      return;
+    }
+
+    setPaymentProcessing(true);
+    try {
+      const paymentData = {
+        plan: activePlan,
+        duration: selectedDuration,
+        country: selectedCountry,
+        amount: price.amount,       // display only — the server charges its own price
+        currency: price.currency,
+        email: currentEmail || formData.email,
+        name: formData.name || '',
+        payment_method: method,
+        metadata: { plan: activePlan, duration: selectedDuration, country: selectedCountry, isSignup: true },
+        callback_url: `${window.location.origin}/payment-callback?method=${method}&signup=true`
+      };
+      const response = method === 'paystack'
+        ? await PaymentService.initializePaystackPayment(paymentData)
+        : await PaymentService.initializePayPalPayment(paymentData);
+      const redirectUrl = response?.authorization_url || response?.approval_url;
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+        return;
+      }
+      throw new Error(response?.error || 'Could not start the payment. Please try again.');
+    } catch (err) {
+      const unauthorized = err?.status === 401 || /401|unauthori/i.test(err?.message || '');
+      message.error(unauthorized
+        ? 'Your session expired. Sign in — your account is on the Free plan — then upgrade from your dashboard.'
+        : (err?.message || 'Payment failed. Please try again.'));
+    } finally {
+      setPaymentProcessing(false);
+    }
+  };
 
   const renderPaymentModal = () => {
-    const plan = selectedPlan ? PLANS[selectedPlan] : null;
-    const price = selectedPlan ? getPlanPrice(selectedPlan) : { amount: 0, currency: 'USD' };
-    const isCustom = selectedPlan === 'custom';
-    const isFree = selectedPlan === 'free';
-
-    if (isCustom) return null;
-    if (isFree) return null;
-
+    const price = priceOf(activePlan);
+    if (price.isCustom || price.isFree) return null;
     return (
       <Modal
-        title="Complete Your Payment"
+        title="Complete your payment"
         open={showPaymentModal}
-        onCancel={() => {
-          setShowPaymentModal(false);
-          setSelectedPaymentMethod(null);
-          saveSignupState();
-        }}
+        onCancel={() => { if (!paymentProcessing) { setShowPaymentModal(false); setSelectedPaymentMethod(null); } }}
         footer={null}
         width={650}
       >
-        <div>
-          <Alert
-            message="Order Summary"
-            description={
-              <div style={{ marginTop: 8 }}>
-                <Row gutter={[16, 8]}>
-                  <Col span={12}>
-                    <Text type="secondary">Plan:</Text>
-                    <div><Text strong>{plan?.label || selectedPlan?.toUpperCase()}</Text></div>
-                  </Col>
-                  <Col span={12}>
-                    <Text type="secondary">Billing:</Text>
-                    <div><Text strong>{getDurationLabel(selectedDuration)}</Text></div>
-                  </Col>
-                  <Col span={12}>
-                    <Text type="secondary">Amount:</Text>
-                    <div>
-                      <Text strong style={{ fontSize: 20, color: '#1890ff' }}>
-                        {formatCurrency(price.amount, price.currency)}
-                      </Text>
-                    </div>
-                  </Col>
-                  <Col span={12}>
-                    <Text type="secondary">Trial:</Text>
-                    <div><Tag color="green">14 Days Free Trial</Tag></div>
-                  </Col>
-                </Row>
-              </div>
-            }
-            type="info"
-            showIcon
-            style={{ marginBottom: 24 }}
-          />
+        <Alert
+          type="info"
+          showIcon
+          style={{ marginBottom: 16 }}
+          message="Order summary"
+          description={
+            <Row gutter={[16, 8]} style={{ marginTop: 8 }}>
+              <Col span={12}><Text type="secondary">Plan</Text><div><Text strong>{PLANS[activePlan]?.label}</Text></div></Col>
+              <Col span={12}><Text type="secondary">Billing</Text><div><Text strong>{durationLabel(selectedDuration)}</Text></div></Col>
+              <Col span={24}><Text type="secondary">Amount</Text><div><Text strong style={{ fontSize: 20, color: '#1890ff' }}>{formatPrice(price.amount, price.currency)}</Text></div></Col>
+            </Row>
+          }
+        />
 
-          <Divider orientation="left">Select Payment Method</Divider>
-
-          <div style={{ marginBottom: 12 }}>
-            {PAYMENT_METHODS.map((method) => (
-              <Card
-                key={method.id}
-                hoverable
-                onClick={() => handlePayment(method.id)}
-                style={{
-                  marginBottom: 12,
-                  cursor: 'pointer',
-                  border: selectedPaymentMethod === method.id ? '2px solid #1890ff' : undefined,
-                  borderRadius: 8
-                }}
-                bodyStyle={{ padding: 16 }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                    <div style={{ fontSize: 28, color: method.color }}>
-                      {method.icon}
-                    </div>
-                    <div>
-                      <Text strong style={{ fontSize: 16 }}>{method.name}</Text>
-                      <br />
-                      <Text type="secondary" style={{ fontSize: 13 }}>{method.description}</Text>
-                    </div>
-                  </div>
-                  <div>
-                    {method.id === 'paystack' || method.id === 'paypal' ? (
-                      <Tag color="green">✓ Instant</Tag>
-                    ) : (
-                      <Tag color="orange">⏱ 24-48h</Tag>
-                    )}
-                  </div>
+        <Divider orientation="left">Choose how to pay</Divider>
+        {PAYMENT_METHODS.map((method) => (
+          <Card
+            key={method.id}
+            hoverable
+            onClick={() => !paymentProcessing && handlePayment(method.id)}
+            style={{
+              marginBottom: 12,
+              cursor: paymentProcessing ? 'not-allowed' : 'pointer',
+              border: selectedPaymentMethod === method.id ? '2px solid #1890ff' : undefined,
+              opacity: paymentProcessing ? 0.6 : 1
+            }}
+            styles={{ body: { padding: 16 } }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div style={{ fontSize: 28, color: method.color }}>{method.icon}</div>
+                <div>
+                  <Text strong>{method.name}</Text><br />
+                  <Text type="secondary" style={{ fontSize: 13 }}>{method.description}</Text>
                 </div>
-              </Card>
-            ))}
-          </div>
-
-          {paymentProcessing && (
-            <div style={{ textAlign: 'center', marginTop: 16 }}>
-              <Spin />
-              <div style={{ marginTop: 8 }}>Processing payment...</div>
+              </div>
+              {method.instant ? <Tag color="green">Instant</Tag> : <Tag color="orange">24–48h</Tag>}
             </div>
-          )}
+          </Card>
+        ))}
 
-          <div style={{ marginTop: 16, padding: 12, background: '#f0f7ff', borderRadius: 8 }}>
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              💡 All payments are secure and encrypted. Your account will be activated immediately after payment confirmation.
-            </Text>
+        {paymentProcessing && (
+          <div style={{ textAlign: 'center', marginTop: 16 }}>
+            <Spin /><div style={{ marginTop: 8 }}>Redirecting to secure checkout…</div>
           </div>
-        </div>
+        )}
+
+        <Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 12 }}>
+          Not ready to pay? Close this window — your account stays on the Free plan and you can upgrade any time after signing in.
+        </Text>
       </Modal>
     );
   };
 
   // ============================================
-  // PAYMENT HANDLERS
+  // ENTERPRISE / CUSTOM — SALES CONTACT
   // ============================================
-
-  const handlePayment = async (method) => {
-    setPaymentProcessing(true);
-    setSelectedPaymentMethod(method);
-    
+  const handleCustomPlanContact = async () => {
+    const msg = contactMessage.trim();
+    if (msg.length < 10) {
+      message.warning('Please describe your needs in at least 10 characters.');
+      return;
+    }
+    const phone = (contactPhone || formData.phone || '').trim();
+    setContactSending(true);
     try {
-      const price = getPlanPrice(selectedPlan);
-      const userEmail = currentEmail || formData.email;
-      
-      if (method === 'bank_transfer') {
-        showBankTransferInstructions();
-        setPaymentProcessing(false);
-        return;
-      }
+      const res = await api.post('/contact', {
+        name: formData.name || 'SafetyTrack Pro signup',
+        email: contactEmail || currentEmail || formData.email,
+        subject: 'Enterprise plan enquiry (new signup)',
+        inquiryType: 'enterprise',
+        message: msg,
+        companyName: formData.companyName || '',
+        phone: PHONE_PATTERN.test(phone) ? phone : '',
+        industry: formData.industry || '',
+        companySize: formData.employeeCount ? String(formData.employeeCount) : '',
+        consent: true
+      }, { validateStatus: () => true });
 
-      const paymentData = {
-        plan: selectedPlan,
-        country: selectedCountry || 'default',
-        duration: selectedDuration,
-        amount: price.amount,
-        currency: price.currency,
-        email: userEmail,
-        name: formData.name || '',
-        phone: formData.phone || '',
-        user_id: userId,
-        user_type: userType,
-        company_name: formData.companyName || '',
-        payment_method: method,
-        metadata: {
-          plan: selectedPlan,
-          duration: selectedDuration,
-          country: selectedCountry,
-          userType: userType,
-          isSignup: true,
-          currentStep: 'signup_payment'
-        },
-        callback_url: `${window.location.origin}/payment-callback?method=${method}&signup=true`
-      };
-
-      let response;
-      
-      if (method === 'paystack') {
-        response = await PaymentService.initializePaystackPayment(paymentData);
-        if (response?.authorization_url) {
-          // Save state before redirect
-          saveSignupState();
-          window.location.href = response.authorization_url;
-        } else {
-          throw new Error(response?.error || 'Failed to initialize Paystack payment');
-        }
-      } else if (method === 'paypal') {
-        response = await PaymentService.initializePayPalPayment(paymentData);
-        const approvalUrl = response?.approval_url;
-        if (approvalUrl) {
-          saveSignupState();
-          window.location.href = approvalUrl;
-        } else {
-          throw new Error(response?.error || 'Failed to initialize PayPal payment');
-        }
-      }
-      
-    } catch (error) {
-      console.error('Payment error:', error);
-      message.error(error.message || 'Payment failed. Please try again.');
-      setPaymentProcessing(false);
-    }
-  };
-
-  // Show Bank Transfer Instructions
-  const showBankTransferInstructions = () => {
-    const price = getPlanPrice(selectedPlan);
-    const plan = PLANS[selectedPlan];
-    
-    Modal.info({
-      title: 'Bank Transfer Instructions',
-      width: 600,
-      icon: <BankOutlined style={{ color: '#faad14' }} />,
-      content: (
-        <div style={{ padding: '8px 0' }}>
-          <Alert
-            message={`${plan?.label || selectedPlan?.toUpperCase()} Plan Payment`}
-            description={`Amount: ${formatCurrency(price.amount, price.currency)}`}
-            type="info"
-            showIcon
-            style={{ marginBottom: 16 }}
-          />
-          
-          <Card size="small" style={{ marginBottom: 12 }}>
-            <div><Text strong>Bank:</Text> GCB Bank</div>
-            <div><Text strong>Account:</Text> <Text copyable>4151440001070</Text></div>
-            <div><Text strong>Name:</Text> AfdalTech Solutions</div>
-            <div><Text strong>Reference:</Text> <Text code>{formData.email || 'your-email'}</Text></div>
-          </Card>
-          
-          <div style={{ background: '#f5f5f5', padding: 12, borderRadius: 8 }}>
-            <Text strong>Instructions:</Text>
-            <ol style={{ margin: '8px 0', paddingLeft: 20 }}>
-              <li>Log into your internet banking</li>
-              <li>Add "GCB Bank" as payee</li>
-              <li>Enter account number: <Text strong>4151440001070</Text></li>
-              <li>Amount: <Text strong>{formatCurrency(price.amount, price.currency)}</Text></li>
-              <li>Reference: Use your email <Text code>{formData.email || 'your-email'}</Text></li>
-              <li>Save the transaction receipt</li>
-            </ol>
-          </div>
-
-          <div style={{ marginTop: 16, textAlign: 'center' }}>
-            <Button 
-              type="primary" 
-              size="large"
-              onClick={() => {
-                Modal.destroyAll();
-                setShowPaymentModal(false);
-                message.success('Payment record created! Our team will verify within 24-48 hours.');
-                saveSignupState();
-                setShowVerification(true);
-              }}
-            >
-              I Have Sent Payment ✓
-            </Button>
-          </div>
-        </div>
-      )
-    });
-  };
-
-  // ============================================
-  // ACCOUNT CREATION HANDLER
-  // ============================================
-
-  // In SignupPage.js - handleCreateAccount function
-
-const handleCreateAccount = async () => {
-  setLoading(true);
-  setError('');
-  
-  try {
-    const allFormData = { ...formData };
-    
-    // ✅ Validate required fields
-    if (!allFormData.email || !allFormData.name || !allFormData.password) {
-      setError('Missing required fields. Please fill in all steps.');
-      setLoading(false);
-      return;
-    }
-
-    // ✅ For admin users, company_name is required
-    if (userType === 'admin' && !allFormData.companyName) {
-      setError('Company name is required for admin registration.');
-      setLoading(false);
-      return;
-    }
-
-    // ✅ Determine plan based on user type
-    let plan = 'free';
-    let subscriptionStatus = 'inactive';
-    let approvalStatus = 'approved';
-    let isActive = true;
-    let verified = true;
-
-    if (userType === 'admin') {
-      // ✅ COMPANIES ONLY GET ENTERPRISE OR CUSTOM
-      plan = allFormData.plan || 'enterprise';
-      
-      // ✅ Validate company plan
-      const companyPlans = ['enterprise', 'custom'];
-      if (!companyPlans.includes(plan)) {
-        setError(`Invalid company plan. Companies can only have: ${companyPlans.join(', ')}`);
-        setLoading(false);
-        return;
-      }
-      
-      subscriptionStatus = 'active';
-      approvalStatus = 'approved';
-      isActive = true;
-      verified = true;
-    } else if (userType === 'employee') {
-      // ✅ EMPLOYEES CANNOT REGISTER THEMSELVES
-      setError('Employees cannot register themselves. Please contact your company admin to create your account.');
-      setLoading(false);
-      return;
-    } else {
-      // ✅ Regular users get free with trial
-      plan = 'free';
-      subscriptionStatus = 'inactive';
-      approvalStatus = 'approved';
-      isActive = false;
-      verified = false;
-    }
-
-    const payload = {
-      name: allFormData.name,
-      email: allFormData.email.toLowerCase().trim(),
-      password: allFormData.password,
-      country: allFormData.country || '',
-      role: allFormData.role || '',
-      preferred_language: allFormData.preferredLanguage || 'en',
-      user_type: userType,
-      company_name: allFormData.companyName || '',
-      employee_count: parseInt(allFormData.employeeCount) || 0,
-      phone: allFormData.phone || '',
-      department: allFormData.department || '',
-      plan: plan,
-      subscription_status: subscriptionStatus,
-      is_active: isActive,
-      verified: verified,
-      approval_status: approvalStatus,
-      industry: allFormData.industry || 'Healthcare'
-    };
-
-    console.log('📤 Sending registration payload:', payload);
-
-    // ✅ Only admin and regular user registration
-    let endpoint;
-    if (userType === 'admin') {
-      endpoint = 'http://https://safetrackproglobal-backend-production.up.railway.app/api/admin/register';
-    } else {
-      endpoint = 'https://safetrackproglobal-backend-production.up.railway.app/api/register';
-    }
-
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const data = await response.json();
-    console.log('📥 Registration response:', data);
-    
-    if (response.ok) {
-      const userIdLocal = data.user_id || data.id;
-      setUserId(userIdLocal);
-      setCompanyId(data.company_id || data.user?.company_id || data.company?.id);
-      setCurrentEmail(allFormData.email);
-      
-      console.log('✅ Company ID received:', data.company_id || data.company?.id);
-      console.log('✅ Plan assigned:', data.user?.plan || data.company?.plan || plan);
-      
-      // Store user info
-      localStorage.setItem('userId', userIdLocal);
-      localStorage.setItem('pendingUserId', userIdLocal);
-      localStorage.setItem('pendingUserEmail', allFormData.email);
-      localStorage.setItem('pendingUserType', userType);
-      localStorage.setItem('pendingCountry', selectedCountry);
-      localStorage.setItem('pendingCompanyId', data.company_id || data.company?.id || '');
-      localStorage.setItem('pendingPlan', data.user?.plan || data.company?.plan || plan);
-      
-      if (data.access_token) {
-        localStorage.setItem('token', data.access_token);
-        console.log('✅ Token stored from registration');
-      }
-      
-      // ✅ ADMIN - Always complete, go to dashboard
-      if (userType === 'admin') {
-        console.log('✅ Admin registration complete, redirecting to dashboard');
-        message.success(`Company created with ${plan} plan!`);
-        
-        localStorage.removeItem('requires_verification');
-        
-        setTimeout(() => {
-          history.push('/admin/dashboard');
-        }, 500);
-        setLoading(false);
-        return;
-      }
-      
-      // ✅ REGULAR USER - Needs verification
-      const isVerified = data.verified === true || data.user?.verified === true;
-      const requiresVerification = data.requires_verification === true;
-      const stage = data.stage || 'needs_plan';
-      
-      console.log('📊 Registration status:', {
-        isVerified,
-        requiresVerification,
-        stage,
-        userType,
-        plan
-      });
-      
-      saveSignupState();
-      setRegistrationComplete(true);
-      
-      if (isVerified) {
-        console.log('✅ User already verified');
-        localStorage.removeItem('requires_verification');
-        
-        if (stage === 'needs_plan' || data.requires_plan_selection) {
-          message.info('Account verified! Please select a plan to continue.');
-          setTimeout(() => {
-            history.push('/select-plan');
-          }, 500);
-          setLoading(false);
-          return;
-        }
-        
-        message.success('Welcome! Redirecting to dashboard...');
-        setTimeout(() => {
-          history.push('/dashboard');
-        }, 500);
-        setLoading(false);
-        return;
-      }
-      
-      // Show verification modal for regular users
-      setShowVerification(true);
-      message.info('Account created! Please verify your email to continue.');
-      setLoading(false);
-      
-    } else {
-      const errorMsg = data.error || data.message || 'Registration failed. Please try again.';
-      setError(errorMsg);
-      message.error(errorMsg);
-    }
-  } catch (err) {
-    console.error('Registration error:', err);
-    setError('Network error. Please try again.');
-    message.error('Network error. Please try again.');
-  } finally {
-    setLoading(false);
-  }
-};
-  // ============================================
-  // PLAN SELECTION HANDLER
-  // ============================================
-
-  const handlePlanSelection = async () => {
-    if (!selectedPlan) {
-      message.warning('Please select a plan');
-      return;
-    }
-
-    // ✅ Check if user is verified
-    if (!verificationCompleted) {
-      message.warning('Please verify your email first before selecting a plan.');
-      setShowVerification(true);
-      return;
-    }
-
-    const isCustom = selectedPlan === 'custom';
-    const isFree = selectedPlan === 'free';
-
-    if (isCustom) {
-      setShowCustomPlanModal(true);
-      return;
-    }
-
-    if (isFree) {
-      await activateFreePlan();
-      return;
-    }
-
-    setShowPaymentModal(true);
-  };
-
-  // ============================================
-  // ACTIVATE FREE PLAN
-  // ============================================
-
-  const activateFreePlan = async () => {
-    setPlanActivationLoading(true);
-    
-    try {
-      const userIdLocal = userId || localStorage.getItem('pendingUserId');
-      
-      const response = await fetch('https://safetrackproglobal-backend-production.up.railway.app/api/user/activate-plan', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          user_id: userIdLocal,
-          plan: 'free',
-          activate: true
-        })
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok) {
-        message.success('Free plan activated successfully!');
-        sessionStorage.removeItem('signupState');
+      if (res.status === 200 && res.data?.success) {
+        setShowCustomPlanModal(false);
+        clearSignupState();
+        message.success('Thanks! Our sales team will contact you within 1 business day. Meanwhile your Free plan is active — you can sign in now.');
         history.push('/login');
       } else {
-        message.error(data.error || 'Failed to activate plan');
+        const fieldErrors = res.data?.fields ? Object.values(res.data.fields).join(' ') : '';
+        message.error(fieldErrors || res.data?.error || 'Could not send your request. Please try again.');
       }
-    } catch (error) {
-      console.error('Activation error:', error);
-      message.error('Failed to activate plan');
+    } catch (err) {
+      message.error('Network error. Please try again, or use the Contact page.');
     } finally {
-      setPlanActivationLoading(false);
+      setContactSending(false);
     }
   };
+
+  // Rendered as a function (not <Component/>) so inputs keep focus while typing
+  const renderCustomPlanModal = () => (
+    <Modal
+      title={<span><TeamOutlined style={{ color: '#722ed1' }} /> Enterprise plan enquiry</span>}
+      open={showCustomPlanModal}
+      onCancel={() => !contactSending && setShowCustomPlanModal(false)}
+      footer={[
+        <Button key="cancel" onClick={() => setShowCustomPlanModal(false)} disabled={contactSending}>Cancel</Button>,
+        <Button key="submit" type="primary" loading={contactSending} onClick={handleCustomPlanContact}
+          style={{ background: '#722ed1', borderColor: '#722ed1' }}>
+          Send to sales team
+        </Button>
+      ]}
+      width={600}
+    >
+      <Alert
+        type="info"
+        showIcon
+        style={{ marginBottom: 16 }}
+        message="What happens next"
+        description="Your account is already active on the Free plan. Our sales team will contact you within 1 business day to agree Enterprise pricing and set it up."
+      />
+      <Form layout="vertical">
+        <Form.Item label="Contact email">
+          <Input value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} prefix={<MailOutlined />} />
+        </Form.Item>
+        <Form.Item label="Contact phone (optional)">
+          <Input value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} prefix={<PhoneOutlined />} />
+        </Form.Item>
+        <Form.Item label="Your requirements" required>
+          <Input.TextArea
+            rows={4}
+            placeholder="Number of users and sites, features you need, compliance requirements…"
+            value={contactMessage}
+            onChange={(e) => setContactMessage(e.target.value)}
+            showCount
+            maxLength={2000}
+          />
+        </Form.Item>
+      </Form>
+    </Modal>
+  );
 
   // ============================================
   // NAVIGATION
   // ============================================
-
   const nextStep = async () => {
     try {
-      const fields = [];
-      
       if (currentStep === 0) {
-        const values = form.getFieldsValue();
-        setFormData(prev => ({ ...prev, ...values }));
+        setFormData((prev) => ({ ...prev, userType }));
         setCurrentStep(1);
-        saveSignupState();
-        return;
-      } else if (currentStep === 1) {
-        fields.push('name', 'email');
-        if (userType === 'admin') {
-          fields.push('phone', 'companyName', 'employeeCount');
-        }
-        const values = await form.validateFields(fields);
-        setFormData(prev => ({ ...prev, ...values }));
-        setCurrentStep(2);
-        saveSignupState();
-        return;
-      } else if (currentStep === 2) {
-        fields.push('password', 'confirmPassword', 'country', 'role');
-        const values = await form.validateFields(fields);
-        setFormData(prev => ({ ...prev, ...values }));
-        setSelectedCountry(values.country || 'default');
-        setCurrentStep(3);
-        saveSignupState();
-        return;
-      } else if (currentStep === 3) {
-        if (!registrationComplete) {
-          await handleCreateAccount();
-        }
         return;
       }
-    } catch (error) {
-      console.log('Validation failed:', error);
+
+      if (currentStep === 1) {
+        const fields = ['name', 'email', 'phone', 'dateOfBirth', 'industry'];
+        if (isAdmin) fields.push('companyName', 'employeeCount');
+        if (isMinor && !isAdmin) fields.push('guardianEmail');
+        const values = await form.validateFields(fields);
+        setFormData((prev) => ({ ...prev, ...values }));
+        setCurrentStep(2);
+        return;
+      }
+
+      if (currentStep === 2) {
+        const fields = ['password', 'confirmPassword', 'country', 'role', 'preferredLanguage', 'termsAccepted', 'eConsent', 'marketingConsent'];
+        if (isAdmin) fields.push('dpaAccepted');
+        const values = await form.validateFields(fields);
+
+        const { password, confirmPassword, ...safeValues } = values;
+        passwordRef.current = password; // memory only
+        setFormData((prev) => ({ ...prev, ...safeValues }));
+        setSelectedCountry(values.country || 'default');
+        setResidency(REGION_BY_COUNTRY(values.country));
+        setCurrentStep(3);
+      }
+    } catch (err) {
+      message.error('Please fix the highlighted fields to continue.');
     }
   };
 
   const prevStep = () => {
-    if (currentStep === 3 && registrationComplete) {
-      message.info('Complete your plan selection first');
-      return;
-    }
-    setCurrentStep(currentStep - 1);
-    saveSignupState();
+    if (registrationComplete) return;
+    setError('');
+    setCurrentStep((s) => Math.max(0, s - 1));
   };
-
-  // ============================================
-  // VERIFICATION HANDLER
-  // ============================================
-
-  const handleVerificationComplete = () => {
-    setShowVerification(false);
-    setVerificationCompleted(true);
-    
-    // Save that user is verified
-    localStorage.setItem('verifiedEmail', currentEmail || formData.email);
-    
-    // Update state
-    saveSignupState();
-    
-    message.success('Email verified successfully! You can now select a plan.');
-    
-    // If on plan step, stay there
-    if (currentStep === 3) {
-      // Already on plan step
-    } else {
-      // Go to plan step
-      setCurrentStep(3);
-    }
-  };
-
-  // ============================================
-  // CUSTOM PLAN MODAL
-  // ============================================
-
-  const CustomPlanModal = () => (
-    <Modal
-      title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <TeamOutlined style={{ color: '#722ed1' }} />
-          <span>Custom Enterprise Plan Inquiry</span>
-        </div>
-      }
-      open={showCustomPlanModal}
-      onCancel={() => setShowCustomPlanModal(false)}
-      footer={[
-        <Button key="cancel" onClick={() => setShowCustomPlanModal(false)}>
-          Cancel
-        </Button>,
-        <Button 
-          key="submit" 
-          type="primary" 
-          onClick={handleCustomPlanContact}
-          style={{ background: '#722ed1', borderColor: '#722ed1' }}
-        >
-          Send Inquiry
-        </Button>,
-      ]}
-      width={600}
-    >
-      <div style={{ padding: '16px 0' }}>
-        <Alert
-          message="Contact Our Sales Team"
-          description="We'll create a custom enterprise plan tailored to your organization's specific needs."
-          type="info"
-          showIcon
-          style={{ marginBottom: 24 }}
-        />
-
-        <div style={{ marginBottom: 24 }}>
-          <Title level={5}>Contact Details</Title>
-          <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <PhoneOutlined style={{ color: '#52c41a' }} />
-              <div><Text strong>Phone:</Text> <Text>+1 (555) 123-4567</Text></div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <MailOutlined style={{ color: '#1890ff' }} />
-              <div><Text strong>Email:</Text> <Text>enterprise@safetytrackpro.com</Text></div>
-            </div>
-          </Space>
-        </div>
-
-        <Divider />
-
-        <Title level={5}>Tell Us About Your Needs</Title>
-        
-        <Form layout="vertical">
-          <Form.Item label="Contact Email">
-            <Input 
-              placeholder="Enter contact email"
-              value={contactEmail}
-              onChange={(e) => setContactEmail(e.target.value)}
-              prefix={<MailOutlined />}
-            />
-          </Form.Item>
-
-          <Form.Item label="Contact Phone">
-            <Input 
-              placeholder="Enter contact phone"
-              value={contactPhone}
-              onChange={(e) => setContactPhone(e.target.value)}
-              prefix={<PhoneOutlined />}
-            />
-          </Form.Item>
-
-          <Form.Item label="Your Requirements">
-            <Input.TextArea
-              rows={4}
-              placeholder="Please describe your organization's needs, number of users, specific features required..."
-              value={contactMessage}
-              onChange={(e) => setContactMessage(e.target.value)}
-              showCount
-              maxLength={1000}
-            />
-          </Form.Item>
-        </Form>
-
-        <Alert
-          message="What to Expect"
-          description="Our team will contact you within 24 hours to discuss pricing, custom features, and implementation."
-          type="success"
-          showIcon
-        />
-      </div>
-    </Modal>
-  );
-
-  const handleCustomPlanContact = async () => {
-    if (!contactMessage.trim()) {
-      message.warning('Please enter your message');
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/contact/custom-plan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: currentEmail || formData.email,
-          contactEmail: contactEmail || formData.email,
-          contactPhone: contactPhone || formData.phone,
-          message: contactMessage,
-          userType,
-          company: formData.companyName || '',
-          employeeCount: formData.employeeCount || 0,
-          plan: selectedPlan,
-          user_id: userId || localStorage.getItem('pendingUserId'),
-          company_id: companyId
-        }),
-      });
-      
-      const data = await response.json();
-      if (data.success) {
-        message.success('Contact request sent! Our team will contact you within 24 hours.');
-        setShowCustomPlanModal(false);
-        sessionStorage.removeItem('signupState');
-        history.push('/login');
-      } else {
-        message.error(data.error || 'Failed to send contact request');
-      }
-    } catch (error) {
-      console.error('Contact error:', error);
-      message.success('Contact request recorded. Our team will contact you shortly.');
-      setShowCustomPlanModal(false);
-      sessionStorage.removeItem('signupState');
-      history.push('/login');
-    }
-  };
-
-  // ============================================
-  // STEPS CONFIGURATION
-  // ============================================
 
   const steps = [
     { title: 'Type', content: renderUserTypeStep() },
     { title: 'Basic Info', content: renderBasicInfoStep() },
     { title: 'Security', content: renderSecurityStep() },
-    { title: 'Plan', content: renderPlanStep() },
+    { title: 'Plan', content: renderPlanStep() }
   ];
 
-  // ============================================
-  // RETURN
-  // ============================================
+  const lastStep = steps.length - 1;
+  const planPrice = priceOf(activePlan);
+  const planButtonText = !verificationCompleted
+    ? 'Verify Email'
+    : planPrice.isFree ? 'Start Free Plan'
+    : planPrice.isCustom ? 'Contact Sales'
+    : `Continue to Payment — ${formatPrice(planPrice.amount, planPrice.currency)}`;
 
+  // ============================================
+  // RENDER
+  // ============================================
   return (
-    <div className="auth-container">
-      <Card className="auth-card signup-card" style={{ maxWidth: 750, margin: '0 auto' }}>
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <div style={{ textAlign: 'center' }}>
-            <SafetyCertificateOutlined style={{ fontSize: 32, color: '#1890ff', marginBottom: 16 }} />
-            <Title level={2}>Create Account</Title>
-            <Text type="secondary">Join SafetyTrack Pro</Text>
-          </div>
+    <ConfigProvider
+      theme={{
+        algorithm: theme.defaultAlgorithm,
+        token: {
+          colorText: '#000000d9',
+          colorTextSecondary: '#00000073',
+          colorBgContainer: '#ffffff',
+          colorBgElevated: '#ffffff'
+        }
+      }}
+    >
+      <div className="auth-container">
+        <Card className="auth-card signup-card" style={{ maxWidth: 820, margin: '0 auto' }}>
+          <Space direction="vertical" size="large" style={{ width: '100%' }}>
+            <div style={{ textAlign: 'center' }}>
+              <SafetyCertificateOutlined style={{ fontSize: 32, color: '#1890ff', marginBottom: 16 }} />
+              <Title level={2}>{isAdmin ? 'Register Your Organization' : 'Create Account'}</Title>
+              <Text type="secondary">Join SafetyTrack Pro</Text>
+            </div>
 
-          <Steps current={currentStep} className="signup-steps" size="small">
-            {steps.map((item) => (
-              <Step key={item.title} title={item.title} />
-            ))}
-          </Steps>
+            <Steps
+              current={currentStep}
+              className="signup-steps"
+              size="small"
+              items={steps.map((s) => ({ title: s.title }))}
+            />
 
-          <Form
-            form={form}
-            name="signup"
-            layout="vertical"
-            size="large"
-            scrollToFirstError
-            initialValues={{ 
-              userType: 'user',
-              preferredLanguage: 'en'
+            <Form form={form} name="signup" layout="vertical" size="large" scrollToFirstError>
+              <div className="steps-content">{steps[currentStep]?.content}</div>
+
+              {error && <Alert message={error} type="error" showIcon closable onClose={() => setError('')} style={{ marginBottom: 16 }} />}
+
+              <div className="steps-action">
+                <Space size="middle" style={{ width: '100%', justifyContent: 'space-between' }}>
+                  {currentStep > 0 && !registrationComplete && (
+                    <Button onClick={prevStep} size="large" icon={<ArrowLeftOutlined />} disabled={loading}>Back</Button>
+                  )}
+                  <div style={{ flex: 1 }} />
+
+                  {currentStep < lastStep && (
+                    <Button type="primary" onClick={nextStep} size="large" icon={<ArrowRightOutlined />}>Next</Button>
+                  )}
+
+                  {currentStep === lastStep && !registrationComplete && (
+                    <Button type="primary" onClick={handleCreateAccount} loading={loading} size="large" icon={<SafetyCertificateOutlined />}>
+                      {isAdmin ? 'Submit for Approval' : 'Create Account'}
+                    </Button>
+                  )}
+
+                  {currentStep === lastStep && registrationComplete && !isAdmin && (
+                    <Button type="primary" onClick={handlePlanSelection} size="large" icon={<CheckCircleOutlined />}>
+                      {planButtonText}
+                    </Button>
+                  )}
+                </Space>
+              </div>
+            </Form>
+
+            <Divider>Or</Divider>
+
+            <div style={{ textAlign: 'center' }}>
+              <Text>
+                Already have an account?{' '}
+                <Button type="link" onClick={() => history.push('/login')} style={{ padding: 0 }}>Sign in</Button>
+              </Text>
+            </div>
+          </Space>
+        </Card>
+
+        {showVerification && (
+          <VerificationModal
+            email={currentEmail || formData.email}
+            onVerified={handleVerificationComplete}
+            onClose={() => setShowVerification(false)}
+          />
+        )}
+
+        {renderPaymentModal()}
+        {renderCustomPlanModal()}
+
+        {manualMethod && (
+          <ManualPaymentModal
+            key={manualMethod}
+            open
+            method={manualMethod}
+            plan={activePlan}
+            planLabel={PLANS[activePlan]?.label}
+            duration={selectedDuration}
+            amount={planPrice.amount}
+            currency={planPrice.currency}
+            email={currentEmail || formData.email}
+            onClose={() => setManualMethod(null)}
+            onRecorded={() => {
+              setManualMethod(null);
+              clearSignupState();
+              message.info('Sign in any time to check your payment status. Your Free plan is active meanwhile.');
+              history.push('/login');
             }}
-          >
-            <div className="steps-content">
-              {steps[currentStep]?.content}
-            </div>
-            
-            {error && (
-              <Alert message={error} type="error" showIcon style={{ marginBottom: 16 }} />
-            )}
-
-            <div className="steps-action">
-              <Space size="middle" style={{ width: '100%', justifyContent: 'space-between' }}>
-                {currentStep > 0 && currentStep < 3 && (
-                  <Button onClick={prevStep} size="large" icon={<ArrowLeftOutlined />}>
-                    Back
-                  </Button>
-                )}
-                
-                <div style={{ flex: 1 }} />
-                
-                {currentStep < steps.length - 1 && (
-                  <Button 
-                    type="primary" 
-                    onClick={nextStep} 
-                    size="large" 
-                    icon={<ArrowRightOutlined />}
-                  >
-                    Next
-                  </Button>
-                )}
-                
-                {currentStep === steps.length - 1 && !registrationComplete && (
-                  <Button 
-                    type="primary" 
-                    onClick={handleCreateAccount}
-                    loading={loading}
-                    size="large"
-                    icon={<SafetyCertificateOutlined />}
-                  >
-                    Create Account
-                  </Button>
-                )}
-                
-                {currentStep === steps.length - 1 && registrationComplete && (
-                  <Button 
-                    type="primary" 
-                    onClick={handlePlanSelection}
-                    loading={planActivationLoading}
-                    size="large"
-                    icon={<CheckCircleOutlined />}
-                    disabled={!selectedPlan || !verificationCompleted}
-                  >
-                    {!verificationCompleted ? 'Verify Email First' :
-                     selectedPlan === 'custom' ? 'Contact Sales' :
-                     selectedPlan === 'free' ? 'Activate Free Plan' :
-                     `Activate ${selectedPlan.toUpperCase()} Plan`}
-                  </Button>
-                )}
-              </Space>
-            </div>
-          </Form>
-
-          <Divider>Or</Divider>
-
-          <div style={{ textAlign: 'center' }}>
-            <Text>
-              Already have an account?{' '}
-              <Button type="link" onClick={() => history.push('/login')} style={{ padding: 0 }}>
-                Sign in
-              </Button>
-            </Text>
-          </div>
-        </Space>
-      </Card>
-
-      {showVerification && (
-        <VerificationModal 
-          email={currentEmail || formData.email} 
-          onVerified={handleVerificationComplete}
-          onClose={() => {
-            setShowVerification(false);
-            saveSignupState();
-          }}
-          onResend={() => {
-            message.success('New verification code sent to your email.');
-          }}
-        />
-      )}
-
-      {renderPaymentModal()}
-      <CustomPlanModal />
-    </div>
+          />
+        )}
+      </div>
+    </ConfigProvider>
   );
 }
 

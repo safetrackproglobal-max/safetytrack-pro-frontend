@@ -1,4 +1,27 @@
 /* src/pages/AuthPages.css */
+
+/* Force light color scheme so browser never auto-inverts form controls, 
+   scrollbars, or text inside the auth area */
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  color-scheme: light;          /* ← NEW: prevents browser dark-mode auto-inversion */
+  color: #000000d9;             /* ← NEW: sensible default */
+}
+
+/* Ensure the card is truly opaque white — not translucent — 
+   so dark-mode text can't bleed through */
+.signup-card {
+  background: #ffffff;          /* ← was rgba(255,255,255,0.95) */
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  max-width: 600px !important;
+  color: #000000d9;             /* ← NEW */
+}
 .auth-container {
   min-height: 100vh;
   display: flex;
@@ -510,3 +533,12 @@
   border-color: #722ed1;
   box-shadow: 0 0 0 2px rgba(114, 46, 209, 0.2);
 }
+
+/* ============================================================
+   DARK MODE SAFETY NET
+   Prevents invisible text when the OS/browser is in dark mode.
+   Ant Design tokens flip to light text, but our card is white,
+   so we force text back to dark inside the auth area.
+   ============================================================ */
+
+/* dark-mode block removed: app uses one light theme (see App.css) */

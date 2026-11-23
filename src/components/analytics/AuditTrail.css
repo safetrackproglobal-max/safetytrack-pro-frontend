@@ -556,66 +556,7 @@
 /* ============================================
    DARK MODE SUPPORT
    ============================================ */
-@media (prefers-color-scheme: dark) {
-  .audit-trail {
-    background: #141414;
-    color: rgba(255, 255, 255, 0.85);
-  }
-  
-  .audit-trail .ant-card {
-    background: #1f1f1f;
-    border-color: #434343;
-  }
-  
-  .audit-trail .ant-card .ant-card-head {
-    background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
-  }
-  
-  .audit-trail .ant-card .ant-row .ant-col .ant-card {
-    background: #1a1a1a;
-    border-color: #434343;
-  }
-  
-  .audit-filters {
-    background: #1f1f1f;
-    border-color: #434343;
-  }
-  
-  .audit-trail .ant-table {
-    background: #1f1f1f;
-    border-color: #434343;
-  }
-  
-  .audit-trail .ant-table-thead > tr > th {
-    background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
-    color: rgba(255, 255, 255, 0.85);
-    border-color: #434343;
-  }
-  
-  .audit-trail .ant-table-tbody > tr > td {
-    border-color: #434343;
-    color: rgba(255, 255, 255, 0.85);
-  }
-  
-  .audit-trail .ant-table-tbody > tr:hover > td {
-    background: #141414;
-  }
-  
-  .changes-display {
-    background: #141414;
-    border-color: #434343;
-    color: rgba(255, 255, 255, 0.85);
-  }
-  
-  .selected-actions .ant-alert {
-    background: #111d2c;
-    border-color: #153450;
-  }
-  
-  .selected-actions .ant-alert-description {
-    color: #a6a6a6;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* ============================================
    ACCESSIBILITY
@@ -655,17 +596,7 @@
   border-radius: 3px;
 }
 
-@media (prefers-color-scheme: dark) {
-  .changes-display::-webkit-scrollbar-track,
-  .ant-modal-body::-webkit-scrollbar-track {
-    background: #2f2f2f;
-  }
-  
-  .changes-display::-webkit-scrollbar-thumb,
-  .ant-modal-body::-webkit-scrollbar-thumb {
-    background: #555;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* ============================================
    PRINT STYLES

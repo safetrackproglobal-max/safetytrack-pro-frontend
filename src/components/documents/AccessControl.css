@@ -181,24 +181,7 @@
 }
 
 /* Dark Mode Support */
-@media (prefers-color-scheme: dark) {
-  .access-control-header {
-    background: #1f1f1f;
-  }
-  
-  .permission-checkbox-item {
-    border-color: #303030;
-  }
-  
-  .permission-checkbox-item:hover {
-    background: #262626;
-  }
-  
-  .ip-restriction-tag {
-    background: #262626;
-    color: #e6e6e6;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* Animations */
 @keyframes pulse-warning {

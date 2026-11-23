@@ -532,78 +532,7 @@
    DARK MODE SUPPORT
    ============================================================================ */
 
-@media (prefers-color-scheme: dark) {
-  .environmental-intelligence-panel {
-    background: #141414;
-  }
-  
-  .environmental-intelligence-panel .ant-card {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-  
-  .intel-stat-card {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-  
-  .intel-stat-card .ant-statistic-title {
-    color: #8c8c8c;
-  }
-  
-  .intel-stat-card .stat-subtitle {
-    color: #6d6d6d;
-  }
-  
-  .intel-live-metrics .ant-card .ant-card-head {
-    border-color: #303030;
-  }
-  
-  .intel-live-metrics .ant-card .ant-card-head-title {
-    color: #e8e8e8;
-  }
-  
-  .metric-circle .metric-label {
-    color: #e8e8e8;
-  }
-  
-  .metric-circle .metric-value {
-    color: #6d6d6d;
-  }
-  
-  .intel-alert.ant-alert-error {
-    background: linear-gradient(135deg, #2a1a1a 0%, #3a1a1a 100%);
-  }
-  
-  .intel-alert.ant-alert-warning {
-    background: linear-gradient(135deg, #2a2a1a 0%, #3a3a1a 100%);
-  }
-  
-  .intel-alert.ant-alert-info {
-    background: linear-gradient(135deg, #1a2a3a 0%, #1a3a4a 100%);
-  }
-  
-  .intel-alert .ant-alert-description {
-    color: #b8b8b8;
-  }
-  
-  .timeline-prediction-item {
-    background: #2a2a2a;
-    border-color: #303030;
-  }
-  
-  .timeline-prediction-item:hover {
-    background: #333333;
-  }
-  
-  .timeline-prediction-item .prediction-title {
-    color: #e8e8e8;
-  }
-  
-  .timeline-prediction-item .prediction-details {
-    color: #b8b8b8;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* ============================================================================
    PRINT STYLES

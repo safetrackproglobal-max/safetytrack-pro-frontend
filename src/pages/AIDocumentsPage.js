@@ -1,7 +1,8 @@
 // src/pages/AIDocumentsPage.js
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Row,
+  Checkbox,
   Col,
   Card,
   Input,
@@ -19,7 +20,6 @@ import {
   Tabs,
   message,
   Statistic,
-  Progress,
   Tooltip,
   Badge,
   Drawer,
@@ -27,17 +27,9 @@ import {
   Slider,
   Typography,
   FloatButton,
-  Menu,
-  Dropdown,
   Popconfirm,
   Alert,
-  notification,
-  Collapse,
-  InputNumber,
-  Checkbox,
-  PhoneOutlined,
-   BackTop,
-   Popover
+  Collapse
 } from 'antd';
 import {
   FileTextOutlined,
@@ -48,7 +40,6 @@ import {
   UploadOutlined,
   BuildOutlined,
   GlobalOutlined,
-  SafetyCertificateOutlined,
   MessageOutlined,
   QuestionCircleOutlined,
   UserOutlined,
@@ -56,131 +47,46 @@ import {
   SendOutlined,
   FolderOpenOutlined,
   SettingOutlined,
-  BookOutlined,
   TeamOutlined,
   ClockCircleOutlined,
   LikeOutlined,
   FilePdfOutlined,
-  FileWordOutlined,
   DeleteOutlined,
   SyncOutlined,
-  PlusOutlined,
   EditOutlined,
-  ShareAltOutlined,
-  StarOutlined,
   FilterOutlined,
-  SortAscendingOutlined,
   EyeOutlined,
   SaveOutlined,
-  ExportOutlined,
-  ImportOutlined,
-  CloudDownloadOutlined,
-  CloudUploadOutlined,
   InfoCircleOutlined,
-  WarningOutlined,
   CheckCircleOutlined,
-  CloseCircleOutlined,
-  PieChartOutlined,
-  BarChartOutlined,
-  LineChartOutlined,
   DashboardOutlined,
   AppstoreOutlined,
-  ClusterOutlined,
-  DeploymentUnitOutlined,
-  ExperimentOutlined,
-  MedicineBoxOutlined,
-  ToolOutlined,
-  BoldOutlined,
-  TableOutlined,
-  CheckSquareOutlined,
   LockOutlined,
-  PrinterOutlined,
-  LeftOutlined,
-  RightOutlined,
-  FlagOutlined,
-  QrcodeOutlined,
-  PercentageOutlined,
-  ScanOutlined,
-  VerifiedOutlined,
-  UnderlineOutlined,
-  NumberOutlined,
-  WalletOutlined,
-  HighlightOutlined,
-  StrikethroughOutlined,
-  UndoOutlined,
-  RedoOutlined,
-  ZoomInOutlined,
-  ZoomOutOutlined,
-  FullscreenOutlined,
-  FormatPainterOutlined,
-  FontSizeOutlined,
-  AlignLeftOutlined,
-  AlignCenterOutlined,
-  AlignRightOutlined,
-  ItalicOutlined,
-  LineHeightOutlined,
-  BgColorsOutlined,
-  BorderOutlined,
-  PictureOutlined,
-  SignatureOutlined,
-  FormOutlined,
-  CheckOutlined,
-  DragOutlined,
-  ScissorOutlined,
-  CopyFilled,
-  PlusCircleOutlined,
-  MinusCircleOutlined,
-  MergeCellsOutlined,
-  SplitCellsOutlined,
-  GroupOutlined,
-  UngroupOutlined,
-  LayerOutlined,
-  CommentOutlined,
-  AccessibilityOutlined,
   ExpandOutlined,
   CompressOutlined
 } from '@ant-design/icons';
 import './AIDocumentsPage.css';
-import AIService, { GeneralAIService } from '../services/GeneralAIService';
+import AIService from '../services/GeneralAIService';
 import { useAuth } from '../context/AuthContext';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import moment from 'moment';
-import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
-import SignaturePad from 'react-signature-canvas';
-import 'react-pdf/dist/Page/AnnotationLayer.css';
-import 'react-pdf/dist/Page/TextLayer.css';
-import { Document, Page, pdfjs } from 'react-pdf';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
-import { apiPost } from '../services/api';
+import { apiPost, apiGet } from '../services/api';
 import deepSeekService from '../services/DeepSeekService';
 import PDFEditor from '../pages/PDFEditor';
 import aiStorageService from '../services/aiStorageService';
-
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+import SendToDocumentControl, { AutoAddSwitch, getAutoAdd, importGeneratedDocument } from '../components/submissions/SendToDocumentControl';
 import {
   PLAN_PERMISSIONS,
   industries,
-  AVAILABLE_TEMPLATES,
   personalityOptions,
   generationModeOptions,
-  historyFilterModeOptions,
-  examTopics,
-  examDifficulties,
-  certificateCourses,
-  getIndustryIcon,
   getPlanFeatures,
   checkDocumentPermission,
   getBackendTemplateId,
   getCustomSectionsForDocument,
   generateLocalAIResponse,
-  getCredentialLevel,
-  getProfessionalHtmlTemplate,
-  TEMPLATE_ID_MAPPING,
-  INDUSTRY_TEMPLATE_MAPPING,
-  getAvailableTemplatesForIndustry
+  getProfessionalHtmlTemplate
 } from './AIDocumentsUtils';
+import { BACKEND_TEMPLATE_IDS, DOC_BACKEND_ALIASES, BACKEND_ONLY_DOCS } from './backendTemplateRegistry';
 
 export const documentTypes = {
   all: [
@@ -1709,6 +1615,7 @@ export const documentTypes = {
       industries: ['maritime'],
       template_id: 'maritime_get_maritime_specialized_environmental_safety_plan'
     },
+  
     { 
       value: 'maritime_crew_safety', 
       label: 'Crew Safety Plan', 
@@ -1748,62 +1655,213 @@ export const documentTypes = {
   }
 };
 
+// ============= BACKEND AVAILABILITY =============
+// Every document keeps its place in the list above, but it is only OFFERED to users when a matching
+// template really exists on the server (see backendTemplateRegistry.js). Documents without a server
+// template stay in the code (backend_available: false) until the template is created.
+const verifiedTemplateId = (doc) => {
+  const candidates = [DOC_BACKEND_ALIASES[doc.value], doc.template_id];
+  return candidates.find(id => id && BACKEND_TEMPLATE_IDS.has(id)) || null;
+};
+
+documentTypes.all = [...documentTypes.all, ...BACKEND_ONLY_DOCS].map(doc => {
+  const serverTemplateId = verifiedTemplateId(doc);
+  return {
+    ...doc,
+    server_template_id: serverTemplateId,
+    backend_available: Boolean(serverTemplateId)
+  };
+});
+
 
 const { TextArea } = Input;
 const { Option } = Select;
 const { TabPane } = Tabs;
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 const { Panel } = Collapse;
 
+// ============= INDUSTRIES =============
+// Agriculture has documents in the list above but was missing from the utils industry list,
+// so those documents could never be reached. It is added here only when it is not already defined.
+const AGRICULTURE_INDUSTRY = {
+  value: 'agriculture',
+  label: 'Agriculture',
+  icon: '🚜',
+  color: '#52c41a',
+  risk_level: '🟡 MEDIUM RISK',
+  standards: [
+    { value: 'osha_1928', label: 'OSHA 1928 - Agricultural Operations', level: 'high' },
+    { value: 'epa_wps', label: 'EPA Worker Protection Standard', level: 'high' }
+  ]
+};
+
+const industryOptions = industries.some(ind => ind.value === 'agriculture')
+  ? industries
+  : [
+      ...industries.filter(ind => ind.value !== 'general'),
+      AGRICULTURE_INDUSTRY,
+      ...industries.filter(ind => ind.value === 'general')
+    ];
+
+// ============= INDUSTRY -> DOCUMENT AVAILABILITY (strict) =============
+// A document is shown when:
+//   - it is universal (its industries list contains 'all'), or
+//   - its industries list contains the selected industry.
+// With "General Industry" (or nothing) selected, only the universal documents are shown.
+const isUniversalDoc = (doc) => !doc.industries || doc.industries.includes('all');
+
+const docMatchesIndustry = (doc, industry) => {
+  if (isUniversalDoc(doc)) return true;
+  if (!industry || industry === 'general') return false;
+  return doc.industries.includes(industry);
+};
+
+// Only documents that exist on the server are ever offered.
+const availableDocs = documentTypes.all.filter(doc => doc.backend_available);
+
+const getDocsForIndustry = (industry) =>
+  availableDocs.filter(doc => docMatchesIndustry(doc, industry));
+
+const countSpecificDocs = (industry) =>
+  availableDocs.filter(doc => !isUniversalDoc(doc) && doc.industries.includes(industry)).length;
+
+// ============= TEMPLATE ID RESOLUTION =============
+// Returns a template ID that is confirmed to exist on the server, or null. There is no guessing:
+// the generic "<industry>_<document>" value that getBackendTemplateId() returns for unknown
+// documents never exists on the server, so it is only used when the registry confirms it.
+const resolveTemplateId = (documentTypeValue, industry) => {
+  const doc = documentTypes.all.find(d => d.value === documentTypeValue);
+  if (doc?.server_template_id) return doc.server_template_id;
+  const mapped = getBackendTemplateId(documentTypeValue, industry);
+  return BACKEND_TEMPLATE_IDS.has(mapped) ? mapped : null;
+};
+
+// Local chat fallback without the exam/certificate line from the utils text
+const buildFallbackAIResponse = (userPrompt, industry, personality) => {
+  const response = generateLocalAIResponse(userPrompt, industry, industryOptions, personality);
+  return {
+    ...response,
+    content: String(response.content || '').replace(/\n?•\s*Safety Exams & Certificates/g, '')
+  };
+};
+
+// ============= DOWNLOAD + HISTORY HELPERS =============
+// html2pdf is loaded on demand, so downloads work without a <script> tag in index.html.
+const HTML2PDF_URL = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+let html2pdfLoading = null;
+const ensureHtml2Pdf = () => {
+  if (typeof window === 'undefined') return Promise.resolve(false);
+  if (window.html2pdf) return Promise.resolve(true);
+  if (!html2pdfLoading) {
+    html2pdfLoading = new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = HTML2PDF_URL;
+      script.async = true;
+      script.onload = () => resolve(Boolean(window.html2pdf));
+      script.onerror = () => { html2pdfLoading = null; resolve(false); };
+      document.head.appendChild(script);
+    });
+  }
+  return html2pdfLoading;
+};
+
+const toFileName = (title, fallback) =>
+  `${String(title || fallback).replace(/[^a-z0-9]/gi, '_')}_${Date.now()}`;
+
+// Last-resort download (a real file, no print dialog) if the PDF engine cannot be loaded.
+const downloadHtmlFile = (html, baseName) => {
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${baseName}.html`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+};
+
+const getDocHtml = (doc) => doc?.htmlContent || doc?.html_content || doc?.content || '';
+
+// Documents are always backed up on this device, so the history survives even when the server save fails.
+const LOCAL_DOCS_KEY = 'ai_docs_history_v2';
+const readLocalDocs = () => {
+  try {
+    const list = JSON.parse(localStorage.getItem(LOCAL_DOCS_KEY) || '[]');
+    return Array.isArray(list) ? list : [];
+  } catch (e) {
+    return [];
+  }
+};
+const writeLocalDocs = (docs) => {
+  let list = docs.slice(0, 30).map(({ _savedToDb, _saveFailed, ...rest }) => rest);
+  while (list.length > 0) {
+    try {
+      localStorage.setItem(LOCAL_DOCS_KEY, JSON.stringify(list));
+      return true;
+    } catch (e) {
+      list = list.slice(0, -1); // storage full: drop the oldest and retry
+    }
+  }
+  try { localStorage.removeItem(LOCAL_DOCS_KEY); } catch (e) { /* ignore */ }
+  return false;
+};
+// Merge lists of documents by id. The first list sets the order; missing content is filled from the others.
+const mergeDocs = (...lists) => {
+  const byId = new Map();
+  lists.flat().forEach((doc) => {
+    if (!doc || !doc.id) return;
+    const prev = byId.get(doc.id);
+    if (!prev) { byId.set(doc.id, doc); return; }
+    byId.set(doc.id, { ...doc, ...prev, htmlContent: getDocHtml(prev) || getDocHtml(doc) || undefined });
+  });
+  return [...byId.values()];
+};
+
+const prettyIndustry = (value) => String(value || 'general').replace(/_/g, ' ');
+
+// Hints shown under "Additional Context" depending on the selected document category
+const CONTEXT_HINTS = {
+  permits: 'Example: work location, description of the task, start/end time, number of workers, isolations or gas tests needed...',
+  assessments: 'Example: the task or area being assessed, who could be harmed, hazards you already know about, existing controls...',
+  procedures: 'Example: the task, equipment used, steps that worry you, competence or training required...',
+  plans: 'Example: site or facility name, scope, key risks, responsible persons, local regulations to follow...',
+  reports: 'Example: what happened, when and where, who was involved, immediate actions taken...',
+  inspections: 'Example: area or equipment to inspect, how often, standards the inspection must follow...',
+  checklists: 'Example: equipment or area, inspection frequency, standards to follow...',
+  training: 'Example: audience, job roles, topics that must be covered, duration...',
+  audits: 'Example: audit scope, standard to audit against (ISO 45001, OSHA...), site or department...',
+  default: 'Describe your site, task or hazards. The more detail you add, the more specific the document will be (optional).'
+};
+
 function AIDocumentsPage() {
-  const { user, planData, token } = useAuth();
-  const [form] = Form.useForm();
+  const { user, planData } = useAuth();
   const [activeTab, setActiveTab] = useState('chat');
   const [prompt, setPrompt] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('general');
   const [selectedDocumentType, setSelectedDocumentType] = useState('');
   const [loading, setLoading] = useState(false);
-  const [generatedContent, setGeneratedContent] = useState('');
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [, setGeneratedContent] = useState('');
   const [conversation, setConversation] = useState([]);
   const [documentHistory, setDocumentHistory] = useState([]);
+  const [historyReady, setHistoryReady] = useState(false);
   const [isSettingsDrawerVisible, setIsSettingsDrawerVisible] = useState(false);
   const [isEditingText, setIsEditingText] = useState(false);
-  const [editableHtml, setEditableHtml] = useState('');
-  const [signaturePlacementMode, setSignaturePlacementMode] = useState(false);
   
   // PDF Editing States
-  const [pdfFile, setPdfFile] = useState(null);
-  const [numPages, setNumPages] = useState(null);
-  const [pageNumber, setPageNumber] = useState(1);
-  const [scale, setScale] = useState(1.0);
-  const [pdfMode, setPdfMode] = useState('view');
-  const [drawingColor, setDrawingColor] = useState('#ff0000');
-  const [drawingSize, setDrawingSize] = useState(2);
-  const [textToAdd, setTextToAdd] = useState('');
-  const [textPosition, setTextPosition] = useState({ x: 100, y: 100 });
-  const [annotations, setAnnotations] = useState([]);
-  const [selectedAnnotation, setSelectedAnnotation] = useState(null);
-  const [pdfCanvas, setPdfCanvas] = useState(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [lastPoint, setLastPoint] = useState(null);
   const [chatSessions, setChatSessions] = useState([]);
   const [chatHistoryLoading, setChatHistoryLoading] = useState(false);
 
-  const [saveStatus, setSaveStatus] = useState('saved');
+  const [, setSaveStatus] = useState('saved');
   const [aiPersonality, setAiPersonality] = useState('professional');
   const [responseDetail, setResponseDetail] = useState(3);
-  const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
-  const [documentTemplates, setDocumentTemplates] = useState([]);
-  const [savedResponses, setSavedResponses] = useState([]);
+  const [, setSavedResponses] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
   const [templateName, setTemplateName] = useState('');
   const [templateDescription, setTemplateDescription] = useState('');
   const [templateIndustry, setTemplateIndustry] = useState('general');
   const [templateDocType, setTemplateDocType] = useState('custom');
   const [templateVisibility, setTemplateVisibility] = useState('private');
-  const [examSessionId, setExamSessionId] = useState('');
   const [aiSystemStatus, setAiSystemStatus] = useState({
     status: 'operational',
     models_loaded: true,
@@ -1819,8 +1877,10 @@ function AIDocumentsPage() {
     riskLevel: 'medium',
     industryExpertise: {}
   });
+  const [companyProfile, setCompanyProfile] = useState(null);   // the user's company record (auto-fill source)
   const [companyInfo, setCompanyInfo] = useState({
     useCompanyInfo: false,
+    useCompanyProfile: false,
     companyName: '',
     logo: null,
     industry: 'general',
@@ -1830,20 +1890,34 @@ function AIDocumentsPage() {
     phone: '',
     email: ''
   });
-  const [uploadingLogo, setUploadingLogo] = useState(false);
-  const [documentStats, setDocumentStats] = useState({
+  // Auto-fill: load the company record once for users that belong to a company; remember the user's choice
+  useEffect(() => {
+    if (!user?.company_id) return undefined;
+    let alive = true;
+    apiGet('/ai/documents/company-profile')
+      .then((res) => {
+        if (!alive || !res?.data?.available) return;
+        setCompanyProfile(res.data);
+        let saved = null;
+        try { saved = localStorage.getItem(`docgen:autofill:${user.id}`); } catch (e) { /* private mode */ }
+        if (saved !== 'off') {
+          setCompanyInfo((ci) => ({ ...ci, useCompanyInfo: true, useCompanyProfile: true }));
+        }
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [user?.company_id, user?.id]);
+
+  const [, setDocumentStats] = useState({
     totalDocuments: 0,
     recentActivity: [],
     popularTemplates: [],
     complianceRate: 0
   });
   const [isTemplateLibraryVisible, setIsTemplateLibraryVisible] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [libraryShowAll, setLibraryShowAll] = useState(false);
   const [chatSuggestions, setChatSuggestions] = useState([]);
   const [generationMode, setGenerationMode] = useState('document');
-  const [historyFilterMode, setHistoryFilterMode] = useState('all');
-  const [isSavingAnswers, setIsSavingAnswers] = useState(false);
-  const [answersSaved, setAnswersSaved] = useState({});
   const [userPlan, setUserPlan] = useState('super_admin');
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeInfo, setUpgradeInfo] = useState({
@@ -1854,39 +1928,17 @@ function AIDocumentsPage() {
   });
 
   // Add state for DeepSeek usage
-  const [deepSeekUsage, setDeepSeekUsage] = useState({
+  const [, setDeepSeekUsage] = useState({
     available: false,
     callsToday: 0,
     limit: 0,
     remaining: 0
   });
 
-  // Enhanced exam flow states
-  const [examModalVisible, setExamModalVisible] = useState(false);
-  const [activeExam, setActiveExam] = useState(null);
-  const [generatedCertificate, setGeneratedCertificate] = useState(null);
-  const [userAnswers, setUserAnswers] = useState({});
-  const [examScore, setExamScore] = useState(null);
-  const [selectedExamTopic, setSelectedExamTopic] = useState('safety_basics');
-  const [examDifficulty, setExamDifficulty] = useState('intermediate');
-  const [examQuestionsCount, setExamQuestionsCount] = useState(10);
-  const [questions, setQuestions] = useState([]);
-  const [examFlowStep, setExamFlowStep] = useState('setup');
-  const [userName, setUserName] = useState('');
-  const [userEmail, setUserEmail] = useState('');
-  const [selectedCourseForExam, setSelectedCourseForExam] = useState('');
-  const [examProgress, setExamProgress] = useState({
-    answered: 0,
-    total: 0,
-    timeRemaining: 0
-  });
-  const [examTimer, setExamTimer] = useState(null);
-
   // PDF State Variables
   const [pdfPreviewVisible, setPdfPreviewVisible] = useState(false);
-  const [pdfEditMode, setPdfEditMode] = useState(false);
+  const [, setPdfEditMode] = useState(false);
   const [pdfContent, setPdfContent] = useState('');
-  const [editedPdfContent, setEditedPdfContent] = useState('');
   const [pdfMetadata, setPdfMetadata] = useState({
     title: '',
     author: '',
@@ -1898,8 +1950,6 @@ function AIDocumentsPage() {
     header: '',
     footer: ''
   });
-  const [pdfSections, setPdfSections] = useState([]);
-  const [activePdfSection, setActivePdfSection] = useState(0);
   const [pdfStyles, setPdfStyles] = useState({
     fontFamily: 'Arial',
     fontSize: 12,
@@ -1920,91 +1970,41 @@ function AIDocumentsPage() {
   const [pdfTemplates, setPdfTemplates] = useState([]);
   const [pdfTemplateModalVisible, setPdfTemplateModalVisible] = useState(false);
   const [currentDocument, setCurrentDocument] = useState(null);
-  
-  // Certificate state
-  const [activeCertificate, setActiveCertificate] = useState({
-    data: null,
-    source: null,
-    timestamp: null,
-    examScore: null,
-    sessionId: null
-  });
-
-  // Admin signature
-  const [adminSignature, setAdminSignature] = useState({
-    name: 'Abigalistic Safety Pro',
-    title: 'Platform Owner',
-    company: 'Abigalistic Safety Pro Platform',
-    signature_id: 'ADMIN-PLATFORM-OWNER',
-    loading: true
-  });
 
   // ============= PDF EDITOR STATE VARIABLES =============
-  const [pdfEditorMode, setPdfEditorMode] = useState('view');
-  const [pdfAnnotations, setPdfAnnotations] = useState([]);
-  const [pdfWatermark, setPdfWatermark] = useState({
-    text: '',
-    opacity: 0.3,
-    enabled: false,
-    color: '#cccccc',
-    angle: 45,
-    font: 'Arial',
-    size: 40
-  });
-  const [pdfPageNumbering, setPdfPageNumbering] = useState({
-    enabled: true,
-    position: 'bottom-center',
-    fontSize: 10,
-    color: '#666666'
-  });
-  const [pdfZoom, setPdfZoom] = useState(100);
-  const [pdfHistory, setPdfHistory] = useState({ past: [], future: [] });
-  const [pdfFormFields, setPdfFormFields] = useState([]);
-  const [pdfSignatures, setPdfSignatures] = useState([]);
-  const [pdfImages, setPdfImages] = useState([]);
-  const [pdfComments, setPdfComments] = useState([]);
-  const [pdfRedactions, setPdfRedactions] = useState([]);
-  const [pdfBookmarks, setPdfBookmarks] = useState([]);
+  const [, setPdfHistory] = useState({ past: [], future: [] });
   const [isPDFEditorExpanded, setIsPDFEditorExpanded] = useState(false); // NEW: Track editor expansion state
   const [sessionId, setSessionId] = useState(() => {
-  return localStorage.getItem('ai_session_id') || `session_${Date.now()}`;
-});
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [syncStatus, setSyncStatus] = useState(null);   
-  // Signature Pad Ref
-  const signaturePadRef = useRef(null);
-
-  // ============= CERTIFICATE VERIFICATION STATE VARIABLES =============
-  const [verificationModalVisible, setVerificationModalVisible] = useState(false);
-  const [verificationCode, setVerificationCode] = useState('');
-  const [verifying, setVerifying] = useState(false);
-  const [verificationResult, setVerificationResult] = useState(null);
-
-  // ============= INITIALIZATION =============
-
-  useEffect(() => {
-    fetchAdminSignature();
-  }, []);
-
-  const fetchAdminSignature = async () => {
     try {
-      const response = await fetch('/api/admin/signature', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setAdminSignature({ ...data.signature, loading: false });
-        }
-      }
-    } catch (error) {
-      console.error('Failed to fetch admin signature:', error);
-      setAdminSignature(prev => ({ ...prev, loading: false }));
+      return localStorage.getItem('ai_session_id') || `session_${Date.now()}`;
+    } catch (e) {
+      return `session_${Date.now()}`;
+    }
+  });
+  const [, setIsSyncing] = useState(false);
+  const [, setSyncStatus] = useState(null);   
+  // Help / quick-start guide
+  const [isHelpVisible, setIsHelpVisible] = useState(false);
+  const [showQuickGuide, setShowQuickGuide] = useState(() => {
+    try {
+      return localStorage.getItem('ai_docs_quick_guide_dismissed') !== 'true';
+    } catch (e) {
+      return true;
+    }
+  });
+
+  const dismissQuickGuide = () => {
+    setShowQuickGuide(false);
+    try {
+      localStorage.setItem('ai_docs_quick_guide_dismissed', 'true');
+    } catch (e) {
+      // storage not available - the guide simply comes back next visit
     }
   };
 
+  // ============= INITIALIZATION =============
+
   const messagesEndRef = useRef(null);
-  const fileInputRef = useRef(null);
 
   // Add useEffect to check DeepSeek availability
   useEffect(() => {
@@ -2013,12 +2013,19 @@ function AIDocumentsPage() {
 
   const checkDeepSeekAvailability = async () => {
     const isPremium = userPlan !== 'free';
-    if (isPremium) {
+    if (!isPremium) return;
+    try {
       const stats = await deepSeekService.getUsageStats();
+      const usage = stats?.usage || {};
       setDeepSeekUsage({
-        available: stats.success && stats.usage.remaining > 0,
-        ...stats.usage
+        available: Boolean(stats?.success && usage.remaining > 0),
+        callsToday: usage.callsToday || 0,
+        limit: usage.limit || 0,
+        remaining: usage.remaining || 0,
+        ...usage
       });
+    } catch (error) {
+      console.error('Failed to check DeepSeek availability:', error);
     }
   };
 
@@ -2030,7 +2037,7 @@ function AIDocumentsPage() {
       const dbChat = await aiStorageService.getChatHistory(50);
       const dbDocs = await aiStorageService.getDocuments();
       
-      if (dbChat.success && dbChat.sessions.length > 0) {
+      if (dbChat?.success && dbChat.sessions?.length > 0) {
         // Use database data
         const latestSession = dbChat.sessions[0];
         if (latestSession && latestSession.messages) {
@@ -2048,20 +2055,22 @@ function AIDocumentsPage() {
         }
       }
       
-      // Load documents
-      if (dbDocs.success && dbDocs.documents.length > 0) {
-        setDocumentHistory(dbDocs.documents);
-      } else {
-        const localDocs = aiStorageService.getDocumentsLocal();
-        if (localDocs.success && localDocs.documents.length > 0) {
-          setDocumentHistory(localDocs.documents);
-        }
+      // Load documents: server copy + this device's backup (the backup holds the full document content)
+      const serverDocs = dbDocs?.success ? (dbDocs.documents || []) : [];
+      const localServiceDocs = aiStorageService.getDocumentsLocal?.();
+      const merged = mergeDocs(
+        serverDocs,
+        localServiceDocs?.success ? (localServiceDocs.documents || []) : [],
+        readLocalDocs()
+      );
+      if (merged.length > 0) {
+        setDocumentHistory(merged.map(d => ({ ...d, _savedToDb: serverDocs.some(x => x.id === d.id) })));
       }
       
       // Load saved responses
-      const savedResponses = aiStorageService.getSavedResponsesLocal();
-      if (savedResponses.success) {
-        setSavedResponses(savedResponses.responses);
+      const savedLocal = aiStorageService.getSavedResponsesLocal();
+      if (savedLocal?.success) {
+        setSavedResponses(savedLocal.responses || []);
       }
       
       setSyncStatus({ success: true, message: 'Data loaded successfully' });
@@ -2070,6 +2079,7 @@ function AIDocumentsPage() {
       setSyncStatus({ success: false, message: error.message });
     } finally {
       setIsSyncing(false);
+      setHistoryReady(true);
     }
   };
   
@@ -2103,35 +2113,34 @@ function AIDocumentsPage() {
   }
 }, [conversation, sessionId]);
 
-// Save documents to database whenever they change
+// Keep the document history saved: always back it up on this device, and send new/edited documents to the server
 useEffect(() => {
-  if (documentHistory && documentHistory.length > 0) {
-    const saveAllDocuments = async () => {
+  if (!historyReady) return undefined;
+  writeLocalDocs(documentHistory);
+
+  const pending = documentHistory.filter(d => d && !d._savedToDb && !d._saveFailed).slice(0, 5);
+  if (pending.length === 0) return undefined;
+
+  const timeoutId = setTimeout(async () => {
+    const outcome = {};
+    for (const doc of pending) {
       try {
-        // Save only the most recent document to avoid too many requests
-        const latestDoc = documentHistory[0];
-        if (latestDoc && !latestDoc._savedToDb) {
-          const result = await aiStorageService.saveDocument(latestDoc);
-          if (result.success) {
-            // Mark as saved to prevent re-saving
-            setDocumentHistory(prev => {
-              const updated = [...prev];
-              updated[0] = { ...updated[0], _savedToDb: true };
-              return updated;
-            });
-          }
-        }
+        const result = await aiStorageService.saveDocument(doc);
+        outcome[doc.id] = result?.success ? 'saved' : 'failed';
       } catch (error) {
         console.error('Failed to save document:', error);
-        // Fallback to localStorage
-        aiStorageService.saveDocumentLocal(documentHistory[0]);
+        outcome[doc.id] = 'failed';
       }
-    };
-    
-    const timeoutId = setTimeout(saveAllDocuments, 3000);
-    return () => clearTimeout(timeoutId);
-  }
-}, [documentHistory]);
+      if (outcome[doc.id] === 'failed') {
+        try { aiStorageService.saveDocumentLocal(doc); } catch (e) { /* ignore */ }
+      }
+    }
+    setDocumentHistory(prev => prev.map(d => outcome[d.id]
+      ? { ...d, _savedToDb: outcome[d.id] === 'saved', _saveFailed: outcome[d.id] === 'failed' }
+      : d));
+  }, 1500);
+  return () => clearTimeout(timeoutId);
+}, [documentHistory, historyReady]);
 
   useEffect(() => {
     checkAISystemStatus();
@@ -2237,19 +2246,6 @@ useEffect(() => {
     }
   };
 
-  const canUseDeepSeek = () => {
-    if (userPlan === 'super_admin') return true;
-    const requiredPlan = FEATURE_PLAN_REQUIREMENTS?.deepseek_document;
-    return canAccessFeature(requiredPlan, userPlan);
-  };
-  
-  const getFeaturePlan = (feature, documentType = null) => {
-    if (documentType && FEATURE_PLAN_REQUIREMENTS[feature]?.[documentType]) {
-      return FEATURE_PLAN_REQUIREMENTS[feature][documentType];
-    }
-    return FEATURE_PLAN_REQUIREMENTS[feature] || 'free';
-  };
-
   const checkAISystemStatus = async () => {
     try {
       const response = await AIService.getAdvancedSystemStatus();
@@ -2268,16 +2264,18 @@ useEffect(() => {
   };
 
   const initializeComponent = useCallback(() => {
-  setConversation([{
+  // Only add the welcome message when the chat is empty, so a restored chat is never wiped
+  // when the user / plan data finishes loading.
+  setConversation(prev => (prev && prev.length > 0 ? prev : [{
     id: 1,
     type: 'ai',
-    content: `👋 I'm your Safety AI Assistant. I can help with risk assessments, document generation, compliance guidance, safety procedures, emergency planning, training materials, and exams.
+    content: `👋 I'm your Safety AI Assistant. I can help with risk assessments, document generation, compliance guidance, safety procedures, emergency planning and training materials.
+
+💡 To create a document: open the "PDF Generator" tab, choose your industry, then pick a document type. Only documents available for your industry are listed. Not sure where to start? Ask me, or click "Help" at the top right.
 
 How can I assist you today?`,
     timestamp: new Date()
-  }]);
-
-  setDocumentHistory([]);
+  }]));
 }, []);
 
     
@@ -2296,14 +2294,12 @@ How can I assist you today?`,
 
   const loadChatSuggestions = useCallback(() => {
     const suggestions = [
-      "Generate a risk assessment for construction site",
+      "Generate a risk assessment for a construction site",
       "Create a work permit template for electrical work",
       "Help me with emergency response planning",
-      "Generate filled safety document",
-      "Create empty template for manual completion",
-      "Generate professional PDF document",
-      "Start a safety exam for certification",
-      "Generate training certificates"
+      "Which documents do I need for confined space entry?",
+      "What is the difference between a filled document and an empty template?",
+      "Write a toolbox talk about working at height"
     ];
     setChatSuggestions(suggestions);
   }, []);
@@ -2311,12 +2307,6 @@ How can I assist you today?`,
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [conversation]);
-
-  useEffect(() => {
-    return () => {
-      if (examTimer) clearInterval(examTimer);
-    };
-  }, [examTimer]);
 
   // ============= DOCUMENT GENERATION =============
   const handleGenerateDocument = async () => {
@@ -2348,9 +2338,16 @@ How can I assist you today?`,
     setLoading(true);
     try {
       const documentType = documentTypes.all.find(doc => doc.value === selectedDocumentType);
-      const industry = industries.find(ind => ind.value === selectedIndustry);
+      const industry = industryOptions.find(ind => ind.value === selectedIndustry);
       
-      const templateId = getBackendTemplateId(selectedDocumentType, selectedIndustry);
+      const templateId = resolveTemplateId(selectedDocumentType, selectedIndustry);
+
+      if (!templateId) {
+        message.warning(
+          `"${documentType?.label || selectedDocumentType}" is not available yet. Please choose another document type.`
+        );
+        return;
+      }
       
       console.log('📋 Document Type:', selectedDocumentType);
       console.log('📋 Industry:', selectedIndustry);
@@ -2387,7 +2384,7 @@ How can I assist you today?`,
         template_name: templateId,
         industry: selectedIndustry,
         requirements: prompt || `Generate professional ${documentType?.label} for ${industry?.label}`,
-        company_info: companyInfo.useCompanyInfo ? companyInfo : {},
+        company_info: (companyInfo.useCompanyInfo || companyInfo.useCompanyProfile) ? { ...companyInfo, useCompanyInfo: true } : {},
         custom_sections: getCustomSectionsForDocument(selectedDocumentType, selectedIndustry),
         generation_mode: generationMode,
         output_format: 'html',
@@ -2420,9 +2417,7 @@ How can I assist you today?`,
       }
 
       if (!generatedDocument || generatedDocument.length < 50) {
-        console.warn('⚠️ Generated content is too short, using fallback');
-        const fallbackContent = getFallbackContent(selectedDocumentType, selectedIndustry, generationMode);
-        generatedDocument = fallbackContent;
+        throw new Error('The server returned an empty document');
       }
 
       console.log(`✅ Generated document length: ${generatedDocument.length}`);
@@ -2440,9 +2435,9 @@ How can I assist you today?`,
           generatedDocument,
           documentType?.label || selectedDocumentType,
           selectedIndustry,
-          companyInfo,
+          result.company_branding?.applied ? { ...companyInfo, logo: null, useCompanyInfo: false } : companyInfo,
           generationMode,
-          industries
+          industryOptions
         );
       }
 
@@ -2491,6 +2486,14 @@ How can I assist you today?`,
 
       setCurrentDocument(newDoc);
       setDocumentHistory(prev => [newDoc, ...prev]);
+      // Linked modules: optionally file every generated document in Document Management
+      if (getAutoAdd('ai') && htmlDocument) {
+        importGeneratedDocument({
+          title: newDoc.title, html: htmlDocument,
+          documentType: String(documentType?.value || documentType?.label || 'report').toLowerCase().replace(/[^a-z0-9]+/g, '_'),
+          module: 'hse', meta: { industry: industry?.label, ai_document_id: newDoc.id },
+        }).then(() => message.info('Also saved to Document Management')).catch((e) => message.warning(`Not added to Document Management: ${e.message}`));
+      }
       setUsageStats(prev => ({
         ...prev,
         documentsGenerated: prev.documentsGenerated + 1
@@ -2504,113 +2507,25 @@ How can I assist you today?`,
 
     } catch (error) {
       console.error('❌ HANDLE GENERATE DOCUMENT ERROR:', error);
-      
-      const documentType = documentTypes.all.find(doc => doc.value === selectedDocumentType);
-      const fallbackContent = getFallbackContent(selectedDocumentType, selectedIndustry, generationMode);
 
-      const htmlFallback = getProfessionalHtmlTemplate(
-        fallbackContent,
-        documentType?.label || selectedDocumentType,
-        selectedIndustry,
-        companyInfo,
-        generationMode,
-        industries
+      const failedDoc = documentTypes.all.find(doc => doc.value === selectedDocumentType);
+      message.error(
+        `Could not generate "${failedDoc?.label || selectedDocumentType}": ${error?.message || 'the service is not available'}. ` +
+        'No document was created. Please try again in a moment.',
+        6
       );
-
-      setPdfContent(htmlFallback);
-      setPdfPreviewVisible(true);
-      setPdfEditMode(true);
-      setIsPDFEditorExpanded(false);
-      message.warning('Using fallback template (knowledge base service temporarily unavailable)');
     } finally {
       setLoading(false);
     }
   };
 
-  // ============= FALLBACK CONTENT GENERATOR =============
-  const getFallbackContent = (docType, industry, mode) => {
-    const templates = {
-      'checklist': `
-        <div class="document-section">
-          <h2>Safety Checklist</h2>
-          <p>Comprehensive safety checklist for ${industry} industry.</p>
-          <div class="checkbox-list">
-            <div class="checkbox-item"><input type="checkbox"> PPE Compliance</div>
-            <div class="checkbox-item"><input type="checkbox"> Equipment Safety</div>
-            <div class="checkbox-item"><input type="checkbox"> Fire Safety</div>
-            <div class="checkbox-item"><input type="checkbox"> Chemical Safety</div>
-            <div class="checkbox-item"><input type="checkbox"> Training Records</div>
-            <div class="checkbox-item"><input type="checkbox"> Emergency Procedures</div>
-          </div>
-        </div>
-        <div class="document-section">
-          <h3>Inspection Details</h3>
-          <table class="info-table">
-            <tr><td><strong>Date:</strong></td><td>______________</td></tr>
-            <tr><td><strong>Inspector:</strong></td><td>______________</td></tr>
-            <tr><td><strong>Location:</strong></td><td>______________</td></tr>
-          </table>
-        </div>
-      `,
-      'risk_assessment': `
-        <div class="document-section">
-          <h2>Risk Assessment</h2>
-          <p>Risk assessment for ${industry} activities.</p>
-          <table>
-            <tr><th>Hazard</th><th>Risk Level</th><th>Control Measures</th><th>Residual Risk</th></tr>
-            <tr><td>______________</td><td>______________</td><td>______________</td><td>______________</td></tr>
-            <tr><td>______________</td><td>______________</td><td>______________</td><td>______________</td></tr>
-          </table>
-        </div>
-        <div class="document-section">
-          <h3>Risk Matrix</h3>
-          <table class="hazard-matrix">
-            <tr><th>Likelihood</th><th>Severity</th><th>Risk Level</th></tr>
-            <tr><td>______________</td><td>______________</td><td>______________</td></tr>
-          </table>
-        </div>
-      `,
-      'work_permit': `
-        <div class="document-section">
-          <h2>Work Permit</h2>
-          <p>Work permit for ${industry} operations.</p>
-          <table class="info-table">
-            <tr><td><strong>Permit No:</strong></td><td>______________</td></tr>
-            <tr><td><strong>Date:</strong></td><td>______________</td></tr>
-            <tr><td><strong>Location:</strong></td><td>______________</td></tr>
-            <tr><td><strong>Work Description:</strong></td><td>______________</td></tr>
-            <tr><td><strong>Supervisor:</strong></td><td>______________</td></tr>
-          </table>
-        </div>
-        <div class="document-section">
-          <h3>Hazard Assessment</h3>
-          <table>
-            <tr><th>Hazard</th><th>Control Measures</th><th>PPE Required</th></tr>
-            <tr><td>Fall</td><td>______________</td><td>Harness</td></tr>
-            <tr><td>Electrical</td><td>______________</td><td>Gloves</td></tr>
-            <tr><td>Fire</td><td>______________</td><td>FR Clothing</td></tr>
-          </table>
-        </div>
-      `
-    };
-
-    let content = templates[docType] || templates['checklist'];
-    
-    if (mode === 'empty') {
-      content = `<div class="empty-template-banner" style="background: #f0f0f0; padding: 10px; border-radius: 4px; margin-bottom: 20px; border-left: 4px solid #ff9800;">
-        <p style="margin: 0; color: #666;"><strong>📋 Empty Template Mode</strong> - All fields are blank for manual completion</p>
-      </div>` + content;
-    }
-    
-    return content;
-  };
 
   // ============= DOWNLOAD FUNCTIONS =============
   const handleDownloadDocument = async (doc) => {
     try {
       console.log('📥 Downloading document:', doc);
       
-      let htmlContent = doc.htmlContent || doc.preview || doc.content;
+      const htmlContent = getDocHtml(doc);
       
       if (!htmlContent) {
         console.error('❌ No HTML content found in document');
@@ -2621,6 +2536,7 @@ How can I assist you today?`,
       setIsGeneratingPdf(true);
       
       const element = document.createElement('div');
+      element.setAttribute('data-pdf-temp', '1');
       element.innerHTML = htmlContent;
       element.style.padding = '20px';
       element.style.backgroundColor = 'white';
@@ -2658,10 +2574,10 @@ How can I assist you today?`,
       
       document.body.appendChild(element);
       
-      if (window.html2pdf) {
+      if (await ensureHtml2Pdf()) {
         const opt = {
           margin: [0.5, 0.5, 0.5, 0.5],
-          filename: `${doc.title?.replace(/[^a-z0-9]/gi, '_') || 'document'}_${Date.now()}.pdf`,
+          filename: `${toFileName(doc.title, 'document')}.pdf`,
           image: { type: 'jpeg', quality: 0.98 },
           html2canvas: { scale: 2, useCORS: true, logging: false },
           jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
@@ -2670,47 +2586,22 @@ How can I assist you today?`,
         await window.html2pdf().set(opt).from(element).save();
         message.success('PDF downloaded successfully!');
       } else {
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(`
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <title>${doc.title || 'Safety Document'}</title>
-            <style>
-              body { font-family: Arial, sans-serif; padding: 20px; }
-              table { border-collapse: collapse; width: 100%; margin: 10px 0; }
-              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-              th { background-color: #f2f2f2; }
-              @media print {
-                body { margin: 0; padding: 20px; }
-              }
-            </style>
-          </head>
-          <body>
-            ${htmlContent}
-          </body>
-          </html>
-        `);
-        printWindow.document.close();
-        printWindow.print();
-        message.success('Print dialog opened - select "Save as PDF"');
-        setTimeout(() => {
-          printWindow.close();
-        }, 1000);
+        downloadHtmlFile(htmlContent, toFileName(doc.title, 'document'));
+        message.info('The PDF engine could not be loaded, so the document was downloaded as an HTML file (open it in any browser).');
       }
-      
-      document.body.removeChild(element);
       
     } catch (error) {
       console.error('❌ Download failed:', error);
       message.error(error.message || 'Failed to download PDF');
     } finally {
+      document.querySelectorAll('[data-pdf-temp]').forEach(n => n.remove());
       setIsGeneratingPdf(false);
     }
   };
 
-  const handleDownloadPdf = async () => {
-    if (!pdfContent) {
+  const handleDownloadPdf = async (contentOverride) => {
+    const source = typeof contentOverride === 'string' && contentOverride.length > 50 ? contentOverride : pdfContent;
+    if (!source) {
       message.error('No content to download');
       return;
     }
@@ -2718,14 +2609,15 @@ How can I assist you today?`,
     setIsGeneratingPdf(true);
     try {
       const element = document.createElement('div');
-      element.innerHTML = pdfContent;
+      element.setAttribute('data-pdf-temp', '1');
+      element.innerHTML = source;
       element.style.padding = '20px';
       element.style.backgroundColor = 'white';
       element.style.width = '100%';
       element.style.maxWidth = '100%';
       
       const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = pdfContent;
+      tempDiv.innerHTML = source;
       let maxColumns = 0;
       const tables = tempDiv.querySelectorAll('table');
       tables.forEach(table => {
@@ -2831,10 +2723,10 @@ How can I assist you today?`,
       
       document.body.appendChild(element);
       
-      if (window.html2pdf) {
+      if (await ensureHtml2Pdf()) {
         const opt = {
           margin: isWideTable ? [0.3, 0.3, 0.3, 0.3] : [0.5, 0.5, 0.5, 0.5],
-          filename: `${currentDocument?.title?.replace(/[^a-z0-9]/gi, '_') || 'safety_document'}_${Date.now()}.pdf`,
+          filename: `${toFileName(currentDocument?.title, 'safety_document')}.pdf`,
           image: { type: 'jpeg', quality: 0.98 },
           html2canvas: { 
             scale: isWideTable ? 1.5 : 2,
@@ -2855,77 +2747,15 @@ How can I assist you today?`,
         await window.html2pdf().set(opt).from(element).save();
         message.success(`PDF downloaded successfully! (${orientation} orientation)`);
       } else {
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(`
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <title>${currentDocument?.title || 'Safety Document'}</title>
-            <style>
-              @page {
-                size: ${pageSize} ${orientation};
-                margin: 0.5in;
-              }
-              * {
-                color-adjust: exact !important;
-                print-color-adjust: exact !important;
-                -webkit-print-color-adjust: exact !important;
-              }
-              body { 
-                font-family: Arial, sans-serif; 
-                padding: 20px; 
-                margin: 0;
-                font-size: 12px;
-              }
-              table { 
-                border-collapse: collapse; 
-                width: 100%; 
-                margin: 10px 0;
-                page-break-inside: avoid;
-              }
-              th, td { 
-                border: 1px solid #ddd; 
-                padding: 8px; 
-                text-align: left;
-                word-break: break-word;
-              }
-              th { 
-                background-color: #1E3D58 !important; 
-                color: white !important; 
-              }
-              .risk-high, [class*="risk-high"] { 
-                background-color: #dc3545 !important; 
-                color: white !important; 
-              }
-              .risk-medium, [class*="risk-medium"] { 
-                background-color: #ffc107 !important; 
-                color: #333 !important; 
-              }
-              .risk-low, [class*="risk-low"] { 
-                background-color: #28a745 !important; 
-                color: white !important; 
-              }
-            </style>
-          </head>
-          <body>
-            ${pdfContent}
-          </body>
-          </html>
-        `);
-        printWindow.document.close();
-        printWindow.print();
-        message.success('Print dialog opened - select "Save as PDF"');
-        setTimeout(() => {
-          printWindow.close();
-        }, 1000);
+        downloadHtmlFile(source, toFileName(currentDocument?.title, 'safety_document'));
+        message.info('The PDF engine could not be loaded, so the document was downloaded as an HTML file (open it in any browser).');
       }
-      
-      document.body.removeChild(element);
       
     } catch (error) {
       console.error('PDF download error:', error);
       message.error('Failed to generate PDF: ' + error.message);
     } finally {
+      document.querySelectorAll('[data-pdf-temp]').forEach(n => n.remove());
       setIsGeneratingPdf(false);
     }
   };
@@ -2933,19 +2763,30 @@ How can I assist you today?`,
   // ============= PDF EDITOR HANDLERS =============
   
   // Handler for saving content from the new PDF Editor
-  const handlePDFEditorSave = (newContent) => {
+  const handlePDFEditorSave = (newContent, { silent = false } = {}) => {
     setPdfContent(newContent);
     // Save to history for undo/redo
     setPdfHistory(prev => ({
       past: [...prev.past, { content: pdfContent }],
       future: []
     }));
-    message.success('Document saved successfully');
+
+    // Keep the saved copy in Document History in sync with what the user edited
+    if (currentDocument?.id && typeof newContent === 'string') {
+      setCurrentDocument(prev => (prev ? { ...prev, htmlContent: newContent } : prev));
+      setDocumentHistory(prev => prev.map(d => d.id === currentDocument.id
+        ? { ...d, htmlContent: newContent, preview: newContent.substring(0, 100) + '...', _savedToDb: false, _saveFailed: false }
+        : d));
+    }
+    if (!silent) message.success('Document saved successfully');
   };
 
-  // Handler for exporting PDF from the new editor
+  // Handler for exporting PDF from the editor: downloads what the user sees (including unsaved edits)
   const handlePDFEditorExport = async (content) => {
-    await handleDownloadPdf();
+    if (typeof content === 'string' && content.length > 50 && content !== pdfContent) {
+      handlePDFEditorSave(content, { silent: true });
+    }
+    await handleDownloadPdf(content);
   };
 
   // Update handleSendMessage function - around line 700
@@ -3079,7 +2920,7 @@ const handleSendMessage = async () => {
         console.error('❌ [CHAT] Error stack:', deepSeekError.stack);
         
         // Use fallback
-        const fallbackResponse = generateLocalAIResponse(currentPrompt, selectedIndustry, industries, aiPersonality);
+        const fallbackResponse = buildFallbackAIResponse(currentPrompt, selectedIndustry, aiPersonality);
         result = {
           success: true,
           response: fallbackResponse.content,
@@ -3180,7 +3021,7 @@ const handleSendMessage = async () => {
       setUsageStats(prev => ({ ...prev, questionsAsked: prev.questionsAsked + 1 }));
     } else {
       console.error('❌ [CHAT] No valid result from AI');
-      const fallbackResponse = generateLocalAIResponse(currentPrompt, selectedIndustry, industries, aiPersonality);
+      const fallbackResponse = buildFallbackAIResponse(currentPrompt, selectedIndustry, aiPersonality);
       
       setConversation(prev => {
         const updated = [...prev, fallbackResponse];
@@ -3207,7 +3048,7 @@ const handleSendMessage = async () => {
     console.error('❌ [CHAT] Error stack:', error.stack);
     
     // Fallback response
-    const fallbackResponse = generateLocalAIResponse(currentPrompt, selectedIndustry, industries, aiPersonality);
+    const fallbackResponse = buildFallbackAIResponse(currentPrompt, selectedIndustry, aiPersonality);
     
     setConversation(prev => {
       const updated = [...prev, fallbackResponse];
@@ -3265,373 +3106,31 @@ const handleSendMessage = async () => {
   };
 
   // ============= PDF EDITOR LEGACY FUNCTIONS (kept for compatibility) =============
-  const saveToHistory = useCallback(() => {
-    setPdfHistory(prev => ({
-      past: [...prev.past, {
-        content: pdfContent,
-        annotations: pdfAnnotations,
-        formFields: pdfFormFields,
-        signatures: pdfSignatures,
-        images: pdfImages,
-        comments: pdfComments,
-        redactions: pdfRedactions
-      }],
-      future: []
-    }));
-  }, [pdfContent, pdfAnnotations, pdfFormFields, pdfSignatures, pdfImages, pdfComments, pdfRedactions]);
 
-  const handleUndo = useCallback(() => {
-    if (pdfHistory.past.length === 0) return;
-    const previous = pdfHistory.past[pdfHistory.past.length - 1];
-    setPdfHistory(prev => ({
-      past: prev.past.slice(0, -1),
-      future: [{
-        content: pdfContent,
-        annotations: pdfAnnotations,
-        formFields: pdfFormFields,
-        signatures: pdfSignatures,
-        images: pdfImages,
-        comments: pdfComments,
-        redactions: pdfRedactions
-      }, ...prev.future]
-    }));
-    setPdfContent(previous.content);
-    setPdfAnnotations(previous.annotations);
-    setPdfFormFields(previous.formFields);
-    setPdfSignatures(previous.signatures);
-    setPdfImages(previous.images);
-    setPdfComments(previous.comments);
-    setPdfRedactions(previous.redactions);
-    message.success('Undo successful');
-  }, [pdfHistory, pdfContent, pdfAnnotations, pdfFormFields, pdfSignatures, pdfImages, pdfComments, pdfRedactions]);
 
-  const handleRedo = useCallback(() => {
-    if (pdfHistory.future.length === 0) return;
-    const next = pdfHistory.future[0];
-    setPdfHistory(prev => ({
-      past: [...prev.past, {
-        content: pdfContent,
-        annotations: pdfAnnotations,
-        formFields: pdfFormFields,
-        signatures: pdfSignatures,
-        images: pdfImages,
-        comments: pdfComments,
-        redactions: pdfRedactions
-      }],
-      future: prev.future.slice(1)
-    }));
-    setPdfContent(next.content);
-    setPdfAnnotations(next.annotations);
-    setPdfFormFields(next.formFields);
-    setPdfSignatures(next.signatures);
-    setPdfImages(next.images);
-    setPdfComments(next.comments);
-    setPdfRedactions(next.redactions);
-    message.success('Redo successful');
-  }, [pdfHistory, pdfContent, pdfAnnotations, pdfFormFields, pdfSignatures, pdfImages, pdfComments, pdfRedactions]);
 
-  const handleAddAnnotation = (type, content, position, color = '#ff9800') => {
-    saveToHistory();
-    const newAnnotation = {
-      id: `ann_${Date.now()}`,
-      type,
-      content,
-      position: position || { x: 100, y: 500 },
-      page: activePdfSection,
-      color,
-      createdAt: new Date(),
-      createdBy: user?.name || 'User'
-    };
-    setPdfAnnotations([...pdfAnnotations, newAnnotation]);
-    message.success(`${type} annotation added`);
-  };
 
-  const handleRemoveAnnotation = (annotationId) => {
-    saveToHistory();
-    setPdfAnnotations(pdfAnnotations.filter(ann => ann.id !== annotationId));
-    message.success('Annotation removed');
-  };
 
-  const handleAddFormField = (type, position) => {
-    saveToHistory();
-    const newField = {
-      id: `field_${Date.now()}`,
-      type,
-      position: position || { x: 100, y: 500 },
-      page: activePdfSection,
-      label: `Field ${pdfFormFields.length + 1}`,
-      value: '',
-      required: false,
-      placeholder: '',
-      options: type === 'dropdown' ? ['Option 1', 'Option 2'] : []
-    };
-    setPdfFormFields([...pdfFormFields, newField]);
-    message.success(`${type} form field added`);
-  };
 
-  const handleRemoveFormField = (fieldId) => {
-    saveToHistory();
-    setPdfFormFields(pdfFormFields.filter(field => field.id !== fieldId));
-    message.success('Form field removed');
-  };
 
-  const handleAddSignature = (signatureData, position) => {
-    saveToHistory();
-    const newSignature = {
-      id: `sig_${Date.now()}`,
-      data: signatureData,
-      position: position || { x: 100, y: 500 },
-      page: activePdfSection,
-      signer: user?.name || 'User',
-      date: new Date(),
-      verified: true
-    };
-    setPdfSignatures([...pdfSignatures, newSignature]);
-    message.success('Signature added');
-  };
 
-  const handleClearSignature = () => {
-    if (signaturePadRef.current) {
-      signaturePadRef.current.clear();
-    }
-  };
 
-  const handleSaveSignature = () => {
-    if (signaturePadRef.current && !signaturePadRef.current.isEmpty()) {
-      const signatureData = signaturePadRef.current.toDataURL();
-      
-      const signatureHtml = `
-        <div class="signature-section" style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9;">
-          <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 20px;">
-            <div style="text-align: center; flex: 1;">
-              <div style="font-size: 11px; color: #666; margin-bottom: 5px;">SIGNATURE</div>
-              <img src="${signatureData}" style="max-width: 180px; border-bottom: 1px solid #333;" />
-              <div style="margin-top: 8px; font-size: 12px; font-weight: 500;">${user?.name || 'User'}</div>
-              <div style="font-size: 11px; color: #666;">${user?.title || 'Safety Officer'}</div>
-            </div>
-            <div style="text-align: center; flex: 1;">
-              <div style="font-size: 11px; color: #666; margin-bottom: 5px;">DATE</div>
-              <div style="margin-top: 20px; font-size: 14px; font-weight: 500;">${new Date().toLocaleDateString()}</div>
-              <div style="font-size: 11px; color: #666;">${new Date().toLocaleTimeString()}</div>
-            </div>
-            <div style="text-align: center; flex: 1;">
-              <div style="font-size: 11px; color: #666; margin-bottom: 5px;">COMPANY</div>
-              <div style="margin-top: 20px; font-size: 12px; font-weight: 500;">${companyInfo.companyName || 'SafetyTrack Pro'}</div>
-              <div style="font-size: 11px; color: #666;">${companyInfo.complianceOfficer || 'HSE Department'}</div>
-            </div>
-          </div>
-        </div>
-      `;
-      
-      if (isEditingText) {
-        setEditableHtml(prev => prev + signatureHtml);
-        message.success('Signature added - continue editing');
-      } else {
-        setPdfContent(prev => prev + signatureHtml);
-        saveToHistory();
-        message.success('Signature added to document');
-      }
-      
-      setPdfSignatures(prev => [...prev, {
-        id: `sig_${Date.now()}`,
-        data: signatureData,
-        signer: user?.name || 'User',
-        date: new Date(),
-        verified: true
-      }]);
-      
-      signaturePadRef.current.clear();
-    } else {
-      message.warning('Please draw a signature first');
-    }
-  };
 
-  const insertTextAtCursor = () => {
-    const textToAdd = prompt('Enter text to add:', 'New text here');
-    if (textToAdd && isEditingText) {
-      const textHtml = `<p>${textToAdd}</p>`;
-      setEditableHtml(prev => prev + textHtml);
-      message.success('Text added');
-    }
-  };
 
-  const insertTable = () => {
-    const rows = prompt('Number of rows:', '3');
-    const cols = prompt('Number of columns:', '3');
-    if (rows && cols && isEditingText) {
-      let tableHtml = '<table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; margin: 10px 0;">';
-      tableHtml += '<thead><tr>';
-      for (let i = 0; i < parseInt(cols); i++) {
-        tableHtml += `<th style="background: #1E3D58; color: white; padding: 8px;">Column ${i + 1}</th>`;
-      }
-      tableHtml += '</tr></thead><tbody>';
-      for (let i = 0; i < parseInt(rows); i++) {
-        tableHtml += '<tr>';
-        for (let j = 0; j < parseInt(cols); j++) {
-          tableHtml += `<td style="padding: 8px; border: 1px solid #ddd;">Row ${i + 1}, Col ${j + 1}</td>`;
-        }
-        tableHtml += '</tr>';
-      }
-      tableHtml += '</tbody></table>';
-      setEditableHtml(prev => prev + tableHtml);
-      message.success('Table added');
-    }
-  };
 
-  const handleAddImage = async (file, position) => {
-    saveToHistory();
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const imageData = e.target.result;
-      const imageId = `img_${Date.now()}`;
-      
-      const imageHtml = `
-        <div class="image-container" id="${imageId}" style="margin: 15px 0; text-align: center;">
-          <img 
-            src="${imageData}" 
-            alt="${file.name}" 
-            style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px; padding: 4px;"
-          />
-          <div style="font-size: 11px; color: #666; margin-top: 5px;">${file.name}</div>
-        </div>
-      `;
-      
-      if (isEditingText) {
-        setEditableHtml(prev => prev + imageHtml);
-      } else {
-        setPdfContent(prev => prev + imageHtml);
-      }
-      
-      const newImage = {
-        id: imageId,
-        data: imageData,
-        position: position || { x: 100, y: 500 },
-        page: activePdfSection,
-        width: 200,
-        height: 200,
-        caption: file.name,
-        html: imageHtml
-      };
-      setPdfImages([...pdfImages, newImage]);
-      message.success('Image added to document');
-    };
-    reader.readAsDataURL(file);
-  };
 
-  const handleRemoveImage = (imageId) => {
-    saveToHistory();
-    const imageToRemove = pdfImages.find(img => img.id === imageId);
-    if (imageToRemove && imageToRemove.html) {
-      if (isEditingText) {
-        setEditableHtml(prev => prev.replace(imageToRemove.html, ''));
-      } else {
-        setPdfContent(prev => prev.replace(imageToRemove.html, ''));
-      }
-    }
-    setPdfImages(pdfImages.filter(img => img.id !== imageId));
-    message.success('Image removed from document');
-  };
 
-  const handleAddComment = (text, position) => {
-    saveToHistory();
-    const newComment = {
-      id: `cmt_${Date.now()}`,
-      text,
-      position: position || { x: 100, y: 500 },
-      page: activePdfSection,
-      author: user?.name || 'User',
-      createdAt: new Date(),
-      status: 'open',
-      replies: []
-    };
-    setPdfComments([...pdfComments, newComment]);
-    message.success('Comment added');
-  };
 
-  const handleRemoveComment = (commentId) => {
-    saveToHistory();
-    setPdfComments(pdfComments.filter(comment => comment.id !== commentId));
-    message.success('Comment removed');
-  };
 
-  const handleResolveComment = (commentId) => {
-    saveToHistory();
-    setPdfComments(pdfComments.map(comment =>
-      comment.id === commentId ? { ...comment, status: 'resolved' } : comment
-    ));
-    message.success('Comment resolved');
-  };
 
-  const handleAddRedaction = (text, position) => {
-    saveToHistory();
-    const newRedaction = {
-      id: `red_${Date.now()}`,
-      text,
-      position: position || { x: 100, y: 500 },
-      page: activePdfSection,
-      reason: 'Confidential',
-      applied: false
-    };
-    setPdfRedactions([...pdfRedactions, newRedaction]);
-    message.success('Redaction added');
-  };
 
-  const handleApplyRedaction = (redactionId) => {
-    saveToHistory();
-    setPdfRedactions(pdfRedactions.map(red =>
-      red.id === redactionId ? { ...red, applied: true } : red
-    ));
-    message.success('Redaction applied');
-  };
 
-  const handleRemoveRedaction = (redactionId) => {
-    saveToHistory();
-    setPdfRedactions(pdfRedactions.filter(red => red.id !== redactionId));
-    message.success('Redaction removed');
-  };
 
-  const handleAddBookmark = (title) => {
-    const newBookmark = {
-      id: `bmk_${Date.now()}`,
-      title,
-      page: activePdfSection,
-      createdAt: new Date()
-    };
-    setPdfBookmarks([...pdfBookmarks, newBookmark]);
-    message.success('Bookmark added');
-  };
 
-  const handleRemoveBookmark = (bookmarkId) => {
-    setPdfBookmarks(pdfBookmarks.filter(bm => bm.id !== bookmarkId));
-    message.success('Bookmark removed');
-  };
 
-  const handleGoToBookmark = (page) => {
-    setActivePdfSection(page);
-    message.success(`Jumped to page ${page + 1}`);
-  };
 
-  const handleAddWatermark = () => {
-    if (pdfWatermark.text.trim()) {
-      saveToHistory();
-      message.success('Watermark applied');
-    } else {
-      message.warning('Please enter watermark text');
-    }
-  };
 
-  const handleUpdatePageNumbering = (updates) => {
-    setPdfPageNumbering({ ...pdfPageNumbering, ...updates });
-    message.success('Page numbering updated');
-  };
 
-  const handleSavePdfChanges = () => {
-    if (editedPdfContent) {
-      setPdfContent(editedPdfContent);
-    }
-    message.success('PDF changes saved');
-    setPdfEditMode(false);
-  };
 
   const handleSavePdfTemplate = () => {
     if (!templateName.trim()) {
@@ -3680,1230 +3179,11 @@ const handleSendMessage = async () => {
     message.success('Template deleted');
   };
 
-  const enterEditMode = () => {
-    setEditableHtml(pdfContent);
-    setIsEditingText(true);
-    message.info('Edit mode activated. You can now edit the HTML content directly.');
-  };
 
-  const saveEditedContent = () => {
-    let contentToSave = editableHtml;
-    
-    if (!contentToSave || contentToSave.trim() === '') {
-      contentToSave = '<div>No content</div>';
-    }
-    
-    if (!contentToSave.trim().startsWith('<')) {
-      contentToSave = `<div>${contentToSave}</div>`;
-    }
-    
-    setPdfContent(contentToSave);
-    setIsEditingText(false);
-    saveToHistory();
-    message.success('Document content updated successfully');
-  };
 
-  const insertSignatureAtCursor = (signatureData) => {
-    const signatureHtml = `
-      <div class="signature-block" style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-          <div style="text-align: center;">
-            <div style="font-size: 11px; color: #666;">SIGNATURE</div>
-            <img src="${signatureData}" style="max-width: 150px; border-bottom: 1px solid #333;" />
-            <div style="margin-top: 5px; font-size: 12px;">${user?.name || 'User'}</div>
-          </div>
-          <div style="text-align: center;">
-            <div style="font-size: 11px; color: #666;">DATE</div>
-            <div style="margin-top: 20px; font-size: 12px;">${new Date().toLocaleDateString()}</div>
-          </div>
-        </div>
-      </div>
-    `;
-    
-    if (isEditingText) {
-      setEditableHtml(prev => prev + signatureHtml);
-      message.success('Signature added to editor');
-    } else {
-      setPdfContent(prev => prev + signatureHtml);
-      saveToHistory();
-      message.success('Signature added to document');
-    }
-  };
-
-  // ============= EXAM FUNCTIONS =============
-  const handleStartExamFlow = () => {
-    console.log('🎯 Starting exam flow, userPlan:', userPlan);
-
-    if (userPlan === 'super_admin') {
-      console.log('👑 SUPER ADMIN: Bypassing all permission checks');
-      setUserName('');
-      setUserEmail('');
-      setSelectedCourseForExam('');
-      setUserAnswers({});
-      setExamScore(null);
-      setExamFlowStep('setup');
-      setExamModalVisible(true);
-      message.success('👑 Super Admin: Accessing CSP Full Exam System');
-      return;
-    }
-
-    const permission = checkDocumentPermission('exam', userPlan, documentTypes);
-
-    if (permission.allowed) {
-      console.log('✅ Exam access granted - CSP Full Exam (100 questions, 4 hours)');
-      setUserName('');
-      setUserEmail('');
-      setSelectedCourseForExam('');
-      setUserAnswers({});
-      setExamScore(null);
-      setExamFlowStep('setup');
-      setExamModalVisible(true);
-    } else {
-      console.log('❌ Exam access denied');
-      setUpgradeInfo({
-        requiredPlan: 'pro',
-        currentPlan: userPlan,
-        documentName: 'CSP Full Examination',
-        features: [
-          'Full CSP exam (100 questions, 4 hours)',
-          'BCSP Blueprint aligned questions',
-          'Professional grading & analysis',
-          'Platinum-level certificate',
-          'Unlimited exam attempts'
-        ]
-      });
-      setShowUpgradeModal(true);
-    }
-  };
-
-  // ============================================================
-// STRONG DEBUG HELPERS
-// ============================================================
-
-// 1. Debug logger with visual indicators
-const debugExam = (step, data, message = '') => {
-  const timestamp = new Date().toISOString();
-  console.log(`%c🔍 [EXAM-DEBUG] ${step} ${timestamp}`, 'color: #ff6b00; font-weight: bold; font-size: 14px');
-  console.log(`%c📝 ${message}`, 'color: #666; font-size: 12px');
-  console.log('%c📊 Data:', 'color: #0066cc; font-weight: bold');
-  console.log(JSON.stringify(data, (key, value) => {
-    // Truncate long strings for readability
-    if (typeof value === 'string' && value.length > 500) {
-      return value.substring(0, 500) + '... [TRUNCATED]';
-    }
-    return value;
-  }, 2));
-  console.log('%c' + '='.repeat(80), 'color: #666');
-};
-
-// 2. Response inspector
-const inspectResponse = (response, source) => {
-  console.log(`%c🔬 [INSPECT] Response from ${source}`, 'color: #9900cc; font-weight: bold; font-size: 14px');
-  console.log('📦 Type:', typeof response);
-  console.log('📦 Keys:', Object.keys(response || {}));
-  console.log('📦 Is null/undefined:', response === null || response === undefined);
-  
-  // Check for session_id in various places
-  const sessionIdPaths = [
-    { path: 'session_id', value: response?.session_id },
-    { path: 'data.session_id', value: response?.data?.session_id },
-    { path: 'sessionId', value: response?.sessionId },
-    { path: 'data.sessionId', value: response?.data?.sessionId },
-    { path: 'session.id', value: response?.session?.id },
-    { path: 'data.session.id', value: response?.data?.session?.id },
-    { path: 'exam_session_id', value: response?.exam_session_id },
-    { path: 'data.exam_session_id', value: response?.data?.exam_session_id },
-  ];
-  
-  console.log('%c🔑 Session ID Check:', 'color: #ff6b00; font-weight: bold');
-  sessionIdPaths.forEach(({ path, value }) => {
-    const found = value !== undefined && value !== null;
-    console.log(`  ${found ? '✅' : '❌'} ${path}:`, found ? value : 'NOT FOUND');
-  });
-  
-  // Check for questions in various places
-  const questionPaths = [
-    { path: 'questions', value: response?.questions?.length },
-    { path: 'data.questions', value: response?.data?.questions?.length },
-    { path: 'exam_data.questions', value: response?.exam_data?.questions?.length },
-    { path: 'data.exam_data.questions', value: response?.data?.exam_data?.questions?.length },
-    { path: 'examData.questions', value: response?.examData?.questions?.length },
-  ];
-  
-  console.log('%c❓ Questions Check:', 'color: #0066cc; font-weight: bold');
-  questionPaths.forEach(({ path, value }) => {
-    const found = value !== undefined && value !== null && value > 0;
-    console.log(`  ${found ? '✅' : '❌'} ${path}:`, found ? `${value} questions` : 'NOT FOUND');
-  });
-  
-  // Show full response structure
-  console.log('%c📄 Full Response Structure:', 'color: #9900cc; font-weight: bold');
-  console.log(JSON.stringify(response, null, 2));
-  console.log('%c' + '='.repeat(80), 'color: #666');
-  
-  return sessionIdPaths.find(p => p.value !== undefined && p.value !== null)?.value || null;
-};
-
-// 3. Debug state tracker
-const trackExamState = (stateName, stateValue) => {
-  console.log(`%c📌 [STATE] ${stateName}`, 'color: #00aa00; font-weight: bold');
-  if (typeof stateValue === 'object') {
-    console.log(JSON.stringify(stateValue, null, 2));
-  } else {
-    console.log(stateValue);
-  }
-};
-
-  const handleProceedToExam = async () => {
-  console.log('%c🚀🚀🚀 EXAM FLOW STARTED 🚀🚀🚀', 'color: #ff6b00; font-weight: bold; font-size: 20px');
-  console.log('%c' + '='.repeat(80), 'color: #ff6b00');
-  
-  // STEP 0: Check initial state
-  debugExam('INITIAL_STATE', {
-    userName,
-    userEmail,
-    userPlan,
-    selectedExamTopic,
-    selectedCourseForExam,
-    selectedIndustry,
-    examSessionId: examSessionId || 'NOT SET YET',
-    activeExam: activeExam ? 'EXISTS' : 'NULL'
-  }, 'Initial component state before exam start');
-
-  if (!userName || userName.trim() === '') {
-    console.warn('⚠️ [EXAM] No user name provided');
-    debugExam('VALIDATION_FAILED', { userName }, 'User name is empty');
-    message.warning('Please enter your name before starting the exam');
-    return;
-  }
-
-  setLoading(true);
-  setExamFlowStep('taking_exam');
-
-  try {
-    const userId = getUserId();
-    const useDeepSeekExam = (userPlan === 'super_admin' || userPlan === 'pro' || userPlan === 'enterprise');
-    
-    debugExam('USER_INFO', {
-      userId,
-      userName,
-      userEmail,
-      userPlan,
-      useDeepSeekExam,
-      isSuperAdmin: userPlan === 'super_admin'
-    }, 'User and plan information');
-
-    let examData = null;
-    let sessionId = null;
-    let questionsList = [];
-
-    // ============================================================
-    // STEP 1: GENERATE EXAM
-    // ============================================================
-    if (useDeepSeekExam && userPlan === 'super_admin') {
-      console.log('%c👑 SUPER ADMIN PATH', 'color: #ff6b00; font-weight: bold; font-size: 16px');
-      debugExam('DEEPSEEK_START', {
-        requestData: {
-          topic: selectedExamTopic || 'safety_management',
-          difficulty: 'advanced',
-          count: 100,
-          user_name: userName,
-          user_id: userId,
-          course: selectedCourseForExam || 'CSP Professional Certification Preparation',
-        }
-      }, 'Starting DeepSeek exam generation');
-      
-      const requestData = {
-        topic: selectedExamTopic || 'safety_management',
-        difficulty: 'advanced',
-        count: 100,
-        domain: 'safety_management',
-        include_explanations: true,
-        scenario_based: true,
-        user_name: userName,
-        user_id: userId,
-        user_email: userEmail || `${userId}@exam.com`,
-        course: selectedCourseForExam || 'CSP Professional Certification Preparation',
-        industry: selectedIndustry,
-        is_super_admin: true
-      };
-      
-      try {
-        console.log('📤 [EXAM] Making DeepSeek API call...');
-        const deepSeekResult = await apiPost('/deepseek/generate-exam', requestData);
-        
-        // INSPECT THE RAW RESPONSE
-        const foundSessionId = inspectResponse(deepSeekResult, 'DeepSeek');
-        debugExam('DEEPSEEK_RESPONSE', {
-          rawResponse: deepSeekResult,
-          foundSessionId: foundSessionId,
-          hasSuccess: deepSeekResult?.success,
-          hasQuestions: deepSeekResult?.questions?.length > 0,
-          hasDataQuestions: deepSeekResult?.data?.questions?.length > 0,
-          status: deepSeekResult?.status,
-          error: deepSeekResult?.error
-        }, 'DeepSeek raw response inspection');
-
-        // Check for 403 or error
-        if (deepSeekResult && (deepSeekResult.status === 403 || deepSeekResult.error === 'Permission denied')) {
-          console.warn('⚠️ [EXAM] DeepSeek 403 error, falling back to backend');
-          debugExam('DEEPSEEK_403', deepSeekResult, 'DeepSeek returned 403, using backend fallback');
-          
-          const result = await generateExamFromBackend(userId, 100);
-          if (!result) {
-            console.error('❌ [EXAM] Backend fallback failed');
-            debugExam('BACKEND_FALLBACK_FAILED', null, 'Backend fallback returned null');
-            setExamFlowStep('setup');
-            setLoading(false);
-            return;
-          }
-          examData = result.examData;
-          sessionId = result.sessionId;
-          questionsList = result.questionsList;
-          
-          debugExam('BACKEND_FALLBACK_SUCCESS', {
-            sessionId,
-            questionsCount: questionsList.length,
-            examDataKeys: Object.keys(examData || {})
-          }, 'Backend fallback succeeded');
-          
-        } else if (deepSeekResult?.success && deepSeekResult?.questions?.length > 0) {
-          // Success path
-          questionsList = deepSeekResult.questions;
-          sessionId = deepSeekResult.session_id || deepSeekResult.data?.session_id || `DEEPSEEK_EXAM_${Date.now()}`;
-          examData = {
-            exam_id: sessionId,
-            exam_type: 'CSP_FULL_EXAM_DEEPSEEK',
-            domain: selectedExamTopic || 'safety_management',
-            total_questions: questionsList.length,
-            passing_score: 75,
-            time_limit_minutes: 240,
-            generated_at: new Date().toISOString(),
-            questions: questionsList,
-            source: 'deepseek'
-          };
-          console.log('✅ [EXAM] DeepSeek exam generated:', questionsList.length, 'questions');
-          console.log('📋 [EXAM] Session ID:', sessionId);
-          
-          debugExam('DEEPSEEK_SUCCESS', {
-            sessionId,
-            questionsCount: questionsList.length,
-            firstQuestion: questionsList[0]?.question?.substring(0, 50) + '...'
-          }, 'DeepSeek exam generation successful');
-          
-        } else if (deepSeekResult?.questions?.length > 0) {
-          // Response without success flag but has questions
-          questionsList = deepSeekResult.questions;
-          sessionId = deepSeekResult.session_id || `DEEPSEEK_EXAM_${Date.now()}`;
-          examData = {
-            exam_id: sessionId,
-            exam_type: 'CSP_FULL_EXAM_DEEPSEEK',
-            domain: selectedExamTopic || 'safety_management',
-            total_questions: questionsList.length,
-            passing_score: 75,
-            time_limit_minutes: 240,
-            generated_at: new Date().toISOString(),
-            questions: questionsList,
-            source: 'deepseek'
-          };
-          console.log('✅ [EXAM] DeepSeek exam generated (no success flag):', questionsList.length, 'questions');
-          
-          debugExam('DEEPSEEK_SUCCESS_NO_FLAG', {
-            sessionId,
-            questionsCount: questionsList.length
-          }, 'DeepSeek exam successful but no success flag in response');
-          
-        } else if (deepSeekResult?.data?.questions?.length > 0) {
-          // Nested data path
-          questionsList = deepSeekResult.data.questions;
-          sessionId = deepSeekResult.data.session_id || deepSeekResult.session_id || `DEEPSEEK_EXAM_${Date.now()}`;
-          examData = {
-            exam_id: sessionId,
-            exam_type: 'CSP_FULL_EXAM_DEEPSEEK',
-            domain: selectedExamTopic || 'safety_management',
-            total_questions: questionsList.length,
-            passing_score: 75,
-            time_limit_minutes: 240,
-            generated_at: new Date().toISOString(),
-            questions: questionsList,
-            source: 'deepseek'
-          };
-          console.log('✅ [EXAM] DeepSeek exam generated (from .data):', questionsList.length, 'questions');
-          
-          debugExam('DEEPSEEK_SUCCESS_DATA', {
-            sessionId,
-            questionsCount: questionsList.length
-          }, 'DeepSeek exam successful from nested data');
-          
-        } else {
-          console.warn('⚠️ [EXAM] DeepSeek response had no questions, trying backend fallback');
-          debugExam('DEEPSEEK_NO_QUESTIONS', {
-            responseKeys: Object.keys(deepSeekResult || {}),
-            hasData: !!deepSeekResult?.data
-          }, 'DeepSeek response missing questions array');
-          
-          const result = await generateExamFromBackend(userId, 100);
-          if (!result) {
-            console.error('❌ [EXAM] Backend fallback failed');
-            setExamFlowStep('setup');
-            setLoading(false);
-            return;
-          }
-          examData = result.examData;
-          sessionId = result.sessionId;
-          questionsList = result.questionsList;
-        }
-      } catch (deepSeekError) {
-        console.error('❌ [EXAM] DeepSeek error:', deepSeekError);
-        console.error('❌ [EXAM] Error stack:', deepSeekError.stack);
-        debugExam('DEEPSEEK_ERROR', {
-          errorMessage: deepSeekError.message,
-          errorStack: deepSeekError.stack,
-          errorName: deepSeekError.name
-        }, 'DeepSeek API call threw exception');
-        
-        console.warn('⚠️ [EXAM] Falling back to backend');
-        const result = await generateExamFromBackend(userId, 100);
-        if (!result) {
-          console.error('❌ [EXAM] Backend fallback failed');
-          setExamFlowStep('setup');
-          setLoading(false);
-          return;
-        }
-        examData = result.examData;
-        sessionId = result.sessionId;
-        questionsList = result.questionsList;
-      }
-    } else {
-      // Regular users - Use backend
-      const numQuestions = userPlan === 'basic' ? 20 : 100;
-      console.log(`📚 [EXAM] Using backend with ${numQuestions} questions`);
-      debugExam('BACKEND_START', {
-        numQuestions,
-        userId,
-        userName,
-        userPlan
-      }, 'Starting backend exam generation');
-      
-      const result = await generateExamFromBackend(userId, numQuestions);
-      if (!result) {
-        console.error('❌ [EXAM] Backend generation failed');
-        debugExam('BACKEND_FAILED', null, 'Backend generation returned null');
-        setExamFlowStep('setup');
-        setLoading(false);
-        return;
-      }
-      examData = result.examData;
-      sessionId = result.sessionId;
-      questionsList = result.questionsList;
-      
-      debugExam('BACKEND_SUCCESS', {
-        sessionId,
-        questionsCount: questionsList.length,
-        examDataKeys: Object.keys(examData || {})
-      }, 'Backend exam generation successful');
-    }
-
-    // ============================================================
-    // STEP 2: VALIDATE AND LOG FINAL STATE
-    // ============================================================
-    console.log('%c📊 FINAL STATE CHECK', 'color: #ff6b00; font-weight: bold; font-size: 16px');
-    console.log('  - sessionId:', sessionId);
-    console.log('  - sessionId type:', typeof sessionId);
-    console.log('  - questionsList length:', questionsList?.length || 0);
-    console.log('  - examData:', examData ? 'present' : 'null');
-    
-    debugExam('FINAL_STATE', {
-      sessionId,
-      sessionIdType: typeof sessionId,
-      questionsCount: questionsList?.length || 0,
-      hasExamData: !!examData,
-      examDataKeys: Object.keys(examData || {})
-    }, 'Final state after exam generation');
-
-    // CRITICAL: Validate session ID
-    if (!sessionId) {
-      console.error('❌ [EXAM] No session ID - generating fallback');
-      sessionId = `EXAM-FALLBACK-${Date.now()}`;
-      console.log('🆕 [EXAM] Fallback session ID:', sessionId);
-      debugExam('SESSION_ID_FALLBACK', { sessionId }, 'No session ID found, using generated fallback');
-    }
-
-    // Validate questions
-    if (!questionsList || questionsList.length === 0) {
-      console.error('❌ [EXAM] No questions - trying emergency fallback');
-      debugExam('NO_QUESTIONS', { 
-        questionsList, 
-        examData: examData ? 'present' : 'null' 
-      }, 'Questions list is empty, using fallback questions');
-      
-      const fallbackQuestions = generateFallbackQuestions(100);
-      questionsList = fallbackQuestions;
-      if (!examData) {
-        examData = {
-          exam_id: sessionId,
-          exam_type: 'CSP_FULL_EXAM_FALLBACK',
-          domain: selectedExamTopic || 'safety_management',
-          total_questions: questionsList.length,
-          passing_score: 75,
-          time_limit_minutes: 240,
-          generated_at: new Date().toISOString(),
-          questions: questionsList,
-          source: 'fallback'
-        };
-      }
-      debugExam('FALLBACK_QUESTIONS', {
-        questionsCount: questionsList.length,
-        firstQuestion: questionsList[0]?.question
-      }, 'Fallback questions generated');
-    }
-
-    console.log('📊 [EXAM] Final counts:');
-    console.log('  - Questions:', questionsList.length);
-    console.log('  - Session ID:', sessionId);
-
-    // ============================================================
-    // STEP 3: BUILD FRONTEND EXAM
-    // ============================================================
-    debugExam('BUILD_EXAM_START', {
-      questionsCount: questionsList.length,
-      sessionId,
-      examDataKeys: Object.keys(examData || {})
-    }, 'Building frontend exam object');
-    
-    const frontendExam = buildExamObject(questionsList, examData, sessionId);
-    
-    debugExam('BUILD_EXAM_RESULT', {
-      examTitle: frontendExam.title,
-      examQuestions: frontendExam.questions?.length || 0,
-      examSessionId: frontendExam.session_id,
-      examId: frontendExam.exam_id
-    }, 'Frontend exam object built');
-
-    // ============================================================
-    // STEP 4: SET ALL STATE
-    // ============================================================
-    console.log('%c📌 SETTING STATE', 'color: #00aa00; font-weight: bold; font-size: 16px');
-    console.log('  - Setting activeExam with', frontendExam.questions.length, 'questions');
-    console.log('  - Setting examSessionId to:', sessionId);
-    console.log('  - Setting localStorage exam_session_id:', sessionId);
-    
-    setActiveExam(frontendExam);
-    setUserAnswers({});
-    setExamScore(null);
-    setActivePdfSection(0);
-    setExamSessionId(sessionId);
-    localStorage.setItem('exam_session_id', sessionId);
-    
-    // Verify state was set
-    console.log('✅ State set, verifying...');
-    console.log('  - examSessionId now:', examSessionId); // This will show stale value due to React batching
-    
-    // Track state after set
-    debugExam('STATE_AFTER_SET', {
-      examSessionId: sessionId,
-      activeExamQuestions: frontendExam.questions?.length || 0,
-      localStorageSessionId: localStorage.getItem('exam_session_id')
-    }, 'State after React setState calls');
-
-    // ============================================================
-    // STEP 5: START TIMER
-    // ============================================================
-    console.log('⏱️ Starting exam timer...');
-    startExamTimer(frontendExam);
-    debugExam('TIMER_STARTED', {
-      timeLimit: frontendExam.time_limit_minutes,
-      totalQuestions: frontendExam.total_questions
-    }, 'Exam timer started');
-
-    // ============================================================
-    // STEP 6: SHOW SUCCESS
-    // ============================================================
-    setExamFlowStep('taking_exam');
-    const source = examData?.source === 'deepseek' ? 'DeepSeek AI' : 'backend';
-    message.success(`✅ CSP Exam ready! ${questionsList.length} questions from ${source}.`);
-    
-    debugExam('EXAM_READY', {
-      source,
-      questionsCount: questionsList.length,
-      sessionId,
-      flowStep: 'taking_exam'
-    }, 'Exam is ready for user');
-
-  } catch (error) {
-    console.error('%c❌❌❌ FATAL EXAM ERROR ❌❌❌', 'color: red; font-weight: bold; font-size: 20px');
-    console.error('Error name:', error.name);
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
-    
-    debugExam('FATAL_ERROR', {
-      errorName: error.name,
-      errorMessage: error.message,
-      errorStack: error.stack
-    }, 'Fatal error in exam flow');
-    
-    message.error('Failed to start exam. Please try again.');
-    setExamFlowStep('setup');
-  } finally {
-    setLoading(false);
-    console.log('%c🔵 EXAM FLOW COMPLETED', 'color: #0066cc; font-weight: bold; font-size: 16px');
-    console.log('%c' + '='.repeat(80), 'color: #ff6b00');
-  }
-};
-
-const generateExamFromBackend = async (userId, numQuestions) => {
-  console.log('🔄 [BACKEND] generateExamFromBackend STARTED');
-  
-  try {
-    // STEP 1: Start the exam flow - get REAL session ID
-    const startResult = await AIService.startExamFlow({
-      user_name: userName,
-      user_id: userId,
-      user_email: userEmail || `${userId}@exam.com`,
-      course: selectedCourseForExam || 'CSP Professional Certification Preparation',
-      topic: selectedExamTopic || 'safety_management',
-      difficulty: numQuestions === 100 ? 'advanced' : 'intermediate',
-      num_questions: numQuestions,
-      industry: selectedIndustry,
-      user_plan: userPlan,
-      is_super_admin: userPlan === 'super_admin'
-    }, userPlan);
-
-    console.log('📥 startExamFlow response:', startResult);
-    
-    if (!startResult?.success) {
-      console.error('❌ startExamFlow failed:', startResult?.error);
-      return null;
-    }
-
-    // ✅ CRITICAL FIX: Use the REAL session_id from the backend
-    // DO NOT generate a fake one!
-    const sessionId = startResult.session_id || startResult.data?.session_id;
-    
-    console.log('✅ Real session ID from backend:', sessionId);
-    
-    if (!sessionId) {
-      console.error('❌ No session_id in startResult');
-      // Check if we have questions directly
-      if (startResult.questions && startResult.questions.length > 0) {
-        console.log('✅ Found questions directly in startResult');
-        const examData = {
-          exam_id: `EXAM-${Date.now()}`,
-          exam_type: 'CSP_FULL_EXAM_BACKEND',
-          total_questions: startResult.questions.length,
-          passing_score: 75,
-          time_limit_minutes: 240,
-          questions: startResult.questions,
-          source: 'backend_direct'
-        };
-        return { 
-          examData, 
-          sessionId: `EXAM-${Date.now()}`, 
-          questionsList: startResult.questions 
-        };
-      }
-      return null;
-    }
-
-    // Store the REAL session ID
-    setExamSessionId(sessionId);
-    localStorage.setItem('exam_session_id', sessionId);
-    console.log('📋 Session ID stored:', sessionId);
-
-    // STEP 2: Use the REAL session ID to get the exam
-    const generateResult = await AIService.generateExamForFlow(sessionId, userPlan);
-    
-    console.log('📥 generateExamForFlow response:', generateResult);
-
-    // Check if we already have questions from startResult
-    if (startResult?.questions && startResult.questions.length > 0) {
-      console.log('✅ Using questions from startResult:', startResult.questions.length);
-      const examData = {
-        exam_id: sessionId,
-        exam_type: 'CSP_FULL_EXAM_BACKEND',
-        domain: selectedExamTopic || 'safety_management',
-        total_questions: startResult.questions.length,
-        passing_score: 75,
-        time_limit_minutes: 240,
-        generated_at: new Date().toISOString(),
-        questions: startResult.questions,
-        source: 'backend_start'
-      };
-      return { examData, sessionId, questionsList: startResult.questions };
-    }
-
-    if (!generateResult?.success) {
-      console.error('❌ generateExamForFlow failed:', generateResult?.error);
-      // Check if there are questions in the response anyway
-      if (generateResult?.questions && generateResult.questions.length > 0) {
-        console.log('✅ Found questions in error response:', generateResult.questions.length);
-        const examData = {
-          exam_id: sessionId,
-          exam_type: 'CSP_FULL_EXAM_BACKEND',
-          domain: selectedExamTopic || 'safety_management',
-          total_questions: generateResult.questions.length,
-          passing_score: 75,
-          time_limit_minutes: 240,
-          generated_at: new Date().toISOString(),
-          questions: generateResult.questions,
-          source: 'backend_error'
-        };
-        return { examData, sessionId, questionsList: generateResult.questions };
-      }
-      message.error(generateResult?.error || 'Failed to generate questions');
-      return null;
-    }
-
-    const examData = generateResult.exam_data || generateResult.data;
-    const questionsList = examData?.questions || generateResult.questions || [];
-    
-    console.log('📊 [BACKEND] Final data:');
-    console.log('  - sessionId:', sessionId);
-    console.log('  - questionsList length:', questionsList.length);
-
-    if (!questionsList || questionsList.length === 0) {
-      console.error('❌ [BACKEND] No questions in response');
-      return null;
-    }
-
-    console.log('✅ [BACKEND] generateExamFromBackend SUCCESS');
-    return { examData, sessionId, questionsList };
-
-  } catch (error) {
-    console.error('❌ [BACKEND] generateExamFromBackend error:', error);
-    return null;
-  }
-};
-// ============================================================
-// HELPER: Build Exam Object
-// ============================================================
-const buildExamObject = (questionsList, examData, sessionId) => {
-    const isDeepSeek = examData?.source === 'deepseek';
-    const isBasic = userPlan === 'basic';
-    
-    return {
-        title: isDeepSeek ? 'CSP Professional Examination (AI-Generated)' : 
-               (isBasic ? 'CSP Practice Examination' : 'CSP Professional Examination'),
-        description: isDeepSeek ? 'Full CSP Exam with AI-generated questions (100 Questions, 4 Hours)' :
-                     (isBasic ? 'Practice exam with 20 questions' : 'Full CSP Practice Exam (100 Questions, 4 Hours)'),
-        industry: selectedIndustry,
-        difficulty: isDeepSeek ? 'CSP Advanced Level (AI)' : 
-                    (isBasic ? 'Intermediate Level' : 'CSP Advanced Level'),
-        candidate_name: userName,
-        course: selectedCourseForExam || 'CSP Professional Certification Preparation',
-        exam_id: examData?.exam_id || `EXAM-${Date.now()}`,
-        session_id: sessionId,
-        exam_mode: examData?.exam_type || (isDeepSeek ? 'CSP_FULL_EXAM_DEEPSEEK' : 'CSP_FULL_EXAM'),
-        source: isDeepSeek ? 'deepseek' : 'backend',
-        plan_used: userPlan,
-        questions: questionsList.map((q, index) => formatQuestion(q, index, isDeepSeek)),
-        instructions: `Complete all ${questionsList.length} questions within 4 hours. Passing score is 75%.`,
-        passing_score: 75,
-        time_limit_minutes: 240,
-        total_questions: questionsList.length,
-        total_points: questionsList.reduce((sum, q) => sum + (q.points || 2), 0),
-        generated_at: examData?.generated_at || new Date().toISOString(),
-        topic: examData?.domain || selectedExamTopic,
-        csp_blueprint_aligned: true
-    };
-};
-
-// ============================================================
-// HELPER: Format Question
-// ============================================================
-const formatQuestion = (q, index, isDeepSeek) => {
-    // Format options
-    let options = [];
-    const rawOptions = q.options || [];
-    
-    if (Array.isArray(rawOptions) && rawOptions.length > 0) {
-        if (typeof rawOptions[0] === 'object' && rawOptions[0] !== null) {
-            options = rawOptions.map(opt => opt.text || opt.option || `Option ${opt.letter || ''}`);
-        } else {
-            options = rawOptions.map(opt => String(opt).replace(/^[A-D][\.\)\-]\s*/i, '').trim());
-        }
-    } else if (typeof rawOptions === 'object' && !Array.isArray(rawOptions)) {
-        options = Object.values(rawOptions).map(opt => {
-            if (typeof opt === 'object') {
-                return opt.text || opt.option || String(opt);
-            }
-            return String(opt).replace(/^[A-D][\.\)\-]\s*/i, '').trim();
-        });
-    } else {
-        options = ['Option A', 'Option B', 'Option C', 'Option D'];
-    }
-
-    // Ensure at least 4 options
-    while (options.length < 4) {
-        options.push(`Option ${String.fromCharCode(65 + options.length)}`);
-    }
-
-    // Parse correct answer
-    let correctAnswer = 'A';
-    if (q.correct_answer) {
-        const ans = String(q.correct_answer).toUpperCase().trim();
-        if (['A', 'B', 'C', 'D'].includes(ans)) {
-            correctAnswer = ans;
-        } else {
-            const num = parseInt(ans);
-            if (!isNaN(num) && num >= 1 && num <= 4) {
-                correctAnswer = String.fromCharCode(64 + num);
-            }
-        }
-    }
-
-    const correctAnswerIndex = correctAnswer.charCodeAt(0) - 65;
-
-    return {
-        id: q.id || `q_${index}_${Date.now()}`,
-        question_text: q.question_text || q.question || `Question ${index + 1}`,
-        question: q.question_text || q.question || `Question ${index + 1}`,
-        type: q.question_type || 'application',
-        options: options,
-        correct_answer: correctAnswerIndex,
-        correct_answer_letter: correctAnswer,
-        explanation: q.explanation || (isDeepSeek ? 'AI-generated explanation based on CSP standards.' : 'Based on CSP-level professional judgment.'),
-        points: q.points || 2,
-        difficulty: q.difficulty || (isDeepSeek ? 'advanced' : 'intermediate'),
-        cognitive_level: q.cognitive_level || 'application',
-        domain: q.domain || 'Domain 2',
-        regulatory_reference: q.reference || '',
-        scenario_context: q.scenario_context || ''
-    };
-};
-
-// ============================================================
-// HELPER: Start Exam Timer
-// ============================================================
-const startExamTimer = (exam) => {
-    if (!exam?.time_limit_minutes) return;
-    
-    const timeLimit = exam.time_limit_minutes;
-    setExamProgress({
-        answered: 0,
-        total: exam.questions.length,
-        timeRemaining: timeLimit * 60
-    });
-
-    // Clear existing timer
-    if (examTimer) {
-        clearInterval(examTimer);
-    }
-
-    const timer = setInterval(() => {
-        setExamProgress(prev => {
-            if (prev.timeRemaining <= 1) {
-                clearInterval(timer);
-                handleAutoSubmitExam();
-                return { ...prev, timeRemaining: 0 };
-            }
-            return { ...prev, timeRemaining: prev.timeRemaining - 1 };
-        });
-    }, 1000);
-
-    setExamTimer(timer);
-};
-
-  const handleAutoSubmitExam = () => {
-    message.warning('⏰ Time is up! Auto-submitting exam...');
-    handleSubmitExam();
-};
-
-  const getUserId = () => {
-    if (userEmail && userEmail.trim() !== '') {
-      return `user_${userEmail.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`;
-    }
-    if (userName && userName.trim() !== '') {
-      return `user_${userName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`;
-    }
-    return `user_${Date.now()}`;
-  };
-
-  const handleAnswerSelect = (questionIndex, answerLetter) => {
-    setUserAnswers(prev => ({
-      ...prev,
-      [questionIndex]: answerLetter
-    }));
-
-    setExamProgress(prev => {
-      const answeredCount = Object.keys({ ...prev.answers, [questionIndex]: answerLetter }).length;
-      return {
-        ...prev,
-        answered: answeredCount,
-        answers: { ...prev.answers, [questionIndex]: answerLetter },
-        percentage: Math.round((answeredCount / prev.total) * 100)
-      };
-    });
-  };
-
-  const handleSubmitExam = async () => {
-    console.log('📤 Submitting exam...');
-    
-    // ✅ Check if activeExam exists
-    if (!activeExam) {
-        message.error('No active exam to submit');
-        return;
-    }
-
-    const totalQuestions = activeExam.questions?.length || 0;
-    const answeredCount = Object.keys(userAnswers).length;
-
-    if (answeredCount < totalQuestions) {
-        Modal.confirm({
-            title: 'Submit with unanswered questions?',
-            content: `You have answered ${answeredCount} out of ${totalQuestions} questions. ${totalQuestions - answeredCount} questions are unanswered. Are you sure you want to submit?`,
-            okText: 'Yes, Submit',
-            cancelText: 'Continue Exam',
-            onOk: () => performSubmit()
-        });
-        return;
-    }
-
-    performSubmit();
-};
-
-const performSubmit = async () => {
-    try {
-        message.loading({ content: 'Submitting exam...', key: 'submit', duration: 0 });
-
-        // ✅ If no examSessionId, create one
-        let sessionId = examSessionId;
-        if (!sessionId) {
-            sessionId = `EXAM-${Date.now()}`;
-            setExamSessionId(sessionId);
-        }
-
-        // Format answers
-        const formattedAnswers = {};
-        Object.entries(userAnswers).forEach(([qIndex, answerIndex]) => {
-            formattedAnswers[qIndex] = {
-                index: answerIndex,
-                letter: String.fromCharCode(65 + answerIndex)
-            };
-        });
-
-        // Submit to backend
-        const submitResult = await AIService.submitExamForGrading(
-            sessionId,
-            formattedAnswers,
-            userPlan
-        );
-
-        if (submitResult?.success) {
-            const detailedResults = submitResult.grading_result?.detailed_results || [];
-            const mappedResults = detailedResults.map(result => ({
-                question: result.question_text || `Question ${result.question_number}`,
-                userAnswer: result.user_answer || 'Not answered',
-                correctAnswer: result.correct_answer || 'Not available',
-                isCorrect: result.is_correct || false,
-                explanation: result.explanation || 'No explanation provided',
-                points: result.points || 1,
-                points_earned: result.points_earned || 0,
-                domain: result.domain || 'Unknown'
-            }));
-
-            setExamScore({
-                score: submitResult.grading_result?.percentage || 0,
-                correct: submitResult.grading_result?.correct_answers || 0,
-                total: submitResult.grading_result?.total_questions || activeExam.questions.length,
-                percentage: submitResult.grading_result?.percentage || 0,
-                passed: submitResult.grading_result?.passed || false,
-                results: mappedResults,
-                professional_analysis: submitResult.professional_analysis || {}
-            });
-
-            setExamFlowStep('results');
-            message.success({ content: `✅ Exam submitted! Score: ${submitResult.grading_result?.percentage || 0}%`, key: 'submit' });
-        } else {
-            // Fallback to local grading
-            performLocalGrading();
-        }
-    } catch (error) {
-        console.error('❌ Submit exception:', error);
-        message.error({ content: 'Error submitting exam. Using local grading.', key: 'submit' });
-        performLocalGrading();
-    }
-};
-
-  const performLocalGrading = () => {
-    if (!activeExam) return;
-
-    let correct = 0;
-    const results = [];
-
-    activeExam.questions.forEach((question, index) => {
-      const userAnswer = userAnswers[index];
-      const isCorrect = userAnswer === question.correct_answer;
-      if (isCorrect) correct++;
-
-      const userAnswerText = userAnswer ? getOptionText(question.options, userAnswer) : 'Not answered';
-      const correctAnswerText = getOptionText(question.options, question.correct_answer);
-
-      results.push({
-        question: question.question,
-        userAnswer: userAnswerText,
-        correctAnswer: correctAnswerText,
-        isCorrect,
-        explanation: question.explanation
-      });
-    });
-
-    const score = Math.round((correct / activeExam.questions.length) * 100);
-    const passed = score >= (activeExam.passing_score || 70);
-
-    setExamScore({
-      score,
-      correct,
-      total: activeExam.questions.length,
-      percentage: score,
-      passed,
-      results
-    });
-
-    setExamFlowStep('results');
-    message.success(`Exam submitted! Score: ${score}%`);
-  };
-
-  const getOptionText = (options, letter) => {
-    if (!options || !letter) return 'N/A';
-    const option = options.find(opt => opt.startsWith(`${letter}.`));
-    return option || `${letter}. Not found`;
-  };
-
-  
-
-  const handleGenerateCertificateFromExam = async () => {
-    if (!examScore?.passed) {
-      message.error('You must pass the exam to receive a certificate');
-      return;
-    }
-
-    try {
-      message.loading({ content: 'Generating your professional certificate...', key: 'cert_gen' });
-
-      const certificateResult = await AIService.generateExamCertificate(examSessionId, userPlan);
-
-      if (certificateResult.success) {
-        const credential = getCredentialLevel(examScore.score);
-
-        const certificateData = {
-          ...certificateResult.certificate,
-          recipient_name: userName,
-          course_title: selectedCourseForExam,
-          exam_score: examScore.score,
-          exam_date: new Date().toISOString().split('T')[0],
-          credential_level: credential.level,
-          ceus_awarded: credential.ceus,
-          admin_signature: {
-            name: adminSignature.name,
-            title: adminSignature.title,
-            signature_id: adminSignature.signature_id
-          }
-        };
-
-        setGeneratedCertificate(certificateData);
-        setExamFlowStep('certificate');
-        message.success({ content: 'Professional certificate generated successfully!', key: 'cert_gen' });
-      } else {
-        throw new Error(certificateResult.error || 'Backend generation failed');
-      }
-    } catch (error) {
-      console.error('Certificate generation error:', error);
-      message.warning('Using local certificate generation');
-
-      const credential = getCredentialLevel(examScore.score);
-      const fallbackCertificate = {
-        certificate_id: `CERT-${Date.now()}`,
-        recipient_name: userName,
-        course_title: selectedCourseForExam,
-        exam_score: examScore.score,
-        exam_date: new Date().toISOString().split('T')[0],
-        exam_id: examSessionId,
-        issuer: 'SafetyTrack Pro Certification Authority',
-        credential_level: credential.level,
-        ceus_awarded: credential.ceus,
-        source: 'local',
-        admin_signature: {
-          name: adminSignature.name,
-          title: adminSignature.title,
-          signature_id: adminSignature.signature_id
-        }
-      };
-
-      setGeneratedCertificate(fallbackCertificate);
-      setExamFlowStep('certificate');
-    }
-  };
-
-  const handleDownloadExamCertificate = async () => {
-    const certificateToDownload = generatedCertificate;
-
-    const certId = certificateToDownload?.certificate_id;
-
-    if (!certId) {
-      message.error('No certificate ID found');
-      return;
-    }
-
-    try {
-      const response = await fetch(`http://127.0.0.1:5000/api/ai/exam/flow/certificate/${certId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.download_url) {
-          window.open(`http://127.0.0.1:5000${data.download_url}`, '_blank');
-          message.success('Download started!');
-        } else {
-          message.error('No download URL found');
-        }
-      } else {
-        message.error('Failed to get certificate');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      message.error('Download failed');
-    }
-  };
-
-  const handleDownloadTranscript = async () => {
-    if (!examScore) return;
-
-    try {
-      message.loading({ content: 'Preparing transcript download...', key: 'transcript', duration: 0 });
-
-      const transcriptData = {
-        recipient_name: userName,
-        course_title: selectedCourseForExam,
-        exam_results: examScore,
-        exam_details: activeExam,
-        exam_date: new Date().toISOString().split('T')[0],
-        company_info: companyInfo.useCompanyInfo ? companyInfo : {}
-      };
-
-      const response = await AIService.downloadTranscriptAsPdf?.(transcriptData, userPlan);
-
-      if (response?.success && response.download_url) {
-        const link = document.createElement('a');
-        link.href = response.download_url;
-        link.download = `Transcript_${userName}_${selectedCourseForExam}_${Date.now()}.pdf`;
-        link.click();
-        message.success({ content: 'Transcript downloaded successfully!', key: 'transcript' });
-      } else {
-        generateFallbackTranscriptPdf();
-      }
-    } catch (error) {
-      console.error('Transcript download error:', error);
-      generateFallbackTranscriptPdf();
-    }
-  };
-
-  const generateFallbackTranscriptPdf = () => {
-    const credential = getCredentialLevel(examScore?.score || 0);
-
-    const transcriptContent = `
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                    INTERNATIONAL SAFETY PROFESSIONAL CERTIFICATION           ║
-║                          EXAMINATION TRANSCRIPT                             ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║                                                                              ║
-║  CANDIDATE INFORMATION:                                                      ║
-║  ────────────────────────────────────────────────────────────────────────── ║
-║  Name:           ${userName}                                                 ║
-║  Course:         ${selectedCourseForExam}                                    ║
-║  Exam Date:      ${new Date().toLocaleDateString()}                          ║
-║                                                                              ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║                                                                              ║
-║  EXAM RESULTS SUMMARY:                                                       ║
-║  ────────────────────────────────────────────────────────────────────────── ║
-║                                                                              ║
-║  Overall Score:          ${examScore?.score}%                                ║
-║  Correct Answers:        ${examScore?.correct} / ${examScore?.total}        ║
-║  Result:                 ${examScore?.passed ? 'PASSED ✓' : 'FAILED ✗'}     ║
-║  Credential Level:       ${credential.level}                                ║
-║  CEUs Awarded:           ${credential.ceus}                                 ║
-║                                                                              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
-    `;
-
-    const blob = new Blob([transcriptContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Transcript_${userName}_${selectedCourseForExam}_${Date.now()}.txt`;
-    link.click();
-    URL.revokeObjectURL(url);
-
-    message.success({ content: 'Transcript downloaded successfully!', key: 'transcript' });
-  };
-
-  // ============= CERTIFICATE VERIFICATION FUNCTIONS =============
-  const handleVerifyCertificate = async () => {
-    if (!verificationCode.trim()) {
-      message.warning('Please enter a certificate ID');
-      return;
-    }
-
-    setVerifying(true);
-    setVerificationResult(null);
-
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setVerificationResult({
-        valid: true,
-        certificate_id: verificationCode,
-        recipient_name: 'John Doe',
-        course_title: 'CSP Professional Certification',
-        exam_score: 92,
-        exam_date: '2024-03-15',
-        issue_date: '2024-03-20',
-        expiry_date: '2026-03-20',
-        verifiedAt: new Date().toISOString()
-      });
-      message.success('Certificate verified successfully!');
-    } catch (error) {
-      setVerificationResult({
-        valid: false,
-        message: 'Certificate not found. Please check the ID and try again.',
-        verifiedAt: new Date().toISOString()
-      });
-      message.error('Certificate not found');
-    } finally {
-      setVerifying(false);
-    }
-  };
-
-  const handleScanQR = () => {
-    message.info('QR scanning feature coming soon. Please enter the certificate ID manually.');
-  };
-
-  const handleCopyVerificationLink = () => {
-    if (verificationResult?.certificate_id) {
-      const link = `${window.location.origin}/verify/${verificationResult.certificate_id}`;
-      navigator.clipboard.writeText(link);
-      message.success('Verification link copied to clipboard!');
-    }
-  };
 
   // ============= DOCUMENT HISTORY FUNCTIONS =============
-  const handleCopyDocument = (doc) => {
-    const contentToCopy = doc.htmlContent || doc.preview || doc.content;
-    if (contentToCopy) {
-      navigator.clipboard.writeText(contentToCopy);
-      message.success('Document content copied to clipboard!');
-    } else {
-      message.error('No content to copy');
-    }
-  };
 
-  const handleDeleteDocument = (id) => {
-    setDocumentHistory(prev => prev.filter(doc => doc.id !== id));
-    message.success('Document deleted');
-  };
    
 
   // ============= CHAT HISTORY FUNCTIONS =============
@@ -4931,14 +3211,12 @@ const loadChatSessions = async () => {
 const loadSavedDocuments = async () => {
   try {
     const result = await aiStorageService.getDocuments();
-    if (result.success) {
-      setDocumentHistory(result.documents);
-    } else {
-      const localDocs = aiStorageService.getDocumentsLocal();
-      if (localDocs.success) {
-        setDocumentHistory(localDocs.documents);
-      }
-    }
+    const serverDocs = result?.success ? (result.documents || []) : [];
+    setDocumentHistory(prev => mergeDocs(
+      serverDocs.map(d => ({ ...d, _savedToDb: true })),
+      prev,
+      readLocalDocs()
+    ));
   } catch (error) {
     console.error('Failed to load documents:', error);
   }
@@ -4976,134 +3254,218 @@ const deleteChatSession = async (sessionId) => {
 
   // ============= RENDER FUNCTIONS =============
   const getFilteredDocumentTypes = useCallback(() => {
-    let filtered = documentTypes.all;
+    // Only documents available for the selected industry
+    let filtered = getDocsForIndustry(selectedIndustry);
 
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(doc => doc.category === selectedCategory);
     }
 
-    if (searchQuery) {
-      filtered = filtered.filter(doc =>
-        doc.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        doc.description.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+    return filtered;
+  }, [selectedCategory, selectedIndustry]);
+
+  // When the industry changes: clear a document that is not available there, and reset an empty category
+  const handleIndustryChange = (value) => {
+    setSelectedIndustry(value);
+
+    const nextDocs = getDocsForIndustry(value);
+
+    if (selectedCategory !== 'all' && !nextDocs.some(doc => doc.category === selectedCategory)) {
+      setSelectedCategory('all');
     }
 
-    return filtered;
-  }, [selectedCategory, searchQuery]);
+    if (selectedDocumentType) {
+      const currentDoc = documentTypes.all.find(d => d.value === selectedDocumentType);
+      if (currentDoc && !docMatchesIndustry(currentDoc, value)) {
+        setSelectedDocumentType('');
+        message.info('Document type was cleared because it is not available for this industry. Please choose another one.');
+      }
+    }
+  };
 
   const renderIndustrySelector = () => (
-  <Form.Item label={
-    <Space>
-      <GlobalOutlined />
-      <span>Industry Focus</span>
-      <Tooltip title="Select your industry for tailored safety solutions">
-        <QuestionCircleOutlined style={{ color: '#666' }} />
-      </Tooltip>
-    </Space>
-  }>
+  <Form.Item
+    label={
+      <Space>
+        <GlobalOutlined />
+        <span>Step 1 · Industry</span>
+        <Tooltip title="Choose your industry first. The Document Type list below only shows documents available for it.">
+          <QuestionCircleOutlined style={{ color: '#666' }} />
+        </Tooltip>
+      </Space>
+    }
+    extra="The document list below changes to match the industry you pick."
+  >
     <Select
       value={selectedIndustry}
-      onChange={setSelectedIndustry}
+      onChange={handleIndustryChange}
       style={{ width: '100%' }}
       placeholder="Select industry"
       size="large"
       showSearch
       optionLabelProp="label"
+      optionFilterProp="searchText"
     >
-      {industries.map(industry => (
-        <Option 
-          key={industry.value} 
-          value={industry.value}
-          label={
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '16px' }}>{industry.icon}</span>
-              <span>{industry.label}</span>
-            </div>
-          }
-        >
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '12px', 
-            width: '100%',
-            padding: '4px 0'
-          }}>
-            <span style={{ fontSize: '20px', color: industry.color }}>{industry.icon}</span>
-            <div style={{ flex: 1 }}>
-              <Text strong style={{ color: industry.color }}>{industry.label}</Text>
-              <div style={{ fontSize: '11px', color: '#666' }}>
-                <Tag 
-                  color={
-                    industry.risk_level === 'High' ? 'red' : 
-                    industry.risk_level === 'Medium' ? 'orange' : 
-                    'green'
-                  } 
-                  size="small"
-                >
-                  {industry.risk_level} Risk
-                </Tag>
+      {industryOptions.map(industry => {
+        const docCount = getDocsForIndustry(industry.value).length;
+        return (
+          <Option
+            key={industry.value}
+            value={industry.value}
+            searchText={industry.label}
+            label={
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '16px' }}>{industry.icon}</span>
+                <span>{industry.label}</span>
+              </div>
+            }
+          >
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              width: '100%',
+              padding: '4px 0'
+            }}>
+              <span style={{ fontSize: '20px', color: industry.color }}>{industry.icon}</span>
+              <div style={{ flex: 1 }}>
+                <Text strong style={{ color: industry.color }}>{industry.label}</Text>
+                <div style={{ fontSize: '11px', color: '#666' }}>
+                  <Tag
+                    color={
+                      String(industry.risk_level).includes('HIGH') ? 'red' :
+                      String(industry.risk_level).includes('MEDIUM') ? 'orange' :
+                      'green'
+                    }
+                  >
+                    {industry.risk_level}
+                  </Tag>
+                  <Tag color="blue">{docCount} documents</Tag>
+                </div>
               </div>
             </div>
-          </div>
-        </Option>
-      ))}
+          </Option>
+        );
+      })}
     </Select>
   </Form.Item>
 );
 
   const renderDocumentTypeSelector = () => {
   const availableDocuments = getFilteredDocumentTypes();
+  const industryDocs = getDocsForIndustry(selectedIndustry);
+  const industryInfo = industryOptions.find(ind => ind.value === selectedIndustry);
+  const industryLabel = industryInfo?.label || prettyIndustry(selectedIndustry);
+  const specificCount = countSpecificDocs(selectedIndustry);
+  const universalCount = industryDocs.length - specificCount;
+  const selectedDoc = documentTypes.all.find(d => d.value === selectedDocumentType);
+
+  // How many documents each category has for the chosen industry
+  const categoryCounts = industryDocs.reduce((acc, doc) => {
+    acc[doc.category] = (acc[doc.category] || 0) + 1;
+    return acc;
+  }, {});
+
+  let helpText;
+  if (selectedIndustry === 'general') {
+    helpText = `Showing ${industryDocs.length} general documents that work in any industry. Pick an industry above to also see its specialised documents.`;
+  } else if (specificCount > 0) {
+    helpText = `Showing ${industryDocs.length} documents for ${industryLabel}: ${specificCount} specialised + ${universalCount} general.`;
+  } else {
+    helpText = `${industryLabel} has no specialised documents yet - showing the ${universalCount} general documents that apply to every industry.`;
+  }
+
+  const renderDocOption = (doc) => {
+          const permission = checkDocumentPermission(doc.value, userPlan, documentTypes);
+          const isDisabled = !permission.allowed;
+
+          return (
+            <Select.Option
+              key={doc.value}
+              value={doc.value}
+              disabled={isDisabled}
+              label={doc.label}
+              description={doc.description}
+            >
+              <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px', width: '100%', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '18px', color: doc.color }}>{doc.icon}</span>
+                  <Text strong style={{ color: isDisabled ? '#d9d9d9' : doc.color }}>
+                    {doc.label}
+                  </Text>
+                  {isDisabled && <LockOutlined style={{ color: '#faad14', fontSize: '14px' }} />}
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
+                  <Tag color={String(doc.estimated_time).includes('10') ? 'green' : String(doc.estimated_time).includes('15') ? 'cyan' : 'blue'}>
+                    {doc.estimated_time}
+                  </Tag>
+                  <Tag
+                    color={
+                      doc.category === 'permits' ? 'red' :
+                      doc.category === 'assessments' ? 'orange' :
+                      doc.category === 'plans' ? 'purple' :
+                      doc.category === 'inspections' ? 'green' : 'blue'
+                    }
+                  >
+                    {doc.category}
+                  </Tag>
+                  <Tag
+                    color={
+                      doc.plan_required === 'free' ? 'green' :
+                      doc.plan_required === 'basic' ? 'blue' :
+                      'gold'
+                    }
+                  >
+                    {doc.plan_required}
+                  </Tag>
+                  {!isUniversalDoc(doc) && <Tag color="geekblue">{industryLabel}</Tag>}
+                  {isDisabled && (
+                    <Tag color="orange">
+                      Requires {permission.requiredPlan}
+                    </Tag>
+                  )}
+                </div>
+
+                <div style={{ fontSize: '11px', color: '#666', width: '100%' }}>
+                  {doc.description}
+                </div>
+              </div>
+            </Select.Option>
+          );
+  };
+  const specificDocs = availableDocuments.filter(doc => !isUniversalDoc(doc));
+  const generalDocs = availableDocuments.filter(doc => isUniversalDoc(doc));
 
   return (
-    <Form.Item label={
-      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
-        <FileTextOutlined style={{ marginRight: '4px' }} />
-        <span>Document Type</span>
-        <Tag color="purple" style={{ marginLeft: '4px' }}>
-          {PLAN_PERMISSIONS[userPlan]?.name || userPlan}
-        </Tag>
-      </div>
-    } required>
+    <Form.Item
+      label={
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+          <FileTextOutlined style={{ marginRight: '4px' }} />
+          <span>Step 2 · Document Type</span>
+          <Tag color="purple" style={{ marginLeft: '4px' }}>
+            {PLAN_PERMISSIONS[userPlan]?.name || userPlan}
+          </Tag>
+        </div>
+      }
+      required
+      extra={helpText}
+    >
       <Select
-        value={selectedDocumentType}
+        value={selectedDocumentType || undefined}
         onChange={setSelectedDocumentType}
         style={{ width: '100%' }}
-        placeholder={`Choose document type (${availableDocuments.length} available)...`}
+        placeholder={`Choose a document type (${availableDocuments.length} available)...`}
         size="large"
         showSearch
-        // FIXED: Safely handle filterOption
+        allowClear
+        onClear={() => setSelectedDocumentType('')}
+        notFoundContent="No documents match. Try another category or search word."
         filterOption={(input, option) => {
-          // Get the label safely - option.label might be a React element or string
-          let label = option?.label;
-          let description = option?.description;
-          
-          // If label is a React element, extract text content
-          if (typeof label === 'object' && label !== null) {
-            // Try to get text from the element
-            if (label.props && label.props.children) {
-              if (typeof label.props.children === 'string') {
-                label = label.props.children;
-              } else if (Array.isArray(label.props.children)) {
-                label = label.props.children.map(c => {
-                  if (typeof c === 'string') return c;
-                  if (c?.props?.children) return c.props.children;
-                  return '';
-                }).join('');
-              } else {
-                label = '';
-              }
-            } else {
-              label = '';
-            }
-          }
-          
-          // Convert to string for comparison
-          const labelStr = String(label || '').toLowerCase();
-          const descStr = String(description || '').toLowerCase();
-          const inputStr = String(input || '').toLowerCase();
-          
-          return labelStr.includes(inputStr) || descStr.includes(inputStr);
+          const query = String(input || '').toLowerCase();
+          const label = String(option?.label || '').toLowerCase();
+          const description = String(option?.description || '').toLowerCase();
+          return label.includes(query) || description.includes(query);
         }}
         dropdownRender={menu => (
           <div>
@@ -5115,14 +3477,16 @@ const deleteChatSession = async (sessionId) => {
                   size="small"
                   value={selectedCategory}
                   onChange={setSelectedCategory}
-                  style={{ width: 140 }}
+                  style={{ width: 200 }}
                   dropdownMatchSelectWidth={false}
                 >
-                  {Object.entries(documentTypes.categories).map(([key, category]) => (
-                    <Option key={key} value={key}>
-                      {category.icon} {category.label}
-                    </Option>
-                  ))}
+                  {Object.entries(documentTypes.categories)
+                    .filter(([key]) => key === 'all' || categoryCounts[key])
+                    .map(([key, category]) => (
+                      <Option key={key} value={key}>
+                        {category.icon} {category.label}{key === 'all' ? ` (${industryDocs.length})` : ` (${categoryCounts[key]})`}
+                      </Option>
+                    ))}
                 </Select>
               </Space>
             </div>
@@ -5131,74 +3495,25 @@ const deleteChatSession = async (sessionId) => {
         )}
         optionLabelProp="label"
       >
-        {availableDocuments.map(doc => {
-          const permission = checkDocumentPermission(doc.value, userPlan, documentTypes);
-          const isDisabled = !permission.allowed;
-
-          return (
-            <Select.Option
-              key={doc.value}
-              value={doc.value}
-              disabled={isDisabled}
-              // FIXED: Use a simple string label for filtering
-              label={doc.label}
-              description={doc.description}
-            >
-              <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px', width: '100%', flexWrap: 'wrap' }}>
-                {/* Icon and Label Row */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '18px', color: doc.color }}>{doc.icon}</span>
-                  <Text strong style={{ color: isDisabled ? '#d9d9d9' : doc.color }}>
-                    {doc.label}
-                  </Text>
-                  {isDisabled && <LockOutlined style={{ color: '#faad14', fontSize: '14px' }} />}
-                </div>
-
-                {/* Tags Row */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
-                  <Tag 
-                    color={doc.estimated_time.includes('10') ? 'green' : doc.estimated_time.includes('15') ? 'cyan' : 'blue'} 
-                    size="small"
-                  >
-                    {doc.estimated_time}
-                  </Tag>
-                  <Tag 
-                    color={
-                      doc.category === 'permits' ? 'red' :
-                      doc.category === 'assessments' ? 'orange' :
-                      doc.category === 'plans' ? 'purple' :
-                      doc.category === 'inspections' ? 'green' : 'blue'
-                    } 
-                    size="small"
-                  >
-                    {doc.category}
-                  </Tag>
-                  <Tag 
-                    color={
-                      doc.plan_required === 'free' ? 'green' :
-                      doc.plan_required === 'basic' ? 'blue' :
-                      'gold'
-                    } 
-                    size="small"
-                  >
-                    {doc.plan_required}
-                  </Tag>
-                  {isDisabled && (
-                    <Tag color="orange" size="small">
-                      Requires {permission.requiredPlan}
-                    </Tag>
-                  )}
-                </div>
-
-                {/* Description Row */}
-                <div style={{ fontSize: '11px', color: '#666', width: '100%' }}>
-                  {doc.description}
-                </div>
-              </div>
-            </Select.Option>
-          );
-        })}
+        {specificDocs.length > 0 && (
+          <Select.OptGroup key="specific" label={`${industryLabel} documents (${specificDocs.length})`}>
+            {specificDocs.map(renderDocOption)}
+          </Select.OptGroup>
+        )}
+        {generalDocs.length > 0 && (
+          <Select.OptGroup key="general" label={`General HSE documents – every industry (${generalDocs.length})`}>
+            {generalDocs.map(renderDocOption)}
+          </Select.OptGroup>
+        )}
       </Select>
+
+      {selectedDoc && (
+        <div style={{ marginTop: 8, fontSize: 12, color: '#555' }}>
+          <Text strong>{selectedDoc.icon} {selectedDoc.label}</Text>
+          {' - '}{selectedDoc.description}
+          {' · '}<ClockCircleOutlined /> about {selectedDoc.estimated_time}
+        </div>
+      )}
     </Form.Item>
   );
 };
@@ -5249,16 +3564,29 @@ const deleteChatSession = async (sessionId) => {
     </Form.Item>
   );
 
+  const LOGO_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
+  const setAutoFill = (checked) => {
+    setCompanyInfo((ci) => ({ ...ci, useCompanyProfile: checked, useCompanyInfo: checked ? true : ci.useCompanyInfo }));
+    try { localStorage.setItem(`docgen:autofill:${user?.id}`, checked ? 'on' : 'off'); } catch (e) { /* ignore */ }
+  };
+  const profileLogoUrl = (() => {
+    const u = companyProfile?.logo_url;
+    if (!u) return null;
+    if (/^https?:\/\//.test(u)) return u;
+    const base = (process.env.REACT_APP_API_URL || '').replace(/\/api\/?$/, '');
+    return `${base}${u}`;
+  })();
+
   const renderCompanyInfoSection = () => (
     <Card
       title={
-        <Space>
+        <Space wrap>
           <TeamOutlined />
           <span>Company Information</span>
           <Switch
             size="small"
             checked={companyInfo.useCompanyInfo}
-            onChange={(checked) => setCompanyInfo({ ...companyInfo, useCompanyInfo: checked })}
+            onChange={(checked) => setCompanyInfo({ ...companyInfo, useCompanyInfo: checked, useCompanyProfile: checked ? companyInfo.useCompanyProfile : false })}
           />
           <Tag color={companyInfo.useCompanyInfo ? 'green' : 'default'}>
             {companyInfo.useCompanyInfo ? 'Enabled' : 'Disabled'}
@@ -5267,53 +3595,91 @@ const deleteChatSession = async (sessionId) => {
       }
       size="small"
     >
+      {companyProfile && (
+        <div className="docgen-autofill" style={{ marginBottom: 12, padding: '8px 10px', background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 8 }}>
+          <Checkbox checked={!!companyInfo.useCompanyProfile} onChange={(e) => setAutoFill(e.target.checked)}>
+            <Text strong>Auto-fill from my company profile</Text>
+          </Checkbox>
+          <div style={{ fontSize: 12, color: '#555', marginTop: 4 }}>
+            Adds your company name, contact details and uploaded logo to every generated document.
+          </div>
+          {companyInfo.useCompanyProfile && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 8 }}>
+              {profileLogoUrl
+                ? <img src={profileLogoUrl} alt="Company logo" style={{ maxHeight: 44, maxWidth: 120, objectFit: 'contain', background: '#fff', borderRadius: 4 }} />
+                : <Tag color="orange">No logo uploaded</Tag>}
+              <div style={{ minWidth: 0 }}>
+                <Text strong>{companyProfile.name}</Text>
+                <div style={{ fontSize: 12, color: '#666' }}>
+                  {[companyProfile.address, companyProfile.phone, companyProfile.email].filter(Boolean).join(' · ') || 'Add address and phone in Profile › Company'}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
       {companyInfo.useCompanyInfo ? (
         <Space direction="vertical" style={{ width: '100%' }} size="middle">
           <Row gutter={8}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Input
                 placeholder="Company Name"
-                value={companyInfo.companyName}
+                value={companyInfo.useCompanyProfile ? (companyProfile?.name || '') : companyInfo.companyName}
+                disabled={!!companyInfo.useCompanyProfile}
                 onChange={(e) => setCompanyInfo({ ...companyInfo, companyName: e.target.value })}
                 prefix={<TeamOutlined />}
+                maxLength={200}
               />
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Input
                 placeholder="Compliance Officer"
                 value={companyInfo.complianceOfficer}
                 onChange={(e) => setCompanyInfo({ ...companyInfo, complianceOfficer: e.target.value })}
                 prefix={<UserOutlined />}
+                maxLength={120}
               />
             </Col>
           </Row>
-          <Upload
-            beforeUpload={(file) => {
-              const reader = new FileReader();
-              reader.onload = (e) => setCompanyInfo({ ...companyInfo, logo: e.target.result });
-              reader.readAsDataURL(file);
-              return false;
-            }}
-            showUploadList={false}
-            accept="image/*"
-          >
-            <Button icon={<UploadOutlined />} block>
-              {companyInfo.logo ? 'Change Logo' : 'Upload Logo'}
-            </Button>
-          </Upload>
-          {companyInfo.logo && (
-            <div style={{ textAlign: 'center' }}>
-              <img src={companyInfo.logo} alt="Company Logo" style={{ maxHeight: 60 }} />
-              <Button
-                type="text"
-                size="small"
-                danger
-                icon={<DeleteOutlined />}
-                onClick={() => setCompanyInfo({ ...companyInfo, logo: null })}
+          {!companyInfo.useCompanyProfile && (
+            <>
+              <Upload
+                beforeUpload={(file) => {
+                  if (!LOGO_TYPES.includes(file.type)) {
+                    message.error('Logo must be a PNG, JPG, WEBP or GIF image');
+                    return Upload.LIST_IGNORE;
+                  }
+                  if (file.size > 1024 * 1024) {
+                    message.error('Logo must be smaller than 1 MB');
+                    return Upload.LIST_IGNORE;
+                  }
+                  const reader = new FileReader();
+                  reader.onload = (e) => setCompanyInfo((ci) => ({ ...ci, logo: e.target.result }));
+                  reader.readAsDataURL(file);
+                  return false;
+                }}
+                showUploadList={false}
+                accept="image/png,image/jpeg,image/webp,image/gif"
               >
-                Remove
-              </Button>
-            </div>
+                <Button icon={<UploadOutlined />} block>
+                  {companyInfo.logo ? 'Change Logo' : 'Upload Logo'}
+                </Button>
+              </Upload>
+              {companyInfo.logo && (
+                <div style={{ textAlign: 'center' }}>
+                  <img src={companyInfo.logo} alt="Company Logo" style={{ maxHeight: 60 }} />
+                  <Button
+                    type="text"
+                    size="small"
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() => setCompanyInfo({ ...companyInfo, logo: null })}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </Space>
       ) : (
@@ -5353,6 +3719,25 @@ const deleteChatSession = async (sessionId) => {
         }
       >
         <Space direction="vertical" style={{ width: '100%' }} size="middle">
+          {showQuickGuide && (
+            <Alert
+              type="info"
+              showIcon
+              closable
+              onClose={dismissQuickGuide}
+              message="Quick start - create a document in 4 steps"
+              description={
+                <ol style={{ margin: '4px 0 0', paddingLeft: 18 }}>
+                  <li><strong>Choose your industry</strong> - the document list is filtered to match it.</li>
+                  <li><strong>Choose a document type</strong> - use the search box or the category filter to find it quickly.</li>
+                  <li><strong>Pick a mode</strong> - "Filled Document" writes the content for you, "Empty Template" leaves blank fields.</li>
+                  <li><strong>Click Generate</strong> - then review, edit, sign and download the PDF in the editor.</li>
+                </ol>
+              }
+              style={{ marginBottom: 4 }}
+            />
+          )}
+
           {renderIndustrySelector()}
           {renderDocumentTypeSelector()}
           {renderGenerationModeSelector()}
@@ -5360,13 +3745,16 @@ const deleteChatSession = async (sessionId) => {
           <Form.Item label={
             <Space>
               <EditOutlined />
-              <span>Additional Context</span>
+              <span>Step 4 · Additional Context (optional)</span>
             </Space>
           }>
             <TextArea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Describe your safety requirements, specific hazards, scope of work, or additional context..."
+              placeholder={
+                CONTEXT_HINTS[documentTypes.all.find(d => d.value === selectedDocumentType)?.category] ||
+                CONTEXT_HINTS.default
+              }
               rows={4}
               showCount
               maxLength={1000}
@@ -5378,12 +3766,18 @@ const deleteChatSession = async (sessionId) => {
             icon={<FilePdfOutlined />}
             onClick={handleGenerateDocument}
             loading={loading || isGeneratingPdf}
+            disabled={!selectedDocumentType}
             size="large"
             block
             style={{ height: '50px', fontSize: '16px' }}
           >
             {loading ? 'Generating...' : `Generate Professional ${generationMode === 'document' ? 'Filled' : 'Template'} PDF`}
           </Button>
+          {!selectedDocumentType && (
+            <Text type="secondary" style={{ display: 'block', textAlign: 'center', marginTop: -8 }}>
+              Choose an industry and a document type above to enable this button.
+            </Text>
+          )}
 
           <Alert
             message="Professional PDF Generation"
@@ -5511,7 +3905,7 @@ const deleteChatSession = async (sessionId) => {
         </div>
         <div style={{ marginTop: '8px', fontSize: '12px', color: '#666' }}>
           <Tag icon={<GlobalOutlined />} color="blue">
-            {industries.find(ind => ind.value === selectedIndustry)?.label}
+            {industryOptions.find(ind => ind.value === selectedIndustry)?.label}
           </Tag>
           <Tag icon={<UserOutlined />} color="green">
             {aiPersonality}
@@ -5676,13 +4070,16 @@ const renderHistoryTab = () => (
         <Card>
           <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text strong>Your Saved Documents</Text>
-            <Button 
-              size="small" 
-              icon={<SyncOutlined />} 
-              onClick={loadSavedDocuments}
-            >
-              Refresh
-            </Button>
+            <Space wrap>
+              <AutoAddSwitch kind="ai" label="Always add new documents to Document Management" />
+              <Button 
+                size="small" 
+                icon={<SyncOutlined />} 
+                onClick={loadSavedDocuments}
+              >
+                Refresh
+              </Button>
+            </Space>
           </div>
           
           {documentHistory.length === 0 ? (
@@ -5712,7 +4109,7 @@ const renderHistoryTab = () => (
                       icon={<EyeOutlined />} 
                       onClick={() => {
                         setCurrentDocument(doc);
-                        setPdfContent(doc.htmlContent || doc.preview);
+                        setPdfContent(getDocHtml(doc) || doc.preview);
                         setPdfPreviewVisible(true);
                         setIsPDFEditorExpanded(false);
                       }}
@@ -5727,6 +4124,13 @@ const renderHistoryTab = () => (
                     >
                       Download
                     </Button>,
+                    <SendToDocumentControl
+                      key="to-dm"
+                      title={doc.title}
+                      html={getDocHtml(doc) || doc.preview || ''}
+                      documentType={String(doc.type || 'report').toLowerCase().replace(/[^a-z0-9]+/g, '_')}
+                      meta={{ industry: doc.industry, ai_document_id: doc.id }}
+                    />,
                     <Popconfirm
                       key="delete"
                       title="Delete this document?"
@@ -5789,705 +4193,6 @@ const renderHistoryTab = () => (
 );
 
 
-  const renderDocumentHistory = () => (
-    <Card
-      title={
-        <Space>
-          <HistoryOutlined />
-          <span>Generated Documents</span>
-          <Badge count={documentHistory.length} showZero />
-        </Space>
-      }
-      extra={
-        <Space>
-          <Input.Search
-            placeholder="Search documents..."
-            style={{ width: 200 }}
-            onSearch={setSearchQuery}
-            allowClear
-          />
-          <Select
-            value={historyFilterMode}
-            onChange={setHistoryFilterMode}
-            style={{ width: 150 }}
-            placeholder="Filter by type"
-          >
-            {historyFilterModeOptions.map(option => (
-              <Option key={option.value} value={option.value}>{option.label}</Option>
-            ))}
-          </Select>
-          <Button icon={<SortAscendingOutlined />}>Sort</Button>
-        </Space>
-      }
-    >
-      {documentHistory.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '40px' }}>
-          <FilePdfOutlined style={{ fontSize: '48px', color: '#d9d9d9', marginBottom: '16px' }} />
-          <Text type="secondary">No documents generated yet. Start by creating your first PDF document!</Text>
-        </div>
-      ) : (
-        <List
-          dataSource={documentHistory.filter(doc =>
-            (historyFilterMode === 'all' || doc.generationMode === historyFilterMode) &&
-            (searchQuery ? doc.title.toLowerCase().includes(searchQuery.toLowerCase()) : true)
-          )}
-          renderItem={doc => (
-            <List.Item
-              style={{ padding: '16px', borderBottom: '1px solid #f0f0f0' }}
-              actions={[
-                <Button key="view" size="small" icon={<EyeOutlined />} onClick={() => {
-                  setCurrentDocument(doc);
-                  setPdfContent(doc.htmlContent || doc.preview);
-                  setPdfPreviewVisible(true);
-                  setIsPDFEditorExpanded(false);
-                }} style={{ marginRight: 4 }}>
-                  View
-                </Button>,
-                <Button key="download" size="small" icon={<DownloadOutlined />} onClick={() => handleDownloadDocument(doc)} style={{ marginRight: 4 }}>
-                  Download
-                </Button>,
-                <Button key="copy" size="small" icon={<CopyOutlined />} onClick={() => handleCopyDocument(doc)} style={{ marginRight: 4 }}>
-                  Copy
-                </Button>,
-                <Popconfirm
-                  key="delete"
-                  title="Delete this document?"
-                  onConfirm={() => handleDeleteDocument(doc.id)}
-                  okText="Yes"
-                  cancelText="No"
-                >
-                  <Button size="small" icon={<DeleteOutlined />} danger />
-                </Popconfirm>
-              ]}
-            >
-              <div style={{ display: 'flex', alignItems: 'flex-start', width: '100%' }}>
-                <div style={{
-                  marginRight: '16px',
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '8px',
-                  backgroundColor: doc.color || '#fa8c16',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0
-                }}>
-                  <FilePdfOutlined style={{ fontSize: '20px', color: 'white' }} />
-                </div>
-
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '4px' }}>
-                    <Text strong style={{ fontSize: '15px' }}>{doc.title}</Text>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                      {doc.tags?.map(tag => (
-                        <Tag key={tag} size="small" color={
-                          tag === 'new' ? 'green' :
-                          tag === 'super-admin' ? 'purple' :
-                          tag === doc.generationMode ? (doc.generationMode === 'document' ? 'blue' : 'orange') : 'blue'
-                        } style={{ margin: 0 }}>
-                          {tag}
-                        </Tag>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '4px' }}>
-                    <Tag color="blue" style={{ margin: 0 }}>{doc.type || 'Document'}</Tag>
-                    <Tag color="green" style={{ margin: 0 }}>{doc.industry || 'General'}</Tag>
-                    <Tag color={doc.generationMode === 'document' ? 'blue' : 'orange'} style={{ margin: 0 }}>
-                      {doc.generationMode === 'document' ? 'Filled Document' : 'Empty Template'}
-                    </Tag>
-                  </div>
-
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '12px', color: '#666' }}>
-                    <span><ClockCircleOutlined style={{ marginRight: 4 }} />{doc.date}</span>
-                    <span><FileTextOutlined style={{ marginRight: 4 }} />{doc.size || 'Unknown'}</span>
-                  </div>
-                </div>
-              </div>
-            </List.Item>
-          )}
-        />
-      )}
-    </Card>
-  );
-
-  const renderExamFlowCard = () => (
-    <Card
-      title={
-        <Space>
-          <SafetyCertificateOutlined />
-          <span>International Safety Professional Certification (ISPC)</span>
-          <Tag color="orange" style={{ fontSize: '12px' }}>CSP HARD MODE</Tag>
-        </Space>
-      }
-      className="feature-card exam-generator-card"
-      style={{ marginTop: 16, border: '2px solid #fa8c16' }}
-    >
-      <Space direction="vertical" style={{ width: '100%' }} size="middle">
-        <Alert
-          message="CSP Hard Mode - Professional Credentialing"
-          description="Simulates Certified Safety Professional (CSP) level difficulty with professional credential eligibility. Passing scores qualify for Continuing Education Units (CEUs)."
-          type="warning"
-          showIcon
-          icon={<SafetyCertificateOutlined />}
-        />
-
-        <div style={{ padding: '16px', backgroundColor: '#fff7e6', borderRadius: '8px', border: '1px solid #ffd591' }}>
-          <div style={{ marginBottom: '12px' }}>
-            <Text strong style={{ color: '#fa8c16' }}>Credential Levels:</Text>
-            <div style={{ marginLeft: '20px', fontSize: '12px' }}>
-              <div>🏆 <strong>Platinum:</strong> 90%+ (4.0 CEUs, 24 months validity)</div>
-              <div>🥇 <strong>Gold:</strong> 85%+ (3.5 CEUs, 18 months validity)</div>
-              <div>🥈 <strong>Silver:</strong> 80%+ (3.0 CEUs, 12 months validity)</div>
-              <div>🥉 <strong>Bronze:</strong> 75%+ (2.5 CEUs, 12 months validity)</div>
-              <div>✅ <strong>Competent:</strong> 70%+ (2.0 CEUs, 12 months validity)</div>
-            </div>
-          </div>
-
-          <div style={{ marginBottom: '12px' }}>
-            <Text strong style={{ color: '#fa8c16' }}>Exam Details:</Text>
-            <div style={{ marginLeft: '20px', fontSize: '12px' }}>
-              <div>• 100 complex scenario-based questions</div>
-              <div>• 4-hour time limit (CSP-level pacing)</div>
-              <div>• Professional safety principles & regulatory knowledge</div>
-              <div>• Mathematical calculations for safety metrics</div>
-              <div>• ISO/IEC 17024:2012 compliant</div>
-            </div>
-          </div>
-        </div>
-
-        <Button
-          type="primary"
-          icon={<SafetyCertificateOutlined />}
-          onClick={handleStartExamFlow}
-          loading={loading}
-          block
-          style={{
-            height: '45px',
-            fontSize: '15px',
-            background: 'linear-gradient(135deg, #fa8c16, #f5222d)',
-            border: 'none',
-            fontWeight: 'bold'
-          }}
-        >
-          Start CSP Hard Mode Exam
-        </Button>
-
-        <div style={{ fontSize: '11px', color: '#666', textAlign: 'center' }}>
-          <SafetyCertificateOutlined /> Accredited by International Safety Standards Board (ISSB)
-          <br />
-          <Badge status="processing" text="Digital Verification with QR Code & Blockchain" />
-        </div>
-      </Space>
-    </Card>
-  );
-
-  // ============= EXAM MODAL RENDER FUNCTIONS =============
-  
-  // Exam Setup Modal
-  const renderExamSetupModal = () => (
-    <Modal
-      title={
-        <Space>
-          <SafetyCertificateOutlined />
-          <span>CSP Hard Mode - Exam Setup</span>
-          <Tag color="orange">INTERNATIONAL CERTIFICATION</Tag>
-        </Space>
-      }
-      open={examModalVisible && examFlowStep === 'setup'}
-      onCancel={() => {
-        setExamModalVisible(false);
-        setExamFlowStep('setup');
-        localStorage.removeItem('exam_session_id');
-      }}
-      width={650}
-      footer={[
-        <Button key="cancel" onClick={() => {
-          setExamModalVisible(false);
-          setExamFlowStep('setup');
-          localStorage.removeItem('exam_session_id');
-        }}>
-          Cancel
-        </Button>,
-        <Button
-          key="start"
-          type="primary"
-          onClick={handleProceedToExam}
-          disabled={!userName.trim()}
-          loading={loading}
-          style={{ background: 'linear-gradient(135deg, #fa8c16, #f5222d)', border: 'none' }}
-        >
-          Begin Professional Exam
-        </Button>
-      ]}
-    >
-      <div className="exam-setup-container">
-        <Alert
-          message="Professional Credential Eligibility"
-          description="This exam qualifies for International Safety Professional Credential (ISPC) with Continuing Education Units (CEUs)."
-          type="warning"
-          showIcon
-          icon={<SafetyCertificateOutlined />}
-          style={{ marginBottom: 24 }}
-        />
-
-        <Form layout="vertical">
-          <Form.Item label={
-            <Space>
-              <UserOutlined />
-              <span>Full Name (as it will appear on certificate)</span>
-            </Space>
-          } required>
-            <Input
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
-              placeholder="Enter your full professional name"
-              size="large"
-              prefix={<UserOutlined />}
-            />
-          </Form.Item>
-
-          <Form.Item label={
-            <Space>
-              <Checkbox />
-              <span>Email Address (for certificate delivery)</span>
-            </Space>
-          }>
-            <Input
-              value={userEmail}
-              onChange={(e) => setUserEmail(e.target.value)}
-              placeholder="professional@example.com"
-              size="large"
-              prefix={<Checkbox />}
-            />
-          </Form.Item>
-
-          <Divider />
-
-          <Card size="small" title="Exam Specifications" style={{ border: '1px solid #ffd591', backgroundColor: '#fff7e6' }}>
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <div><Text strong>Questions:</Text><Tag color="blue" style={{ marginLeft: 8 }}>100</Tag></div>
-                <div><Text strong>Time Limit:</Text><Tag color="red" style={{ marginLeft: 8 }}>4 hours</Tag></div>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
-                <div><Text strong>Passing Score:</Text><Tag color="green" style={{ marginLeft: 8 }}>70% (70/100)</Tag></div>
-                <div><Text strong>CEUs:</Text><Tag color="purple" style={{ marginLeft: 8 }}>2.0-4.0</Tag></div>
-              </div>
-            </Space>
-          </Card>
-        </Form>
-      </div>
-    </Modal>
-  );
-
-  // Exam Taking Modal
-  const renderExamTakingModal = () => {
-    if (!activeExam) return null;
-
-    const formatTime = (seconds) => {
-      const hours = Math.floor(seconds / 3600);
-      const mins = Math.floor((seconds % 3600) / 60);
-      const secs = seconds % 60;
-      return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    };
-
-    const currentQuestion = activeExam.questions?.[activePdfSection] || {};
-
-    return (
-      <Modal
-        title={
-          <Space>
-            <SafetyCertificateOutlined />
-            <span>CSP Hard Mode Exam</span>
-            <Tag color="orange">ADVANCED</Tag>
-            <Badge 
-              count={formatTime(examProgress.timeRemaining)} 
-              style={{ backgroundColor: examProgress.timeRemaining < 1800 ? '#ff4d4f' : '#1890ff' }} 
-            />
-            <Progress 
-              percent={Math.round((Object.keys(userAnswers).length / activeExam.questions?.length) * 100)} 
-              size="small" 
-              style={{ width: 100 }} 
-            />
-          </Space>
-        }
-        open={examModalVisible && examFlowStep === 'taking_exam'}
-        onCancel={() => {
-          Modal.confirm({
-            title: 'Exit CSP Hard Mode Exam?',
-            content: <div><p>Are you sure you want to exit? Your progress will be lost.</p><p style={{ fontSize: '12px', color: '#fa8c16' }}><WarningOutlined /> This exam is time-sensitive and cannot be resumed.</p></div>,
-            okText: 'Exit Exam',
-            cancelText: 'Continue Exam',
-            okButtonProps: { danger: true },
-            onOk: () => {
-              if (examTimer) clearInterval(examTimer);
-              setExamModalVisible(false);
-              setExamFlowStep('setup');
-              localStorage.removeItem('exam_session_id');
-            }
-          });
-        }}
-        width={900}
-        footer={[
-          <Button key="prev" onClick={() => setActivePdfSection(prev => Math.max(0, prev - 1))} disabled={activePdfSection === 0} icon={<LeftOutlined />}>
-            Previous
-          </Button>,
-          <div key="progress" style={{ flex: 1, textAlign: 'center' }}>
-            <Text strong>Question {activePdfSection + 1} of {activeExam.questions?.length}</Text>
-            <div style={{ fontSize: '12px', color: '#666' }}>Points: {currentQuestion.points || 2} • Domain: {currentQuestion.domain || 'Advanced Sciences'}</div>
-          </div>,
-          <Button key="next" onClick={() => setActivePdfSection(prev => Math.min(activeExam.questions?.length - 1, prev + 1))} disabled={activePdfSection === activeExam.questions?.length - 1} icon={<RightOutlined />}>
-            Next
-          </Button>,
-          <Divider type="vertical" key="divider" />,
-          <Button key="submit" type="primary" onClick={handleSubmitExam} disabled={Object.keys(userAnswers).length < activeExam.questions?.length} style={{ background: 'linear-gradient(135deg, #fa8c16, #f5222d)', border: 'none' }}>
-            Submit Exam ({Object.keys(userAnswers).length}/{activeExam.questions?.length})
-          </Button>
-        ]}
-      >
-        <div className="exam-taking-container">
-          <Alert
-            message="International Safety Professional Certification (ISPC)"
-            description={<Space split={<Divider type="vertical" />}>
-              <span><UserOutlined /> {userName}</span>
-              <span><ClockCircleOutlined /> Time Limit: 4 hours</span>
-              <span><BookOutlined /> 100 Questions</span>
-              <span><SafetyCertificateOutlined /> CEUs: 2.0-4.0</span>
-            </Space>}
-            type="warning"
-            showIcon
-            icon={<SafetyCertificateOutlined />}
-            style={{ marginBottom: 16 }}
-          />
-
-          <div className="exam-questions">
-            <Card style={{ marginBottom: 16 }}
-              title={
-                <Space>
-                  <Tag color="blue">Question {activePdfSection + 1}</Tag>
-                  <Tag color="cyan">{currentQuestion.domain || 'Advanced Sciences'}</Tag>
-                  <Tag color="green">{currentQuestion.points || 2} points</Tag>
-                  {currentQuestion.difficulty === 'advanced' && <Tag color="orange">CSP Level</Tag>}
-                </Space>
-              }
-              extra={<Tag color={userAnswers[activePdfSection] !== undefined ? 'green' : 'default'}>{userAnswers[activePdfSection] !== undefined ? 'Answered' : 'Not Answered'}</Tag>}
-            >
-              <div style={{ marginBottom: 20, fontSize: '16px', lineHeight: 1.6 }}>
-                <div style={{ backgroundColor: '#e6f7ff', padding: '12px', borderRadius: '6px', marginBottom: '12px', borderLeft: '4px solid #1890ff' }}>
-                  <Text strong style={{ color: '#1890ff' }}><SafetyCertificateOutlined /> Professional Scenario:</Text>
-                  <div style={{ marginTop: '8px' }}>
-                    {currentQuestion.question_text || currentQuestion.question || `CSP-Level question ${activePdfSection + 1}`}
-                  </div>
-                </div>
-
-                {currentQuestion.scenario_context && (
-                  <div style={{ backgroundColor: '#fff7e6', padding: '12px', borderRadius: '6px', marginBottom: '12px', borderLeft: '4px solid #fa8c16' }}>
-                    <Text strong style={{ color: '#fa8c16' }}><ExperimentOutlined /> Context:</Text>
-                    <div style={{ marginTop: '8px', fontSize: '14px' }}>{currentQuestion.scenario_context}</div>
-                  </div>
-                )}
-              </div>
-
-              <Radio.Group 
-                value={userAnswers[activePdfSection]} 
-                onChange={(e) => {
-                  handleAnswerSelect(activePdfSection, e.target.value);
-                }} 
-                style={{ width: '100%' }}
-              >
-                <Space direction="vertical" style={{ width: '100%' }}>
-                  {currentQuestion.options && currentQuestion.options.length > 0 ? (
-                    currentQuestion.options.map((option, optIndex) => {
-                      const optionLetter = String.fromCharCode(65 + optIndex);
-                      let optionText = '';
-                      
-                      if (typeof option === 'string') {
-                        optionText = option.replace(/^[A-D][\.\)\-]\s*/i, '').trim();
-                      } else if (option && typeof option === 'object') {
-                        optionText = option.text || option.value || option.label || `Option ${optionLetter}`;
-                        optionText = String(optionText).replace(/^[A-D][\.\)\-]\s*/i, '').trim();
-                      } else {
-                        optionText = `Option ${optionLetter}`;
-                      }
-                      
-                      const isSelected = userAnswers[activePdfSection] === optIndex;
-                      
-                      return (
-                        <Radio 
-                          key={optIndex} 
-                          value={optIndex}
-                          style={{ 
-                            display: 'block', 
-                            padding: '12px 16px', 
-                            margin: '8px 0', 
-                            border: isSelected ? '2px solid #1890ff' : '1px solid #e8e8e8', 
-                            borderRadius: '8px', 
-                            backgroundColor: isSelected ? '#e6f7ff' : '#fafafa',
-                            transition: 'all 0.2s ease',
-                            width: '100%'
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'flex-start', width: '100%' }}>
-                            <div style={{ 
-                              width: '24px', 
-                              height: '24px', 
-                              borderRadius: '50%', 
-                              backgroundColor: isSelected ? '#1890ff' : '#d9d9d9', 
-                              color: isSelected ? '#fff' : '#666', 
-                              display: 'flex', 
-                              alignItems: 'center', 
-                              justifyContent: 'center', 
-                              marginRight: '12px', 
-                              fontWeight: 'bold',
-                              flexShrink: 0,
-                              fontSize: '12px'
-                            }}>
-                              {optionLetter}
-                            </div>
-                            <div style={{ flex: 1, fontSize: '14px', lineHeight: 1.5, color: '#333' }}>
-                              {optionText}
-                            </div>
-                          </div>
-                        </Radio>
-                      );
-                    })
-                  ) : (
-                    <div style={{ padding: 20, textAlign: 'center', color: '#ff4d4f', backgroundColor: '#fff2f0', borderRadius: 8 }}>
-                      <WarningOutlined /> No options available. Please refresh and try again.
-                    </div>
-                  )}
-                </Space>
-              </Radio.Group>
-            </Card>
-          </div>
-        </div>
-      </Modal>
-    );
-  };
-
-  // Exam Results Modal
-  const renderExamResultsModal = () => {
-    if (!examScore) return null;
-
-    const credential = getCredentialLevel(examScore.score);
-
-    return (
-      <Modal
-        title={
-          <Space>
-            <SafetyCertificateOutlined />
-            <span>Professional Exam Results</span>
-            <Tag color={credential.color}>{credential.level.toUpperCase()}</Tag>
-          </Space>
-        }
-        open={examModalVisible && examFlowStep === 'results'}
-        onCancel={() => {
-          setExamModalVisible(false);
-          setExamFlowStep('setup');
-          localStorage.removeItem('exam_session_id');
-        }}
-        width={800}
-        footer={[
-          <Button key="close" onClick={() => {
-            setExamModalVisible(false);
-            setExamFlowStep('setup');
-            localStorage.removeItem('exam_session_id');
-          }}>Close</Button>,
-          <Button key="review" onClick={() => { setExamFlowStep('taking_exam'); setActivePdfSection(0); }} icon={<EyeOutlined />}>Review Answers</Button>,
-          examScore.passed ? (
-            <Button key="certificate" type="primary" onClick={handleGenerateCertificateFromExam} style={{ background: 'linear-gradient(135deg, #fa8c16, #f5222d)', border: 'none' }} icon={<SafetyCertificateOutlined />}>
-              Download Professional Certificate
-            </Button>
-          ) : (
-            <Button key="retry" type="primary" onClick={() => { setExamFlowStep('setup'); setUserAnswers({}); setExamScore(null); setActivePdfSection(0); }}>Retry Exam</Button>
-          )
-        ]}
-      >
-        <div className="exam-results-container">
-          <div style={{ textAlign: 'center', marginBottom: 24 }}>
-            <div style={{ fontSize: '60px', color: credential.color, marginBottom: 8 }}>{examScore.passed ? '🏆' : '📝'}</div>
-            <Title level={3} style={{ color: credential.color }}>{examScore.passed ? 'Professional Achievement!' : 'Exam Results'}</Title>
-            <div style={{ fontSize: '42px', fontWeight: 'bold', color: credential.color, margin: '16px 0' }}>{examScore.score}%</div>
-            <div style={{ backgroundColor: credential.color + '10', padding: '12px', borderRadius: '8px', display: 'inline-block', marginBottom: '16px' }}>
-              <Text strong style={{ color: credential.color }}>{credential.level} Level • {credential.ceus} CEUs Awarded</Text>
-            </div>
-            <div style={{ fontSize: '16px', color: '#666', marginBottom: '8px' }}>{examScore.correct} out of {examScore.total} correct answers</div>
-          </div>
-
-          <Divider />
-
-          <Title level={5}>Detailed Performance Analysis:</Title>
-
-          <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-            <Col span={8}>
-              <Card size="small">
-                <Statistic title="Correct Answers" value={examScore.correct} suffix={`/ ${examScore.total}`} valueStyle={{ color: '#52c41a' }} prefix={<CheckCircleOutlined />} />
-              </Card>
-            </Col>
-            <Col span={8}>
-              <Card size="small">
-                <Statistic title="Percentage" value={examScore.score} suffix="%" valueStyle={{ color: '#1890ff' }} prefix={<PercentageOutlined />} />
-              </Card>
-            </Col>
-            <Col span={8}>
-              <Card size="small">
-                <Statistic title="CEUs Earned" value={credential.ceus} suffix="CEUs" valueStyle={{ color: '#722ed1' }} prefix={<StarOutlined />} />
-              </Card>
-            </Col>
-          </Row>
-
-          <Tabs>
-            <TabPane tab="Question Review" key="review">
-              <List
-                dataSource={examScore.results}
-                renderItem={(result, index) => (
-                  <List.Item style={{ padding: '12px 0' }}>
-                    <List.Item.Meta
-                      avatar={<Avatar size="large" style={{ backgroundColor: result.isCorrect ? '#52c41a' : '#ff4d4f', color: 'white', fontSize: '16px', fontWeight: 'bold' }}>{result.isCorrect ? '✓' : '✗'}</Avatar>}
-                      title={`Question ${index + 1}`}
-                      description={
-                        <Space direction="vertical" size={2}>
-                          <div style={{ fontWeight: 'bold' }}>{result.question}</div>
-                          <div><Text strong>Your Answer: </Text><Text type={result.isCorrect ? "success" : "danger"}>{result.userAnswer}</Text></div>
-                          {!result.isCorrect && <div><Text strong>Correct Answer: </Text><Text type="success">{result.correctAnswer}</Text></div>}
-                          <div><Text strong>Explanation: </Text><Text type="secondary">{result.explanation}</Text></div>
-                        </Space>
-                      }
-                    />
-                  </List.Item>
-                )}
-                pagination={{ pageSize: 5 }}
-              />
-            </TabPane>
-          </Tabs>
-        </div>
-      </Modal>
-    );
-  };
-
-  // Exam Certificate Modal
-  const renderExamCertificateModal = () => {
-    if (!generatedCertificate) return null;
-
-    const credential = getCredentialLevel(generatedCertificate.exam_score || examScore?.score || 0);
-
-    return (
-      <Modal
-        title={
-          <Space>
-            <SafetyCertificateOutlined />
-            <span>Professional Certification</span>
-            <Tag color={credential.color} style={{ fontWeight: 'bold' }}>{credential.level.toUpperCase()}</Tag>
-            <Tag color="green">{generatedCertificate.exam_score || examScore?.score}%</Tag>
-          </Space>
-        }
-        open={examModalVisible && examFlowStep === 'certificate'}
-        onCancel={() => {
-          setExamModalVisible(false);
-          setExamFlowStep('setup');
-          localStorage.removeItem('exam_session_id');
-        }}
-        width={800}
-        footer={[
-          <Button key="close" onClick={() => { setExamModalVisible(false); setExamFlowStep('setup'); localStorage.removeItem('exam_session_id'); }}>Close</Button>,
-          <Button key="share" icon={<ShareAltOutlined />} onClick={() => message.info('Share feature coming soon!')}>Share Certificate</Button>,
-          <Button key="download-cert" type="primary" icon={<DownloadOutlined />} onClick={handleDownloadExamCertificate} style={{ background: 'linear-gradient(135deg, #fa8c16, #f5222d)', border: 'none' }}>Download Professional Certificate (PDF)</Button>,
-          <Button key="download-transcript" icon={<FilePdfOutlined />} onClick={handleDownloadTranscript} style={{ borderColor: credential.color, color: credential.color }}>Download Detailed Transcript</Button>
-        ]}
-      >
-        <div className="certificate-container">
-          <div style={{ border: `3px solid ${credential.color}`, padding: '40px', textAlign: 'center', background: '#ffffff', borderRadius: '12px', position: 'relative', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-45deg)', fontSize: '80px', color: `${credential.color}10`, fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 0 }}>{credential.level} CERTIFIED</div>
-
-            <div style={{ marginBottom: '30px', position: 'relative', zIndex: 1 }}>
-              <div style={{ fontSize: '11px', color: '#666', marginBottom: '4px', letterSpacing: '2px' }}>INTERNATIONAL SAFETY STANDARDS BOARD (ISSB)</div>
-              <div style={{ fontSize: '10px', color: '#999', marginBottom: '12px' }}>ISO/IEC 17024:2012 ACCREDITED</div>
-              <Title level={1} style={{ margin: 0, color: credential.color, fontSize: '28px', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                <SafetyCertificateOutlined /> PROFESSIONAL CERTIFICATE <SafetyCertificateOutlined />
-              </Title>
-              <div style={{ fontSize: '14px', color: '#666', marginTop: '8px', borderBottom: `1px solid ${credential.color}40`, paddingBottom: '12px' }}>International Safety Professional Credential (ISPC)</div>
-            </div>
-
-            <div style={{ margin: '30px 0', position: 'relative', zIndex: 1 }}>
-              <div style={{ fontSize: '14px', color: '#666', marginBottom: '20px', fontStyle: 'italic' }}>This official credential is awarded to</div>
-              <div style={{ fontSize: '28px', fontWeight: 'bold', color: credential.color, margin: '20px 0', padding: '15px', borderTop: `2px solid ${credential.color}`, borderBottom: `2px solid ${credential.color}`, display: 'inline-block', letterSpacing: '1px' }}>
-                {generatedCertificate.recipient_name || userName}
-              </div>
-              <div style={{ fontSize: '14px', color: '#666', margin: '20px 0' }}>for successful completion and demonstration of professional competency in</div>
-              <div style={{ fontSize: '22px', fontWeight: 'bold', color: '#722ed1', margin: '20px 0', padding: '15px', backgroundColor: `${credential.color}10`, borderRadius: '8px', display: 'inline-block', border: `1px dashed ${credential.color}` }}>
-                {generatedCertificate.course_title || selectedCourseForExam}
-              </div>
-              <div style={{ display: 'inline-block', margin: '20px auto', padding: '8px 24px', backgroundColor: credential.color, color: 'white', borderRadius: '20px', fontSize: '16px', fontWeight: 'bold', boxShadow: `0 4px 12px ${credential.color}40` }}>
-                {credential.level} LEVEL CERTIFICATION
-              </div>
-
-              <div style={{ marginTop: '30px', padding: '25px', backgroundColor: '#fafafa', borderRadius: '10px', border: `1px solid ${credential.color}30` }}>
-                <Row gutter={[24, 16]}>
-                  <Col span={8}>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>EXAM SCORE</div>
-                      <div style={{ fontSize: '24px', fontWeight: 'bold', color: credential.color }}>{generatedCertificate.exam_score || examScore?.score}%</div>
-                      <div style={{ fontSize: '11px', color: '#999' }}>{examScore?.correct || 0}/{examScore?.total || 0} Correct</div>
-                    </div>
-                  </Col>
-                  <Col span={8}>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>CEUs AWARDED</div>
-                      <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#722ed1' }}>{credential.ceus}</div>
-                      <div style={{ fontSize: '11px', color: '#999' }}>Continuing Education Units</div>
-                    </div>
-                  </Col>
-                  <Col span={8}>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>VALIDITY</div>
-                      <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#389e0d' }}>{credential.validity}</div>
-                      <div style={{ fontSize: '11px', color: '#999' }}>From {generatedCertificate.exam_date || new Date().toLocaleDateString()}</div>
-                    </div>
-                  </Col>
-                </Row>
-              </div>
-            </div>
-
-            <div style={{ marginTop: '40px', paddingTop: '20px', borderTop: `1px solid ${credential.color}30`, position: 'relative', zIndex: 1 }}>
-              <Row gutter={24}>
-                <Col span={8}>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ borderBottom: '1px solid #666', width: '150px', margin: '0 auto 10px', height: '50px' }}></div>
-                    <div style={{ fontSize: '11px', color: '#666' }}>Certification Director</div>
-                    <div style={{ fontSize: '10px', color: '#999' }}>International Safety Standards Board</div>
-                  </div>
-                </Col>
-                <Col span={8}>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ width: '80px', height: '80px', margin: '0 auto 10px', border: '1px solid #ddd', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fafafa' }}>
-                      <SafetyCertificateOutlined style={{ fontSize: '36px', color: credential.color }} />
-                    </div>
-                    <div style={{ fontSize: '10px', color: '#999' }}>Official Digital Seal</div>
-                  </div>
-                </Col>
-                <Col span={8}>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ borderBottom: '1px solid #666', width: '150px', margin: '0 auto 10px', height: '50px' }}></div>
-                    <div style={{ fontSize: '11px', color: '#666' }}>Chief Examinations Officer</div>
-                    <div style={{ fontSize: '10px', color: '#999' }}>Professional Credentialing Authority</div>
-                  </div>
-                </Col>
-              </Row>
-
-              <div style={{ marginTop: '20px', fontSize: '9px', color: '#999', textAlign: 'center', lineHeight: 1.4 }}>
-                This digital credential can be verified at {window.location.origin}/verify/{generatedCertificate.certificate_id}
-                <br />QR Code verification and blockchain timestamping ensure authenticity and integrity.
-                <br />{credential.ceus} Continuing Education Units (CEUs) awarded per ANSI/IACET standards.
-              </div>
-            </div>
-          </div>
-        </div>
-      </Modal>
-    );
-  };
-
   // ============= MAIN PDF EDITOR MODAL (UPDATED WITH NEW PDF EDITOR) =============
   const renderAdvancedPdfEditor = () => (
     <Modal
@@ -6506,7 +4211,6 @@ const renderHistoryTab = () => (
               type={isPDFEditorExpanded ? 'primary' : 'default'}
             />
           </Tooltip>
-          {pdfSignatures.length > 0 && <Badge count={pdfSignatures.length} title="Signatures" />}
         </Space>
       }
       open={pdfPreviewVisible}
@@ -6594,12 +4298,12 @@ const renderHistoryTab = () => (
             <Row gutter={8}>
               <Col span={12}>
                 <Select value={templateIndustry} onChange={setTemplateIndustry} style={{ width: '100%' }} placeholder="Industry">
-                  {industries.map(ind => (<Option key={ind.value} value={ind.value}>{ind.label}</Option>))}
+                  {industryOptions.map(ind => (<Option key={ind.value} value={ind.value}>{ind.label}</Option>))}
                 </Select>
               </Col>
               <Col span={12}>
                 <Select value={templateDocType} onChange={setTemplateDocType} style={{ width: '100%' }} placeholder="Document Type">
-                  {documentTypes.all.map(doc => (<Option key={doc.value} value={doc.value}>{doc.label}</Option>))}
+                  {availableDocs.map(doc => (<Option key={doc.value} value={doc.value}>{doc.label}</Option>))}
                 </Select>
               </Col>
             </Row>
@@ -6615,7 +4319,11 @@ const renderHistoryTab = () => (
   );
 
   // Template Library Modal
-  const renderTemplateLibraryModal = () => (
+  const renderTemplateLibraryModal = () => {
+    const libraryDocs = libraryShowAll ? availableDocs : getDocsForIndustry(selectedIndustry);
+    const industryLabel = industryOptions.find(ind => ind.value === selectedIndustry)?.label || prettyIndustry(selectedIndustry);
+
+    return (
     <Modal
       title="Template Library"
       open={isTemplateLibraryVisible}
@@ -6623,16 +4331,31 @@ const renderHistoryTab = () => (
       width={800}
       footer={null}
     >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+        <Text type="secondary">
+          {libraryShowAll
+            ? `Showing all ${libraryDocs.length} documents from every industry.`
+            : `Showing ${libraryDocs.length} documents available for ${industryLabel}.`}
+        </Text>
+        <Space>
+          <Text>Show all industries</Text>
+          <Switch size="small" checked={libraryShowAll} onChange={setLibraryShowAll} />
+        </Space>
+      </div>
       <Row gutter={[16, 16]}>
-        {documentTypes.all.map(template => {
+        {libraryDocs.map(template => {
           const permission = checkDocumentPermission(template.value, userPlan, documentTypes);
           return (
-            <Col span={8} key={template.value}>
+            <Col xs={24} sm={12} md={8} key={template.value}>
               <Card
                 size="small"
                 hoverable
                 onClick={() => {
                   if (permission.allowed) {
+                    // Picking an industry-specific document from "all industries" switches the industry to match
+                    if (!docMatchesIndustry(template, selectedIndustry) && template.industries?.length) {
+                      setSelectedIndustry(template.industries[0]);
+                    }
                     setSelectedDocumentType(template.value);
                     setIsTemplateLibraryVisible(false);
                     message.success(`Selected: ${template.label}`);
@@ -6664,12 +4387,13 @@ const renderHistoryTab = () => (
         })}
       </Row>
     </Modal>
-  );
+    );
+  };
 
   // Upgrade Modal
   const renderUpgradeModal = () => (
     <Modal
-      title={<Space><SafetyCertificateOutlined /><span>Upgrade Required</span><Tag color="orange">{upgradeInfo.requiredPlan?.toUpperCase()}</Tag></Space>}
+      title={<Space><LockOutlined /><span>Upgrade Required</span><Tag color="orange">{upgradeInfo.requiredPlan?.toUpperCase()}</Tag></Space>}
       open={showUpgradeModal}
       onCancel={() => setShowUpgradeModal(false)}
       width={500}
@@ -6684,51 +4408,57 @@ const renderHistoryTab = () => (
     </Modal>
   );
 
-  // Certificate Verification Modal
-  const renderVerificationModal = () => (
+  // Help / instructions modal
+  const renderHelpModal = () => (
     <Modal
-      title={<Space><VerifiedOutlined /><span>Certificate Verification</span><Tag color="green">Blockchain Secured</Tag></Space>}
-      open={verificationModalVisible}
-      onCancel={() => { setVerificationModalVisible(false); setVerificationCode(''); setVerificationResult(null); }}
-      width={600}
-      footer={null}
+      title={<Space><QuestionCircleOutlined /><span>How to use this page</span></Space>}
+      open={isHelpVisible}
+      onCancel={() => setIsHelpVisible(false)}
+      footer={[
+        <Button key="generator" onClick={() => { setIsHelpVisible(false); setActiveTab('generator'); }}>
+          Go to PDF Generator
+        </Button>,
+        <Button key="close" type="primary" onClick={() => setIsHelpVisible(false)}>
+          Got it
+        </Button>
+      ]}
+      width={680}
     >
-      <div style={{ padding: '20px 0' }}>
-        <Alert message="Verify Your Certificate" description="Enter the certificate ID found on your professional certificate." type="info" showIcon style={{ marginBottom: 24 }} />
-        <div style={{ marginBottom: 24 }}>
-          <Input size="large" placeholder="Enter Certificate ID" value={verificationCode} onChange={(e) => setVerificationCode(e.target.value)} prefix={<QrcodeOutlined />} onPressEnter={handleVerifyCertificate} />
-        </div>
-        <Button type="primary" icon={<VerifiedOutlined />} onClick={handleVerifyCertificate} loading={verifying} block size="large" style={{ marginBottom: 24 }}>Verify Certificate</Button>
-
-        {verificationResult && (
-          <Card style={{ borderColor: verificationResult.valid ? '#52c41a' : '#ff4d4f', backgroundColor: verificationResult.valid ? '#f6ffed' : '#fff2f0' }}>
-            {verificationResult.valid ? (
-              <>
-                <div style={{ textAlign: 'center', marginBottom: 16 }}>
-                  <CheckCircleOutlined style={{ fontSize: 48, color: '#52c41a' }} />
-                  <Title level={4} style={{ color: '#52c41a', marginTop: 8 }}>Valid Certificate</Title>
-                </div>
-                <div><Text strong>Recipient:</Text><div style={{ fontSize: 16, fontWeight: 'bold' }}>{verificationResult.recipient_name}</div></div>
-                <div><Text strong>Course:</Text><div>{verificationResult.course_title}</div></div>
-                <Row gutter={[16, 8]}>
-                  <Col span={12}><Text strong>Certificate ID:</Text><div style={{ fontFamily: 'monospace' }}>{verificationResult.certificate_id}</div></Col>
-                  <Col span={12}><Text strong>Score:</Text><div><Tag color="blue">{verificationResult.exam_score}%</Tag></div></Col>
-                  <Col span={12}><Text strong>Issue Date:</Text><div>{new Date(verificationResult.issue_date).toLocaleDateString()}</div></Col>
-                  <Col span={12}><Text strong>Expiry Date:</Text><div>{new Date(verificationResult.expiry_date).toLocaleDateString()}</div></Col>
-                </Row>
-                <Divider />
-                <div style={{ textAlign: 'center' }}><Button type="link" size="small" icon={<ShareAltOutlined />} onClick={handleCopyVerificationLink}>Copy Verification Link</Button></div>
-              </>
-            ) : (
-              <div style={{ textAlign: 'center' }}>
-                <CloseCircleOutlined style={{ fontSize: 48, color: '#ff4d4f' }} />
-                <Title level={4} style={{ color: '#ff4d4f', marginTop: 8 }}>Invalid Certificate</Title>
-                <Text type="secondary">{verificationResult.message}</Text>
-              </div>
-            )}
-          </Card>
-        )}
-      </div>
+      <Collapse defaultActiveKey={['1']} ghost>
+        <Panel header="Create a document" key="1">
+          <ol style={{ paddingLeft: 18, margin: 0 }}>
+            <li>Open the <strong>PDF Generator</strong> tab.</li>
+            <li>Choose your <strong>industry</strong>. The document list only shows documents available for that industry (plus the general ones that suit every industry).</li>
+            <li>Choose a <strong>document type</strong>. Type in the box to search, or use the category filter inside the list.</li>
+            <li>Pick <strong>Filled Document</strong> (content written for you) or <strong>Empty Template</strong> (blank fields to complete by hand).</li>
+            <li>Optionally add <strong>context</strong> - site, task, hazards - to make the result more specific.</li>
+            <li>Click <strong>Generate</strong>. The editor opens so you can edit, sign and download the PDF.</li>
+          </ol>
+        </Panel>
+        <Panel header="Why can't I see a document?" key="2">
+          <ul style={{ paddingLeft: 18, margin: 0 }}>
+            <li>Documents are filtered by industry. Change the industry to see its specialised documents.</li>
+            <li>With <em>General Industry</em> selected, only the general documents are shown.</li>
+            <li>A lock icon means the document needs a higher plan. Click it in the Template Library to see the upgrade options.</li>
+            <li>The category filter can hide documents - set it back to "All Documents".</li>
+          </ul>
+        </Panel>
+        <Panel header="Tips for better documents" key="3">
+          <ul style={{ paddingLeft: 18, margin: 0 }}>
+            <li>Turn on <strong>Company Information</strong> to add your name, logo and compliance officer to every document.</li>
+            <li>The more detail you add in Additional Context, the more specific the document will be.</li>
+            <li>If no ready-made template exists for a document, a basic editable template is created for you to complete.</li>
+            <li>Save a finished layout as a <strong>PDF Template</strong> to reuse it later.</li>
+          </ul>
+        </Panel>
+        <Panel header="Chat assistant" key="4">
+          <ul style={{ paddingLeft: 18, margin: 0 }}>
+            <li>Ask about hazards, regulations, permits or which document you need.</li>
+            <li>Use the Settings button in the chat to change the assistant's style and level of detail.</li>
+            <li>Chats and generated documents are kept in the <strong>History</strong> tab.</li>
+          </ul>
+        </Panel>
+      </Collapse>
     </Modal>
   );
 
@@ -6755,7 +4485,7 @@ const renderHistoryTab = () => (
         </div>
         <Divider />
         <div>
-          <h4><BackTop /> Response Detail</h4>
+          <h4><DashboardOutlined /> Response Detail</h4>
           <Slider min={1} max={4} value={responseDetail} onChange={setResponseDetail} marks={{ 1: 'Brief', 2: 'Standard', 3: 'Detailed', 4: 'Technical' }} />
         </div>
         <Divider />
@@ -6777,7 +4507,8 @@ const renderHistoryTab = () => (
     <Card>
       <Tabs activeKey={activeTab} onChange={setActiveTab} type="card" tabBarExtraContent={
         <Space>
-          <Badge status="processing" text={`AI: ${aiSystemStatus?.status || 'unknown'}`} />
+         
+          <Button icon={<QuestionCircleOutlined />} onClick={() => setIsHelpVisible(true)} size="small">Help</Button>
           <Button icon={<SyncOutlined />} onClick={checkAISystemStatus} size="small">Refresh</Button>
         </Space>
       }>
@@ -6787,46 +4518,7 @@ const renderHistoryTab = () => (
         <TabPane tab={<span><FilePdfOutlined /> PDF Generator</span>} key="generator">
           {renderDocumentGenerator()}
         </TabPane>
-        <TabPane tab={<span><ExperimentOutlined /> Exams & Verification</span>} key="tools">
-          <div>
-            <Row gutter={[16, 16]}>
-              <Col span={24}>
-                <Alert message="Professional Tools Suite" description="Access advanced AI-powered tools for safety training, certification, and verification." type="info" showIcon />
-              </Col>
-              <Col xs={24} lg={12}>
-                {renderExamFlowCard()}
-              </Col>
-              <Col xs={24} lg={12}>
-                <Card title={<Space><VerifiedOutlined /><span>Certificate Verification</span><Tag color="green">Blockchain Secured</Tag></Space>} style={{ border: '1px solid #52c41a' }}>
-                  <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                    <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                      <VerifiedOutlined style={{ fontSize: 48, color: '#52c41a' }} />
-                      <Title level={4} style={{ marginTop: 16 }}>Verify Certificate Authenticity</Title>
-                      <Text type="secondary">Verify any SafetyTrack Pro certificate using its unique ID.</Text>
-                    </div>
-                    <div><Input placeholder="Enter certificate ID" value={verificationCode} onChange={(e) => setVerificationCode(e.target.value)} prefix={<QrcodeOutlined />} size="large" /></div>
-                    <Row gutter={[8, 8]}>
-                      <Col span={12}><Button type="primary" icon={<VerifiedOutlined />} onClick={() => setVerificationModalVisible(true)} block>Verify Now</Button></Col>
-                      <Col span={12}><Button icon={<ScanOutlined />} onClick={handleScanQR} block>Scan QR Code</Button></Col>
-                    </Row>
-                    <Divider />
-                    <div style={{ fontSize: 12, color: '#666' }}>
-                      <Text strong>Features:</Text>
-                      <ul style={{ marginTop: 8 }}>
-                        <li>✓ Blockchain-verified certificates</li>
-                        <li>✓ Real-time authenticity check</li>
-                        <li>✓ Complete credential details</li>
-                        <li>✓ Expiration status tracking</li>
-                      </ul>
-                    </div>
-                  </Space>
-                </Card>
-              </Col>
-            </Row>
-          </div>
-        </TabPane>
-        
-        {/* ✅ ADD THIS NEW TAB HERE */}
+
         <TabPane 
           tab={
             <span>
@@ -6848,22 +4540,18 @@ const renderHistoryTab = () => (
 
 
       {/* Modals */}
-      {renderExamSetupModal()}
-      {renderExamTakingModal()}
-      {renderExamResultsModal()}
-      {renderExamCertificateModal()}
       {renderAdvancedPdfEditor()}
       {renderPdfTemplateManagerModal()}
       {renderTemplateLibraryModal()}
       {renderUpgradeModal()}
-      {renderVerificationModal()}
       {renderSettingsDrawer()}
+      {renderHelpModal()}
 
       {/* Floating Action Button */}
       <FloatButton.Group shape="square" style={{ right: 24 }}>
         <FloatButton icon={<FilePdfOutlined />} tooltip="PDF Generator" onClick={() => setActiveTab('generator')} />
-        <FloatButton icon={<QuestionCircleOutlined />} tooltip="Chat" onClick={() => setActiveTab('chat')} />
-        <FloatButton icon={<SafetyCertificateOutlined />} tooltip="Exam" onClick={handleStartExamFlow} />
+        <FloatButton icon={<MessageOutlined />} tooltip="Chat" onClick={() => setActiveTab('chat')} />
+        <FloatButton icon={<QuestionCircleOutlined />} tooltip="Help" onClick={() => setIsHelpVisible(true)} />
         <FloatButton.BackTop visibilityHeight={0} />
       </FloatButton.Group>
     </div>

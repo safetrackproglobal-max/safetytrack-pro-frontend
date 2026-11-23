@@ -348,36 +348,7 @@
 }
 
 /* Dark Mode */
-@media (prefers-color-scheme: dark) {
-  .intake-header {
-    background: #1f1f1f;
-  }
-  
-  .processing-item {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-  
-  .processing-item:hover {
-    border-color: #177ddc;
-  }
-  
-  .smart-intake .ant-upload-drag {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-  
-  .smart-intake .ant-upload-drag:hover {
-    background: #141414;
-  }
-  
-  .extracted-data-preview,
-  .ocr-text-display {
-    background: #262626;
-    color: #e6e6e6;
-    border-color: #303030;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* Animations */
 @keyframes processing-pulse {

@@ -17,7 +17,7 @@ const getContentType = (format) => {
 
 // Debug logger
 const debug = (tag, ...args) => {
-  console.log(`[📊 AnalyticsService:${tag}]`, ...args);
+  if (process.env.NODE_ENV === 'development') console.debug(`[AnalyticsService:${tag}]`, ...args);
 };
 
 // Analytics Service using the shared axios instance
@@ -340,6 +340,25 @@ export const analyticsService = {
     debug('getProjectById', id);
     return apiGet(`/powerbi/projects/${id}`);
   },
+
+  // ====================
+  // ANALYTICS PAGE (server-side summary, projects, records)
+  // ====================
+  /** Everything the analytics page needs in one request: {kpis, series, incidentStats, modules, project, notes} */
+  fetchSummary: async (filters = {}, config = {}) => {
+    const params = {};
+    Object.entries(filters).forEach(([k, v]) => { if (v !== undefined && v !== null && v !== '' && v !== 'all') params[k] = v; });
+    return apiGet('/powerbi/summary', { params, ...config });
+  },
+
+  addMilestone: async (projectId, data) => apiPost(`/powerbi/projects/${projectId}/milestones`, data),
+  updateMilestone: async (id, data) => apiPut(`/powerbi/milestones/${id}`, data),
+  deleteMilestone: async (id) => apiDelete(`/powerbi/milestones/${id}`),
+
+  /** kind: manpower | man-hours | lti | accidents | injuries | overdue-reports */
+  fetchRecords: async (kind, projectId) => apiGet(`/powerbi/records/${kind}`, { params: projectId && projectId !== 'all' ? { project_id: projectId } : {} }),
+  updateRecord: async (kind, id, data) => apiPut(`/powerbi/${kind}/${id}`, data),
+  deleteRecord: async (kind, id) => apiDelete(`/powerbi/${kind}/${id}`),
 
   // ====================
   // DASHBOARD MANAGEMENT

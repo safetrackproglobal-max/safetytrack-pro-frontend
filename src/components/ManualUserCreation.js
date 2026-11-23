@@ -25,6 +25,7 @@ import {
   SendOutlined
 } from '@ant-design/icons';
 import SafetyProService from '../services/safetyproservice';
+import { INDUSTRY_OPTIONS } from '../constants/accountFlow';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -76,22 +77,8 @@ const ManualUserCreation = ({ onUserCreated }) => {
     { value: 'GBP', label: 'British Pound (GBP)' }
   ];
 
-  const industryOptions = [
-    'Healthcare',
-    'Construction',
-    'Oil & Gas',
-    'Manufacturing',
-    'Technology',
-    'Education',
-    'Transportation',
-    'Hospitality',
-    'Retail',
-    'Financial Services',
-    'Mining',
-    'Aviation',
-    'Maritime',
-    'Chemical'
-  ];
+  // Same industries as signup and company setup (constants/accountFlow)
+  const industryOptions = INDUSTRY_OPTIONS;
 
   const timezoneOptions = [
     'UTC',
@@ -381,7 +368,7 @@ const ManualUserCreation = ({ onUserCreated }) => {
             <Form.Item name="industry" label="Industry">
               <Select size="large" showSearch>
                 {industryOptions.map(industry => (
-                  <Option key={industry} value={industry}>{industry}</Option>
+                  <Option key={industry.value} value={industry.value}>{industry.label}</Option>
                 ))}
               </Select>
             </Form.Item>

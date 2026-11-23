@@ -162,23 +162,7 @@
 }
 
 /* Dark Mode */
-@media (prefers-color-scheme: dark) {
-  .anomaly-header {
-    background: #1f1f1f;
-  }
-
-  .anomaly-stat-card {
-    background: #1f1f1f;
-  }
-
-  .anomaly-detection .critical-row > td {
-    background: #2c1618 !important;
-  }
-
-  .anomaly-detection .high-row > td {
-    background: #2b2000 !important;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* Animations */
 @keyframes pulse-critical {

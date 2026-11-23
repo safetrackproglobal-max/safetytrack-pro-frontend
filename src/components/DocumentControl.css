@@ -967,44 +967,4 @@
 /* ============================================================
    DARK MODE SUPPORT (Optional)
    ============================================================ */
-@media (prefers-color-scheme: dark) {
-  .document-control {
-    background: #1a1a2e;
-  }
-  
-  .document-control .document-header {
-    background: #1f1f3a;
-  }
-  
-  .document-control .document-filters,
-  .document-control .ant-table-wrapper {
-    background: #1f1f3a;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-  }
-  
-  .document-control .ant-table-thead > tr > th {
-    background: #2a2a4a;
-    color: #e8e8e8;
-  }
-  
-  .document-control .ant-table-tbody > tr > td {
-    color: #d9d9d9;
-  }
-  
-  .document-control .ant-table-tbody > tr:hover > td {
-    background: #2a2a4a;
-  }
-  
-  .document-control .document-header .header-left .title-wrapper h3 {
-    color: #e8e8e8;
-  }
-  
-  .document-control .document-header .auto-refresh-toggle {
-    background: #2a2a4a;
-    border-color: #3a3a5a;
-  }
-  
-  .document-control .document-header .auto-refresh-toggle .label {
-    color: #bfbfbf;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */

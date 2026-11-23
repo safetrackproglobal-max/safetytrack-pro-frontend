@@ -1,0 +1,352 @@
+/* ============================================================
+   MARKETING PAGES (solutions, industries, compliance, trust, demo)
+   All classes are prefixed mk- so nothing collides with HomePage.css.
+   ============================================================ */
+.mk-page {
+  --mk-primary: #2c3e50;
+  --mk-blue: #2563eb;
+  --mk-accent: #e74c3c;
+  --mk-text: #1a202c;
+  --mk-muted: #4a5568;
+  --mk-border: #e2e8f0;
+  --mk-bg-alt: #f8fafc;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  color: var(--mk-text);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+.mk-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+@media (min-width: 768px) {
+  .mk-container { padding: 0 24px; }
+}
+
+/* ---------- Hero ---------- */
+.mk-hero {
+  background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+  color: #fff;
+  padding: 56px 0 64px;
+}
+
+.mk-hero h1 {
+  color: #fff;
+  font-size: 32px;
+  line-height: 1.2;
+  font-weight: 800;
+  margin: 8px 0 16px;
+  max-width: 820px;
+}
+
+@media (min-width: 768px) {
+  .mk-hero { padding: 72px 0 80px; }
+  .mk-hero h1 { font-size: 44px; }
+}
+
+.mk-eyebrow {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  padding: 4px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.mk-lead {
+  font-size: 17px;
+  max-width: 720px;
+  color: rgba(255, 255, 255, 0.92);
+  margin: 0 0 28px;
+}
+
+/* ---------- Breadcrumbs ---------- */
+.mk-breadcrumbs ol {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  margin: 0 0 20px;
+  font-size: 13px;
+}
+
+.mk-breadcrumbs li + li::before {
+  content: '/';
+  margin-right: 8px;
+  opacity: 0.6;
+}
+
+.mk-breadcrumbs a { color: rgba(255, 255, 255, 0.85); text-decoration: none; }
+.mk-breadcrumbs a:hover { text-decoration: underline; }
+.mk-breadcrumbs [aria-current='page'] { opacity: 0.75; }
+
+/* ---------- Buttons ---------- */
+.mk-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.mk-actions-center { justify-content: center; }
+
+.mk-btn {
+  display: inline-block;
+  padding: 12px 28px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mk-btn:hover { transform: translateY(-2px); }
+
+.mk-btn-primary {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+}
+
+.mk-btn-ghost {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ---------- Sections ---------- */
+.mk-section { padding: 56px 0; background: #fff; }
+.mk-section-alt { background: var(--mk-bg-alt); }
+
+.mk-h2 {
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0 0 20px;
+  color: var(--mk-text);
+}
+
+@media (min-width: 768px) {
+  .mk-section { padding: 72px 0; }
+  .mk-h2 { font-size: 32px; }
+}
+
+.mk-intro, .mk-prose { max-width: 760px; color: var(--mk-muted); font-size: 16px; }
+
+.mk-note {
+  max-width: 760px;
+  margin: 20px 0 0;
+  font-size: 13px;
+  color: #718096;
+}
+
+.mk-note a, .mk-prose a { color: var(--mk-blue); }
+
+/* ---------- Cards ---------- */
+.mk-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) { .mk-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 960px) { .mk-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.mk-card {
+  background: #fff;
+  border: 1px solid var(--mk-border);
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.mk-card h3 { font-size: 18px; margin: 0 0 8px; color: var(--mk-text); }
+.mk-card p { margin: 0; color: var(--mk-muted); font-size: 14px; }
+.mk-card p:empty { display: none; }
+
+.mk-card-link-wrap {
+  display: block;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mk-card-link-wrap:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.12);
+}
+
+.mk-card-link { display: inline-block; margin-top: 12px; font-size: 14px; font-weight: 600; color: var(--mk-blue); }
+
+/* ---------- Checklist ---------- */
+.mk-checklist {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) { .mk-checklist { grid-template-columns: repeat(2, 1fr); } }
+
+.mk-checklist li {
+  position: relative;
+  padding: 14px 16px 14px 44px;
+  background: #fff;
+  border: 1px solid var(--mk-border);
+  border-radius: 12px;
+  font-size: 15px;
+  color: var(--mk-text);
+}
+
+.mk-checklist li::before {
+  content: '\2713';
+  position: absolute;
+  left: 16px;
+  top: 14px;
+  color: #059669;
+  font-weight: 800;
+}
+
+/* ---------- Steps ---------- */
+.mk-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.mk-steps li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #fff;
+  border: 1px solid var(--mk-border);
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.mk-steps span:not(.mk-step-num) { font-size: 13px; color: var(--mk-muted); }
+
+.mk-step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #eff6ff;
+  color: var(--mk-blue);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+/* ---------- Chips ---------- */
+.mk-chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+
+.mk-chip {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: var(--mk-blue);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid #dbeafe;
+}
+
+.mk-chip:hover { background: #dbeafe; }
+
+/* ---------- FAQ ---------- */
+.mk-faq { max-width: 820px; display: flex; flex-direction: column; gap: 12px; }
+
+.mk-faq-item {
+  background: #fff;
+  border: 1px solid var(--mk-border);
+  border-radius: 12px;
+  padding: 0 20px;
+}
+
+.mk-faq-item summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 18px 0;
+  font-weight: 600;
+  font-size: 16px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.mk-faq-item summary::-webkit-details-marker { display: none; }
+.mk-faq-item summary::after { content: '+'; font-size: 22px; line-height: 1; color: var(--mk-blue); }
+.mk-faq-item[open] summary::after { content: '\2212'; }
+.mk-faq-item p { margin: 0; padding: 0 0 18px; color: var(--mk-muted); }
+
+/* ---------- CTA band ---------- */
+.mk-cta {
+  background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+  color: #fff;
+  text-align: center;
+  padding: 56px 0;
+}
+
+.mk-cta h2 { color: #fff; font-size: 28px; margin: 0 0 24px; }
+
+/* ---------- Table ---------- */
+.mk-table-wrap { overflow-x: auto; }
+.mk-table { width: 100%; border-collapse: collapse; background: #fff; }
+.mk-table th, .mk-table td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--mk-border); font-size: 14px; }
+.mk-table th { background: var(--mk-bg-alt); }
+
+/* ---------- Demo form ---------- */
+.mk-two-col { display: grid; gap: 32px; grid-template-columns: 1fr; }
+@media (min-width: 900px) { .mk-two-col { grid-template-columns: 2fr 1fr; } }
+
+.mk-form { display: flex; flex-direction: column; gap: 16px; }
+.mk-form label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600; }
+
+.mk-form input,
+.mk-form select,
+.mk-form textarea {
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font: inherit;
+  background: #fff;
+  color: var(--mk-text);
+}
+
+.mk-form input:focus,
+.mk-form select:focus,
+.mk-form textarea:focus,
+.mk-btn:focus-visible,
+.mk-chip:focus-visible,
+.mk-card-link-wrap:focus-visible,
+.mk-faq-item summary:focus-visible {
+  outline: 3px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+.mk-form .mk-btn { align-self: flex-start; }
+.mk-aside h2 { font-size: 20px; margin: 0 0 12px; }
+.mk-aside p { margin: 0 0 10px; }
+.mk-aside a { color: var(--mk-blue); }
+
+/* ---------- Dark mode ---------- */
+/* dark-mode block removed: app uses one light theme (see App.css) */
+
+@media (prefers-reduced-motion: reduce) {
+  .mk-btn, .mk-card-link-wrap { transition: none; }
+  .mk-btn:hover, .mk-card-link-wrap:hover { transform: none; }
+}
+
+/* ---------- RTL ---------- */
+[dir='rtl'] .mk-page .mk-checklist li { padding: 14px 44px 14px 16px; }
+[dir='rtl'] .mk-page .mk-checklist li::before { left: auto; right: 16px; }
+[dir='rtl'] .mk-page .mk-breadcrumbs li + li::before { margin-right: 0; margin-left: 8px; }

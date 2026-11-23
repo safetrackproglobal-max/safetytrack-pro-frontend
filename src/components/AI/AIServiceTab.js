@@ -68,6 +68,10 @@ import {
   FileZipOutlined
 } from '@ant-design/icons';
 import environmentalAIService from '../../services/environmentalAIService';
+import EnvironmentalDocumentGenerator from '../environmental/EnvironmentalDocumentGenerator';
+
+// The backend's own error message (e.g. "At least 3 days of readings are needed")
+const apiError = (e, fallback) => e?.response?.data?.error || e?.response?.data?.message || e?.message || fallback;
 import './aia.css';
 
 const { TextArea } = Input;
@@ -85,13 +89,11 @@ const AIServiceTab = () => {
   const [advancedForm] = Form.useForm();
   const [esgForm] = Form.useForm();
   const [optimizationForm] = Form.useForm();
-  const [documentForm] = Form.useForm();
   
   // State management
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('analysis');
   const [generatedDocuments, setGeneratedDocuments] = useState([]);
-  const [documentTemplates, setDocumentTemplates] = useState(null);
   
   // Analysis results
   const [analysis, setAnalysis] = useState(null);
@@ -114,36 +116,6 @@ const AIServiceTab = () => {
   const [cameraStream, setCameraStream] = useState(null);
 
 
-  const downloadLinkRef = useRef(null);
-
-  const onDownloadDocument = async (document) => {
-    try {
-      console.log('🔄 Starting download for:', document);
-      
-      if (!document.download_url) {
-        message.error('No download URL available');
-        return;
-      }
-
-      // Convert to absolute URL if it's relative
-      let downloadUrl = document.download_url;
-      if (downloadUrl.startsWith('/')) {
-        downloadUrl = `http://127.0.0.1:5000${downloadUrl}`;
-      }
-
-      // Method 1: Simple window.open (usually works best)
-      window.open(downloadUrl, '_blank');
-      
-      message.success(`Downloading ${document.name}`);
-      
-    } catch (error) {
-      console.error('❌ Download failed:', error);
-      
-      // Fallback: Show URL to user
-      message.info(`Please visit: ${downloadUrl}`);
-    }
-  };
-  
   // Model status
   const [modelStatus, setModelStatus] = useState({
     air_quality: { status: 'loaded', accuracy: 94.2 },
@@ -153,299 +125,40 @@ const AIServiceTab = () => {
     camera_monitoring: { status: 'loaded', accuracy: 92.3 }
   });
 
-  // ===== DOCUMENT GENERATION FUNCTIONS =====
-
-  const onGenerateComplianceReport = async (values) => {
-    setLoading(true);
-    try {
-      console.log('🔄 Generating compliance report with values:', values);
-      
-      const reportData = {
-        company_name: values.company_name || 'Environmental Solutions Inc.',
-        report_period: values.report_period || 'Q1 2024',
-        compliance_status: values.compliance_status || 'COMPLIANT',
-        environmental_performance: {
-          carbon_emissions: values.carbon_emissions || 850,
-          water_usage: values.water_usage || 3200,
-          waste_generated: values.waste_generated || 1500,
-          energy_consumption: values.energy_consumption || 8500
-        },
-        format: values.format || 'pdf'
-      };
-
-      const response = await environmentalAIService.generateComplianceReport(reportData);
-      
-      if (response.success) {
-        console.log('✅ Compliance report generated:', response);
-        setGeneratedDocuments(prev => [...prev, {
-          id: Date.now(),
-          type: 'compliance',
-          name: response.document.filename,
-          format: response.document.format,
-          download_url: response.document.download_url,
-          generated_at: new Date().toISOString(),
-          standards: response.document.standards
-        }]);
-        message.success(`ISO 14001 Compliance Report generated successfully!`);
-      } else {
-        throw new Error(response.error || 'Report generation failed');
-      }
-    } catch (error) {
-      console.error('❌ Compliance report generation failed:', error);
-      message.error('Failed to generate compliance report');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const onGenerateSafetyReport = async (values) => {
-    setLoading(true);
-    try {
-      console.log('🔄 Generating safety report with values:', values);
-      
-      const safetyData = {
-        facility: values.facility || 'Main Manufacturing Plant',
-        inspection_date: values.inspection_date || new Date().toISOString(),
-        inspector: values.inspector || 'Safety Officer',
-        format: values.format || 'pdf',
-        safety_metrics: {
-          incidents: values.incidents || 2,
-          near_misses: values.near_misses || 5,
-          safety_training: values.safety_training || 95,
-          ppe_compliance: values.ppe_compliance || 98
-        }
-      };
-
-      const response = await environmentalAIService.generateSafetyReport(safetyData);
-      
-      if (response.success) {
-        console.log('✅ Safety report generated:', response);
-        setGeneratedDocuments(prev => [...prev, {
-          id: Date.now(),
-          type: 'safety',
-          name: response.document.filename,
-          format: response.document.format,
-          download_url: response.document.download_url,
-          generated_at: new Date().toISOString(),
-          regulations: response.document.regulations
-        }]);
-        message.success(`OSHA Safety Report generated successfully!`);
-      } else {
-        throw new Error(response.error || 'Safety report generation failed');
-      }
-    } catch (error) {
-      console.error('❌ Safety report generation failed:', error);
-      message.error('Failed to generate safety report');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const onGenerateImpactAssessment = async (values) => {
-    setLoading(true);
-    try {
-      console.log('🔄 Generating impact assessment with values:', values);
-      
-      const assessmentData = {
-        project_name: values.project_name || 'New Manufacturing Facility',
-        location: values.location || 'Industrial Zone A',
-        assessment_date: values.assessment_date || new Date().toISOString(),
-        format: values.format || 'pdf',
-        impact_areas: {
-          air_quality: values.air_quality_impact || 'LOW',
-          water_resources: values.water_impact || 'MEDIUM',
-          biodiversity: values.biodiversity_impact || 'LOW',
-          noise_pollution: values.noise_impact || 'MEDIUM'
-        }
-      };
-
-      const response = await environmentalAIService.generateImpactAssessment(assessmentData);
-      
-      if (response.success) {
-        console.log('✅ Impact assessment generated:', response);
-        setGeneratedDocuments(prev => [...prev, {
-          id: Date.now(),
-          type: 'impact',
-          name: response.document.filename,
-          format: response.document.format,
-          download_url: response.document.download_url,
-          generated_at: new Date().toISOString(),
-          framework: response.document.framework
-        }]);
-        message.success(`Environmental Impact Assessment generated successfully!`);
-      } else {
-        throw new Error(response.error || 'Impact assessment generation failed');
-      }
-    } catch (error) {
-      console.error('❌ Impact assessment generation failed:', error);
-      message.error('Failed to generate impact assessment');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const onGenerateAllReports = async (values) => {
-    setLoading(true);
-    try {
-      console.log('🔄 Generating all compliance reports');
-      
-      const allReportsData = {
-        company_name: values.company_name || 'Environmental Solutions Inc.',
-        report_period: values.report_period || 'Q1 2024',
-        formats: values.formats || ['pdf', 'excel']
-      };
-
-      const response = await environmentalAIService.generateAllReports(allReportsData);
-      
-      if (response.success) {
-        console.log('✅ All reports generated:', response);
-        
-        // Add all generated documents to the list
-        const newDocuments = [];
-        Object.entries(response.reports).forEach(([format, reports]) => {
-          Object.entries(reports).forEach(([type, doc]) => {
-            newDocuments.push({
-              id: Date.now() + Math.random(),
-              type: type,
-              name: doc.filename,
-              format: format.toUpperCase(),
-              download_url: doc.download_url,
-              generated_at: new Date().toISOString()
-            });
-          });
-        });
-        
-        setGeneratedDocuments(prev => [...prev, ...newDocuments]);
-        message.success(`All compliance reports generated successfully!`);
-      } else {
-        throw new Error(response.error || 'Report generation failed');
-      }
-    } catch (error) {
-      console.error('❌ All reports generation failed:', error);
-      message.error('Failed to generate reports');
-    } finally {
-      setLoading(false);
-    }
-  };
 
 
 
-  
-  
-  const onGetDocumentTemplates = async () => {
-    try {
-      const response = await environmentalAIService.getDocumentTemplates();
-      if (response.success) {
-        setDocumentTemplates(response.templates);
-        message.success('Document templates loaded');
-      }
-    } catch (error) {
-      console.error('Failed to load templates:', error);
-    }
-  };
-
-  const getFormatIcon = (format) => {
-    switch (format?.toLowerCase()) {
-      case 'pdf': return <FilePdfOutlined style={{ color: '#ff4d4f' }} />;
-      case 'excel': return <FileExcelOutlined style={{ color: '#52c41a' }} />;
-      case 'word': return <FileWordOutlined style={{ color: '#1890ff' }} />;
-      default: return <FileTextOutlined />;
-    }
-  };
-
-  const getDocumentTypeColor = (type) => {
-    switch (type) {
-      case 'compliance': return 'blue';
-      case 'safety': return 'red';
-      case 'impact': return 'green';
-      case 'iso_compliance': return 'purple';
-      case 'osha_safety': return 'orange';
-      case 'environmental_impact': return 'cyan';
-      default: return 'default';
-    }
-  };
 
   // ===== ENVIRONMENTAL ANALYSIS FUNCTIONS =====
 
   const onAnalyzeEnvironmentalData = async (values) => {
     setLoading(true);
     try {
-      console.log('🔄 Starting environmental analysis with values:', values);
-      
-      // Prepare the analysis data
-      const analysisData = {
-        location: values.location || 'general',
-        timeframe: values.timeframe || '30d',
-        parameters: values.parameters || ['air', 'water', 'noise'],
-        analysis_depth: values.analysis_depth || 'comprehensive'
-      };
-      
-      console.log('📊 Sending analysis data:', analysisData);
-      
-      const response = await environmentalAIService.analyzeEnvironmentalData(analysisData);
-      
-      console.log('✅ Environmental analysis response:', response);
-      
-      // Handle the response structure - your backend returns { success: true, analysis: {...} }
-      if (response && response.success) {
-        // Extract the analysis data
-        const analysisResult = response.analysis || response;
-        
-        setAnalysis({
-          overall_rating: analysisResult.summary ? 'COMPLETED' : 'GOOD',
-          air_quality_index: 42,
-          water_quality_score: 85,
-          compliance_score: 92,
-          confidence_score: analysisResult.confidence_score || 0.92,
-          anomalies: analysisResult.findings || ['No significant anomalies detected'],
-          recommendations: analysisResult.recommendations || ['Continue regular monitoring'],
-          risk_level: analysisResult.risk_level || 'LOW',
-          trend: analysisResult.trend || 'stable'
-        });
-        
-        message.success('Environmental analysis completed!');
-      } else {
-        // Fallback with response data or default
-        setAnalysis({
-          overall_rating: 'PARTIAL',
-          air_quality_index: 50,
-          water_quality_score: 75,
-          compliance_score: 80,
-          confidence_score: 0.7,
-          anomalies: response?.analysis?.findings || ['Analysis completed but with partial data'],
-          recommendations: response?.analysis?.recommendations || ['Verify sensor connections', 'Schedule full analysis'],
-          risk_level: 'MEDIUM',
-          trend: 'unknown'
-        });
-        message.warning('Analysis completed with limited data');
-      }
-      
-    } catch (error) {
-      console.error('❌ Environmental analysis failed:', error);
-      
-      // Fallback demo data
+      const opts = { timeframe: values.timeframe || '30d', assessment_scope: values.analysis_depth || 'comprehensive' };
+      const [risk, adv] = await Promise.all([
+        environmentalAIService.assessEnvironmentalRisk(opts),
+        environmentalAIService.advancedEnvironmentalAnalysis({ time_range: opts.timeframe }),
+      ]);
+      const r = risk?.risk_assessment || risk || {};
+      const a = adv?.advanced_analysis || adv || {};
+      const prob = a.compliance_prediction?.compliance_probability;
       setAnalysis({
-        overall_rating: 'DEMO',
-        air_quality_index: Math.floor(Math.random() * 50) + 30,
-        water_quality_score: Math.floor(Math.random() * 30) + 70,
-        compliance_score: Math.floor(Math.random() * 20) + 80,
-        risk_score: Math.floor(Math.random() * 30) + 20,
-        confidence_score: 0.85,
-        anomalies: [
-          'Slightly elevated PM2.5 levels detected',
-          'Water pH trending toward alkaline',
-          'Temperature variance in warehouse zone'
-        ],
-        recommendations: [
-          'Increase air filtration frequency',
-          'Adjust chemical dosing in water systems',
-          'Verify temperature sensor calibration',
-          'Schedule preventive maintenance'
-        ],
-        risk_level: 'LOW',
-        trend: 'STABLE'
+        overall_rating: { LOW: 'GOOD', MEDIUM: 'FAIR', HIGH: 'POOR', CRITICAL: 'CRITICAL' }[r.overall_risk] || 'NO DATA',
+        air_quality_index: a.current?.avg_aqi ?? null,
+        water_quality_score: a.impact_assessment?.water_impact_score ?? null,
+        compliance_score: prob != null ? Math.round(prob * 100) : null,
+        confidence_score: r.confidence_level ?? null,
+        anomalies: [...(r.high_risk_factors || []), ...(r.medium_risk_factors || [])],
+        recommendations: [...new Set([...(r.mitigation_strategies || []), ...(a.impact_assessment?.improvement_recommendations || [])])],
+        risk_level: r.overall_risk || 'UNKNOWN',
+        trend: r.predicted_risk_trend || 'unknown',
+        data_points: r.data_points,
       });
-      message.warning('Using demo data - backend connection issue');
+      message.success('Analysis completed from your monitoring records');
+    } catch (error) {
+      console.error('Environmental analysis failed:', error);
+      setAnalysis(null);
+      message.error(apiError(error, 'Environmental analysis failed'), 6);
     } finally {
       setLoading(false);
     }
@@ -460,22 +173,9 @@ const AIServiceTab = () => {
       setPredictions(response.predictions || response);
       message.success('Air quality predictions generated!');
     } catch (error) {
-      console.error('❌ Air quality prediction failed:', error);
-      // Fallback demo data
-      const baseDate = new Date();
-      setPredictions({
-        predictions: [
-          { timestamp: new Date(baseDate.getTime() + 86400000).toISOString(), aqi: 65, pm2_5: 18.2, pm10: 32.1, confidence: 0.89 },
-          { timestamp: new Date(baseDate.getTime() + 172800000).toISOString(), aqi: 68, pm2_5: 19.1, pm10: 33.8, confidence: 0.85 },
-          { timestamp: new Date(baseDate.getTime() + 259200000).toISOString(), aqi: 62, pm2_5: 17.3, pm10: 30.5, confidence: 0.82 },
-          { timestamp: new Date(baseDate.getTime() + 345600000).toISOString(), aqi: 59, pm2_5: 16.2, pm10: 28.7, confidence: 0.78 },
-          { timestamp: new Date(baseDate.getTime() + 432000000).toISOString(), aqi: 64, pm2_5: 18.8, pm10: 31.9, confidence: 0.75 }
-        ],
-        trend: 'stable',
-        risk_alerts: ['Moderate PM2.5 levels expected tomorrow'],
-        recommendations: ['Increase ventilation during peak hours', 'Monitor sensitive areas closely']
-      });
-      message.warning('Using demo data - backend connection failed');
+      console.error('Air quality prediction failed:', error);
+      setPredictions(null);
+      message.error(apiError(error, 'Air quality prediction failed'), 6);
     } finally {
       setLoading(false);
     }
@@ -505,41 +205,13 @@ const AIServiceTab = () => {
         throw new Error('Service returned undefined - check service implementation');
       }
       
-      setRiskAssessment(response);
+      setRiskAssessment(response?.risk_assessment || response);
       message.success('Risk assessment completed!');
       
     } catch (error) {
-      console.error('❌ Risk assessment failed:', error);
-      
-      // Use fallback data
-      setRiskAssessment({
-        overall_risk: 'MEDIUM',
-        risk_score: 64,
-        high_risk_factors: [
-          'Proximity to industrial zone with historical emissions',
-          'Aging water treatment infrastructure requiring upgrades',
-          'Limited emergency response capabilities for chemical spills'
-        ],
-        medium_risk_factors: [
-          'Seasonal temperature variations affecting system performance',
-          'Moderate traffic density impacting air quality',
-          'Construction activities in adjacent properties'
-        ],
-        low_risk_factors: [
-          'Well-maintained waste management practices',
-          'Regular environmental monitoring and reporting',
-          'Trained environmental health and safety staff'
-        ],
-        mitigation_strategies: [
-          'Upgrade water treatment filtration systems within 6 months',
-          'Implement real-time air quality monitoring network',
-          'Develop comprehensive emergency response protocols',
-          'Increase environmental compliance audit frequency'
-        ],
-        predicted_risk_trend: 'DECREASING',
-        confidence_level: 0.91
-      });
-      message.warning('Using demo data - ' + error.message);
+      console.error('Risk assessment failed:', error);
+      setRiskAssessment(null);
+      message.error(apiError(error, 'Risk assessment failed'), 6);
     } finally {
       setLoading(false);
     }
@@ -557,54 +229,9 @@ const AIServiceTab = () => {
       setAnomalies(response.anomaly_detection || response);
       message.success('Anomaly detection completed!');
     } catch (error) {
-      console.error('❌ Anomaly detection failed:', error);
-      // Fallback demo data
-      setAnomalies({
-        anomalies_detected: 3,
-        critical_anomalies: 1,
-        anomaly_details: [
-          {
-            timestamp: new Date().toISOString(),
-            parameter: 'PM2.5',
-            value: 45.2,
-            expected_range: '15-25 μg/m³',
-            severity: 'HIGH',
-            location: 'Manufacturing Floor - Zone B',
-            description: 'Unusual PM2.5 spike detected during non-operational hours'
-          },
-          {
-            timestamp: new Date(Date.now() - 3600000).toISOString(),
-            parameter: 'Water pH',
-            value: 8.9,
-            expected_range: '6.5-8.5',
-            severity: 'MEDIUM',
-            location: 'Cooling Tower 2',
-            description: 'pH level outside optimal operational range'
-          },
-          {
-            timestamp: new Date(Date.now() - 7200000).toISOString(),
-            parameter: 'Temperature',
-            value: 28.7,
-            expected_range: '20-25°C',
-            severity: 'LOW',
-            location: 'Warehouse Storage Area',
-            description: 'Temperature deviation from seasonal average'
-          }
-        ],
-        root_cause_analysis: [
-          'Possible equipment malfunction in air filtration system',
-          'Chemical dosing system may require calibration',
-          'HVAC system performance degradation suspected',
-          'External environmental factors influencing readings'
-        ],
-        automatic_actions: [
-          'Alert sent to maintenance team for immediate investigation',
-          'Increased monitoring frequency activated for affected parameters',
-          'Backup systems engaged where available',
-          'Notification sent to environmental compliance officer'
-        ]
-      });
-      message.warning('Using demo data - backend connection failed');
+      console.error('Anomaly detection failed:', error);
+      setAnomalies(null);
+      message.error(apiError(error, 'Anomaly detection failed'), 6);
     } finally {
       setLoading(false);
     }
@@ -619,41 +246,9 @@ const AIServiceTab = () => {
       setAdvancedAnalysis(response.advanced_analysis || response);
       message.success('Advanced analysis completed!');
     } catch (error) {
-      console.error('❌ Advanced analysis failed:', error);
-      // Fallback demo data
-      setAdvancedAnalysis({
-        impact_assessment: {
-          carbon_footprint_kg_co2: 12450,
-          water_impact_score: 75,
-          waste_management_score: 82,
-          energy_efficiency_score: 68,
-          overall_impact_rating: 'MODERATE',
-          improvement_recommendations: [
-            'Implement energy-efficient LED lighting throughout facilities',
-            'Optimize water recycling systems for 25% reduction in consumption',
-            'Upgrade to high-efficiency HVAC systems',
-            'Implement solar power generation for auxiliary systems'
-          ]
-        },
-        compliance_prediction: {
-          compliance_probability: 0.87,
-          identified_risks: ['PM2.5 levels approaching regulatory limits', 'Water discharge pH variability'],
-          predicted_violations: 1,
-          time_to_compliance_breach: '45 days',
-          mitigation_actions: [
-            'Increase air filtration capacity in manufacturing areas',
-            'Implement real-time water quality monitoring',
-            'Schedule preventive maintenance for emission control systems'
-          ]
-        },
-        sustainability_metrics: {
-          renewable_energy_usage: 15,
-          water_recycling_rate: 45,
-          waste_diverted_from_landfill: 72,
-          carbon_intensity: 2.4
-        }
-      });
-      message.warning('Using demo data - backend connection failed');
+      console.error('Advanced analysis failed:', error);
+      setAdvancedAnalysis(null);
+      message.error(apiError(error, 'Advanced analysis failed'), 6);
     } finally {
       setLoading(false);
     }
@@ -668,34 +263,9 @@ const AIServiceTab = () => {
       setEsgScore(response.esg_assessment || response);
       message.success('ESG scoring completed!');
     } catch (error) {
-      console.error('❌ ESG scoring failed:', error);
-      // Fallback demo data
-      setEsgScore({
-        overall_esg_score: 78.5,
-        environmental_score: 82.0,
-        social_score: 75.0,
-        governance_score: 78.5,
-        esg_rating: 'BBB',
-        improvement_areas: [
-          'Carbon emission reduction strategies',
-          'Water usage efficiency optimization',
-          'Supply chain sustainability practices',
-          'Community engagement programs',
-          'Board diversity and inclusion'
-        ],
-        benchmark_comparison: 'Above industry average',
-        reporting_standards: ['GRI', 'SASB', 'TCFD', 'UN SDGs'],
-        performance_breakdown: {
-          emissions_management: 85,
-          water_management: 78,
-          waste_management: 82,
-          employee_relations: 72,
-          community_impact: 68,
-          board_structure: 80,
-          risk_management: 84
-        }
-      });
-      message.warning('Using demo data - backend connection failed');
+      console.error('ESG scoring failed:', error);
+      setEsgScore(null);
+      message.error(apiError(error, 'ESG scoring failed'), 6);
     } finally {
       setLoading(false);
     }
@@ -710,49 +280,9 @@ const AIServiceTab = () => {
       setResourceOptimization(response.resource_optimization || response);
       message.success('Resource optimization completed!');
     } catch (error) {
-      console.error('❌ Resource optimization failed:', error);
-      // Fallback demo data
-      setResourceOptimization({
-        optimization_plan: {
-          energy_optimization: [
-            'Adjust HVAC schedules based on occupancy patterns',
-            'Install motion-sensor lighting in low-traffic areas',
-            'Implement peak shaving strategies for energy demand',
-            'Upgrade to energy-efficient motors and drives'
-          ],
-          water_optimization: [
-            'Implement rainwater harvesting for irrigation',
-            'Optimize cooling tower cycles and blowdown rates',
-            'Install low-flow fixtures in restrooms and kitchens',
-            'Recycle process water for non-potable uses'
-          ],
-          waste_optimization: [
-            'Enhance recycling programs with smart sorting',
-            'Reduce packaging materials through supplier collaboration',
-            'Implement composting for organic waste',
-            'Optimize waste collection routes and frequencies'
-          ]
-        },
-        predicted_savings: {
-          energy_savings_kwh: 12500,
-          water_savings_liters: 45000,
-          waste_reduction_kg: 8200,
-          cost_savings: 18500
-        },
-        implementation_timeline: '8 weeks',
-        roi_calculation: {
-          payback_period_months: 18,
-          annual_savings: 22200,
-          total_investment: 45000,
-          net_present_value: 15600
-        },
-        environmental_impact: {
-          co2_reduction_tons: 8.5,
-          water_conservation_kl: 45,
-          landfill_diversion_rate: 0.15
-        }
-      });
-      message.warning('Using demo data - backend connection failed');
+      console.error('Resource optimization failed:', error);
+      setResourceOptimization(null);
+      message.error(apiError(error, 'Resource optimization failed'), 6);
     } finally {
       setLoading(false);
     }
@@ -1014,11 +544,6 @@ const onGetViolationHistory = async () => {
     }
   }, [activeTab]);
 
-  // Initialize document templates when component mounts
-  React.useEffect(() => {
-    onGetDocumentTemplates();
-  }, []);
-
   // ===== RENDER FUNCTIONS FOR EACH TAB =====
 
   const renderAnalysisTab = () => (
@@ -1102,7 +627,7 @@ const onGetViolationHistory = async () => {
                   valueStyle={{ color: getRatingColor(analysis.overall_rating), fontSize: '24px' }}
                 />
                 <Progress 
-                  percent={Math.round((analysis.confidence_score || 0.85) * 100)} 
+                  percent={Math.round((analysis.confidence_score || 0) * 100)} 
                   format={percent => `Confidence: ${percent}%`}
                   status="active"
                 />
@@ -1112,7 +637,7 @@ const onGetViolationHistory = async () => {
                 <Col span={8}>
                   <Statistic
                     title="Air Quality"
-                    value={analysis.air_quality_index || 0}
+                    value={analysis.air_quality_index ?? '—'}
                     suffix="AQI"
                     valueStyle={{ color: (analysis.air_quality_index || 0) <= 50 ? '#52c41a' : (analysis.air_quality_index || 0) <= 100 ? '#faad14' : '#f5222d' }}
                   />
@@ -1120,7 +645,7 @@ const onGetViolationHistory = async () => {
                 <Col span={8}>
                   <Statistic
                     title="Water Quality"
-                    value={analysis.water_quality_score || 0}
+                    value={analysis.water_quality_score ?? '—'}
                     suffix="/100"
                     valueStyle={{ color: (analysis.water_quality_score || 0) >= 80 ? '#52c41a' : (analysis.water_quality_score || 0) >= 60 ? '#faad14' : '#f5222d' }}
                   />
@@ -1128,7 +653,7 @@ const onGetViolationHistory = async () => {
                 <Col span={8}>
                   <Statistic
                     title="Compliance"
-                    value={analysis.compliance_score || 0}
+                    value={analysis.compliance_score ?? '—'}
                     suffix="%"
                     valueStyle={{ color: (analysis.compliance_score || 0) >= 90 ? '#52c41a' : (analysis.compliance_score || 0) >= 80 ? '#faad14' : '#f5222d' }}
                   />
@@ -1905,7 +1430,7 @@ const CameraMonitoringBox = () => {
                   description={
                     <Descriptions size="small" column={1}>
                       <Descriptions.Item label="Carbon Footprint">
-                        <Tag color="red">{advancedAnalysis.impact_assessment.carbon_footprint_kg_co2} kg CO2</Tag>
+                        <Tag color="red">{advancedAnalysis.impact_assessment.carbon_footprint_kg_co2 != null ? `${advancedAnalysis.impact_assessment.carbon_footprint_kg_co2} kg CO2` : 'Not tracked'}</Tag>
                       </Descriptions.Item>
                       <Descriptions.Item label="Water Impact Score">
                         <Progress percent={advancedAnalysis.impact_assessment.water_impact_score} size="small" />
@@ -1929,7 +1454,7 @@ const CameraMonitoringBox = () => {
                   description={
                     <Space direction="vertical" style={{ width: '100%' }}>
                       <Progress 
-                        percent={Math.round(advancedAnalysis.compliance_prediction.compliance_probability * 100)} 
+                        percent={Math.round((advancedAnalysis.compliance_prediction.compliance_probability || 0) * 100)} 
                         status={
                           advancedAnalysis.compliance_prediction.compliance_probability > 0.8 ? 'success' : 
                           advancedAnalysis.compliance_prediction.compliance_probability > 0.6 ? 'active' : 'exception'
@@ -2582,282 +2107,8 @@ const CameraMonitoringBox = () => {
   // ===== NEW DOCUMENT GENERATION TAB =====
 
   const renderDocumentGenerationTab = () => (
-    <Row gutter={[16, 16]}>
-      <Col xs={24} lg={12}>
-        <Card title="Compliance Document Generation" size="small">
-          <Tabs type="card">
-            {/* ISO Compliance Report */}
-            <TabPane tab="ISO 14001 Report" key="iso">
-              <Form
-                form={documentForm}
-                layout="vertical"
-                onFinish={onGenerateComplianceReport}
-              >
-                <Form.Item name="company_name" label="Company Name" initialValue="Environmental Solutions Inc.">
-                  <Input placeholder="Enter company name" />
-                </Form.Item>
-                
-                <Form.Item name="report_period" label="Report Period" initialValue="Q1 2024">
-                  <Select placeholder="Select reporting period">
-                    <Option value="Q1 2024">Q1 2024</Option>
-                    <Option value="Q2 2024">Q2 2024</Option>
-                    <Option value="Q3 2024">Q3 2024</Option>
-                    <Option value="Q4 2024">Q4 2024</Option>
-                    <Option value="Annual 2024">Annual 2024</Option>
-                  </Select>
-                </Form.Item>
-
-                <Form.Item name="compliance_status" label="Compliance Status" initialValue="COMPLIANT">
-                  <Select placeholder="Select compliance status">
-                    <Option value="COMPLIANT">Fully Compliant</Option>
-                    <Option value="PARTIAL">Partially Compliant</Option>
-                    <Option value="NON_COMPLIANT">Non-Compliant</Option>
-                    <Option value="UNDER_REVIEW">Under Review</Option>
-                  </Select>
-                </Form.Item>
-
-                <Form.Item name="format" label="Document Format" initialValue="pdf">
-                  <Radio.Group>
-                    <Radio value="pdf"><FilePdfOutlined /> PDF Report</Radio>
-                    <Radio value="excel"><FileExcelOutlined /> Excel Data</Radio>
-                    <Radio value="word"><FileWordOutlined /> Word Document</Radio>
-                  </Radio.Group>
-                </Form.Item>
-
-                <Form.Item>
-                  <Button type="primary" htmlType="submit" loading={loading} block icon={<FileTextOutlined />}>
-                    Generate ISO 14001 Report
-                  </Button>
-                </Form.Item>
-              </Form>
-            </TabPane>
-
-            {/* OSHA Safety Report */}
-            <TabPane tab="OSHA Safety Report" key="osha">
-              <Form
-                layout="vertical"
-                onFinish={onGenerateSafetyReport}
-              >
-                <Form.Item name="facility" label="Facility Name" initialValue="Main Manufacturing Plant">
-                  <Input placeholder="Enter facility name" />
-                </Form.Item>
-                
-                <Form.Item name="inspector" label="Safety Inspector" initialValue="Safety Officer">
-                  <Input placeholder="Enter inspector name" />
-                </Form.Item>
-
-                <Form.Item name="format" label="Document Format" initialValue="pdf">
-                  <Radio.Group>
-                    <Radio value="pdf"><FilePdfOutlined /> PDF Report</Radio>
-                    <Radio value="excel"><FileExcelOutlined /> Excel Data</Radio>
-                    <Radio value="word"><FileWordOutlined /> Word Document</Radio>
-                  </Radio.Group>
-                </Form.Item>
-
-                <Form.Item>
-                  <Button type="primary" htmlType="submit" loading={loading} block icon={<SafetyCertificateOutlined />}>
-                    Generate OSHA Safety Report
-                  </Button>
-                </Form.Item>
-              </Form>
-            </TabPane>
-
-            {/* Environmental Impact Assessment */}
-            <TabPane tab="Impact Assessment" key="eia">
-              <Form
-                layout="vertical"
-                onFinish={onGenerateImpactAssessment}
-              >
-                <Form.Item name="project_name" label="Project Name" initialValue="New Manufacturing Facility">
-                  <Input placeholder="Enter project name" />
-                </Form.Item>
-                
-                <Form.Item name="location" label="Project Location" initialValue="Industrial Zone A">
-                  <Input placeholder="Enter project location" />
-                </Form.Item>
-
-                <Form.Item name="format" label="Document Format" initialValue="pdf">
-                  <Radio.Group>
-                    <Radio value="pdf"><FilePdfOutlined /> PDF Report</Radio>
-                    <Radio value="excel"><FileExcelOutlined /> Excel Data</Radio>
-                    <Radio value="word"><FileWordOutlined /> Word Document</Radio>
-                  </Radio.Group>
-                </Form.Item>
-
-                <Form.Item>
-                  <Button type="primary" htmlType="submit" loading={loading} block icon={<EnvironmentOutlined />}>
-                    Generate Impact Assessment
-                  </Button>
-                </Form.Item>
-              </Form>
-            </TabPane>
-
-            {/* Generate All Reports */}
-            <TabPane tab="All Reports" key="all">
-              <Form
-                layout="vertical"
-                onFinish={onGenerateAllReports}
-              >
-                <Form.Item name="company_name" label="Company Name" initialValue="Environmental Solutions Inc.">
-                  <Input placeholder="Enter company name" />
-                </Form.Item>
-                
-                <Form.Item name="report_period" label="Report Period" initialValue="Q1 2024">
-                  <Select placeholder="Select reporting period">
-                    <Option value="Q1 2024">Q1 2024</Option>
-                    <Option value="Q2 2024">Q2 2024</Option>
-                    <Option value="Q3 2024">Q3 2024</Option>
-                    <Option value="Annual 2024">Annual 2024</Option>
-                  </Select>
-                </Form.Item>
-
-                <Form.Item name="formats" label="Output Formats" initialValue={['pdf', 'excel']}>
-                  <Select mode="multiple" placeholder="Select formats">
-                    <Option value="pdf">PDF Reports</Option>
-                    <Option value="excel">Excel Data</Option>
-                    <Option value="word">Word Documents</Option>
-                  </Select>
-                </Form.Item>
-
-                <Form.Item>
-                  <Button type="primary" htmlType="submit" loading={loading} block icon={<FileZipOutlined />}>
-                    Generate All Compliance Reports
-                  </Button>
-                </Form.Item>
-              </Form>
-            </TabPane>
-          </Tabs>
-        </Card>
-
-        {/* Available Templates */}
-        {documentTemplates && (
-          <Card title="Available Document Templates" size="small" style={{ marginTop: 16 }}>
-            <Collapse ghost>
-              {Object.entries(documentTemplates).map(([category, templates]) => (
-                <Panel header={`${category.replace('_', ' ').toUpperCase()} (${templates.length})`} key={category}>
-                  <List
-                    size="small"
-                    dataSource={templates}
-                    renderItem={template => (
-                      <List.Item>
-                        <List.Item.Meta
-                          title={template.name}
-                          description={
-                            <Space>
-                              {template.formats.map(format => (
-                                <Tag key={format} icon={getFormatIcon(format)}>
-                                  {format.toUpperCase()}
-                                </Tag>
-                              ))}
-                            </Space>
-                          }
-                        />
-                      </List.Item>
-                    )}
-                  />
-                </Panel>
-              ))}
-            </Collapse>
-          </Card>
-        )}
-      </Col>
-
-      <Col xs={24} lg={12}>
-        {/* Generated Documents List */}
-        <Card title="Generated Documents" size="small">
-          {generatedDocuments.length > 0 ? (
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <Alert
-                message={`${generatedDocuments.length} documents generated`}
-                description="All documents are compliant with ISO and OSHA standards"
-                type="success"
-                showIcon
-              />
-              
-              <List
-                size="small"
-                dataSource={generatedDocuments}
-                renderItem={doc => (
-                  <List.Item
-                    actions={[
-                      <Button 
-                        type="link" 
-                        size="small" 
-                        icon={<DownloadOutlined />}
-                        onClick={() => onDownloadDocument(doc)}
-                      >
-                        Download
-                      </Button>
-                    ]}
-                  >
-                    <List.Item.Meta
-                      avatar={getFormatIcon(doc.format)}
-                      title={
-                        <Space>
-                          <span>{doc.name}</span>
-                          <Tag color={getDocumentTypeColor(doc.type)}>
-                            {doc.type.replace('_', ' ').toUpperCase()}
-                          </Tag>
-                        </Space>
-                      }
-                      description={
-                        <Space direction="vertical" size={0}>
-                          <div>Format: {doc.format} • Generated: {new Date(doc.generated_at).toLocaleString()}</div>
-                          {doc.standards && (
-                            <div>
-                              <small>Standards: {doc.standards.join(', ')}</small>
-                            </div>
-                          )}
-                        </Space>
-                      }
-                    />
-                  </List.Item>
-                )}
-              />
-            </Space>
-          ) : (
-            <div style={{ textAlign: 'center', color: '#999', padding: '40px' }}>
-              <FileTextOutlined style={{ fontSize: '48px', marginBottom: '16px', color: '#d9d9d9' }} />
-              <h3>No Documents Generated</h3>
-              <p>Generate compliance reports to see them here</p>
-            </div>
-          )}
-        </Card>
-
-        {/* Document Standards Info */}
-        <Card title="Compliance Standards" size="small" style={{ marginTop: 16 }}>
-          <Descriptions size="small" column={1}>
-            <Descriptions.Item label="ISO 14001">
-              <Tag color="blue">Environmental Management</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="ISO 45001">
-              <Tag color="purple">Occupational Health & Safety</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="OSHA 1910">
-              <Tag color="red">General Industry Standards</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="OSHA 1926">
-              <Tag color="orange">Construction Standards</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="NEPA">
-              <Tag color="green">Environmental Impact Assessment</Tag>
-            </Descriptions.Item>
-          </Descriptions>
-          
-          <Divider />
-          
-          <Alert
-            message="Regulatory Compliance"
-            description="All generated documents meet international ISO standards and OSHA regulatory requirements for environmental and safety compliance."
-            type="info"
-            showIcon
-          />
-        </Card>
-      </Col>
-    </Row>
+    <EnvironmentalDocumentGenerator onGenerated={(doc) => setGeneratedDocuments((prev) => [...prev, doc])} />
   );
-
-  // ===== UPDATE MAIN RENDER FUNCTION =====
 
   return (
     <div className="ai-service-tab">

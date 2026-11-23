@@ -13,7 +13,8 @@ import {
   Col, 
   Select, 
   Spin,
-  Modal
+  Modal,
+  message          // ✅ ADD — needed for message.warning() / message.success() / etc.
 } from 'antd';
 import { 
   CheckCircleOutlined, 
@@ -25,7 +26,7 @@ import {
 } from '@ant-design/icons';
 import { useHistory } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
-import apiInstance, { normalizePlanName } from '../services/api';
+import apiInstance, { normalizePlanName } from '../services/api';  // ✅ already correct, just use `apiInstance` below
 import './SubscriptionPage.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -146,8 +147,8 @@ const SubscriptionPage = () => {
   const loadPlans = async () => {
     try {
       setCalculating(true);
-      // Get plans with user's country pricing
-      const response = await api.get('/plans/pricing');
+      // ✅ FIX #1: Use `apiInstance`, not `api`
+      const response = await apiInstance.get('/plans/pricing');
       
       if (response.data && response.data.success) {
         setPlans(response.data.plans || []);
@@ -166,7 +167,8 @@ const SubscriptionPage = () => {
       // Use local data as fallback
       setPlans(Object.values(localPlansData));
       setPricingData(localPricingData);
-      Alert.warning('Using local pricing data. Some features may be limited.');
+      // ✅ FIX #2: use `message.warning`, not `Alert.warning`
+      message.warning('Using local pricing data. Some features may be limited.');
     } finally {
       setCalculating(false);
     }
@@ -250,7 +252,8 @@ const SubscriptionPage = () => {
       onOk: async () => {
         setLoading(true);
         try {
-          const response = await api.post('/subscription/upgrade', {
+          // ✅ FIX #1: Use `apiInstance`, not `api`
+          const response = await apiInstance.post('/subscription/upgrade', {
             plan: planName,
             duration: selectedDuration,
             country: selectedCountry
@@ -264,14 +267,17 @@ const SubscriptionPage = () => {
               // Redirect to payment gateway
               window.location.href = response.data.paymentUrl;
             } else if (planName === 'enterprise') {
-              Alert.info('Our sales team will contact you shortly for enterprise setup.');
+              // ✅ FIX #2: use `message.info`
+              message.info('Our sales team will contact you shortly for enterprise setup.');
               history.push('/contact');
             } else {
-              Alert.success('Plan upgraded successfully!');
+              // ✅ FIX #2: use `message.success`
+              message.success('Plan upgraded successfully!');
             }
           }
         } catch (error) {
-          Alert.error(error.response?.data?.error || 'Upgrade failed. Please try again.');
+          // ✅ FIX #2: use `message.error`
+          message.error(error.response?.data?.error || 'Upgrade failed. Please try again.');
         } finally {
           setLoading(false);
         }
@@ -403,7 +409,7 @@ const SubscriptionPage = () => {
           const isCurrentPlan = currentPlan === plan.name;
 
           return (
-            <Col xs={24} md={6} key={plan.id || plan.name}>
+            <Col xs={24} sm={12} lg={6} key={plan.id || plan.name}>
               <Card
                 className={`plan-card ${selectedPlan === plan.name ? 'selected' : ''} ${plan.name === 'pro' ? 'recommended' : ''} ${isCurrentPlan ? 'current' : ''}`}
               >
@@ -420,21 +426,22 @@ const SubscriptionPage = () => {
                 )}
                 
                 <div className="plan-header">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <div className="plan-title-row">
                     {getPlanIcon(plan.name)}
-                    <Title level={3} style={{ margin: 0 }}>{plan.label}</Title>
+                    <Title level={3} className="plan-name">{plan.label}</Title>
                   </div>
+
                   <div className="plan-price">
-                    <Title level={2} style={{ margin: 0 }}>
+                    <div className="price-amount">
                       {formatCurrency(pricing?.[selectedDuration], pricing?.currency)}
-                    </Title>
+                    </div>
                     {selectedDuration !== '1_month' && pricing?.[selectedDuration] !== "Custom" && (
-                      <Text type="secondary">
+                      <Text className="price-subtitle">
                         {formatCurrency(pricing?.['1_month'], pricing?.currency)}/month
                       </Text>
                     )}
                   </div>
-                  
+
                   {discount > 0 && (
                     <div className="discount-badge">
                       <Tag color="green">Save {discount}%</Tag>

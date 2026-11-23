@@ -25,6 +25,8 @@ import AuditLogs from '../../admin/AuditLogs';
 import CompanyLogoUpload from '../../components/CompanyLogoUpload';
 import adminService from '../../services/adminService';
 import dashboardService from '../../services/dashboardService';
+import DashboardOverview from '../../components/dashboard/DashboardOverview';
+import ToolboxTalkWidget from '../../components/toolbox/ToolboxTalkWidget';
 import './AdminDashboard.css';
 
 const { Title, Text } = Typography;
@@ -333,10 +335,25 @@ const AdminDashboard = () => {
       icon: <FileTextOutlined />,
       color: '#faad14',
       bgColor: '#fffbe6'
+    },
+    {
+      title: 'Incidents (all time)',
+      value: stats.total_incidents || 0,
+      icon: <SafetyCertificateOutlined />,
+      color: '#f5222d',
+      bgColor: '#fff1f0',
+      sub: `${stats.new_incidents_week || 0} this week`
+    },
+    {
+      title: 'New users this week',
+      value: stats.new_users_week || 0,
+      icon: <RiseOutlined />,
+      color: '#722ed1',
+      bgColor: '#f9f0ff'
     }
   ];
 
-  if (loading) {
+  if (loading && !stats.total_users && !companyName) {
     return (
       <div className="admin-dashboard">
         <div className="loading-container">
@@ -379,6 +396,9 @@ const AdminDashboard = () => {
           </div>
         </div>
         <div className="header-right">
+          <Button icon={<EditOutlined />} onClick={() => setShowLogoModal(true)} style={{ marginRight: 8 }}>
+            {companyLogo ? 'Change logo' : 'Add logo'}
+          </Button>
           <Button 
             icon={<ReloadOutlined />} 
             onClick={loadStats}
@@ -422,10 +442,14 @@ const AdminDashboard = () => {
         />
       )}
 
-      {/* Stats */}
+      <DashboardOverview title="Company safety status" />
+
+      <ToolboxTalkWidget />
+
+      {/* Team stats */}
       <Row gutter={[16, 16]} className="stats-row">
         {statsCards.map((stat, index) => (
-          <Col xs={24} sm={12} md={8} key={index}>
+          <Col flex="1 1 180px" key={index}>
             <Card className="stat-card" style={{ background: stat.bgColor }}>
               <div className="stat-content">
                 <div className="stat-icon" style={{ color: stat.color }}>
@@ -436,6 +460,7 @@ const AdminDashboard = () => {
                   <div className="stat-value" style={{ color: stat.color }}>
                     {stat.value}
                   </div>
+                  {stat.sub && <div style={{ fontSize: 12, color: '#6b7280' }}>{stat.sub}</div>}
                 </div>
               </div>
             </Card>

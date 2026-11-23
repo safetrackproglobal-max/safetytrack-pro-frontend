@@ -112,7 +112,7 @@ function DashboardHeader({ onMenuToggle, sidebarCollapsed, isMobile, mobileOpen 
   const showNavigation = !isMobile;
 
   return (
-    <Header className="dashboard-header">
+    <Header className="app-topbar">
       {/* Left Section */}
       <div className="header-left">
         <div className="brand-section">

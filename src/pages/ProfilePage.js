@@ -4,6 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../context/LanguageContext';
 import dashboardService from '../services/dashboardService';
+import { useLocation, useHistory } from 'react-router-dom';
+import MyTraining from '../components/dashboard/MyTraining';
+import CompanyDetailsCard from '../components/dashboard/CompanyDetailsCard';
 import {
   Card,
   Row,
@@ -56,7 +59,8 @@ import {
   LoadingOutlined,
   PlusOutlined,
   DeleteOutlined,
-  BankOutlined
+  BankOutlined,
+  BookOutlined
 } from '@ant-design/icons';
 import './ProfilePage.css';
 
@@ -72,7 +76,15 @@ const ProfilePage = () => {
   const [uploading, setUploading] = useState(false);
   const [editing, setEditing] = useState(false);
   const [form] = Form.useForm();
-  const [activeTab, setActiveTab] = useState('overview');
+  const location = useLocation();
+  const history = useHistory();
+  const TABS = ['overview', 'training', 'company', 'subscription', 'edit'];
+  const tabFromUrl = new URLSearchParams(location.search).get('tab');
+  const [activeTab, setActiveTabState] = useState(TABS.includes(tabFromUrl) ? tabFromUrl : 'overview');
+  const setActiveTab = (key) => { setActiveTabState(key); history.replace(`/profile?tab=${key}`); };
+  useEffect(() => { if (TABS.includes(tabFromUrl)) setActiveTabState(tabFromUrl); }, [tabFromUrl]);
+  const isCompanyAdmin = !!user?.company_id && ['admin', 'company_admin'].includes(user?.user_type);
+  const timezones = (typeof Intl !== 'undefined' && Intl.supportedValuesOf) ? Intl.supportedValuesOf('timeZone') : ['UTC', 'Africa/Accra', 'Europe/London', 'Asia/Dubai', 'America/New_York'];
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [selectedDuration, setSelectedDuration] = useState('monthly');
@@ -158,7 +170,7 @@ const ProfilePage = () => {
     const fetchCompanyInfo = async () => {
       try {
         if (user?.company_id) {
-          const response = await dashboardService.getCompanyInfo(user.company_id);
+          const response = await dashboardService.getCompanyInfo();
           if (response && response.success) {
             const data = response.data || response;
             setCompanyInfo({
@@ -498,11 +510,15 @@ const ProfilePage = () => {
   const handleSaveProfile = async (values) => {
     setLoading(true);
     try {
-      await updateProfile(values);
-      message.success(t('profile.updateSuccess'));
+      const { email, ...editable } = values;   // email cannot be changed here
+      await updateProfile(editable);
       setEditing(false);
     } catch (error) {
-      message.error(t('profile.updateFailed'));
+      const errs = error?.response?.data?.errors || error?.data?.errors;
+      if (errs) {
+        form.setFields(Object.entries(errs).map(([name, msg]) => ({ name: name === 'address' ? 'location' : name, errors: [msg] })));
+      }
+      message.error(error?.response?.data?.error || error?.data?.error || t('profile.updateFailed'));
     } finally {
       setLoading(false);
     }
@@ -539,8 +555,9 @@ const ProfilePage = () => {
 
   const currentPlan = getCurrentPlan();
   const usagePercentage = (used, total) => {
-    if (total === 'Unlimited' || total === 'Custom') return 0;
-    return Math.min((used / total) * 100, 100);
+    const t = Number(total);
+    if (!t || !Number.isFinite(t)) return 0;
+    return Math.round(Math.min((Number(used) / t) * 100, 100));
   };
 
   const getMemberSince = () => {
@@ -633,8 +650,8 @@ const ProfilePage = () => {
           </Space>
         </Card>
 
-        {/* ✅ NEW: Company Logo Card */}
-        <Card 
+        {/* Company logo — company admins only */}
+        {isCompanyAdmin && <Card 
           title={
             <Space>
               <BankOutlined />
@@ -712,7 +729,7 @@ const ProfilePage = () => {
               </div>
             </div>
           </div>
-        </Card>
+        </Card>}
 
         {/* Current Plan Card */}
         <Card title={t('profile.currentPlan')} style={{ marginTop: 24 }}>
@@ -1017,7 +1034,8 @@ const ProfilePage = () => {
             email: user?.email,
             phone: user?.phone,
             department: user?.department,
-            location: user?.location
+            location: user?.location || user?.address,
+            timezone: user?.timezone && user.timezone !== 'UTC' ? user.timezone : (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC')
           }}
         >
           <Row gutter={16}>
@@ -1025,7 +1043,7 @@ const ProfilePage = () => {
               <Form.Item
                 label={t('profile.fullName')}
                 name="name"
-                rules={[{ required: true, message: t('profile.enterName') }]}
+                rules={[{ required: true, whitespace: true, message: t('profile.enterName') }, { max: 128 }, { pattern: /^[^<>]*$/, message: 'Angle brackets are not allowed' }]}
               >
                 <Input prefix={<UserOutlined />} />
               </Form.Item>
@@ -1049,6 +1067,7 @@ const ProfilePage = () => {
               <Form.Item
                 label={t('profile.phoneNumber')}
                 name="phone"
+                rules={[{ pattern: /^[+\d\s()-]{7,20}$/, message: '7–20 characters: digits, spaces, + ( ) -' }]}
               >
                 <Input prefix={<PhoneOutlined />} />
               </Form.Item>
@@ -1063,12 +1082,18 @@ const ProfilePage = () => {
             </Col>
           </Row>
 
-          <Form.Item
-            label={t('profile.location')}
-            name="location"
-          >
-            <Input prefix={<EnvironmentOutlined />} />
-          </Form.Item>
+          <Row gutter={16}>
+            <Col xs={24} md={12}>
+              <Form.Item label={t('profile.location')} name="location" rules={[{ max: 255 }]}>
+                <Input prefix={<EnvironmentOutlined />} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item label="Time zone" name="timezone" extra="Used for deadlines and reminders">
+                <Select showSearch options={timezones.map((z) => ({ value: z, label: z.replace(/_/g, ' ') }))} />
+              </Form.Item>
+            </Col>
+          </Row>
 
           <Form.Item>
             <Button type="primary" htmlType="submit" loading={loading} icon={<SaveOutlined />}>
@@ -1113,6 +1138,18 @@ const ProfilePage = () => {
             icon: <DashboardOutlined />,
             children: renderOverview()
           },
+          {
+            key: 'training',
+            label: 'My training',
+            icon: <BookOutlined />,
+            children: <MyTraining />
+          },
+          ...(isCompanyAdmin ? [{
+            key: 'company',
+            label: 'Company',
+            icon: <BankOutlined />,
+            children: <CompanyDetailsCard />
+          }] : []),
           {
             key: 'subscription',
             label: t('profile.subscription'),

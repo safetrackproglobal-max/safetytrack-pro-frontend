@@ -51,9 +51,12 @@ import {
   UserUpgradeModal,
   UserDetailsDrawer,
   BulkOperationsModal,
-  SystemHealthCard,
   ManualUserCreation
 } from './SafetyProComponents';
+
+// ✅ NEW: Command Center import
+import ToolboxTalkWidget from '../components/toolbox/ToolboxTalkWidget';
+import CommandCenter from './CommandCenter';
 import CSVUserUpload from '../components/CSVUserUpload';
 import api, { apiGet, apiPost } from '../services/api';
 
@@ -713,12 +716,12 @@ const SafetyProDashboard = () => {
     <div className="safetypro-dashboard">
       <div className="dashboard-header">
         <Space direction="vertical" style={{ width: '100%' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h1>
-              <DashboardOutlined style={{ marginRight: 16, color: '#1890ff' }} />
-              SafetyPro Team Dashboard
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+            <h1 style={{ margin: 0, minWidth: 0 }}>
+              <DashboardOutlined style={{ marginRight: 12, color: '#1890ff' }} />
+              SafeTrack Pro Team Dashboard
             </h1>
-            <Space>
+            <Space wrap>
               <Button icon={<RocketOutlined />} onClick={() => setBulkModalVisible(true)} type="primary">Bulk Operations</Button>
               <Button icon={<ExportOutlined />} onClick={handleExport} loading={exportLoading}>Export</Button>
               <Button icon={<ReloadOutlined />} onClick={() => setRefreshKey(prev => prev + 1)} loading={loading}>Refresh</Button>
@@ -744,17 +747,27 @@ const SafetyProDashboard = () => {
       </div>
 
       {/* Stats Row */}
-      <Row gutter={16} style={{ marginBottom: 24 }}>
-        <Col span={6}><Card><Statistic title="Total Users" value={stats?.total?.all || 0} prefix={<TeamOutlined />} /></Card></Col>
-        <Col span={6}><Card><Statistic title="Active Today" value={stats?.active_today || 0} valueStyle={{ color: '#3f8600' }} prefix={<RiseOutlined />} /></Card></Col>
-        <Col span={6}><Card><Statistic title="New This Month" value={stats?.new_this_month || 0} valueStyle={{ color: '#1890ff' }} prefix={<UserAddOutlined />} /></Card></Col>
-        <Col span={6}><SystemHealthCard /></Col>
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+        {[
+          { title: 'Total Users', value: stats?.total?.all, icon: <TeamOutlined />, color: '#1677ff' },
+          { title: 'Active Today', value: stats?.active_today, icon: <RiseOutlined />, color: '#3f8600' },
+          { title: 'New This Month', value: stats?.new_this_month, icon: <UserAddOutlined />, color: '#722ed1' },
+          { title: 'Pending Approvals', value: approvals.length, icon: <ClockCircleOutlined />, color: approvals.length ? '#fa8c16' : '#3f8600',
+            onClick: () => setActiveTab('dashboard') },
+        ].map((k) => (
+          <Col xs={12} lg={6} key={k.title}>
+            <Card hoverable={!!k.onClick} onClick={k.onClick} style={{ height: '100%', borderTop: `3px solid ${k.color}` }}>
+              <Statistic title={k.title} value={k.value || 0} valueStyle={{ color: k.color }} prefix={k.icon} />
+            </Card>
+          </Col>
+        ))}
       </Row>
 
       {/* Tabs Navigation */}
       <Card style={{ marginBottom: 24 }}>
-        <Tabs activeKey={activeTab} onChange={setActiveTab}>
+        <Tabs activeKey={activeTab} onChange={setActiveTab} destroyInactiveTabPane>
           <TabPane tab={<span><DashboardOutlined /> Dashboard</span>} key="dashboard">
+            <ToolboxTalkWidget />
             {/* Quick Actions */}
             <Card style={{ marginBottom: 16 }}>
               <Row gutter={16}>
@@ -861,6 +874,18 @@ const SafetyProDashboard = () => {
          <TabPane 
   tab={
     <span>
+      <DashboardOutlined />
+      Command Center
+    </span>
+  } 
+  key="command-center"
+>
+  <CommandCenter embedded />
+</TabPane>       
+
+         <TabPane 
+  tab={
+    <span>
       <DollarOutlined />
       Payment Verification
     </span>
@@ -873,12 +898,12 @@ const SafetyProDashboard = () => {
           {/* User Management Tab */}
           <TabPane tab={<span><TeamOutlined /> User Management</span>} key="user-management">
             <Card size="small" style={{ marginBottom: 16 }}>
-              <Row gutter={16}>
-                <Col span={8}><Search placeholder="Search users..." onSearch={setUserSearchText} onChange={(e) => setUserSearchText(e.target.value)} allowClear enterButton /></Col>
-                <Col span={4}><Select placeholder="User Type" value={userFilterType} onChange={setUserFilterType} style={{ width: '100%' }} allowClear><Option value="all">All Types</Option><Option value="user">User</Option><Option value="employee">Employee</Option><Option value="admin">Admin</Option><Option value="safetypro">SafetyPro</Option><Option value="platform_owner">Platform Owner</Option></Select></Col>
-                <Col span={4}><Select placeholder="Plan" value={userFilterPlan} onChange={setUserFilterPlan} style={{ width: '100%' }} allowClear><Option value="all">All Plans</Option><Option value="free">Free</Option><Option value="basic">Basic</Option><Option value="pro">Pro</Option><Option value="enterprise">Enterprise</Option></Select></Col>
-                <Col span={8}>
-                  <Space>
+              <Row gutter={[12, 12]}>
+                <Col xs={24} md={12} lg={8}><Search placeholder="Search users..." onSearch={setUserSearchText} onChange={(e) => setUserSearchText(e.target.value)} allowClear enterButton /></Col>
+                <Col xs={12} md={6} lg={4}><Select placeholder="User Type" value={userFilterType} onChange={setUserFilterType} style={{ width: '100%' }} allowClear><Option value="all">All Types</Option><Option value="user">User</Option><Option value="employee">Employee</Option><Option value="admin">Admin</Option><Option value="safetypro">SafetyPro</Option><Option value="platform_owner">Platform Owner</Option></Select></Col>
+                <Col xs={12} md={6} lg={4}><Select placeholder="Plan" value={userFilterPlan} onChange={setUserFilterPlan} style={{ width: '100%' }} allowClear><Option value="all">All Plans</Option><Option value="free">Free</Option><Option value="basic">Basic</Option><Option value="pro">Pro</Option><Option value="enterprise">Enterprise</Option></Select></Col>
+                <Col xs={24} lg={8}>
+                  <Space wrap>
                     <Button icon={<ReloadOutlined />} onClick={() => { setUserSearchText(''); setUserFilterType('all'); setUserFilterPlan('all'); fetchAllUsers(); }}>Reset</Button>
                     <Button type="primary" icon={<UserAddOutlined />} onClick={() => setManualUserModalVisible(true)}>Add User</Button>
                   </Space>
@@ -894,15 +919,6 @@ const SafetyProDashboard = () => {
             <CSVUserUpload />
           </TabPane>
 
-          {/* Analytics Tab */}
-          <TabPane tab={<span><BarChartOutlined /> Analytics</span>} key="analytics">
-            <Card title="Analytics Dashboard"><Text>Analytics content will be displayed here.</Text></Card>
-          </TabPane>
-
-          {/* Settings Tab */}
-          <TabPane tab={<span><SettingOutlined /> Settings</span>} key="settings">
-            <Card title="System Settings"><Text>System settings will be displayed here.</Text></Card>
-          </TabPane>
         </Tabs>
       </Card>
 

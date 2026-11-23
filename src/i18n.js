@@ -35,7 +35,21 @@ i18n
     debug: false,
     interpolation: {
       escapeValue: false
-    }
+    },
+    // A key missing in every language returns '' instead of the raw key ("contact.formTitle"),
+    // so the `t('key') || 'English text'` fallbacks used across the pages actually show.
+    parseMissingKeyHandler: () => ''
   });
+
+// Keep <html lang/dir> in sync with the chosen language (screen readers, fonts, Arabic RTL).
+const RTL_LANGUAGES = ['ar'];
+const applyDocumentLanguage = (lng) => {
+  if (typeof document === 'undefined') return;
+  const base = String(lng || 'en').split('-')[0];
+  document.documentElement.lang = base;
+  document.documentElement.dir = RTL_LANGUAGES.includes(base) ? 'rtl' : 'ltr';
+};
+applyDocumentLanguage(i18n.language);
+i18n.on('languageChanged', applyDocumentLanguage);
 
 export default i18n;

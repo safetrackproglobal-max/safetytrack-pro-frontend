@@ -8,6 +8,22 @@
    ============================================================ */
 
 /* ============================================================
+   ONE LIGHT THEME
+   The app is designed for a light theme. "light only" also tells Chrome
+   (Auto Dark Mode), Samsung Internet and iOS not to invert/darken pages
+   when the phone is in dark mode — that made text and icons invisible.
+   ============================================================ */
+:root {
+  color-scheme: light only;
+}
+
+html,
+body {
+  background-color: #f0f2f5;
+  color: #262626;
+}
+
+/* ============================================================
    CSS VARIABLES — Light Mode (Default)
    ============================================================ */
 :root {
@@ -63,29 +79,7 @@
 /* ============================================================
    CSS VARIABLES — Dark Mode
    ============================================================ */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --app-bg-primary: #1f1f1f;
-    --app-bg-secondary: #141414;
-    --app-bg-tertiary: #262626;
-    --app-bg-hover: #111a2c;
-    --app-bg-selected: #111a2c;
-    
-    --app-text-primary: #e6e6e6;
-    --app-text-secondary: #b0b0b0;
-    --app-text-tertiary: #8c8c8c;
-    --app-text-disabled: #595959;
-    --app-text-inverse: #141414;
-    
-    --app-border: #303030;
-    --app-border-strong: #434343;
-    --app-border-hover: #177ddc;
-    
-    --app-shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.3);
-    --app-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
-    --app-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.5);
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* Body dark mode override */
 body.dark-mode {
@@ -137,49 +131,23 @@ body {
 }
 
 /* ============================================================
-   ✅ CRITICAL FIX: PREVENT TITLE WRAPPING
+   TITLES & PAGE HEADERS — wrap naturally, never crop
+   (Old rules forced one-line titles and cut them off on phones.)
    ============================================================ */
 
-/* All Ant Design typography — prevent per-character wrapping */
+/* Wrap between words; only break inside a word if it cannot fit at all */
 .ant-typography,
-.ant-typography h1,
-.ant-typography h2,
-.ant-typography h3,
-.ant-typography h4,
-.ant-typography h5,
-h1.ant-typography,
-h2.ant-typography,
-h3.ant-typography,
-h4.ant-typography,
-h5.ant-typography {
-  word-break: keep-all;
-  overflow-wrap: normal;
+h1, h2, h3, h4, h5 {
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
-/* Prevent headers from wrapping in flex containers */
-.ant-space > .ant-space-item:has(h1),
-.ant-space > .ant-space-item:has(h2),
-.ant-space > .ant-space-item:has(h3),
-.ant-space > .ant-space-item:has(h4),
-.ant-space > .ant-space-item:has(h5),
-.ant-space > .ant-space-item:has(.ant-typography) {
-  white-space: nowrap;
-  flex-shrink: 0;
+/* Items in a Space row may shrink so they never push past the screen edge */
+.ant-space > .ant-space-item {
+  min-width: 0;
 }
 
-/* Card head title — truncate with ellipsis */
-.ant-card-head-title {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-
-.ant-card-head-title > * {
-  white-space: nowrap;
-}
-
-/* Header patterns — prevent wrapping */
+/* Headings inside page/section headers wrap instead of being cut */
 [class*="header"] h1,
 [class*="header"] h2,
 [class*="header"] h3,
@@ -188,26 +156,22 @@ h5.ant-typography {
 [class*="title"] h2,
 [class*="title"] h3,
 [class*="title"] h4 {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
 }
 
-/* Modal titles */
-.ant-modal-title {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Drawer titles */
+/* Single-line UI chrome keeps antd's normal ellipsis */
+.ant-card-head-title,
+.ant-modal-title,
 .ant-drawer-title {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%;
 }
 
-/* Page headers (custom class) */
+/* Page headers: title left, actions right — and they wrap onto 2 lines on small screens */
 .page-header,
 .component-header,
 .docmgmt-header,
@@ -222,10 +186,9 @@ h5.ant-typography {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  white-space: nowrap;
-  overflow: hidden;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  min-width: 0;
 }
 
 .page-header > .ant-space:first-child,
@@ -239,26 +202,10 @@ h5.ant-typography {
 .qms-header > .ant-space:first-child,
 .integration-header > .ant-space:first-child,
 .search-header > .ant-space:first-child {
-  flex: 1 1 auto;
+  flex: 1 1 260px;
   min-width: 0;
-  overflow: hidden;
 }
 
-.page-header > .ant-space:last-child,
-.component-header > .ant-space:last-child,
-.docmgmt-header > .ant-space:last-child,
-.compare-header > .ant-space:last-child,
-.bi-header > .ant-space:last-child,
-.share-header > .ant-space:last-child,
-.offline-header > .ant-space:last-child,
-.anomaly-header > .ant-space:last-child,
-.qms-header > .ant-space:last-child,
-.integration-header > .ant-space:last-child,
-.search-header > .ant-space:last-child {
-  flex-shrink: 0;
-}
-
-/* All header titles — enforce no wrap */
 .page-header h4,
 .component-header h4,
 .docmgmt-header h4,
@@ -270,13 +217,10 @@ h5.ant-typography {
 .qms-header h4,
 .integration-header h4,
 .search-header h4 {
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  word-break: keep-all !important;
-  max-width: 400px;
-  display: inline-block;
-  vertical-align: middle;
+  white-space: normal;
+  overflow: visible;
+  max-width: 100%;
+  margin: 0;
 }
 
 /* ============================================================
@@ -296,7 +240,7 @@ h5.ant-typography {
   .qms-header h4,
   .integration-header h4,
   .search-header h4 {
-    max-width: 250px;
+    max-width: 100%;
   }
 }
 
@@ -313,7 +257,7 @@ h5.ant-typography {
   .qms-header h4,
   .integration-header h4,
   .search-header h4 {
-    max-width: 180px;
+    max-width: 100%;
     font-size: 16px !important;
   }
   
@@ -476,287 +420,7 @@ h5.ant-typography {
    DARK MODE OVERRIDES
    ============================================================ */
 
-@media (prefers-color-scheme: dark) {
-  /* Body */
-  body {
-    background: var(--app-bg-secondary);
-    color: var(--app-text-primary);
-  }
-  
-  /* Layout */
-  .ant-layout {
-    background: var(--app-bg-secondary) !important;
-  }
-  
-  .ant-layout-header {
-    background: var(--app-bg-primary) !important;
-    border-bottom-color: var(--app-border) !important;
-  }
-  
-  .ant-layout-sider {
-    background: var(--app-bg-primary) !important;
-    border-right-color: var(--app-border) !important;
-  }
-  
-  .ant-layout-content {
-    background: var(--app-bg-secondary) !important;
-  }
-  
-  /* Cards */
-  .ant-card {
-    background: var(--app-bg-primary);
-    border-color: var(--app-border);
-    color: var(--app-text-primary);
-  }
-  
-  .ant-card-head {
-    background: var(--app-bg-primary);
-    border-bottom-color: var(--app-border);
-    color: var(--app-text-primary);
-  }
-  
-  /* Typography */
-  .ant-typography,
-  h1, h2, h3, h4, h5, h6 {
-    color: var(--app-text-primary);
-  }
-  
-  .ant-typography.ant-typography-secondary {
-    color: var(--app-text-secondary);
-  }
-  
-  /* Stats */
-  .ant-statistic-title {
-    color: var(--app-text-tertiary);
-  }
-  
-  .ant-statistic-content {
-    color: var(--app-text-primary);
-  }
-  
-  /* Tables */
-  .ant-table {
-    background: var(--app-bg-primary);
-    color: var(--app-text-primary);
-  }
-  
-  .ant-table-thead > tr > th {
-    background: var(--app-bg-tertiary) !important;
-    color: var(--app-text-primary);
-    border-bottom-color: var(--app-border);
-  }
-  
-  .ant-table-tbody > tr > td {
-    background: var(--app-bg-primary);
-    border-bottom-color: var(--app-border);
-    color: var(--app-text-primary);
-  }
-  
-  .ant-table-tbody > tr:hover > td {
-    background: var(--app-bg-hover) !important;
-  }
-  
-  /* Inputs */
-  .ant-input,
-  .ant-input-affix-wrapper,
-  .ant-select-selector,
-  .ant-picker {
-    background: var(--app-bg-tertiary) !important;
-    border-color: var(--app-border) !important;
-    color: var(--app-text-primary) !important;
-  }
-  
-  .ant-input::placeholder {
-    color: var(--app-text-disabled);
-  }
-  
-  /* Buttons */
-  .ant-btn-default {
-    background: var(--app-bg-primary);
-    border-color: var(--app-border-strong);
-    color: var(--app-text-primary);
-  }
-  
-  .ant-btn-default:hover {
-    background: var(--app-bg-hover);
-    border-color: var(--app-primary);
-    color: var(--app-primary);
-  }
-  
-  .ant-btn-text {
-    color: var(--app-text-primary);
-  }
-  
-  .ant-btn-text:hover {
-    background: var(--app-bg-hover);
-    color: var(--app-primary);
-  }
-  
-  /* Modals */
-  .ant-modal-content {
-    background: var(--app-bg-primary);
-    color: var(--app-text-primary);
-  }
-  
-  .ant-modal-header {
-    background: var(--app-bg-primary);
-    border-bottom-color: var(--app-border);
-  }
-  
-  .ant-modal-title {
-    color: var(--app-text-primary);
-  }
-  
-  /* Drawers */
-  .ant-drawer-content {
-    background: var(--app-bg-primary);
-  }
-  
-  .ant-drawer-header {
-    background: var(--app-bg-primary);
-    border-bottom-color: var(--app-border);
-  }
-  
-  .ant-drawer-title {
-    color: var(--app-text-primary);
-  }
-  
-  /* Dropdowns */
-  .ant-dropdown-menu {
-    background: var(--app-bg-primary);
-  }
-  
-  .ant-dropdown-menu-item {
-    color: var(--app-text-primary);
-  }
-  
-  .ant-dropdown-menu-item:hover {
-    background: var(--app-bg-hover) !important;
-  }
-  
-  /* Tabs */
-  .ant-tabs-tab {
-    color: var(--app-text-secondary);
-  }
-  
-  .ant-tabs-tab-active .ant-tabs-tab-btn {
-    color: var(--app-primary);
-  }
-  
-  .ant-tabs-ink-bar {
-    background: var(--app-primary);
-  }
-  
-  /* Menu */
-  .ant-menu {
-    background: var(--app-bg-primary);
-    color: var(--app-text-primary);
-  }
-  
-  .ant-menu-item {
-    color: var(--app-text-primary);
-  }
-  
-  .ant-menu-item:hover {
-    background: var(--app-bg-hover) !important;
-    color: var(--app-primary) !important;
-  }
-  
-  .ant-menu-item-selected {
-    background: var(--app-bg-selected) !important;
-    color: var(--app-primary) !important;
-  }
-  
-  .ant-menu-submenu-title {
-    color: var(--app-text-primary);
-  }
-  
-  .ant-menu-submenu-title:hover {
-    background: var(--app-bg-hover) !important;
-    color: var(--app-primary) !important;
-  }
-  
-  /* Breadcrumb */
-  .ant-breadcrumb {
-    color: var(--app-text-tertiary);
-  }
-  
-  .ant-breadcrumb a,
-  .ant-breadcrumb-link {
-    color: var(--app-text-secondary);
-  }
-  
-  .ant-breadcrumb a:hover {
-    color: var(--app-primary);
-  }
-  
-  /* Empty */
-  .ant-empty-description {
-    color: var(--app-text-tertiary);
-  }
-  
-  /* Timeline */
-  .ant-timeline-item-content {
-    color: var(--app-text-primary);
-  }
-  
-  /* Descriptions */
-  .ant-descriptions-item-label {
-    background: var(--app-bg-tertiary);
-    color: var(--app-text-secondary);
-  }
-  
-  .ant-descriptions-item-content {
-    background: var(--app-bg-primary);
-    color: var(--app-text-primary);
-  }
-  
-  .ant-descriptions-bordered .ant-descriptions-view {
-    border-color: var(--app-border);
-  }
-  
-  /* Tags */
-  .ant-tag {
-    background: var(--app-bg-tertiary);
-    border-color: var(--app-border-strong);
-    color: var(--app-text-primary);
-  }
-  
-  /* Alerts */
-  .ant-alert {
-    background: var(--app-bg-tertiary);
-    border-color: var(--app-border);
-    color: var(--app-text-primary);
-  }
-  
-  /* Dividers */
-  .ant-divider {
-    border-color: var(--app-border);
-  }
-  
-  .ant-divider-inner-text {
-    color: var(--app-text-primary);
-  }
-  
-  /* Scrollbars */
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-  
-  ::-webkit-scrollbar-track {
-    background: var(--app-bg-secondary);
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: var(--app-border-strong);
-    border-radius: 4px;
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--app-text-tertiary);
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* ============================================================
    SCROLLBARS — All Modes
@@ -910,4 +574,21 @@ h5.ant-typography {
     background: white !important;
     color: black !important;
   }
+}
+
+
+/* Pulsing live indicator */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* Command Center KPI Cards */
+.command-kpi-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.command-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }

@@ -46,12 +46,17 @@ import {
 } from '@ant-design/icons';
 import { useAuth } from '../../context/AuthContext';
 import dashboardService from '../../services/dashboardService';
+import DashboardOverview from '../../components/dashboard/DashboardOverview';
+import ToolboxTalkWidget from '../../components/toolbox/ToolboxTalkWidget';
+import MyTraining from '../../components/dashboard/MyTraining';
+import { useHistory } from 'react-router-dom';
 import './UserDashboard.css';
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
 
 function UserDashboard() {
+  const history = useHistory();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState({
@@ -198,50 +203,9 @@ function UserDashboard() {
         </div>
       </div>
 
-      {/* Personal Stats */}
-      <Row gutter={[16, 16]} className="stats-row">
-        <Col xs={24} sm={12} md={6}>
-          <Card className="stats-card">
-            <Statistic
-              title="My Documents"
-              value={dashboardData.stats.documents}
-              prefix={<FileTextOutlined style={{ color: '#1890ff' }} />}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card className="stats-card">
-            <Statistic
-              title="My Incidents"
-              value={dashboardData.stats.incidents}
-              prefix={<AlertOutlined style={{ color: '#ff4d4f' }} />}
-              valueStyle={{ color: '#ff4d4f' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card className="stats-card">
-            <Statistic
-              title="My Tasks"
-              value={dashboardData.stats.tasks}
-              prefix={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card className="stats-card">
-            <Statistic
-              title="Compliance Score"
-              value={dashboardData.stats.compliance}
-              suffix="%"
-              prefix={<SafetyCertificateOutlined style={{ color: '#52c41a' }} />}
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Card>
-        </Col>
-      </Row>
+      <DashboardOverview title="My safety status" />
+
+      <ToolboxTalkWidget />
 
       {/* Tabs */}
       <Tabs defaultActiveKey="overview" className="dashboard-tabs">
@@ -323,20 +287,7 @@ function UserDashboard() {
         </TabPane>
 
         <TabPane tab="My Training" key="training">
-          <Card title="My Training Records">
-            <Table
-              columns={[
-                { title: 'Course', dataIndex: 'course', key: 'course' },
-                { title: 'Completion Date', dataIndex: 'completionDate', key: 'completionDate', render: (d) => d ? new Date(d).toLocaleDateString() : 'N/A' },
-                { title: 'Expiry Date', dataIndex: 'expiryDate', key: 'expiryDate', render: (d) => d ? new Date(d).toLocaleDateString() : 'N/A' },
-                { title: 'Status', dataIndex: 'status', key: 'status', render: (s) => <Tag color={s === 'valid' ? 'green' : 'orange'}>{s}</Tag> },
-                { title: 'Score', dataIndex: 'score', key: 'score', render: (s) => s ? `${s}%` : 'N/A' }
-              ]}
-              dataSource={dashboardData.trainingRecords}
-              rowKey="id"
-              pagination={{ pageSize: 5 }}
-            />
-          </Card>
+          <MyTraining />
         </TabPane>
       </Tabs>
 
@@ -346,16 +297,16 @@ function UserDashboard() {
           <Card title="Quick Actions" className="quick-actions-card">
             <Row gutter={[16, 16]}>
               <Col xs={12} sm={6}>
-                <Button icon={<FileTextOutlined />} block>Upload Document</Button>
+                <Button icon={<FileTextOutlined />} block onClick={() => history.push('/document-management?tab=documents')}>Upload Document</Button>
               </Col>
               <Col xs={12} sm={6}>
-                <Button icon={<AlertOutlined />} block>Report Incident</Button>
+                <Button icon={<AlertOutlined />} block onClick={() => history.push('/incidents')}>Report Incident</Button>
               </Col>
               <Col xs={12} sm={6}>
-                <Button icon={<RobotOutlined />} block>AI Analysis</Button>
+                <Button icon={<RobotOutlined />} block onClick={() => history.push('/ai-services')}>AI Analysis</Button>
               </Col>
               <Col xs={12} sm={6}>
-                <Button icon={<SafetyCertificateOutlined />} block>Check Compliance</Button>
+                <Button icon={<SafetyCertificateOutlined />} block onClick={() => history.push('/compliance')}>Check Compliance</Button>
               </Col>
             </Row>
           </Card>

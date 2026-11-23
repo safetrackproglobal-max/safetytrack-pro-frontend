@@ -19,6 +19,11 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../context/LanguageContext';
 import './ContactTeamPage.css';
+import axios from 'axios';
+
+const API_BASE =
+  process.env.REACT_APP_API_BASE_URL ||
+  'https://safetrackproglobal-backend-production.up.railway.app';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -30,29 +35,90 @@ function ContactTeamPage() {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const onFinish = async (values) => {
+    const onFinish = async (values) => {
     setLoading(true);
 
     try {
-      // TODO: Replace with your actual API endpoint
-      // await axios.post('/api/contact', values);
+      const payload = {
+        // Required fields
+        name: values.fullName,
+        email: values.email,
+        subject: values.inquiryType || 'Enterprise inquiry',
+        message: values.message,
 
-      console.log('Contact form submitted:', values);
+        // Optional enterprise fields
+        companyName: values.companyName,
+        phone: values.phone,
+        industry: values.industry,
+        companySize: values.companySize,
+        inquiryType: values.inquiryType,
+        consent: values.consent,
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+        // Honeypot
+        website: values.website || ''
+      };
 
-      setSubmitted(true);
-      message.success(
-        t('contact.successMessage') ||
-        'Thank you! Our enterprise team will contact you within 24 hours.'
+      const { data } = await axios.post(
+        `${API_BASE}/api/contact`,
+        payload,
+        {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 20000
+        }
       );
 
-      form.resetFields();
+      if (data?.success) {
+        setSubmitted(true);
+        message.success(
+          data.message ||
+            t('contact.successMessage') ||
+            'Thank you! Our enterprise team will contact you within 24 hours.'
+        );
+        form.resetFields();
+      } else {
+        // Field-level errors from the backend
+        if (data?.fields) {
+          const fieldMap = {
+            name: 'fullName',
+            email: 'email',
+            subject: 'inquiryType',
+            message: 'message',
+            companyName: 'companyName',
+            phone: 'phone'
+          };
+          form.setFields(
+            Object.entries(data.fields).map(([field, err]) => ({
+              name: fieldMap[field] || field,
+              errors: [err]
+            }))
+          );
+        }
+        message.error(data?.error || t('contact.errorMessage') || 'Failed to send message.');
+      }
     } catch (error) {
+      const errData = error?.response?.data;
+
+      if (errData?.fields) {
+        const fieldMap = {
+          name: 'fullName',
+          email: 'email',
+          subject: 'inquiryType',
+          message: 'message',
+          companyName: 'companyName',
+          phone: 'phone'
+        };
+        form.setFields(
+          Object.entries(errData.fields).map(([field, err]) => ({
+            name: fieldMap[field] || field,
+            errors: [err]
+          }))
+        );
+      }
+
       message.error(
-        t('contact.errorMessage') ||
-        'Something went wrong. Please try again or email us directly at info@safetrackproglobal.com'
+        errData?.error ||
+          t('contact.errorMessage') ||
+          'Something went wrong. Please try again or email us directly at info@safetrackproglobal.com'
       );
     } finally {
       setLoading(false);
@@ -372,7 +438,7 @@ function ContactTeamPage() {
                     </Checkbox>
                   </Form.Item>
 
-                  {/* Submit */}
+                                    {/* Submit */}
                   <Form.Item style={{ marginBottom: 0 }}>
                     <Button
                       type="primary"
@@ -387,6 +453,31 @@ function ContactTeamPage() {
                         ? t('contact.sending') || 'Sending...'
                         : t('contact.submit') || 'Send Message'}
                     </Button>
+                  </Form.Item>
+
+                  {/* Honeypot — hidden from humans, filled by bots.
+                      If a value lands here, the backend silently drops the message. */}
+                  <Form.Item
+                    name="website"
+                    style={{
+                      position: 'absolute',
+                      left: '-9999px',
+                      width: '1px',
+                      height: '1px',
+                      overflow: 'hidden',
+                      opacity: 0
+                    }}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                  >
+                    <Input
+                      type="text"
+                      name="website"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      placeholder="Leave this field empty"
+                    />
                   </Form.Item>
 
                   {/* Success Message */}

@@ -309,61 +309,7 @@
 }
 
 /* Dark Mode */
-@media (prefers-color-scheme: dark) {
-  .predictive-header {
-    background: #1f1f1f;
-  }
-  
-  .predictive-stat-card {
-    background: linear-gradient(to right, #1f1f1f, #141414);
-    border-left-color: #722ed1;
-  }
-  
-  .forecast-chart-container {
-    background: #1f1f1f;
-  }
-  
-  .recommendation-card {
-    background: #2b2000;
-    border-left-color: #faad14;
-  }
-  
-  .recommendation-card.high-impact {
-    background: #2c1618;
-  }
-  
-  .forecast-summary-card {
-    background: linear-gradient(135deg, #111a2c, #1f1f1f);
-    border-color: #15395b;
-  }
-  
-  .forecast-summary-card .ant-statistic-title {
-    color: #91d5ff;
-  }
-  
-  .forecast-summary-card .ant-statistic-content {
-    color: #69c0ff;
-  }
-  
-  .confidence-interval {
-    background: #111a2c;
-    color: #91d5ff;
-  }
-  
-  .model-status-active {
-    background: #162312;
-    color: #95de64;
-  }
-  
-  .model-status-training {
-    background: #111a2c;
-    color: #69c0ff;
-  }
-  
-  .training-progress {
-    background: #111a2c;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* Animations */
 @keyframes pulse {

@@ -1,12 +1,24 @@
 // src/components/analytics/DataEntryForms.jsx
 import React from 'react';
 import { Form, Input, InputNumber, DatePicker, Select, Button, Space } from 'antd';
-import moment from 'moment';
 
 const { TextArea } = Input;
 const { Option } = Select;
 
-const DataEntryForms = ({ type, form, onFinish, loading }) => {
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+// last 36 months + next 2, newest first, stored as "Jan-2026"
+const monthOptions = () => {
+  const now = new Date();
+  const out = [];
+  for (let i = -2; i < 36; i += 1) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    out.push({ value: `${MONTHS[d.getMonth()]}-${d.getFullYear()}`, label: `${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}` });
+  }
+  return out;
+};
+
+const DataEntryForms = ({ type, form, onFinish, loading, submitText }) => {
   // ==================== MANPOWER FORM ====================
   const renderManpowerForm = () => (
     <Form form={form} layout="vertical" onFinish={onFinish}>
@@ -27,7 +39,7 @@ const DataEntryForms = ({ type, form, onFinish, loading }) => {
       </Form.Item>
       <Form.Item>
         <Button type="primary" htmlType="submit" loading={loading} block>
-          Add Manpower Data
+          {submitText || 'Add Manpower Data'}
         </Button>
       </Form.Item>
     </Form>
@@ -39,8 +51,8 @@ const DataEntryForms = ({ type, form, onFinish, loading }) => {
       <Form.Item name="type" label="Training Type" rules={[{ required: true, message: 'Please enter training type' }]}>
         <Input placeholder="e.g., Fire Safety, First Aid, Work Permit" />
       </Form.Item>
-      <Form.Item name="count" label="Number Trained" rules={[{ required: true, message: 'Please enter count' }]}>
-        <InputNumber min={0} style={{ width: '100%' }} placeholder="Number of trainees" />
+      <Form.Item name="score" label="Score (optional)">
+        <InputNumber min={0} max={100} style={{ width: '100%' }} placeholder="e.g. 85" />
       </Form.Item>
       <Form.Item name="completed_date" label="Completion Date" rules={[{ required: true, message: 'Please select date' }]}>
         <DatePicker style={{ width: '100%' }} />
@@ -50,7 +62,7 @@ const DataEntryForms = ({ type, form, onFinish, loading }) => {
       </Form.Item>
       <Form.Item>
         <Button type="primary" htmlType="submit" loading={loading} block>
-          Add Training Data
+          {submitText || 'Add Training Data'}
         </Button>
       </Form.Item>
     </Form>
@@ -73,7 +85,7 @@ const DataEntryForms = ({ type, form, onFinish, loading }) => {
       </Form.Item>
       <Form.Item>
         <Button type="primary" htmlType="submit" loading={loading} block>
-          Add LTI Data
+          {submitText || 'Add LTI Data'}
         </Button>
       </Form.Item>
     </Form>
@@ -91,15 +103,12 @@ const DataEntryForms = ({ type, form, onFinish, loading }) => {
       <Form.Item name="date" label="Date" rules={[{ required: true, message: 'Please select date' }]}>
         <DatePicker style={{ width: '100%' }} />
       </Form.Item>
-      <Form.Item name="project" label="Project">
-        <Input placeholder="Project name" />
-      </Form.Item>
       <Form.Item name="activity" label="Activity">
         <Input placeholder="Activity description" />
       </Form.Item>
       <Form.Item>
         <Button type="primary" htmlType="submit" loading={loading} block>
-          Add Man-Hours Data
+          {submitText || 'Add Man-Hours Data'}
         </Button>
       </Form.Item>
     </Form>
@@ -117,9 +126,6 @@ const DataEntryForms = ({ type, form, onFinish, loading }) => {
           <Option value="Unsafe Behavior">Unsafe Behavior</Option>
         </Select>
       </Form.Item>
-      <Form.Item name="count" label="Count" rules={[{ required: true, message: 'Please enter count' }]}>
-        <InputNumber min={1} style={{ width: '100%' }} placeholder="Number of observations" />
-      </Form.Item>
       <Form.Item name="date" label="Date" rules={[{ required: true, message: 'Please select date' }]}>
         <DatePicker style={{ width: '100%' }} />
       </Form.Item>
@@ -131,7 +137,7 @@ const DataEntryForms = ({ type, form, onFinish, loading }) => {
       </Form.Item>
       <Form.Item>
         <Button type="primary" htmlType="submit" loading={loading} block>
-          Add Observation Data
+          {submitText || 'Add Observation Data'}
         </Button>
       </Form.Item>
     </Form>
@@ -157,7 +163,7 @@ const DataEntryForms = ({ type, form, onFinish, loading }) => {
       </Form.Item>
       <Form.Item>
         <Button type="primary" htmlType="submit" loading={loading} block>
-          Add Accident Data
+          {submitText || 'Add Accident Data'}
         </Button>
       </Form.Item>
     </Form>
@@ -180,7 +186,7 @@ const DataEntryForms = ({ type, form, onFinish, loading }) => {
       </Form.Item>
       <Form.Item>
         <Button type="primary" htmlType="submit" loading={loading} block>
-          Add Severity Data
+          {submitText || 'Add Severity Data'}
         </Button>
       </Form.Item>
     </Form>
@@ -206,7 +212,7 @@ const DataEntryForms = ({ type, form, onFinish, loading }) => {
       </Form.Item>
       <Form.Item>
         <Button type="primary" htmlType="submit" loading={loading} block>
-          Add Injury Data
+          {submitText || 'Add Injury Data'}
         </Button>
       </Form.Item>
     </Form>
@@ -219,46 +225,8 @@ const DataEntryForms = ({ type, form, onFinish, loading }) => {
       name="month" 
       label="Month" 
       rules={[{ required: true, message: 'Please select month' }]}
-      extra="Format: Jan-2024, Feb-2024, etc."
     >
-      <Select placeholder="Select month">
-        <Option value="Jan-2024">January 2024</Option>
-        <Option value="Feb-2024">February 2024</Option>
-        <Option value="Mar-2024">March 2024</Option>
-        <Option value="Apr-2024">April 2024</Option>
-        <Option value="May-2024">May 2024</Option>
-        <Option value="Jun-2024">June 2024</Option>
-        <Option value="Jul-2024">July 2024</Option>
-        <Option value="Aug-2024">August 2024</Option>
-        <Option value="Sep-2024">September 2024</Option>
-        <Option value="Oct-2024">October 2024</Option>
-        <Option value="Nov-2024">November 2024</Option>
-        <Option value="Dec-2024">December 2024</Option>
-        <Option value="Jan-2025">January 2025</Option>
-        <Option value="Feb-2025">February 2025</Option>
-        <Option value="Mar-2025">March 2025</Option>
-        <Option value="Apr-2025">April 2025</Option>
-        <Option value="May-2025">May 2025</Option>
-        <Option value="Jun-2025">June 2025</Option>
-        <Option value="Jul-2025">July 2025</Option>
-        <Option value="Aug-2025">August 2025</Option>
-        <Option value="Sep-2025">September 2025</Option>
-        <Option value="Oct-2025">October 2025</Option>
-        <Option value="Nov-2025">November 2025</Option>
-        <Option value="Dec-2025">December 2025</Option>
-        <Option value="Jan-2026">January 2026</Option>
-        <Option value="Feb-2026">February 2026</Option>
-        <Option value="Mar-2026">March 2026</Option>
-        <Option value="Apr-2026">April 2026</Option>
-        <Option value="May-2026">May 2026</Option>
-        <Option value="Jun-2026">June 2026</Option>
-        <Option value="Jul-2026">July 2026</Option>
-        <Option value="Aug-2026">August 2026</Option>
-        <Option value="Sep-2026">September 2026</Option>
-        <Option value="Oct-2026">October 2026</Option>
-        <Option value="Nov-2026">November 2026</Option>
-        <Option value="Dec-2026">December 2026</Option>
-      </Select>
+      <Select placeholder="Select month" showSearch options={monthOptions()} />
     </Form.Item>
     <Form.Item name="on_time" label="On Time Reports" rules={[{ required: true, message: 'Please enter count' }]}>
       <InputNumber min={0} style={{ width: '100%' }} placeholder="Number of on-time reports" />
@@ -277,7 +245,7 @@ const DataEntryForms = ({ type, form, onFinish, loading }) => {
     </Form.Item>
     <Form.Item>
       <Button type="primary" htmlType="submit" loading={loading} block>
-        Add Overdue Report Data
+        {submitText || 'Add Overdue Report Data'}
       </Button>
     </Form.Item>
   </Form>

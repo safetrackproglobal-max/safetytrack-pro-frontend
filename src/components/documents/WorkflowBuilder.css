@@ -264,40 +264,7 @@
 }
 
 /* Dark Mode */
-@media (prefers-color-scheme: dark) {
-  .workflow-header {
-    background: #1f1f1f;
-  }
-  
-  .workflow-toolbar {
-    background: #262626;
-    border-bottom-color: #303030;
-  }
-  
-  .workflow-canvas {
-    background: #141414;
-    background-image: 
-      linear-gradient(#303030 1px, transparent 1px),
-      linear-gradient(90deg, #303030 1px, transparent 1px);
-  }
-  
-  .workflow-node {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-  
-  .node-title {
-    color: #e6e6e6;
-  }
-  
-  .node-header {
-    border-bottom-color: #303030;
-  }
-  
-  .node-handle {
-    background: #1f1f1f;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* Animations */
 @keyframes node-pulse {

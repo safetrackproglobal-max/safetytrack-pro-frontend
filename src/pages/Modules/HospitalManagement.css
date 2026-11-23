@@ -857,33 +857,4 @@
 /* ============================================
    DARK MODE SUPPORT (Optional)
    ============================================ */
-@media (prefers-color-scheme: dark) {
-  .hospital-management-container {
-    background: #141414;
-  }
-  
-  .stat-card,
-  .dashboard-card,
-  .patient-status-card,
-  .safety-status-card {
-    background: #1f1f1f;
-  }
-  
-  .enterprise-tabs .ant-tabs-content-holder {
-    background: #1f1f1f;
-  }
-  
-  .enterprise-tabs .ant-tabs-tab-active {
-    background: #1f1f1f;
-    border-color: #1890ff;
-  }
-  
-  .hospital-table .ant-table-thead > tr > th {
-    background: #1a1a1a;
-    color: #e8e8e8;
-  }
-  
-  .hospital-table .ant-table-tbody > tr:hover > td {
-    background: #1a1a1a;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */

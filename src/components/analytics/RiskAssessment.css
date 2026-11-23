@@ -602,68 +602,7 @@
 /* ============================================
    DARK MODE SUPPORT
    ============================================ */
-@media (prefers-color-scheme: dark) {
-  .risk-assessment {
-    background: #141414;
-    color: rgba(255, 255, 255, 0.85);
-  }
-  
-  .risk-header-card {
-    background: linear-gradient(135deg, #2a1215 0%, #1f1f1f 100%);
-    border-color: #58181c;
-  }
-  
-  .stat-card,
-  .risk-filters,
-  .ant-card,
-  .ant-tabs,
-  .risk-loading {
-    background: #1f1f1f;
-    border-color: #434343;
-  }
-  
-  .stat-card .ant-statistic-title,
-  .ant-table-thead > tr > th,
-  .ant-card-head-title {
-    color: rgba(255, 255, 255, 0.85);
-  }
-  
-  .stat-card .ant-statistic-content {
-    color: rgba(255, 255, 255, 0.85);
-  }
-  
-  .ant-table-tbody > tr > td {
-    border-bottom-color: #434343;
-    color: rgba(255, 255, 255, 0.85);
-  }
-  
-  .ant-table-tbody > tr.high-risk > td {
-    background: #2a1215;
-  }
-  
-  .ant-table-tbody > tr.medium-risk > td {
-    background: #2b2111;
-  }
-  
-  .ant-table-tbody > tr.low-risk > td {
-    background: #162312;
-  }
-  
-  .ant-tag-red {
-    background: #2a1215;
-    color: #ff7875;
-  }
-  
-  .ant-tag-orange {
-    background: #2b2111;
-    color: #ffa940;
-  }
-  
-  .ant-tag-green {
-    background: #162312;
-    color: #73d13d;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* ============================================
    ACCESSIBILITY
@@ -752,17 +691,7 @@
   border-radius: 3px;
 }
 
-@media (prefers-color-scheme: dark) {
-  .ant-modal-body::-webkit-scrollbar-track,
-  .ant-table-body::-webkit-scrollbar-track {
-    background: #2f2f2f;
-  }
-  
-  .ant-modal-body::-webkit-scrollbar-thumb,
-  .ant-table-body::-webkit-scrollbar-thumb {
-    background: #555;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* ============================================
    UTILITY CLASSES

@@ -191,40 +191,7 @@
 }
 
 /* Dark Mode */
-@media (prefers-color-scheme: dark) {
-  .template-library-header {
-    background: #1f1f1f;
-  }
-
-  .template-library-filters {
-    background: #1f1f1f;
-  }
-
-  .template-card .ant-card-cover {
-    background: #262626;
-  }
-
-  .template-card .ant-card-actions {
-    background: #262626;
-    border-top-color: #303030;
-  }
-
-  .template-preview-content {
-    background: #262626;
-    color: #e6e6e6;
-  }
-
-  .template-variable {
-    background: #111a2c;
-    color: #91d5ff;
-    border-color: #15395b;
-  }
-
-  .template-library .ant-upload-drag {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* Animations */
 @keyframes template-fade-in {

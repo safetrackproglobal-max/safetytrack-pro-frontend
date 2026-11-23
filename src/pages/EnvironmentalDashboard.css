@@ -522,43 +522,7 @@
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .sensor-mini-card {
-    background: #1f1f1f;
-  }
-  
-  .sensor-mini-card:hover {
-    background: #2a2a2a;
-  }
-  
-  .comfort-preview {
-    background: #1f1f1f;
-  }
-  
-  .uhi-summary {
-    background: linear-gradient(135deg, #2a1a0f 0%, #141414 100%);
-  }
-  
-  .uhi-card {
-    background: #1f1f1f;
-  }
-  
-  .status-item {
-    background: #1f1f1f;
-  }
-  
-  .status-item:hover {
-    background: #2a2a2a;
-  }
-  
-  .status-label {
-    color: #a6a6a6;
-  }
-  
-  .status-value {
-    color: #e6e6e6;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* Animation for new data */
 @keyframes pulse {

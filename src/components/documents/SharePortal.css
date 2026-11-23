@@ -123,25 +123,7 @@
 }
 
 /* Dark Mode */
-@media (prefers-color-scheme: dark) {
-  .share-header {
-    background: #1f1f1f;
-  }
-  
-  .share-stat-card {
-    background: #1f1f1f;
-  }
-  
-  .share-link-box {
-    background: #162312;
-    border-color: #274916;
-  }
-  
-  .share-link-text {
-    background: #1f1f1f;
-    color: #e6e6e6;
-  }
-}
+/* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* Animations */
 @keyframes link-fade-in {
