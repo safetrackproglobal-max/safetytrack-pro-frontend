@@ -1,4 +1,135 @@
+# ============================================
+# SafeTrack Pro Global - robots.txt
+# AI-Powered Safety Management Platform
+# ============================================
+# This file controls how search engines and AI crawlers
+# interact with SafeTrack Pro Global.
+#
+# Spec reference: RFC 9309
+# Last updated: 2026
+# ============================================
+
+# ============================================
+# DEFAULT — ALLOW ALL CRAWLERS
+# ============================================
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /super-admin
+Disallow: /api/private
+Disallow: /auth
+Disallow: /password-reset
+Disallow: /profile
+Disallow: /settings
+Disallow: /_next
+Disallow: /cart
+Disallow: /checkout
+Disallow: /*?sessionid=
+Disallow: /*?token=
+Disallow: /voice/track
+Disallow: /voice/rewards
 
+# ============================================
+# AI RETRIEVAL CRAWLERS — WELCOMED
+# ============================================
+
+# OpenAI / ChatGPT
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+# Anthropic / Claude
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+# Perplexity AI
+User-agent: PerplexityBot
+Allow: /
+
+# Google AI / Gemini
+User-agent: Google-Extended
+Allow: /
+
+# Apple AI
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# Amazon AI
+User-agent: Amazonbot
+Allow: /
+
+# Meta AI
+User-agent: meta-externalagent
+Allow: /
+
+# Common Crawl (used by many AI models)
+User-agent: CCBot
+Allow: /
+
+# DuckDuckGo AI
+User-agent: DuckAssistBot
+Allow: /
+
+# You.com AI
+User-agent: YouBot
+Allow: /
+
+# ============================================
+# SEO TOOLS — ALLOWED FOR BACKLINK HEALTH
+# Remove these blocks if you want maximum visibility
+# ============================================
+User-agent: AhrefsBot
+Allow: /
+
+User-agent: SemrushBot
+Allow: /
+
+# ============================================
+# BAD BOTS & SCRAPERS — BLOCKED
+# ============================================
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: Dotbot
+Disallow: /
+
+User-agent: AspiegelBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: PetalBot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
+User-agent: DataForSeoBot
+Disallow: /
+
+User-agent: ZoominfoBot
+Disallow: /
+
+User-agent: magpie-crawler
+Disallow: /
+
+# ============================================
+# SITEMAP LOCATIONS
+# ============================================
 Sitemap: https://www.safetrackproglobal.com/sitemap.xml
+Sitemap: https://safetrackproglobal.com/sitemap-pages.xml

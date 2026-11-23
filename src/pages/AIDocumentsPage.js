@@ -63,7 +63,9 @@ import {
   AppstoreOutlined,
   LockOutlined,
   ExpandOutlined,
-  CompressOutlined
+  CompressOutlined,
+  ExperimentOutlined,
+  SafetyCertificateOutlined
 } from '@ant-design/icons';
 import './AIDocumentsPage.css';
 import AIService from '../services/GeneralAIService';
@@ -74,6 +76,7 @@ import deepSeekService from '../services/DeepSeekService';
 import PDFEditor from '../pages/PDFEditor';
 import aiStorageService from '../services/aiStorageService';
 import SendToDocumentControl, { AutoAddSwitch, getAutoAdd, importGeneratedDocument } from '../components/submissions/SendToDocumentControl';
+import AIExamCertificate from './AIExamCertificate';
 import {
   PLAN_PERMISSIONS,
   industries,
@@ -2005,6 +2008,8 @@ function AIDocumentsPage() {
   // ============= INITIALIZATION =============
 
   const messagesEndRef = useRef(null);
+  // Ref to the exam/certificate component (used by the floating Exam button)
+  const examRef = useRef(null);
 
   // Add useEffect to check DeepSeek availability
   useEffect(() => {
@@ -4518,6 +4523,19 @@ const renderHistoryTab = () => (
         <TabPane tab={<span><FilePdfOutlined /> PDF Generator</span>} key="generator">
           {renderDocumentGenerator()}
         </TabPane>
+        {/* Exams, certificates & verification live in AIExamCertificate.js.
+            forceRender keeps it mounted so the floating Exam button always works. */}
+        <TabPane tab={<span><ExperimentOutlined /> Exams & Verification</span>} key="tools" forceRender>
+          <AIExamCertificate
+            ref={examRef}
+            userPlan={userPlan}
+            selectedIndustry={selectedIndustry}
+            companyInfo={companyInfo}
+            documentTypes={documentTypes}
+            setUpgradeInfo={setUpgradeInfo}
+            setShowUpgradeModal={setShowUpgradeModal}
+          />
+        </TabPane>
 
         <TabPane 
           tab={
@@ -4551,6 +4569,7 @@ const renderHistoryTab = () => (
       <FloatButton.Group shape="square" style={{ right: 24 }}>
         <FloatButton icon={<FilePdfOutlined />} tooltip="PDF Generator" onClick={() => setActiveTab('generator')} />
         <FloatButton icon={<MessageOutlined />} tooltip="Chat" onClick={() => setActiveTab('chat')} />
+        <FloatButton icon={<SafetyCertificateOutlined />} tooltip="Exam" onClick={() => examRef.current?.startExam()} />
         <FloatButton icon={<QuestionCircleOutlined />} tooltip="Help" onClick={() => setIsHelpVisible(true)} />
         <FloatButton.BackTop visibilityHeight={0} />
       </FloatButton.Group>
