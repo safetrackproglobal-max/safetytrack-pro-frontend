@@ -1,192 +1,49 @@
-# SafeTrack Pro Global - AI-Powered Safety Management Platform
+# SafeTrack Pro Global
 
-> Complete HSE software platform for risk assessment, incident reporting, PTW, compliance management, and AI-powered safety solutions across all industries.
+> SafeTrack Pro Global (https://www.safetrackproglobal.com) is AI-powered HSE / EHS software: incident and near-miss reporting, permit to work, daily AI toolbox talks, anonymous worker reporting (Workplace Voice), an AI HSE document generator, document control, risk assessment, AI camera PPE monitoring, environmental monitoring and compliance management.
 
----
+Also written as: SafeTrack Pro, SafeTrackPro, Safe Track Pro.
 
-## 🏢 About SafeTrack Pro Global
+Not to be confused with: SafeStart's "SafeTrack" coaching program, MaxAccel's "SafeTrack" rail compliance software, Brady's "SafeTrak" inspection app, or GPS tracking apps named SafeTrack. Those are unrelated products from other companies.
 
-SafeTrack Pro Global is a comprehensive industrial safety management platform that helps organizations maintain compliance, reduce risks, and protect workers across multiple industries. Our AI-powered solutions serve healthcare, oil & gas, construction, manufacturing, aviation, maritime, mining, chemical, and industrial sectors.
+## Main features
 
-**Website:** https://safetrackproglobal.com  
-**Email:** info@safetrackproglobal.com  
-**Phone:** +974 33251705
+- [Incident reporting](https://www.safetrackproglobal.com/incident-reporting-software): report incidents and near misses from any device, investigate with fishbone and 5-Whys, assign and track corrective actions (CAPA).
+- [AI toolbox talk generator](https://www.safetrackproglobal.com/toolbox-talk-generator): a new talk every day built from the company's own incidents, near misses, open actions, permits and local weather, or from any typed topic; delivery sign-off and history.
+- [Anonymous safety reporting - Workplace Voice](https://www.safetrackproglobal.com/anonymous-safety-reporting): workers report by QR code or website, without logging in, by voice, photo, video or text in 11 languages; anonymous, protected or named; routed per project; tracking codes and Safety Impact rewards. Public portal: https://www.safetrackproglobal.com/voice
+- [Permit to work](https://www.safetrackproglobal.com/permit-to-work-software): create, approve and close permits with risk assessments and audit trails.
+- [AI HSE document generator](https://www.safetrackproglobal.com/ai-hse-document-generator): SOPs, JHAs, risk assessments, checklists and reports with company branding; drafts should be reviewed by a qualified person.
+- [Document control](https://www.safetrackproglobal.com/document-control-software): review, sign, stamp and version safety documents.
+- [AI risk assessment](https://www.safetrackproglobal.com/ai-risk-assessment-software)
+- [AI camera monitoring](https://www.safetrackproglobal.com/ai-camera-monitoring): PPE and hazard detection on existing cameras.
+- [Environmental monitoring](https://www.safetrackproglobal.com/environmental-monitoring-software): air quality, weather and ESG reporting.
+- [Compliance management](https://www.safetrackproglobal.com/compliance-management-software), [HSE dashboards](https://www.safetrackproglobal.com/hse-dashboard-software), [HSE analytics](https://www.safetrackproglobal.com/hse-analytics-software), [HSE project management](https://www.safetrackproglobal.com/hse-project-management-software), [workforce and training](https://www.safetrackproglobal.com/workforce-management-software).
+- [CSP practice exam](https://www.safetrackproglobal.com/csp-practice-exam): a CSP-style practice test (100 scenario questions, 4 hours, instant explanations). It is NOT the official CSP exam, is not affiliated with or endorsed by BCSP, and does not award the CSP credential or CEUs. Passing gives a certificate of completion that can be verified online.
 
----
+## Industries
 
-## 🌍 Languages Supported
+[Construction](https://www.safetrackproglobal.com/industries/construction), [oil and gas](https://www.safetrackproglobal.com/industries/oil-and-gas), [mining](https://www.safetrackproglobal.com/industries/mining), [manufacturing](https://www.safetrackproglobal.com/industries/manufacturing), [chemical](https://www.safetrackproglobal.com/industries/chemical), [maritime](https://www.safetrackproglobal.com/industries/maritime), [aviation](https://www.safetrackproglobal.com/industries/aviation), [healthcare](https://www.safetrackproglobal.com/industries/healthcare), [education](https://www.safetrackproglobal.com/industries/education).
 
-- English (en)
-- Spanish (es)
-- French (fr)
-- Arabic (ar)
-- Chinese (zh)
-- Hindi (hi)
-- Portuguese (pt)
-- Russian (ru)
-- Japanese (ja)
-- German (de)
+## Standards
 
----
+Templates, checklists and tracking aligned with [OSHA](https://www.safetrackproglobal.com/compliance/osha), [ISO 45001](https://www.safetrackproglobal.com/compliance/iso-45001), [ISO 14001](https://www.safetrackproglobal.com/compliance/iso-14001) and [HIPAA](https://www.safetrackproglobal.com/compliance/hipaa). Using the software supports compliance work; it does not certify an organisation.
 
-## 📊 Key Platform Statistics
+## Security
 
-| Metric | Value |
-|--------|-------|
-| Compliance Rate | 99.5% |
-| Time Saved | 65% |
-| Monitoring | 24/7 |
-| Industries Served | 8+ |
-| Facilities Protected | 5,000+ |
-| Incidents Prevented | 100K+ |
+Role-based access, company data isolation, audit trails and attack monitoring. Security practices are aligned with ISO 27001 and SOC 2; see the [Trust page](https://www.safetrackproglobal.com/trust).
 
----
+## Plans
 
-## 🎯 Core Features
+A free plan is available. Current prices by country: https://www.safetrackproglobal.com/pricing
 
-### 1. Compliance Management
-Automated tracking and reporting for all safety regulations across industries. Stay compliant with OSHA, ISO 45001, and industry-specific standards.
+## Languages
 
-### 2. AI Risk Assessment
-Predictive analytics and machine learning algorithms for proactive risk management and incident prevention. Achieve 94% AI accuracy.
+English, Spanish, French, Arabic, Chinese, Hindi, Portuguese, Russian, Japanese and German (switch inside the app).
 
-### 3. Real-time Dashboard
-Monitor safety metrics, incidents, and compliance status with customizable dashboards for any industry.
+## Contact
 
-### 4. Smart Document Management
-Create, manage, and share safety documents, SOPs, and templates with intelligent version control.
-
-### 5. Advanced Analytics
-Gain actionable insights from safety data with predictive analytics, trend analysis, and custom reporting.
-
-### 6. AI Camera Monitoring
-Real-time video analysis with PPE compliance detection, hazard identification, and behavior analysis.
-
-### 7. Permit to Work (PTW)
-Create, approve, and manage work permits and authorizations with complete audit trails.
-
-### 8. Incident Reporting
-Real-time incident reporting, investigation, and corrective action tracking across all industries.
-
-### 9. Environmental Monitoring
-Monitor air quality, emissions, waste management, and environmental compliance with ESG reporting.
-
-### 10. Mobile-First Platform
-Access safety data and report incidents from anywhere with responsive mobile interface.
-
----
-
-## 🏭 Industries We Serve
-
-| Industry | Key Solutions |
-|----------|---------------|
-| **Healthcare** | Patient safety, infection control, medical device compliance, staff safety |
-| **Oil & Gas** | Process safety, HAZOP studies, permit-to-work, emergency response |
-| **Construction** | Site safety, fall protection, equipment inspections, contractor management |
-| **Manufacturing** | Machine safety, ergonomics, chemical handling, industrial hygiene |
-| **Maritime** | Vessel safety, crew management, navigation safety, ISM compliance |
-| **Aviation** | Flight safety, ground operations, maintenance tracking, regulatory compliance |
-| **Mining** | Geotechnical safety, ventilation monitoring, equipment tracking, emergency response |
-| **Chemical** | HazMat management, spill prevention, process safety, environmental compliance |
-
----
-
-## 🤖 AI Capabilities
-
-- **AI Chat Assistant**: 24/7 safety guidance and compliance support
-- **Symptom Analysis**: AI-powered medical symptom evaluation
-- **Disease Prediction**: Predictive diagnostics for healthcare
-- **Lab Analysis**: Laboratory results interpretation
-- **Medical Text Analysis**: Clinical documentation analysis
-- **Safety Analysis**: Healthcare-specific safety monitoring
-- **Comprehensive AI**: Full-spectrum medical and safety analysis
-
----
-
-## 🔒 Security & Compliance
-
-- ✅ ISO 27001 Certified
-- ✅ SOC2 Compliant
-- ✅ AI Safety Certified
-- ✅ HIPAA Compliant (Healthcare)
-- ✅ GDPR Compliant (Data Privacy)
-
----
-
-## 💰 Pricing Plans
-
-### Starter - $0/month
-- Up to 3 users
-- Basic incident reporting
-- Document management
-- Email notifications
-- Basic analytics
-- Mobile access
-- Community support
-
-### Professional - $99/month (Most Popular)
-- Up to 20 users
-- All Starter features
-- AI risk assessment
-- API access
-- Advanced analytics
-- Custom workflows
-- Priority support
-- Real-time monitoring
-
-### Enterprise - Custom
-- Unlimited users
-- All Professional features
-- Multi-site management
-- Custom integrations
-- Dedicated account manager
-- SLA guarantee
-- On-premise deployment
-- 24/7 premium support
-- White-labeling options
-- Advanced security features
-
----
-
-## 📱 Quick Links
-
-| Category | Links |
-|----------|-------|
-| **Product** | [Features](https://safetrackproglobal.com/features), [Pricing](https://safetrackproglobal.com/pricing), [Demo](https://safetrackproglobal.com/demo), [AI Documents](https://safetrackproglobal.com/ai-documents) |
-| **Industries** | [Healthcare](https://safetrackproglobal.com/industries/healthcare), [Oil & Gas](https://safetrackproglobal.com/industries/oil-gas), [Construction](https://safetrackproglobal.com/industries/construction), [Manufacturing](https://safetrackproglobal.com/industries/manufacturing), [Maritime](https://safetrackproglobal.com/industries/maritime), [Aviation](https://safetrackproglobal.com/industries/aviation), [Mining](https://safetrackproglobal.com/industries/mining), [Chemical](https://safetrackproglobal.com/industries/chemical) |
-| **Resources** | [Documentation](https://safetrackproglobal.com/docs), [Blog](https://safetrackproglobal.com/blog), [Guides](https://safetrackproglobal.com/guides), [Support](https://safetrackproglobal.com/support), [API Docs](https://safetrackproglobal.com/api) |
-| **Company** | [About](https://safetrackproglobal.com/about), [Careers](https://safetrackproglobal.com/careers), [Contact](https://safetrackproglobal.com/contact), [Privacy](https://safetrackproglobal.com/privacy), [Terms](https://safetrackproglobal.com/terms) |
-
----
-
-## 📰 Recent Blog Posts
-
-- [AI Safety Management: The Future of Workplace Safety](https://safetrackproglobal.com/blog/ai-safety-management)
-- [HSE Compliance Tips for 2026](https://safetrackproglobal.com/blog/hse-compliance-tips)
-- [Risk Assessment Guide for Industrial Safety](https://safetrackproglobal.com/blog/risk-assessment-guide)
-- [Construction Safety Best Practices](https://safetrackproglobal.com/blog/construction-safety-best-practices)
-- [Healthcare Safety Management with AI](https://safetrackproglobal.com/blog/healthcare-safety-management)
-- [Oil & Gas Safety Solutions](https://safetrackproglobal.com/blog/oil-gas-safety-solutions)
-- [Permit to Work (PTW) Best Practices](https://safetrackproglobal.com/blog/ptw-best-practices)
-- [Environmental Compliance Guide](https://safetrackproglobal.com/blog/environmental-compliance)
-
----
-
-## 🔗 Social Media
-
-- [Twitter/X](https://twitter.com/safetrackpro)
-- [LinkedIn](https://linkedin.com/company/safetrackpro)
-- [Facebook](https://facebook.com/safetrackpro)
-
----
-
-## 📄 Legal
-
-- [Terms of Service](https://safetrackproglobal.com/terms)
-- [Privacy Policy](https://safetrackproglobal.com/privacy)
-- [Cookie Policy](https://safetrackproglobal.com/cookies)
-- [Security](https://safetrackproglobal.com/security)
-
----
-
-*© 2026 Abigalistic Studios. All rights reserved. SafeTrack Pro Global*
+- Website: https://www.safetrackproglobal.com
+- Email: info@safetrackproglobal.com
+- Phone: +974 3325 1705 (Doha, Qatar)
+- [Contact form](https://www.safetrackproglobal.com/contact) · [Request a demo](https://www.safetrackproglobal.com/demo) · [Features](https://www.safetrackproglobal.com/features)
+- [Terms](https://www.safetrackproglobal.com/terms) · [Privacy](https://www.safetrackproglobal.com/privacy)

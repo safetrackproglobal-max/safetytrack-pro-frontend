@@ -601,50 +601,100 @@ export const SOLUTIONS = [
     ]
   },
   {
-    slug: 'csp-exam-simulator',
-    name: 'CSP Exam Simulator',
-    summary: 'Hard-mode practice exam with 100 scenario questions, scoring, and a certificate of completion.',
-    title: 'CSP Exam Simulator: Hard Mode Practice | SafeTrack Pro',
+    slug: 'toolbox-talk-generator',
+    name: 'AI Toolbox Talk Generator',
+    summary: 'A new toolbox talk every day, written from your own incidents, near misses, permits and weather.',
+    title: 'AI Toolbox Talk Generator - Daily Safety Talks | SafeTrack Pro',
     description:
-      'Practice for the Certified Safety Professional exam format with 100 scenario-based questions, a 4-hour limit, instant scoring, and analytics.',
-    h1: 'CSP Exam Simulator: Hard Mode Practice',
+      'Generate a daily toolbox talk in seconds from your incidents, near misses, open actions, permits and local weather, or type any topic. Deliver, sign off and track every talk.',
+    h1: 'AI Toolbox Talk Generator for Daily Safety Talks',
     lead:
-      'Test your readiness with realistic time limits and scenario-based questions modeled on the Certified Safety Professional (CSP) exam format.',
+      'Stop reading the same generic talk. Every morning SafeTrack writes a toolbox talk about what is actually happening on your site: last week’s near misses, open corrective actions, today’s permits and the weather forecast.',
     benefits: [
-      {
-        title: 'Realistic pressure',
-        text: '100 complex scenario questions with a 4-hour time limit for realistic pacing.'
-      },
-      {
-        title: 'Know where to improve',
-        text: 'Instant scoring and analytics show exactly which areas need more study.'
-      },
-      {
-        title: 'Verifiable certificate',
-        text: 'Pass and receive a blockchain-verified certificate of completion.'
-      }
+      { title: 'Relevant every day', text: 'Talks are built from your own records and today’s weather, so crews hear about real risks on their site.' },
+      { title: 'Any topic in seconds', text: 'Type a topic such as working at height or heat stress and get a ready-to-deliver talk with key points and questions.' },
+      { title: 'Proof of delivery', text: 'Record who attended and when, and keep a history of every talk for audits.' }
     ],
     capabilities: [
-      '100 complex scenario questions',
-      '4-hour time limit',
-      'Instant scoring and analytics',
-      'Score levels: Platinum (90%+), Gold (85%+), Silver (80%+), Bronze (75%+)',
-      'Blockchain-verified certificate of completion'
+      'Automatic daily talk from incidents, near misses, observations, CAPA and permits',
+      'Weather-aware topics (heat, rain, wind, lightning)',
+      'Custom topic box for any subject',
+      'Key points, discussion questions and a short quiz',
+      'Delivery sign-off and talk history',
+      'Personal details removed from incident text before it is used'
+    ],
+    industries: ['construction', 'oil-and-gas', 'mining', 'manufacturing'],
+    related: ['incident-reporting-software', 'anonymous-safety-reporting', 'permit-to-work-software'],
+    cta: { label: 'Generate today’s toolbox talk', to: '/toolbox-talks' },
+    faqs: [
+      { q: 'Where does the talk content come from?', a: 'From your company’s recent incidents, near misses, observations, open corrective actions, active permits and the local weather, or from the topic you type.' },
+      { q: 'Should a supervisor review the talk?', a: 'Yes. Treat the talk as a strong draft and adapt it to your site before delivering it.' }
+    ]
+  },
+  {
+    slug: 'anonymous-safety-reporting',
+    name: 'Workplace Voice - Anonymous Reporting',
+    summary: 'Workers report hazards by QR code or web, anonymously, by voice, photo or text, in their own language.',
+    title: 'Anonymous Safety Reporting App with QR Codes | SafeTrack Pro',
+    description:
+      'Let every worker report hazards, near misses and concerns anonymously by QR code or website, with voice, photo or video in 11 languages. Smart routing, tracking codes and Safety Impact rewards.',
+    h1: 'Anonymous Safety Reporting for Every Worker',
+    lead:
+      'Workplace Voice gives every worker a safe way to speak up. They scan a QR code or open your company page, choose how much to share about themselves, and report in their own language - no login, no app to install.',
+    benefits: [
+      { title: 'People actually report', text: 'Anonymous, protected or named reporting, voice notes for workers who prefer not to type, and 11 languages.' },
+      { title: 'The right person sees it', text: 'Admins route reports by type and project to the responsible supervisor or HSE lead.' },
+      { title: 'Workers see action', text: 'Every report gets a tracking code. Workers can follow "You spoke, we acted" updates and earn Safety Impact points.' }
+    ],
+    capabilities: [
+      'QR code posters and a public company page on your own domain',
+      'Voice, photo, video and text reports without login',
+      'Anonymous, protected-identity or named reporting',
+      'AI translation, summary and risk rating',
+      'Routing per project and report type',
+      'Tracking codes, two-way replies and Safety Impact rewards',
+      'Repeat-report detection and abuse protection'
+    ],
+    industries: ['construction', 'mining', 'oil-and-gas', 'manufacturing'],
+    related: ['incident-reporting-software', 'toolbox-talk-generator', 'compliance-management-software'],
+    cta: { label: 'Find your company', to: '/voice' },
+    faqs: [
+      { q: 'Can the company see who reported?', a: 'Not for anonymous reports - no identity is collected. With protected identity, only SafeTrack holds the name and the company sees the report without it.' },
+      { q: 'Do workers need an account?', a: 'No. Workers scan the QR code or open the company page and report straight away.' }
+    ]
+  },
+  {
+    slug: 'csp-practice-exam',
+    name: 'CSP Practice Exam',
+    summary: 'A full-length CSP-style practice exam: 100 scenario questions, 4 hours, instant explanations.',
+    title: 'CSP Practice Exam (100 Questions, 4 Hours) | SafeTrack Pro',
+    description:
+      'Prepare for the Certified Safety Professional exam with a full-length CSP-style practice test: 100 scenario questions, a 4-hour timer, instant scoring and explanations. Practice only.',
+    h1: 'CSP Practice Exam: Full-Length, Timed Practice',
+    lead:
+      'Check your readiness before exam day with a CSP-style practice test. Questions follow the publicly published CSP exam outline and every answer comes with an explanation. This is practice: it is not the official CSP exam.',
+    benefits: [
+      { title: 'Realistic pacing', text: '100 scenario questions with a 4-hour timer, so you can practise managing your time.' },
+      { title: 'Know where to improve', text: 'Instant scoring by domain shows which topics need more study.' },
+      { title: 'Certificate of completion', text: 'Pass the practice exam and get a certificate of completion you can verify online.' }
+    ],
+    capabilities: [
+      '100 scenario-based practice questions',
+      '4-hour timer',
+      'Instant scoring with an explanation for every answer',
+      'Practice result bands: Platinum (90%+), Gold (85%+), Silver (80%+), Bronze (75%+), Pass (70%+)',
+      'Certificate of completion with online verification',
+      'Not the official exam: no CSP credential and no CEUs'
     ],
     industries: [],
     related: ['hse-project-management-software', 'workforce-management-software'],
     note:
-      'The SafeTrack Pro CSP Exam Simulator is an independent practice tool. It is not affiliated with or endorsed by the Board of Certified Safety Professionals (BCSP).',
-    cta: { label: 'Start CSP Hard Mode Exam', to: '/exam' },
+      'Independent practice tool. CSP® is a registered mark of the Board of Certified Safety Professionals (BCSP). SafeTrack Pro Global is not affiliated with or endorsed by BCSP. Passing this practice exam does not grant the CSP credential, a licence or continuing education units (CEUs).',
+    cta: { label: 'Start the practice exam', to: '/exam' },
     faqs: [
-      {
-        q: 'Is the simulator affiliated with BCSP?',
-        a: 'No. It is an independent practice tool and is not affiliated with or endorsed by the Board of Certified Safety Professionals.'
-      },
-      {
-        q: 'How long is the simulated exam?',
-        a: 'The Hard Mode simulation has 100 scenario-based questions and a 4-hour time limit.'
-      }
+      { q: 'Is this the official CSP exam?', a: 'No. It is an independent practice exam. To earn the CSP credential you must meet BCSP’s requirements and pass the official exam through BCSP.' },
+      { q: 'Does it award CEUs or a certification?', a: 'No. It gives a certificate of completion for the practice exam only. It does not award CEUs, recertification points or any professional credential.' },
+      { q: 'How long is the practice exam?', a: '100 scenario-based questions with a 4-hour time limit.' }
     ]
   }
 ];

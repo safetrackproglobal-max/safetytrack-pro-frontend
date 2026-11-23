@@ -1839,7 +1839,14 @@ const CONTEXT_HINTS = {
 
 function AIDocumentsPage() {
   const { user, planData } = useAuth();
-  const [activeTab, setActiveTab] = useState('chat');
+  const [activeTab, setActiveTab] = useState(() => {
+    try {
+      const tab = new URLSearchParams(window.location.search).get('tab');
+      return ['chat', 'generator', 'tools', 'history'].includes(tab) ? tab : 'chat';
+    } catch (e) {
+      return 'chat';
+    }
+  });
   const [prompt, setPrompt] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('general');
   const [selectedDocumentType, setSelectedDocumentType] = useState('');

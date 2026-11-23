@@ -132,4 +132,4 @@ Disallow: /
 # SITEMAP LOCATIONS
 # ============================================
 Sitemap: https://www.safetrackproglobal.com/sitemap.xml
-Sitemap: https://safetrackproglobal.com/sitemap-pages.xml
+Sitemap: https://www.safetrackproglobal.com/sitemap-pages.xml

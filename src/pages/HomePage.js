@@ -84,7 +84,7 @@ const LINKS = {
   dashboard: '/hse-dashboard-software',
   analytics: '/hse-analytics-software',
   workforce: '/workforce-management-software',
-  cspExam: '/csp-exam-simulator'
+  cspExam: '/csp-practice-exam'
   // NEW – industries: /industries/<slug>   |  NEW – compliance: /compliance/<slug>
 };
 
@@ -1656,22 +1656,22 @@ function HomePage() {
           link to /reviews once that page exists. Testimonials were removed on purpose. */}
 
       {/* ============================================
-           CSP EXAM SIMULATOR
+           CSP PRACTICE EXAM
            ============================================ */}
-      <section className="csp-exam-section" id="csp-exam-simulator">
+      <section className="csp-exam-section" id="csp-practice-exam">
         <div className="container">
           <Row gutter={[48, 48]} align="middle">
             <Col xs={24} lg={12}>
               <div className="csp-content">
                 <span className="section-tag">Career Advancement</span>
                 <h2>
-                  CSP Exam Simulator: <span className="gradient-text">Hard Mode Practice</span>
+                  CSP Practice Exam: <span className="gradient-text">Full-Length &amp; Timed</span>
                 </h2>
                 <p>
-                  Don&apos;t guess your readiness. Test your knowledge with our{' '}
-                  <strong>CSP Hard Mode</strong> simulation, with realistic time limits and
-                  scenario-based questions modeled on the Certified Safety Professional (CSP)
-                  exam format.
+                  Check your readiness before exam day with our <strong>CSP-style practice
+                  exam</strong>: realistic time limits and scenario-based questions that follow the
+                  published Certified Safety Professional exam outline. Practice only - not the
+                  official exam.
                 </p>
 
                 <div className="csp-features-grid">
@@ -1692,14 +1692,14 @@ function HomePage() {
                   <div className="csp-feature">
                     <CheckCircleOutlined />
                     <div>
-                      <strong>Verifiable Certificate</strong>
-                      <span>Pass and receive a blockchain-verified certificate of completion</span>
+                      <strong>Certificate of Completion</strong>
+                      <span>Pass the practice exam and get a certificate you can verify online</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="csp-credential-levels">
-                  <h3>Score Levels:</h3>
+                  <h3>Practice result bands:</h3>
                   <div className="levels-row">
                     <span className="level-badge platinum">🏆 Platinum (90%+)</span>
                     <span className="level-badge gold">🥇 Gold (85%+)</span>
@@ -1710,17 +1710,17 @@ function HomePage() {
 
                 <div className="hero-actions">
                   <NavButton to={LINKS.exam} type="primary" size="large" className="cta-button">
-                    Start CSP Hard Mode Exam <ArrowRightOutlined />
+                    Start the Practice Exam <ArrowRightOutlined />
                   </NavButton>
                   <Link to={LINKS.cspExam} className="section-cta-link">
-                    About the CSP Exam Simulator
+                    About the CSP Practice Exam
                   </Link>
                 </div>
 
                 <p className="compliance-note csp-disclaimer">
-                  The SafeTrack Pro CSP Exam Simulator is an independent practice tool. It is not
-                  affiliated with or endorsed by the Board of Certified Safety Professionals
-                  (BCSP).
+                  Independent practice tool. CSP&reg; is a registered mark of the Board of Certified
+                  Safety Professionals (BCSP). SafeTrack Pro Global is not affiliated with or endorsed
+                  by BCSP, and passing does not grant the CSP credential or CEUs.
                 </p>
               </div>
             </Col>
@@ -1728,7 +1728,7 @@ function HomePage() {
               <div className="csp-visual">
                 <div className="csp-mockup" aria-hidden="true">
                   <div className="mockup-header">
-                    <SafetyCertificateOutlined /> CSP Hard Mode Exam
+                    <SafetyCertificateOutlined /> CSP Practice Exam
                   </div>
                   <div className="mockup-body">
                     <div className="question-skeleton"></div>

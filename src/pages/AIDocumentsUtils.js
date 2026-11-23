@@ -1060,12 +1060,12 @@ Would you like me to generate a specific document or provide more guidance?`,
 };
 
 export const getCredentialLevel = (score) => {
-  if (score >= 90) return { level: 'Platinum', color: '#722ed1', ceus: 4.0, validity: '24 months' };
-  if (score >= 85) return { level: 'Gold', color: '#fa8c16', ceus: 3.5, validity: '18 months' };
-  if (score >= 80) return { level: 'Silver', color: '#8c8c8c', ceus: 3.0, validity: '12 months' };
-  if (score >= 75) return { level: 'Bronze', color: '#d48806', ceus: 2.5, validity: '12 months' };
-  if (score >= 70) return { level: 'Competent', color: '#389e0d', ceus: 2.0, validity: '12 months' };
-  return { level: 'Certified', color: '#1890ff', ceus: 0, validity: 'N/A' };
+  if (score >= 90) return { level: 'Platinum', color: '#722ed1' };
+  if (score >= 85) return { level: 'Gold', color: '#fa8c16' };
+  if (score >= 80) return { level: 'Silver', color: '#8c8c8c' };
+  if (score >= 75) return { level: 'Bronze', color: '#d48806' };
+  if (score >= 70) return { level: 'Pass', color: '#389e0d' };
+  return { level: 'Not passed', color: '#1890ff' };
 };
 
 // Professional HTML template for documents

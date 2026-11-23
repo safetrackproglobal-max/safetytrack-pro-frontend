@@ -597,6 +597,9 @@ const AppContent = () => {
               <MainLayoutWrapper>{r.element}</MainLayoutWrapper>
             </Route>
           ))}
+          {/* Practice exam lives in AI Documents -> "Exams & Verification" (login required) */}
+          <Redirect exact from="/exam" to="/ai-documents?tab=tools" />
+          <Redirect exact from="/csp-exam-simulator" to="/csp-practice-exam" />
 
           {/* ============================================ */}
           {/* DASHBOARD REDIRECT */}

@@ -47,8 +47,15 @@ import {
 } from '@ant-design/icons';
 import AIService from '../services/GeneralAIService';
 import { useAuth } from '../context/AuthContext';
-import { apiPost } from '../services/api';
+import api, { apiPost } from '../services/api';
 import { getCredentialLevel, checkDocumentPermission } from './AIDocumentsUtils';
+
+// Shown wherever the exam or its certificate appears. Keep it in sync with the backend (_EXAM_PRACTICE_DISCLAIMER).
+export const PRACTICE_EXAM_NAME = 'Safety Professional Practice Exam';
+export const PRACTICE_DISCLAIMER =
+  'Practice exam by SafeTrack Pro Global. It is not the official CSP® exam, is not affiliated with or endorsed by BCSP, ' +
+  'and passing it does not grant the CSP credential, a licence or CEUs. The certificate is a certificate of completion.';
+const backendOrigin = () => String(api.defaults.baseURL || '').replace(/\/api\/?$/, '');
 
 const { TabPane } = Tabs;
 const { Title, Text } = Typography;
@@ -174,14 +181,14 @@ const AIExamCertificate = forwardRef(function AIExamCertificate(
       setExamScore(null);
       setExamFlowStep('setup');
       setExamModalVisible(true);
-      message.success('👑 Super Admin: Accessing CSP Full Exam System');
+      message.success('👑 Super Admin: opening the practice exam');
       return;
     }
 
     const permission = checkDocumentPermission('exam', userPlan, documentTypes);
 
     if (permission.allowed) {
-      console.log('✅ Exam access granted - CSP Full Exam (100 questions, 4 hours)');
+      console.log('✅ Practice exam access granted (100 questions, 4 hours)');
       setUserName('');
       setUserEmail('');
       setSelectedCourseForExam('');
@@ -194,13 +201,13 @@ const AIExamCertificate = forwardRef(function AIExamCertificate(
       setUpgradeInfo({
         requiredPlan: 'pro',
         currentPlan: userPlan,
-        documentName: 'CSP Full Examination',
+        documentName: PRACTICE_EXAM_NAME,
         features: [
-          'Full CSP exam (100 questions, 4 hours)',
-          'BCSP Blueprint aligned questions',
-          'Professional grading & analysis',
-          'Platinum-level certificate',
-          'Unlimited exam attempts'
+          'Full-length practice exam (100 questions, 4 hours)',
+          'Questions follow the published CSP exam outline',
+          'Instant scoring with explanations',
+          'Certificate of completion (practice)',
+          'Unlimited practice attempts'
         ]
       });
       setShowUpgradeModal(true);
@@ -340,7 +347,7 @@ const AIExamCertificate = forwardRef(function AIExamCertificate(
             count: 100,
             user_name: userName,
             user_id: userId,
-            course: selectedCourseForExam || 'CSP Professional Certification Preparation',
+            course: selectedCourseForExam || 'CSP Exam Preparation (practice)',
           }
         }, 'Starting DeepSeek exam generation');
 
@@ -354,7 +361,7 @@ const AIExamCertificate = forwardRef(function AIExamCertificate(
           user_name: userName,
           user_id: userId,
           user_email: userEmail || `${userId}@exam.com`,
-          course: selectedCourseForExam || 'CSP Professional Certification Preparation',
+          course: selectedCourseForExam || 'CSP Exam Preparation (practice)',
           industry: selectedIndustry,
           is_super_admin: true
         };
@@ -652,7 +659,7 @@ const AIExamCertificate = forwardRef(function AIExamCertificate(
       // ============================================================
       setExamFlowStep('taking_exam');
       const source = examData?.source === 'deepseek' ? 'DeepSeek AI' : 'backend';
-      message.success(`✅ CSP Exam ready! ${questionsList.length} questions from ${source}.`);
+      message.success(`✅ Practice exam ready! ${questionsList.length} questions from ${source}.`);
 
       debugExam('EXAM_READY', {
         source,
@@ -687,7 +694,7 @@ const AIExamCertificate = forwardRef(function AIExamCertificate(
 
     try {
       message.loading({
-        content: 'Generating your CSP exam with AI... (2-3 minutes)',
+        content: 'Generating your practice exam with AI... (2-3 minutes)',
         key: 'gen',
         duration: 0
       });
@@ -748,15 +755,15 @@ const AIExamCertificate = forwardRef(function AIExamCertificate(
     const isBasic = userPlan === 'basic';
 
     return {
-      title: isDeepSeek ? 'CSP Professional Examination (AI-Generated)' :
-        (isBasic ? 'CSP Practice Examination' : 'CSP Professional Examination'),
-      description: isDeepSeek ? 'Full CSP Exam with AI-generated questions (100 Questions, 4 Hours)' :
-        (isBasic ? 'Practice exam with 20 questions' : 'Full CSP Practice Exam (100 Questions, 4 Hours)'),
+      title: isDeepSeek ? `${PRACTICE_EXAM_NAME} (AI-generated)` :
+        (isBasic ? `${PRACTICE_EXAM_NAME} (short)` : PRACTICE_EXAM_NAME),
+      description: isDeepSeek ? 'CSP-style practice exam with AI-generated questions (100 questions, 4 hours)' :
+        (isBasic ? 'Practice exam with 20 questions' : 'CSP-style practice exam (100 questions, 4 hours)'),
       industry: selectedIndustry,
-      difficulty: isDeepSeek ? 'CSP Advanced Level (AI)' :
-        (isBasic ? 'Intermediate Level' : 'CSP Advanced Level'),
+      difficulty: isDeepSeek ? 'Advanced, CSP-style (AI)' :
+        (isBasic ? 'Intermediate Level' : 'Advanced, CSP-style'),
       candidate_name: userName,
-      course: selectedCourseForExam || 'CSP Professional Certification Preparation',
+      course: selectedCourseForExam || 'CSP Exam Preparation (practice)',
       exam_id: examData?.exam_id || `EXAM-${Date.now()}`,
       session_id: sessionId,
       exam_mode: examData?.exam_type || (isDeepSeek ? 'CSP_FULL_EXAM_DEEPSEEK' : 'CSP_FULL_EXAM'),
@@ -827,7 +834,7 @@ const AIExamCertificate = forwardRef(function AIExamCertificate(
       options: options,
       correct_answer: correctAnswer,           // Now a string: 'A', 'B', 'C', or 'D'
       correct_answer_letter: correctAnswer,    // Kept for safety
-      explanation: q.explanation || (isDeepSeek ? 'AI-generated explanation based on CSP standards.' : 'Based on CSP-level professional judgment.'),
+      explanation: q.explanation || (isDeepSeek ? 'AI-generated explanation based on safety-professional practice.' : 'Based on safety-professional judgment.'),
       points: q.points || 2,
       difficulty: q.difficulty || (isDeepSeek ? 'advanced' : 'intermediate'),
       cognitive_level: q.cognitive_level || 'application',
@@ -1137,7 +1144,6 @@ const AIExamCertificate = forwardRef(function AIExamCertificate(
           exam_score: examScore.score,
           exam_date: new Date().toISOString().split('T')[0],
           credential_level: credential.level,
-          ceus_awarded: credential.ceus,
           admin_signature: {
             name: adminSignature.name,
             title: adminSignature.title,
@@ -1147,35 +1153,14 @@ const AIExamCertificate = forwardRef(function AIExamCertificate(
 
         setGeneratedCertificate(certificateData);
         setExamFlowStep('certificate');
-        message.success({ content: 'Professional certificate generated successfully!', key: 'cert_gen' });
+        message.success({ content: 'Certificate of completion created', key: 'cert_gen' });
       } else {
         throw new Error(certificateResult.error || 'Backend generation failed');
       }
     } catch (error) {
       console.error('Certificate generation error:', error);
-      message.warning('Using local certificate generation');
-
-      const credential = getCredentialLevel(examScore.score);
-      const fallbackCertificate = {
-        certificate_id: `CERT-${Date.now()}`,
-        recipient_name: userName,
-        course_title: selectedCourseForExam,
-        exam_score: examScore.score,
-        exam_date: new Date().toISOString().split('T')[0],
-        exam_id: examSessionId,
-        issuer: 'SafetyTrack Pro Certification Authority',
-        credential_level: credential.level,
-        ceus_awarded: credential.ceus,
-        source: 'local',
-        admin_signature: {
-          name: adminSignature.name,
-          title: adminSignature.title,
-          signature_id: adminSignature.signature_id
-        }
-      };
-
-      setGeneratedCertificate(fallbackCertificate);
-      setExamFlowStep('certificate');
+      // No local fallback: a certificate that is not in our records could never be verified.
+      message.error({ content: 'Could not create your certificate right now. Your result is saved - please try again in a moment.', key: 'cert_gen' });
     }
   };
 
@@ -1190,14 +1175,14 @@ const AIExamCertificate = forwardRef(function AIExamCertificate(
     }
 
     try {
-      const response = await fetch(`http://127.0.0.1:5000/api/ai/exam/flow/certificate/${certId}`, {
+      const response = await fetch(`${backendOrigin()}/api/ai/exam/flow/certificate/${encodeURIComponent(certId)}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
       if (response.ok) {
         const data = await response.json();
         if (data.download_url) {
-          window.open(`http://127.0.0.1:5000${data.download_url}`, '_blank');
+          window.open(/^https?:/.test(data.download_url) ? data.download_url : `${backendOrigin()}${data.download_url}`, '_blank', 'noopener');
           message.success('Download started!');
         } else {
           message.error('No download URL found');
@@ -1248,8 +1233,8 @@ const AIExamCertificate = forwardRef(function AIExamCertificate(
 
     const transcriptContent = `
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║                    INTERNATIONAL SAFETY PROFESSIONAL CERTIFICATION           ║
-║                          EXAMINATION TRANSCRIPT                             ║
+║                 SAFETY PROFESSIONAL PRACTICE EXAM (CSP-STYLE)               ║
+║                            PRACTICE TRANSCRIPT                              ║
 ╠══════════════════════════════════════════════════════════════════════════════╣
 ║                                                                              ║
 ║  CANDIDATE INFORMATION:                                                      ║
@@ -1266,12 +1251,13 @@ const AIExamCertificate = forwardRef(function AIExamCertificate(
 ║  Overall Score:          ${examScore?.score}%                                ║
 ║  Correct Answers:        ${examScore?.correct} / ${examScore?.total}        ║
 ║  Result:                 ${examScore?.passed ? 'PASSED ✓' : 'FAILED ✗'}     ║
-║  Credential Level:       ${credential.level}                                ║
-║  CEUs Awarded:           ${credential.ceus}                                 ║
+║  Result Band:            ${credential.level}                                ║
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
+${PRACTICE_DISCLAIMER}
+
+Generated by SafeTrack Pro Global | ${new Date().toLocaleString()}
     `;
 
     const blob = new Blob([transcriptContent], { type: 'text/plain' });
@@ -1296,23 +1282,19 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
     setVerificationResult(null);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setVerificationResult({
-        valid: true,
-        certificate_id: verificationCode,
-        recipient_name: 'John Doe',
-        course_title: 'CSP Professional Certification',
-        exam_score: 92,
-        exam_date: '2024-03-15',
-        issue_date: '2024-03-20',
-        expiry_date: '2026-03-20',
-        verifiedAt: new Date().toISOString()
-      });
-      message.success('Certificate verified successfully!');
+      const id = verificationCode.trim();
+      const res = await fetch(`${backendOrigin()}/api/ai/certificates/verify/${encodeURIComponent(id)}`);
+      const body = await res.json().catch(() => ({}));
+      const cert = body.certificate;
+      if (!res.ok || !body.valid || !cert) {
+        throw new Error(body.message || 'Certificate not found. Please check the ID and try again.');
+      }
+      setVerificationResult({ ...cert, valid: true, verifiedAt: new Date().toISOString() });
+      message.success('Certificate found in SafeTrack records');
     } catch (error) {
       setVerificationResult({
         valid: false,
-        message: 'Certificate not found. Please check the ID and try again.',
+        message: error.message || 'Certificate not found. Please check the ID and try again.',
         verifiedAt: new Date().toISOString()
       });
       message.error('Certificate not found');
@@ -1339,8 +1321,8 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
       title={
         <Space>
           <SafetyCertificateOutlined />
-          <span>International Safety Professional Certification (ISPC)</span>
-          <Tag color="orange" style={{ fontSize: '12px' }}>CSP HARD MODE</Tag>
+          <span>{PRACTICE_EXAM_NAME}</span>
+          <Tag color="orange" style={{ fontSize: '12px' }}>CSP-STYLE PRACTICE</Tag>
         </Space>
       }
       className="feature-card exam-generator-card"
@@ -1348,22 +1330,22 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
     >
       <Space direction="vertical" style={{ width: '100%' }} size="middle">
         <Alert
-          message="CSP Hard Mode - Professional Credentialing"
-          description="Simulates Certified Safety Professional (CSP) level difficulty with professional credential eligibility. Passing scores qualify for Continuing Education Units (CEUs)."
-          type="warning"
+          message="Practice for the CSP® exam - this is not the official exam"
+          description={PRACTICE_DISCLAIMER}
+          type="info"
           showIcon
           icon={<SafetyCertificateOutlined />}
         />
 
         <div style={{ padding: '16px', backgroundColor: '#fff7e6', borderRadius: '8px', border: '1px solid #ffd591' }}>
           <div style={{ marginBottom: '12px' }}>
-            <Text strong style={{ color: '#fa8c16' }}>Credential Levels:</Text>
+            <Text strong style={{ color: '#fa8c16' }}>Practice result bands:</Text>
             <div style={{ marginLeft: '20px', fontSize: '12px' }}>
-              <div>🏆 <strong>Platinum:</strong> 90%+ (4.0 CEUs, 24 months validity)</div>
-              <div>🥇 <strong>Gold:</strong> 85%+ (3.5 CEUs, 18 months validity)</div>
-              <div>🥈 <strong>Silver:</strong> 80%+ (3.0 CEUs, 12 months validity)</div>
-              <div>🥉 <strong>Bronze:</strong> 75%+ (2.5 CEUs, 12 months validity)</div>
-              <div>✅ <strong>Competent:</strong> 70%+ (2.0 CEUs, 12 months validity)</div>
+              <div>🏆 <strong>Platinum:</strong> 90%+</div>
+              <div>🥇 <strong>Gold:</strong> 85%+</div>
+              <div>🥈 <strong>Silver:</strong> 80%+</div>
+              <div>🥉 <strong>Bronze:</strong> 75%+</div>
+              <div>✅ <strong>Pass:</strong> 70%+</div>
             </div>
           </div>
 
@@ -1371,10 +1353,10 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
             <Text strong style={{ color: '#fa8c16' }}>Exam Details:</Text>
             <div style={{ marginLeft: '20px', fontSize: '12px' }}>
               <div>• 100 complex scenario-based questions</div>
-              <div>• 4-hour time limit (CSP-level pacing)</div>
-              <div>• Professional safety principles & regulatory knowledge</div>
-              <div>• Mathematical calculations for safety metrics</div>
-              <div>• ISO/IEC 17024:2012 compliant</div>
+              <div>• 4-hour time limit for realistic pacing</div>
+              <div>• Topics follow the published CSP exam outline</div>
+              <div>• Safety calculations, regulations and professional judgment</div>
+              <div>• Instant score with an explanation for every answer</div>
             </div>
           </div>
         </div>
@@ -1393,13 +1375,13 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
             fontWeight: 'bold'
           }}
         >
-          Start CSP Hard Mode Exam
+          Start Practice Exam
         </Button>
 
         <div style={{ fontSize: '11px', color: '#666', textAlign: 'center' }}>
-          <SafetyCertificateOutlined /> Accredited by International Safety Standards Board (ISSB)
+          Independent practice tool. CSP® is a registered mark of the Board of Certified Safety Professionals (BCSP).
           <br />
-          <Badge status="processing" text="Digital Verification with QR Code & Blockchain" />
+          <Badge status="processing" text="Certificate of completion with online verification" />
         </div>
       </Space>
     </Card>
@@ -1407,7 +1389,7 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
 
   // Certificate Verification card (was inline in the "Exams & Verification" tab)
   const renderVerificationCard = () => (
-    <Card title={<Space><VerifiedOutlined /><span>Certificate Verification</span><Tag color="green">Blockchain Secured</Tag></Space>} style={{ border: '1px solid #52c41a' }}>
+    <Card title={<Space><VerifiedOutlined /><span>Certificate Verification</span><Tag color="green">Online check</Tag></Space>} style={{ border: '1px solid #52c41a' }}>
       <Space direction="vertical" style={{ width: '100%' }} size="middle">
         <div style={{ textAlign: 'center', padding: '20px 0' }}>
           <VerifiedOutlined style={{ fontSize: 48, color: '#52c41a' }} />
@@ -1423,10 +1405,9 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
         <div style={{ fontSize: 12, color: '#666' }}>
           <Text strong>Features:</Text>
           <ul style={{ marginTop: 8 }}>
-            <li>✓ Blockchain-verified certificates</li>
-            <li>✓ Real-time authenticity check</li>
-            <li>✓ Complete credential details</li>
-            <li>✓ Expiration status tracking</li>
+            <li>✓ Checked against SafeTrack Pro Global records</li>
+            <li>✓ Shows recipient, score and issue date</li>
+            <li>✓ Confirms it is a practice-exam certificate of completion</li>
           </ul>
         </div>
       </Space>
@@ -1441,8 +1422,8 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
       title={
         <Space>
           <SafetyCertificateOutlined />
-          <span>CSP Hard Mode - Exam Setup</span>
-          <Tag color="orange">INTERNATIONAL CERTIFICATION</Tag>
+          <span>{PRACTICE_EXAM_NAME} - Setup</span>
+          <Tag color="orange">PRACTICE</Tag>
         </Space>
       }
       open={examModalVisible && examFlowStep === 'setup'}
@@ -1468,15 +1449,15 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
           loading={loading}
           style={{ background: 'linear-gradient(135deg, #fa8c16, #f5222d)', border: 'none' }}
         >
-          Begin Professional Exam
+          Begin Practice Exam
         </Button>
       ]}
     >
       <div className="exam-setup-container">
         <Alert
-          message="Professional Credential Eligibility"
-          description="This exam qualifies for International Safety Professional Credential (ISPC) with Continuing Education Units (CEUs)."
-          type="warning"
+          message="Practice exam - not the official CSP® exam"
+          description={PRACTICE_DISCLAIMER}
+          type="info"
           showIcon
           icon={<SafetyCertificateOutlined />}
           style={{ marginBottom: 24 }}
@@ -1486,7 +1467,7 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
           <Form.Item label={
             <Space>
               <UserOutlined />
-              <span>Full Name (as it will appear on certificate)</span>
+              <span>Full Name (as it will appear on the certificate of completion)</span>
             </Space>
           } required>
             <Input
@@ -1523,7 +1504,7 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
                 <div><Text strong>Passing Score:</Text><Tag color="green" style={{ marginLeft: 8 }}>70% (70/100)</Tag></div>
-                <div><Text strong>CEUs:</Text><Tag color="purple" style={{ marginLeft: 8 }}>2.0-4.0</Tag></div>
+                <div><Text strong>Certificate:</Text><Tag color="purple" style={{ marginLeft: 8 }}>Completion (practice)</Tag></div>
               </div>
             </Space>
           </Card>
@@ -1550,7 +1531,7 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
         title={
           <Space>
             <SafetyCertificateOutlined />
-            <span>CSP Hard Mode Exam</span>
+            <span>{PRACTICE_EXAM_NAME}</span>
             <Tag color="orange">ADVANCED</Tag>
             <Badge
               count={formatTime(examProgress.timeRemaining)}
@@ -1566,7 +1547,7 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
         open={examModalVisible && examFlowStep === 'taking_exam'}
         onCancel={() => {
           Modal.confirm({
-            title: 'Exit CSP Hard Mode Exam?',
+            title: 'Exit the practice exam?',
             content: <div><p>Are you sure you want to exit? Your progress will be lost.</p><p style={{ fontSize: '12px', color: '#fa8c16' }}><WarningOutlined /> This exam is time-sensitive and cannot be resumed.</p></div>,
             okText: 'Exit Exam',
             cancelText: 'Continue Exam',
@@ -1599,12 +1580,12 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
       >
         <div className="exam-taking-container">
           <Alert
-            message="International Safety Professional Certification (ISPC)"
-            description={<Space split={<Divider type="vertical" />}>
+            message={`${PRACTICE_EXAM_NAME} (CSP-style)`}
+            description={<Space split={<Divider type="vertical" />} wrap>
               <span><UserOutlined /> {userName}</span>
               <span><ClockCircleOutlined /> Time Limit: 4 hours</span>
               <span><BookOutlined /> 100 Questions</span>
-              <span><SafetyCertificateOutlined /> CEUs: 2.0-4.0</span>
+              <span><SafetyCertificateOutlined /> Practice mode</span>
             </Space>}
             type="warning"
             showIcon
@@ -1619,7 +1600,7 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
                   <Tag color="blue">Question {activePdfSection + 1}</Tag>
                   <Tag color="cyan">{currentQuestion.domain || 'Advanced Sciences'}</Tag>
                   <Tag color="green">{currentQuestion.points || 2} points</Tag>
-                  {currentQuestion.difficulty === 'advanced' && <Tag color="orange">CSP Level</Tag>}
+                  {currentQuestion.difficulty === 'advanced' && <Tag color="orange">Advanced</Tag>}
                 </Space>
               }
               extra={<Tag color={userAnswers[activePdfSection] !== undefined ? 'green' : 'default'}>{userAnswers[activePdfSection] !== undefined ? 'Answered' : 'Not Answered'}</Tag>}
@@ -1628,7 +1609,7 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
                 <div style={{ backgroundColor: '#e6f7ff', padding: '12px', borderRadius: '6px', marginBottom: '12px', borderLeft: '4px solid #1890ff' }}>
                   <Text strong style={{ color: '#1890ff' }}><SafetyCertificateOutlined /> Professional Scenario:</Text>
                   <div style={{ marginTop: '8px' }}>
-                    {currentQuestion.question_text || currentQuestion.question || `CSP-Level question ${activePdfSection + 1}`}
+                    {currentQuestion.question_text || currentQuestion.question || `Practice question ${activePdfSection + 1}`}
                   </div>
                 </div>
 
@@ -1749,7 +1730,7 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
           <Button key="review" onClick={() => { setExamFlowStep('taking_exam'); setActivePdfSection(0); }} icon={<EyeOutlined />}>Review Answers</Button>,
           examScore.passed ? (
             <Button key="certificate" type="primary" onClick={handleGenerateCertificateFromExam} style={{ background: 'linear-gradient(135deg, #fa8c16, #f5222d)', border: 'none' }} icon={<SafetyCertificateOutlined />}>
-              Download Professional Certificate
+              Get Certificate of Completion
             </Button>
           ) : (
             <Button key="retry" type="primary" onClick={() => { setExamFlowStep('setup'); setUserAnswers({}); setExamScore(null); setActivePdfSection(0); }}>Retry Exam</Button>
@@ -1759,10 +1740,10 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
         <div className="exam-results-container">
           <div style={{ textAlign: 'center', marginBottom: 24 }}>
             <div style={{ fontSize: '60px', color: credential.color, marginBottom: 8 }}>{examScore.passed ? '🏆' : '📝'}</div>
-            <Title level={3} style={{ color: credential.color }}>{examScore.passed ? 'Professional Achievement!' : 'Exam Results'}</Title>
+            <Title level={3} style={{ color: credential.color }}>{examScore.passed ? 'Practice exam passed!' : 'Practice exam results'}</Title>
             <div style={{ fontSize: '42px', fontWeight: 'bold', color: credential.color, margin: '16px 0' }}>{examScore.score}%</div>
             <div style={{ backgroundColor: credential.color + '10', padding: '12px', borderRadius: '8px', display: 'inline-block', marginBottom: '16px' }}>
-              <Text strong style={{ color: credential.color }}>{credential.level} Level • {credential.ceus} CEUs Awarded</Text>
+              <Text strong style={{ color: credential.color }}>{credential.level} result band • practice exam</Text>
             </div>
             <div style={{ fontSize: '16px', color: '#666', marginBottom: '8px' }}>{examScore.correct} out of {examScore.total} correct answers</div>
           </div>
@@ -1784,7 +1765,7 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
             </Col>
             <Col span={8}>
               <Card size="small">
-                <Statistic title="CEUs Earned" value={credential.ceus} suffix="CEUs" valueStyle={{ color: '#722ed1' }} prefix={<StarOutlined />} />
+                <Statistic title="Result band" value={credential.level} valueStyle={{ color: '#722ed1' }} prefix={<StarOutlined />} />
               </Card>
             </Col>
           </Row>
@@ -1829,7 +1810,7 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
         title={
           <Space>
             <SafetyCertificateOutlined />
-            <span>Professional Certification</span>
+            <span>Certificate of Completion (practice exam)</span>
             <Tag color={credential.color} style={{ fontWeight: 'bold' }}>{credential.level.toUpperCase()}</Tag>
             <Tag color="green">{generatedCertificate.exam_score || examScore?.score}%</Tag>
           </Space>
@@ -1844,34 +1825,34 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
         footer={[
           <Button key="close" onClick={() => { setExamModalVisible(false); setExamFlowStep('setup'); localStorage.removeItem('exam_session_id'); }}>Close</Button>,
           <Button key="share" icon={<ShareAltOutlined />} onClick={() => message.info('Share feature coming soon!')}>Share Certificate</Button>,
-          <Button key="download-cert" type="primary" icon={<DownloadOutlined />} onClick={handleDownloadExamCertificate} style={{ background: 'linear-gradient(135deg, #fa8c16, #f5222d)', border: 'none' }}>Download Professional Certificate (PDF)</Button>,
+          <Button key="download-cert" type="primary" icon={<DownloadOutlined />} onClick={handleDownloadExamCertificate} style={{ background: 'linear-gradient(135deg, #fa8c16, #f5222d)', border: 'none' }}>Download Certificate of Completion (PDF)</Button>,
           <Button key="download-transcript" icon={<FilePdfOutlined />} onClick={handleDownloadTranscript} style={{ borderColor: credential.color, color: credential.color }}>Download Detailed Transcript</Button>
         ]}
       >
         <div className="certificate-container">
           <div style={{ border: `3px solid ${credential.color}`, padding: '40px', textAlign: 'center', background: '#ffffff', borderRadius: '12px', position: 'relative', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-45deg)', fontSize: '80px', color: `${credential.color}10`, fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 0 }}>{credential.level} CERTIFIED</div>
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-45deg)', fontSize: '80px', color: `${credential.color}10`, fontWeight: 'bold', whiteSpace: 'nowrap', zIndex: 0 }}>PRACTICE EXAM</div>
 
             <div style={{ marginBottom: '30px', position: 'relative', zIndex: 1 }}>
-              <div style={{ fontSize: '11px', color: '#666', marginBottom: '4px', letterSpacing: '2px' }}>INTERNATIONAL SAFETY STANDARDS BOARD (ISSB)</div>
-              <div style={{ fontSize: '10px', color: '#999', marginBottom: '12px' }}>ISO/IEC 17024:2012 ACCREDITED</div>
+              <div style={{ fontSize: '11px', color: '#666', marginBottom: '4px', letterSpacing: '2px' }}>SAFETRACK PRO GLOBAL</div>
+              <div style={{ fontSize: '10px', color: '#999', marginBottom: '12px' }}>PRACTICE EXAM - NOT AN ACCREDITED CERTIFICATION</div>
               <Title level={1} style={{ margin: 0, color: credential.color, fontSize: '28px', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                <SafetyCertificateOutlined /> PROFESSIONAL CERTIFICATE <SafetyCertificateOutlined />
+                <SafetyCertificateOutlined /> CERTIFICATE OF COMPLETION <SafetyCertificateOutlined />
               </Title>
-              <div style={{ fontSize: '14px', color: '#666', marginTop: '8px', borderBottom: `1px solid ${credential.color}40`, paddingBottom: '12px' }}>International Safety Professional Credential (ISPC)</div>
+              <div style={{ fontSize: '14px', color: '#666', marginTop: '8px', borderBottom: `1px solid ${credential.color}40`, paddingBottom: '12px' }}>{PRACTICE_EXAM_NAME} (CSP-style)</div>
             </div>
 
             <div style={{ margin: '30px 0', position: 'relative', zIndex: 1 }}>
-              <div style={{ fontSize: '14px', color: '#666', marginBottom: '20px', fontStyle: 'italic' }}>This official credential is awarded to</div>
+              <div style={{ fontSize: '14px', color: '#666', marginBottom: '20px', fontStyle: 'italic' }}>This certificate of completion is presented to</div>
               <div style={{ fontSize: '28px', fontWeight: 'bold', color: credential.color, margin: '20px 0', padding: '15px', borderTop: `2px solid ${credential.color}`, borderBottom: `2px solid ${credential.color}`, display: 'inline-block', letterSpacing: '1px' }}>
                 {generatedCertificate.recipient_name || userName}
               </div>
-              <div style={{ fontSize: '14px', color: '#666', margin: '20px 0' }}>for successful completion and demonstration of professional competency in</div>
+              <div style={{ fontSize: '14px', color: '#666', margin: '20px 0' }}>for passing the practice exam</div>
               <div style={{ fontSize: '22px', fontWeight: 'bold', color: '#722ed1', margin: '20px 0', padding: '15px', backgroundColor: `${credential.color}10`, borderRadius: '8px', display: 'inline-block', border: `1px dashed ${credential.color}` }}>
                 {generatedCertificate.course_title || selectedCourseForExam}
               </div>
               <div style={{ display: 'inline-block', margin: '20px auto', padding: '8px 24px', backgroundColor: credential.color, color: 'white', borderRadius: '20px', fontSize: '16px', fontWeight: 'bold', boxShadow: `0 4px 12px ${credential.color}40` }}>
-                {credential.level} LEVEL CERTIFICATION
+                {credential.level} RESULT BAND
               </div>
 
               <div style={{ marginTop: '30px', padding: '25px', backgroundColor: '#fafafa', borderRadius: '10px', border: `1px solid ${credential.color}30` }}>
@@ -1885,16 +1866,16 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
                   </Col>
                   <Col span={8}>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>CEUs AWARDED</div>
-                      <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#722ed1' }}>{credential.ceus}</div>
-                      <div style={{ fontSize: '11px', color: '#999' }}>Continuing Education Units</div>
+                      <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>RESULT BAND</div>
+                      <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#722ed1' }}>{credential.level}</div>
+                      <div style={{ fontSize: '11px', color: '#999' }}>Practice exam</div>
                     </div>
                   </Col>
                   <Col span={8}>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>VALIDITY</div>
-                      <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#389e0d' }}>{credential.validity}</div>
-                      <div style={{ fontSize: '11px', color: '#999' }}>From {generatedCertificate.exam_date || new Date().toLocaleDateString()}</div>
+                      <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>DATE</div>
+                      <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#389e0d' }}>{generatedCertificate.exam_date || new Date().toLocaleDateString()}</div>
+                      <div style={{ fontSize: '11px', color: '#999' }}>Completed</div>
                     </div>
                   </Col>
                 </Row>
@@ -1906,8 +1887,8 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
                 <Col span={8}>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ borderBottom: '1px solid #666', width: '150px', margin: '0 auto 10px', height: '50px' }}></div>
-                    <div style={{ fontSize: '11px', color: '#666' }}>Certification Director</div>
-                    <div style={{ fontSize: '10px', color: '#999' }}>International Safety Standards Board</div>
+                    <div style={{ fontSize: '11px', color: '#666' }}>Director</div>
+                    <div style={{ fontSize: '10px', color: '#999' }}>SafeTrack Pro Global</div>
                   </div>
                 </Col>
                 <Col span={8}>
@@ -1915,22 +1896,21 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
                     <div style={{ width: '80px', height: '80px', margin: '0 auto 10px', border: '1px solid #ddd', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fafafa' }}>
                       <SafetyCertificateOutlined style={{ fontSize: '36px', color: credential.color }} />
                     </div>
-                    <div style={{ fontSize: '10px', color: '#999' }}>Official Digital Seal</div>
+                    <div style={{ fontSize: '10px', color: '#999' }}>SafeTrack Pro Global</div>
                   </div>
                 </Col>
                 <Col span={8}>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ borderBottom: '1px solid #666', width: '150px', margin: '0 auto 10px', height: '50px' }}></div>
-                    <div style={{ fontSize: '11px', color: '#666' }}>Chief Examinations Officer</div>
-                    <div style={{ fontSize: '10px', color: '#999' }}>Professional Credentialing Authority</div>
+                    <div style={{ fontSize: '11px', color: '#666' }}>Practice Exam Reviewer</div>
+                    <div style={{ fontSize: '10px', color: '#999' }}>SafeTrack Pro Global</div>
                   </div>
                 </Col>
               </Row>
 
               <div style={{ marginTop: '20px', fontSize: '9px', color: '#999', textAlign: 'center', lineHeight: 1.4 }}>
-                This digital credential can be verified at {window.location.origin}/verify/{generatedCertificate.certificate_id}
-                <br />QR Code verification and blockchain timestamping ensure authenticity and integrity.
-                <br />{credential.ceus} Continuing Education Units (CEUs) awarded per ANSI/IACET standards.
+                Verify this certificate of completion at {window.location.origin} (Exams &amp; Verification) with ID {generatedCertificate.certificate_id}
+                <br />{PRACTICE_DISCLAIMER}
               </div>
             </div>
           </div>
@@ -1942,14 +1922,14 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
   // Certificate Verification Modal
   const renderVerificationModal = () => (
     <Modal
-      title={<Space><VerifiedOutlined /><span>Certificate Verification</span><Tag color="green">Blockchain Secured</Tag></Space>}
+      title={<Space><VerifiedOutlined /><span>Certificate Verification</span><Tag color="green">Online check</Tag></Space>}
       open={verificationModalVisible}
       onCancel={() => { setVerificationModalVisible(false); setVerificationCode(''); setVerificationResult(null); }}
       width={600}
       footer={null}
     >
       <div style={{ padding: '20px 0' }}>
-        <Alert message="Verify Your Certificate" description="Enter the certificate ID found on your professional certificate." type="info" showIcon style={{ marginBottom: 24 }} />
+        <Alert message="Verify a certificate of completion" description="Enter the certificate ID printed on the SafeTrack Pro Global practice-exam certificate." type="info" showIcon style={{ marginBottom: 24 }} />
         <div style={{ marginBottom: 24 }}>
           <Input size="large" placeholder="Enter Certificate ID" value={verificationCode} onChange={(e) => setVerificationCode(e.target.value)} prefix={<QrcodeOutlined />} onPressEnter={handleVerifyCertificate} />
         </div>
@@ -1961,7 +1941,7 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
               <>
                 <div style={{ textAlign: 'center', marginBottom: 16 }}>
                   <CheckCircleOutlined style={{ fontSize: 48, color: '#52c41a' }} />
-                  <Title level={4} style={{ color: '#52c41a', marginTop: 8 }}>Valid Certificate</Title>
+                  <Title level={4} style={{ color: '#52c41a', marginTop: 8 }}>Genuine certificate of completion</Title>
                 </div>
                 <div><Text strong>Recipient:</Text><div style={{ fontSize: 16, fontWeight: 'bold' }}>{verificationResult.recipient_name}</div></div>
                 <div><Text strong>Course:</Text><div>{verificationResult.course_title}</div></div>
@@ -1969,8 +1949,9 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
                   <Col span={12}><Text strong>Certificate ID:</Text><div style={{ fontFamily: 'monospace' }}>{verificationResult.certificate_id}</div></Col>
                   <Col span={12}><Text strong>Score:</Text><div><Tag color="blue">{verificationResult.exam_score}%</Tag></div></Col>
                   <Col span={12}><Text strong>Issue Date:</Text><div>{new Date(verificationResult.issue_date).toLocaleDateString()}</div></Col>
-                  <Col span={12}><Text strong>Expiry Date:</Text><div>{new Date(verificationResult.expiry_date).toLocaleDateString()}</div></Col>
+                  <Col span={12}><Text strong>Type:</Text><div>{verificationResult.certificate_type || 'Practice exam - certificate of completion'}</div></Col>
                 </Row>
+                <Alert type="info" showIcon style={{ marginTop: 12 }} message={verificationResult.disclaimer || PRACTICE_DISCLAIMER} />
                 <Divider />
                 <div style={{ textAlign: 'center' }}><Button type="link" size="small" icon={<ShareAltOutlined />} onClick={handleCopyVerificationLink}>Copy Verification Link</Button></div>
               </>
@@ -2008,7 +1989,7 @@ Generated by SafetyTrack Pro AI Assistant | ${new Date().toLocaleString()}
       <div>
         <Row gutter={[16, 16]}>
           <Col span={24}>
-            <Alert message="Professional Tools Suite" description="Access advanced AI-powered tools for safety training, certification, and verification." type="info" showIcon />
+            <Alert message="Practice exams & certificate checks" description="Prepare for safety-professional exams with a full-length CSP-style practice exam, and check any SafeTrack certificate of completion." type="info" showIcon />
           </Col>
           <Col xs={24} lg={12}>
             {renderExamFlowCard()}
