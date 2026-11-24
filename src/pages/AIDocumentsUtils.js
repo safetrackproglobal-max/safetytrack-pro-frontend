@@ -498,6 +498,9 @@ export const checkDocumentPermission = (documentType, userPlanLevel, documentTyp
     return { allowed: true, message: '', isSuperAdmin: true };
   }
   
+  // The full practice exam is free with an account (daily limit on the server); the certificate needs a paid plan
+  if (documentType === 'exam') { console.groupEnd(); return { allowed: true, message: '' }; }
+
   const specialFeatures = {
     'exam': { requiredPlan: 'pro,enterprise,business,super_admin, Admin', name: 'Safety Exam', business: true },
     'certificate': { requiredPlan: 'pro,enterprise,business,super_admin, Admin', name: 'Certificate Generation', business: true }

@@ -55,10 +55,12 @@ ${det.potential_consequence ? `<h2>What could happen</h2><p>${esc(det.potential_
 ${det.recommended_action ? `<h2>What everyone must do</h2><p>${esc(det.recommended_action)}</p>` : ''}
 ${r.action_taken ? `<div class="box"><b>Action taken:</b> ${esc(r.action_taken)}</div>` : ''}
 <p style="margin-top:24px"><b>You spoke, we acted.</b> Thank you to the worker who reported this. Scan the Workplace Voice QR code to report any concern - anonymously, in your own language.</p>
-<script>setTimeout(function(){window.print()},300)</script></body></html>`;
+</body></html>`;
   const w = window.open('', '_blank');
   if (!w) { message.warning('Allow pop-ups to print'); return; }
   w.opener = null; w.document.open(); w.document.write(html); w.document.close();
+  // no inline script in the pop-up: the site's CSP blocks it
+  setTimeout(() => { try { w.focus(); w.print(); } catch (e) { /* print from the browser menu */ } }, 500);
 };
 
 // ------------------------------------------------------------------ repeated reports
@@ -651,10 +653,12 @@ const QrCard = ({ title, url, companyName, logo }) => {
 <p class="langs">Scan · Speak · Submit — امسح · تحدث · أرسل — स्कैन करें · बोलें · भेजें — اسکین کریں · بولیں · بھیجیں — স্ক্যান করুন · বলুন · পাঠান — I-scan · Magsalita · Ipadala — Scannez · Parlez · Envoyez — Skani · Ongea · Tuma</p>
 <p style="font-size:13px;color:#555">${esc(url)}</p>${title ? `<p style="font-size:16px"><b>${esc(title)}</b></p>` : ''}</div>
 <div class="foot">${logo ? `<img src="${esc(logo)}" alt="" />` : '<span></span>'}<span><b>${esc(companyName || '')}</b><br/>SafeTrack Workplace Voice™</span></div></div>
-<script>setTimeout(function(){window.print()},400)</script></body></html>`;
+</body></html>`;
     const w = window.open('', '_blank');
     if (!w) { message.warning('Allow pop-ups to print the poster'); return; }
     w.opener = null; w.document.open(); w.document.write(html); w.document.close();
+  // no inline script in the pop-up: the site's CSP blocks it
+  setTimeout(() => { try { w.focus(); w.print(); } catch (e) { /* print from the browser menu */ } }, 500);
   };
   return (
     <Card size="small" style={{ borderRadius: 12, height: '100%' }} title={title}>

@@ -1050,9 +1050,11 @@ async generateUniversalDocument(options = {}, userPlan = 'free') {
       // Format answers for backend
       const formattedAnswers = {};
       Object.entries(answers).forEach(([qIndex, answerIndex]) => {
-        const letter = String.fromCharCode(65 + parseInt(answerIndex));
+        // the exam page sends { index, letter, value }; older callers send a 0-based number
+        const given = answerIndex && typeof answerIndex === 'object' ? (answerIndex.letter || answerIndex.value) : answerIndex;
+        const letter = /^[A-Za-z]/.test(String(given)) ? String(given).charAt(0).toUpperCase() : String.fromCharCode(65 + parseInt(given, 10));
         formattedAnswers[qIndex] = {
-          index: parseInt(answerIndex),
+          index: letter.charCodeAt(0) - 65,
           letter: letter,
           value: letter
         };

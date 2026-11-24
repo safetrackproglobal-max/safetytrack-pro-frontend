@@ -20,6 +20,11 @@ Not to be confused with: SafeStart's "SafeTrack" coaching program, MaxAccel's "S
 - [Compliance management](https://www.safetrackproglobal.com/compliance-management-software), [HSE dashboards](https://www.safetrackproglobal.com/hse-dashboard-software), [HSE analytics](https://www.safetrackproglobal.com/hse-analytics-software), [HSE project management](https://www.safetrackproglobal.com/hse-project-management-software), [workforce and training](https://www.safetrackproglobal.com/workforce-management-software).
 - [CSP practice exam](https://www.safetrackproglobal.com/csp-practice-exam): a CSP-style practice test (100 scenario questions, 4 hours, instant explanations). It is NOT the official CSP exam, is not affiliated with or endorsed by BCSP, and does not award the CSP credential or CEUs. Passing gives a certificate of completion that can be verified online.
 
+## Free resources (no account)
+
+- [Free safety documents](https://www.safetrackproglobal.com/free-safety-documents): editable risk assessments, JSAs, permits, method statements and plans by industry, downloadable as PDF.
+- [Free CSP practice test](https://www.safetrackproglobal.com/csp-practice-exam/free-test): 10 questions with explanations (practice only).
+
 ## Industries
 
 [Construction](https://www.safetrackproglobal.com/industries/construction), [oil and gas](https://www.safetrackproglobal.com/industries/oil-and-gas), [mining](https://www.safetrackproglobal.com/industries/mining), [manufacturing](https://www.safetrackproglobal.com/industries/manufacturing), [chemical](https://www.safetrackproglobal.com/industries/chemical), [maritime](https://www.safetrackproglobal.com/industries/maritime), [aviation](https://www.safetrackproglobal.com/industries/aviation), [healthcare](https://www.safetrackproglobal.com/industries/healthcare), [education](https://www.safetrackproglobal.com/industries/education).

@@ -150,6 +150,7 @@ function Footer() {
               <Link to="/toolbox-talk-generator">AI Toolbox Talks</Link>
               <Link to="/anonymous-safety-reporting">Anonymous Reporting</Link>
               <Link to="/csp-practice-exam">CSP Practice Exam</Link>
+              <Link to="/free-safety-documents">Free Safety Documents</Link>
               <Link to="/demo">Request a Demo</Link>
             </div>
 

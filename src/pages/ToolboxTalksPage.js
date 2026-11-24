@@ -76,7 +76,6 @@ ${c.closing ? `<p>${esc(c.closing)}</p>` : ''}
 <h2>Attendance</h2><table><tr><th style="width:5%">#</th><th>Name</th><th style="width:30%">Signature</th></tr>
 ${Array.from({ length: rows }).map((_, i) => `<tr><td>${i + 1}</td><td>${esc(att[i] || '')}</td><td></td></tr>`).join('')}</table>
 <p class="meta" style="margin-top:16px">Presenter signature: ____________________ &nbsp; Supervisor signature: ____________________</p>
-<button class="noprint" onclick="window.print()" style="margin-top:12px;padding:8px 16px">Print / Save as PDF</button>
 </body></html>`;
   const w = window.open('', '_blank');
   if (!w) { message.warning('Allow pop-ups to print the talk'); return; }

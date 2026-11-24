@@ -690,7 +690,7 @@ export const SOLUTIONS = [
     related: ['hse-project-management-software', 'workforce-management-software'],
     note:
       'Independent practice tool. CSP® is a registered mark of the Board of Certified Safety Professionals (BCSP). SafeTrack Pro Global is not affiliated with or endorsed by BCSP. Passing this practice exam does not grant the CSP credential, a licence or continuing education units (CEUs).',
-    cta: { label: 'Start the practice exam', to: '/exam' },
+    cta: { label: 'Try 10 free questions', to: '/csp-practice-exam/free-test' },
     faqs: [
       { q: 'Is this the official CSP exam?', a: 'No. It is an independent practice exam. To earn the CSP credential you must meet BCSP’s requirements and pass the official exam through BCSP.' },
       { q: 'Does it award CEUs or a certification?', a: 'No. It gives a certificate of completion for the practice exam only. It does not award CEUs, recertification points or any professional credential.' },

@@ -1928,7 +1928,7 @@ function AIDocumentsPage() {
   const [libraryShowAll, setLibraryShowAll] = useState(false);
   const [chatSuggestions, setChatSuggestions] = useState([]);
   const [generationMode, setGenerationMode] = useState('document');
-  const [userPlan, setUserPlan] = useState('super_admin');
+  const [userPlan, setUserPlan] = useState('free');
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeInfo, setUpgradeInfo] = useState({
     requiredPlan: '',

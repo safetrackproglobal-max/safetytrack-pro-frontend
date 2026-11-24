@@ -322,10 +322,12 @@ const DocumentSearch = ({
   // HELPERS
   // ============================================================
   
+  // escape first: titles and descriptions are typed by users and rendered as HTML
   const highlightText = (text, searchTerm) => {
-    if (!text || !searchTerm) return text;
-    const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-    return text.replace(regex, '<mark>$1</mark>');
+    const enc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    if (!text || !searchTerm) return enc(text);
+    const regex = new RegExp(`(${enc(searchTerm).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    return enc(text).replace(regex, '<mark>$1</mark>');
   };
 
   const formatDate = (date) => {
@@ -736,7 +738,7 @@ const DocumentSearch = ({
                   <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 8 }}>
                     <div 
                       dangerouslySetInnerHTML={{ 
-                        __html: item.description ? highlightText(item.description, query).substring(0, 100) + '...' : 'No description'
+                        __html: item.description ? highlightText(String(item.description).substring(0, 100), query) + '...' : 'No description'
                       }} 
                     />
                   </div>

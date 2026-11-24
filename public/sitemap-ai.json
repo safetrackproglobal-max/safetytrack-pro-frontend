@@ -1,6 +1,6 @@
 {
   "version": "3.0",
-  "last_updated": "2026-11-23",
+  "last_updated": "2026-11-24",
   "organization": {
     "name": "SafeTrack Pro Global",
     "alternate_names": [
@@ -26,215 +26,1375 @@
       "url": "https://www.safetrackproglobal.com/",
       "title": "SafeTrack Pro Global | AI HSE & Safety Management Software",
       "category": "home",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/pricing",
       "title": "Pricing",
       "category": "pricing",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/voice",
       "title": "Workplace Voice - find your company and report safely",
       "category": "portal",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents",
+      "title": "Free safety documents and templates",
+      "category": "library",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/csp-practice-exam/free-test",
+      "title": "Free CSP practice test (10 questions)",
+      "category": "practice test",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/agriculture-barn-safety-assessment",
+      "title": "Barn Safety Assessment",
+      "description": "Free Barn Safety Assessment template for agriculture you can edit online and download as PDF. Covers hazards and controls, safety features, approval & sign-off.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/agriculture-farm-machinery-safety-assessment",
+      "title": "Farm Machinery Safety Assessment",
+      "description": "Free Farm Machinery Safety Assessment template for agriculture you can edit online and download as PDF. Covers hazards and controls, daily checks, approval & sign-off.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/agriculture-grain-handling-safety-assessment",
+      "title": "Grain Handling Safety Assessment",
+      "description": "Free Grain Handling Safety Assessment template for agriculture you can edit online and download as PDF. Covers hazards and controls, before bin entry, approval & sign-off.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/agriculture-harvesting-safety-assessment",
+      "title": "Harvesting Safety Assessment",
+      "description": "Free Harvesting Safety Assessment template for agriculture you can edit online and download as PDF. Covers hazards and controls, before the shift, approval & sign-off.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/agriculture-agricultural-chemical-storage-safety-plan",
+      "title": "Agricultural Chemical Storage Safety Plan",
+      "description": "Free Agricultural Chemical Storage Safety Plan template for agriculture you can edit online and download as PDF. Covers store construction and location, storage practices, spill and emergency kit.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/agriculture-irrigation-safety-plan",
+      "title": "Irrigation Safety Plan",
+      "description": "Free Irrigation Safety Plan template for agriculture you can edit online and download as PDF. Covers hazards and controls, routine checks, approval & sign-off.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/agriculture-livestock-safety-plan",
+      "title": "Livestock Safety Plan",
+      "description": "Free Livestock Safety Plan template for agriculture you can edit online and download as PDF. Covers hazards and controls, facilities and practices, approval & sign-off.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/agriculture-pesticide-safety-plan",
+      "title": "Pesticide Safety Plan",
+      "description": "Free Pesticide Safety Plan template for agriculture you can edit online and download as PDF. Covers product register, before application, mixing, application and cleaning.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/aircraft-maintenance-log-aviation-industry",
+      "title": "Aircraft Maintenance Log - Aviation Industry",
+      "description": "Free Aircraft Maintenance Log - Aviation Industry template for aviation you can edit online and download as PDF. Covers maintenance work record, defect & rectification record, component life tracking.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/aviation-air-traffic-control-risk-assessment",
+      "title": "Air Traffic Control Risk Assessment",
+      "description": "Free Air Traffic Control Risk Assessment template for aviation you can edit online and download as PDF. Covers atc unit information, human factors in atc - shell model analysis, workload and staffing assessment.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/aviation-aircraft-ground-handling-risk-assessment",
+      "title": "Aircraft Ground Handling Risk Assessment",
+      "description": "Free Aircraft Ground Handling Risk Assessment template for aviation you can edit online and download as PDF. Covers operational information, risk tolerance and action requirements, detailed control measures and mitigations.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/aviation-aircraft-maintenance-errors-risk-assessment",
+      "title": "Aircraft Maintenance Errors Risk Assessment",
+      "description": "Free Aircraft Maintenance Errors Risk Assessment template for aviation you can edit online and download as PDF. Covers maintenance organization information, risk priority number (rpn) interpretation, human factors analysis - dirty",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/aviation-fuel-handling-risk-assessment",
+      "title": "Aviation Fuel Handling Risk Assessment",
+      "description": "Free Aviation Fuel Handling Risk Assessment template for aviation you can edit online and download as PDF. Covers fueling operation information, comprehensive hazard analysis - bowtie methodology, fuel quality control checklist.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/aviation-bird-strike-management-risk-assessment",
+      "title": "Bird Strike Management Risk Assessment",
+      "description": "Free Bird Strike Management Risk Assessment template for aviation you can edit online and download as PDF. Covers bird/wildlife hazard management information, bird strike risk assessment matrix, bird strike severity classification",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/aviation-cabin-safety-risk-assessment",
+      "title": "Cabin Safety Risk Assessment",
+      "description": "Free Cabin Safety Risk Assessment template for aviation you can edit online and download as PDF. Covers cabin operations information, cabin safety risk assessment matrix, cabin crew duties and responsibilities.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/aviation-emergency-evacuation-risk-assessment",
+      "title": "Emergency Evacuation Risk Assessment",
+      "description": "Free Emergency Evacuation Risk Assessment template for aviation you can edit online and download as PDF. Covers emergency evacuation information, emergency evacuation risk assessment matrix, current arff capability vs requirements",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/aviation-fatigue-risk-management-system-frms",
+      "title": "Fatigue Risk Management System (Frms)",
+      "description": "Free Fatigue Risk Management System (Frms) template for aviation you can edit online and download as PDF. Covers fatigue management information, fatigue hazard identification and risk assessment, fatigue risk levels and action req",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/aviation-ground-handling-comprehensive-risk-assessment",
+      "title": "Ground Handling Comprehensive Risk Assessment",
+      "description": "Free Ground Handling Comprehensive Risk Assessment template for aviation you can edit online and download as PDF. Covers ground handling operations information, ground service equipment (gse) fleet risk assessment, ground handler ",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/aviation-human-remains-handling-risk-assessment",
+      "title": "Human Remains Handling Risk Assessment",
+      "description": "Free Human Remains Handling Risk Assessment template for aviation you can edit online and download as PDF. Covers human remains handling information, human remains handling risk assessment matrix, regulatory and documentation requ",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/aviation-ramp-operations-risk-assessment",
+      "title": "Ramp Operations Risk Assessment",
+      "description": "Free Ramp Operations Risk Assessment template for aviation you can edit online and download as PDF. Covers operational information, hazard identification and risk assessment - detailed matrix, risk score interpretation and action ",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/aviation-security-screening-risk-assessment",
+      "title": "Security Screening Risk Assessment",
+      "description": "Free Security Screening Risk Assessment template for aviation you can edit online and download as PDF. Covers security screening information, security screening risk assessment matrix, screening checkpoint layout and design assess",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/aviation-security-threat-risk-assessment",
+      "title": "Security Threat Risk Assessment",
+      "description": "Free Security Threat Risk Assessment template for aviation you can edit online and download as PDF. Covers security threat information, security threat risk assessment matrix, physical security measures assessment.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/aviation-weather-operations-risk-assessment",
+      "title": "Weather Operations Risk Assessment",
+      "description": "Free Weather Operations Risk Assessment template for aviation you can edit online and download as PDF. Covers weather operations information, weather hazard risk assessment matrix, weather monitoring and warning systems.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/aviation-hangar-safety-plan",
+      "title": "Hangar Safety Plan",
+      "description": "Free Hangar Safety Plan template for aviation you can edit online and download as PDF. Covers hazards and controls, daily hangar checks, emergency response.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-concrete-pour-job-safety-analysis",
+      "title": "Concrete Pour Job Safety Analysis",
+      "description": "Free Concrete Pour Job Safety Analysis template for construction you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-confined-space-job-safety-analysis",
+      "title": "Confined Space Job Safety Analysis",
+      "description": "Free Confined Space Job Safety Analysis template for construction you can edit online and download as PDF. Covers project information, atmospheric testing results (before entry), job steps & hazard analysis.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-crane-lift-job-safety-analysis",
+      "title": "Crane Lift Job Safety Analysis",
+      "description": "Free Crane Lift Job Safety Analysis template for construction you can edit online and download as PDF. Covers lift information, job steps & hazard analysis.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-demolition-job-safety-analysis",
+      "title": "Demolition Job Safety Analysis",
+      "description": "Free Demolition Job Safety Analysis template for construction you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-electrical-work-job-safety-analysis",
+      "title": "Electrical Work Job Safety Analysis",
+      "description": "Free Electrical Work Job Safety Analysis template for construction you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-excavation-job-safety-analysis",
+      "title": "Excavation Job Safety Analysis",
+      "description": "Free Excavation Job Safety Analysis template for construction you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-hot-work-job-safety-analysis",
+      "title": "Hot Work Job Safety Analysis",
+      "description": "Free Hot Work Job Safety Analysis template for construction you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-roofing-job-safety-analysis",
+      "title": "Roofing Job Safety Analysis",
+      "description": "Free Roofing Job Safety Analysis template for construction you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-scaffold-erection-job-safety-analysis",
+      "title": "Scaffold Erection Job Safety Analysis",
+      "description": "Free Scaffold Erection Job Safety Analysis template for construction you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-steel-erection-job-safety-analysis",
+      "title": "Steel Erection Job Safety Analysis",
+      "description": "Free Steel Erection Job Safety Analysis template for construction you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-cold-work-permit-enhanced",
+      "title": "Cold Work Permit (Enhanced)",
+      "description": "Free Cold Work Permit (Enhanced) template for construction you can edit online and download as PDF. Covers permit information, hazard identification, attached documents.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-confined-space-entry-permit-enhanced",
+      "title": "Confined Space Entry Permit (Enhanced)",
+      "description": "Free Confined Space Entry Permit (Enhanced) template for construction you can edit online and download as PDF. Covers permit information, hazard identification, attached documents.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-electrical-work-permit-enhanced",
+      "title": "Electrical Work Permit (Enhanced)",
+      "description": "Free Electrical Work Permit (Enhanced) template for construction you can edit online and download as PDF. Covers permit information, work team & qualifications, hazard identification.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-excavation-permit-enhanced",
+      "title": "Excavation Permit (Enhanced)",
+      "description": "Free Excavation Permit (Enhanced) template for construction you can edit online and download as PDF. Covers permit information, hazard identification, precautions & control measures.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-hot-work-permit-enhanced",
+      "title": "Hot Work Permit (Enhanced)",
+      "description": "Free Hot Work Permit (Enhanced) template for construction you can edit online and download as PDF. Covers permit information, hazard identification, attached documents.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-lifting-operation-permit-enhanced",
+      "title": "Lifting Operation Permit (Enhanced)",
+      "description": "Free Lifting Operation Permit (Enhanced) template for construction you can edit online and download as PDF. Covers permit information, work details, hazard identification.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-work-at-height-permit-enhanced",
+      "title": "⬆ Work At Height Permit (Enhanced)",
+      "description": "Free ⬆ Work At Height Permit (Enhanced) template for construction you can edit online and download as PDF. Covers permit information, hazard identification, attached documents.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-concrete-placement-risk-assessment",
+      "title": "Concrete Placement Risk Assessment",
+      "description": "Free Concrete Placement Risk Assessment template for construction you can edit online and download as PDF. Covers concrete placement project information, formwork design and engineering - aci 347, formwork inspection checklist.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-crane-operations-risk-assessment",
+      "title": "Crane Operations Risk Assessment",
+      "description": "Free Crane Operations Risk Assessment template for construction you can edit online and download as PDF. Covers crane and lift information, crane operations hazard identification and risk assessment, power line clearance - osha ta",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-demolition-operations-risk-assessment",
+      "title": "Demolition Operations Risk Assessment",
+      "description": "Free Demolition Operations Risk Assessment template for construction you can edit online and download as PDF. Covers demolition project information, pre-demolition engineering survey - osha 29 cfr 1926.850, hazardous materials sur",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-electrical-installation-risk-assessment",
+      "title": "Electrical Installation Risk Assessment",
+      "description": "Free Electrical Installation Risk Assessment template for construction you can edit online and download as PDF. Covers electrical installation project information, electrical safety program - osha 29 cfr 1926.950 - 1926.960, locko",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-mechanical-installation-risk-assessment",
+      "title": "Mechanical Installation Risk Assessment",
+      "description": "Free Mechanical Installation Risk Assessment template for construction you can edit online and download as PDF. Covers mechanical installation project information, pre-installation engineering and planning, rigging and lifting pla",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-piling-operations-risk-assessment",
+      "title": "Piling Operations Risk Assessment",
+      "description": "Free Piling Operations Risk Assessment template for construction you can edit online and download as PDF. Covers 29 cfr 1926 subpart q - concrete, piling, piling project information, pre-piling engineering and site preparation.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-roofing-operations-risk-assessment",
+      "title": "Roofing Operations Risk Assessment",
+      "description": "Free Roofing Operations Risk Assessment template for construction you can edit online and download as PDF. Covers 29 cfr 1926 subpart q - concrete, roofing, roofing project information, fall protection plan - osha 29 cfr 1926.500 ",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-scaffolding-risk-assessment",
+      "title": "Scaffolding Risk Assessment",
+      "description": "Free Scaffolding Risk Assessment template for construction you can edit online and download as PDF. Covers scaffold project information, scaffold design and engineering - osha 29 cfr 1926.451(a), scaffold component inspection.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-steel-erection-risk-assessment",
+      "title": "Steel Erection Risk Assessment",
+      "description": "Free Steel Erection Risk Assessment template for construction you can edit online and download as PDF. Covers steel erection project information, steel erection hazard identification and risk assessment, critical lift plan - osha ",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-structural-work-risk-assessment",
+      "title": "Structural Work Risk Assessment",
+      "description": "Free Structural Work Risk Assessment template for construction you can edit online and download as PDF. Covers project information, structural integrity control plan, fall protection plan - osha 29 cfr 1926 subpart m.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-temporary-works-risk-assessment",
+      "title": "Temporary Works Risk Assessment",
+      "description": "Free Temporary Works Risk Assessment template for construction you can edit online and download as PDF. Covers osha 29 cfr 1926 subpart p - excavations, temporary works project information, temporary works design and procedures - ",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-traffic-management-risk-assessment",
+      "title": "Traffic Management Risk Assessment",
+      "description": "Free Traffic Management Risk Assessment template for construction you can edit online and download as PDF. Covers mutcd - manual on uniform traffic control devices, traffic management project information, traffic control plan - mu",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-trenching-excavation-risk-assessment",
+      "title": "Trenching & Excavation Risk Assessment",
+      "description": "Free Trenching & Excavation Risk Assessment template for construction you can edit online and download as PDF. Covers excavation information, soil classification and testing - osha appendix a, protective system design - osha requi",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-underground-work-risk-assessment",
+      "title": "Underground Work Risk Assessment",
+      "description": "Free Underground Work Risk Assessment template for construction you can edit online and download as PDF. Covers hazards and controls, pre-start checks, approval & sign-off.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-material-safety-data-sheet",
+      "title": "Material Safety Data Sheet",
+      "description": "Free Material Safety Data Sheet template for construction you can edit online and download as PDF. Covers section 1: identification, section 2: hazards identification, section 3: composition.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/construction-painting-work-safety-plan",
+      "title": "Painting Work Safety Plan",
+      "description": "Free Painting Work Safety Plan template for construction you can edit online and download as PDF. Covers hazards and controls, before starting, housekeeping and waste.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/education-child-protection-risk-assessment",
+      "title": "Child Protection Risk Assessment",
+      "description": "Free Child Protection Risk Assessment template for education you can edit online and download as PDF. Covers title ix & state mandated reporter requirements, child protection information, child protection hazard identification and",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/education-classroom-safety-risk-assessment",
+      "title": "Classroom Safety Risk Assessment",
+      "description": "Free Classroom Safety Risk Assessment template for education you can edit online and download as PDF. Covers classroom information, classroom hazard identification and risk assessment, classroom inspection checklist.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/education-emergency-preparedness-risk-assessment",
+      "title": "Emergency Preparedness Risk Assessment",
+      "description": "Free Emergency Preparedness Risk Assessment template for education you can edit online and download as PDF. Covers emergency preparedness information, emergency operations plan (eop) components, emergency response team.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/education-fire-safety-risk-assessment",
+      "title": "Fire Safety Risk Assessment",
+      "description": "Free Fire Safety Risk Assessment template for education you can edit online and download as PDF. Covers fire safety information, fire safety hazard identification and risk assessment, fire safety inspection checklist.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/education-food-service-risk-assessment",
+      "title": "Food Service Risk Assessment",
+      "description": "Free Food Service Risk Assessment template for education you can edit online and download as PDF. Covers food service information, food service hazard identification and risk assessment, food safety - haccp principles.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/education-laboratory-safety-risk-assessment",
+      "title": "Laboratory Safety Risk Assessment",
+      "description": "Free Laboratory Safety Risk Assessment template for education you can edit online and download as PDF. Covers laboratory information, laboratory hazard identification and risk assessment, laboratory safety equipment inventory & in",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/education-maintenance-activities-risk-assessment",
+      "title": "Maintenance Activities Risk Assessment",
+      "description": "Free Maintenance Activities Risk Assessment template for education you can edit online and download as PDF. Covers maintenance activities information, lockout/tagout (loto) procedures, hot work permit.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/education-playground-safety-risk-assessment",
+      "title": "Playground Safety Risk Assessment",
+      "description": "Free Playground Safety Risk Assessment template for education you can edit online and download as PDF. Covers playground information, playground hazard identification and risk assessment, playground inspection checklist.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/education-special-needs-risk-assessment",
+      "title": "Special Needs Risk Assessment",
+      "description": "Free Special Needs Risk Assessment template for education you can edit online and download as PDF. Covers special needs information, special needs - general risk assessment, individual student safety plan.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/education-sports-activities-risk-assessment",
+      "title": "Sports Activities Risk Assessment",
+      "description": "Free Sports Activities Risk Assessment template for education you can edit online and download as PDF. Covers sports activity information, sports activity hazard identification and risk assessment, sport-specific risk assessments.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/education-visitor-management-risk-assessment",
+      "title": "Visitor Management Risk Assessment",
+      "description": "Free Visitor Management Risk Assessment template for education you can edit online and download as PDF. Covers visitor management information, visitor check-in system, visitor identification badges.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/education-staff-training-risk-assessment",
+      "title": "‍ Staff Training Risk Assessment",
+      "description": "Free ‍ Staff Training Risk Assessment template for education you can edit online and download as PDF. Covers state & federal mandated training requirements, staff training information, staff training hazard identification and risk",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/medical-device-safety-check-healthcare-industry",
+      "title": "Medical Device Safety Check - Healthcare Industry",
+      "description": "Free Medical Device Safety Check - Healthcare Industry template for healthcare you can edit online and download as PDF. Covers device safety inspection checklist, performance testing results, maintenance & service history.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/healthcare-biohazard-exposure-risk-assessment",
+      "title": "Biohazard Exposure Risk Assessment",
+      "description": "Free Biohazard Exposure Risk Assessment template for healthcare you can edit online and download as PDF. Covers facility/department information, biohazard risk assessment matrix - cdc/nih guidelines, cdc/nih biosafety level risk a",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/healthcare-medication-safety-risk-assessment",
+      "title": "Medication Safety Risk Assessment",
+      "description": "Free Medication Safety Risk Assessment template for healthcare you can edit online and download as PDF. Covers pharmacy/medication management information, high-alert medications list - ismp designation, medication safety controls ",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/healthcare-surgical-safety-risk-assessment",
+      "title": "Surgical Safety Risk Assessment",
+      "description": "Free Surgical Safety Risk Assessment template for healthcare you can edit online and download as PDF. Covers surgical department information, surgical safety risk assessment matrix - aorn guidelines, who surgical safety checklist ",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/manufacturing-changeover-procedure-method-statement",
+      "title": "Changeover Procedure Method Statement",
+      "description": "Free Changeover Procedure Method Statement template for manufacturing you can edit online and download as PDF. Covers 3.0 changeover tasks (internal tasks - line stopped), 4.0 setup & adjustment (internal tasks - line stopped), 5.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/manufacturing-cleaning-procedure-method-statement",
+      "title": "Cleaning Procedure Method Statement",
+      "description": "Free Cleaning Procedure Method Statement template for manufacturing you can edit online and download as PDF. Covers 1.0 safety & preparation, 2.0 cleaning agents & equipment, 3.0 cleaning procedure.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/manufacturing-machine-setup-method-statement",
+      "title": "Machine Setup Method Statement",
+      "description": "Free Machine Setup Method Statement template for manufacturing you can edit online and download as PDF. Covers 1.0 required resources, 2.0 pre-setup verification, 3.0 setup procedure.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/manufacturing-maintenance-procedure-method-statement",
+      "title": "Maintenance Procedure Method Statement",
+      "description": "Free Maintenance Procedure Method Statement template for manufacturing you can edit online and download as PDF. Covers 1.0 safety precautions, 2.0 maintenance tasks, 3.0 testing & verification.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/manufacturing-material-handling-method-statement",
+      "title": "Material Handling Method Statement",
+      "description": "Free Material Handling Method Statement template for manufacturing you can edit online and download as PDF. Covers 1.0 material characteristics, 2.0 equipment selection, 3.0 load preparation.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/manufacturing-packaging-method-statement",
+      "title": "Packaging Method Statement",
+      "description": "Free Packaging Method Statement template for manufacturing you can edit online and download as PDF. Covers 1.0 packaging specifications, 2.0 packing procedure, 3.0 labeling requirements.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/manufacturing-production-line-method-statement",
+      "title": "Production Line Method Statement",
+      "description": "Free Production Line Method Statement template for manufacturing you can edit online and download as PDF. Covers 1.0 line configuration, 2.0 pre-production setup, 3.0 production flow procedure.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/manufacturing-quality-control-method-statement",
+      "title": "Quality Control Method Statement",
+      "description": "Free Quality Control Method Statement template for manufacturing you can edit online and download as PDF. Covers 1.0 inspection equipment, 2.0 sampling plan, 3.0 inspection characteristics.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/manufacturing-assembly-line-job-safety-analysis",
+      "title": "Assembly Line Job Safety Analysis",
+      "description": "Free Assembly Line Job Safety Analysis template for manufacturing you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/manufacturing-chemical-mixing-job-safety-analysis",
+      "title": "Chemical Mixing Job Safety Analysis",
+      "description": "Free Chemical Mixing Job Safety Analysis template for manufacturing you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/manufacturing-conveyor-maintenance-job-safety-analysis",
+      "title": "Conveyor Maintenance Job Safety Analysis",
+      "description": "Free Conveyor Maintenance Job Safety Analysis template for manufacturing you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/manufacturing-forklift-operation-job-safety-analysis",
+      "title": "Forklift Operation Job Safety Analysis",
+      "description": "Free Forklift Operation Job Safety Analysis template for manufacturing you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/manufacturing-grinding-job-safety-analysis",
+      "title": "Grinding Job Safety Analysis",
+      "description": "Free Grinding Job Safety Analysis template for manufacturing you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/manufacturing-lockout-tagout-job-safety-analysis",
+      "title": "Lockout/Tagout Job Safety Analysis",
+      "description": "Free Lockout/Tagout Job Safety Analysis template for manufacturing you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/manufacturing-machine-operation-job-safety-analysis",
+      "title": "Machine Operation Job Safety Analysis",
+      "description": "Free Machine Operation Job Safety Analysis template for manufacturing you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/manufacturing-press-operation-job-safety-analysis",
+      "title": "Press Operation Job Safety Analysis",
+      "description": "Free Press Operation Job Safety Analysis template for manufacturing you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/manufacturing-robotic-cell-job-safety-analysis",
+      "title": "Robotic Cell Job Safety Analysis",
+      "description": "Free Robotic Cell Job Safety Analysis template for manufacturing you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/manufacturing-welding-job-safety-analysis",
+      "title": "Welding Job Safety Analysis",
+      "description": "Free Welding Job Safety Analysis template for manufacturing you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/maritime-enclosed-spaces-risk-assessment",
+      "title": "Enclosed Spaces Risk Assessment",
+      "description": "Free Enclosed Spaces Risk Assessment template for maritime you can edit online and download as PDF. Covers assessment information, atmospheric hazard assessment, physical & environmental hazards.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/maritime-vessel-safety-risk-assessment",
+      "title": "Vessel Safety Risk Assessment",
+      "description": "Free Vessel Safety Risk Assessment template for maritime you can edit online and download as PDF. Covers hazards and controls, before departure, approval & sign-off.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/maritime-environmental-safety-plan",
+      "title": "Maritime Environmental Safety Plan",
+      "description": "Free Maritime Environmental Safety Plan template for maritime you can edit online and download as PDF. Covers pollution sources and controls (marpol), spill prevention and response, emergency contacts.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/mining-blasting-procedure-method-statement",
+      "title": "Blasting Procedure Method Statement",
+      "description": "Free Blasting Procedure Method Statement template for mining you can edit online and download as PDF. Covers operation information, pre-blast safety checklist and procedures, blasting sequence and execution log.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/mining-dewatering-method-statement",
+      "title": "Dewatering Method Statement",
+      "description": "Free Dewatering Method Statement template for mining you can edit online and download as PDF. Covers operation information, hydrogeological assessment and water inflow data, pumping system inventory and specifications.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/mining-exploration-method-statement",
+      "title": "Exploration Method Statement",
+      "description": "Free Exploration Method Statement template for mining you can edit online and download as PDF. Covers operation information, exploration program design and target parameters, drilling equipment and specifications.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/mining-extraction-method-statement",
+      "title": "Extraction Method Statement",
+      "description": "Free Extraction Method Statement template for mining you can edit online and download as PDF. Covers operation information, mining method and production parameters, production drilling and blasting specifications.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/mining-ground-support-method-statement",
+      "title": "Ground Support Method Statement",
+      "description": "Free Ground Support Method Statement template for mining you can edit online and download as PDF. Covers operation information, ground condition assessment and classification, support installation specifications and monitoring.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/mining-processing-method-statement",
+      "title": "Processing Method Statement",
+      "description": "Free Processing Method Statement template for mining you can edit online and download as PDF. Covers operation information, process flowsheet and design parameters, process control and metallurgical performance.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/mining-ventilation-method-statement",
+      "title": "Ventilation Method Statement",
+      "description": "Free Ventilation Method Statement template for mining you can edit online and download as PDF. Covers operation information, primary ventilation system specifications, ventilation network and airflow distribution.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/mining-job-safety-analysis-confined-space-entry",
+      "title": "Job Safety Analysis - Confined Space Entry",
+      "description": "Free Job Safety Analysis - Confined Space Entry template for mining you can edit online and download as PDF. Covers job information, confined space classification & permit requirements, job sequence and hazard analysis.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/mining-job-safety-analysis-conveyor-maintenance",
+      "title": "Job Safety Analysis - Conveyor Maintenance",
+      "description": "Free Job Safety Analysis - Conveyor Maintenance template for mining you can edit online and download as PDF. Covers job information, job sequence and hazard analysis, tools & equipment checklist.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/mining-job-safety-analysis-drilling-blasting",
+      "title": "Job Safety Analysis - Drilling & Blasting",
+      "description": "Free Job Safety Analysis - Drilling & Blasting template for mining you can edit online and download as PDF. Covers job information, job sequence and hazard analysis, specific controls & permits required.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/mining-job-safety-analysis-electrical-maintenance",
+      "title": "Job Safety Analysis - Electrical Maintenance",
+      "description": "Free Job Safety Analysis - Electrical Maintenance template for mining you can edit online and download as PDF. Covers job information, job sequence and hazard analysis, electrical work permit & authorization.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/mining-job-safety-analysis-emergency-rescue",
+      "title": "Job Safety Analysis - Emergency Rescue",
+      "description": "Free Job Safety Analysis - Emergency Rescue template for mining you can edit online and download as PDF. Covers incident information, critical incident command & safety briefing, rescue operations sequence and hazard analysis.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/mining-job-safety-analysis-ground-control",
+      "title": "Job Safety Analysis - Ground Control",
+      "description": "Free Job Safety Analysis - Ground Control template for mining you can edit online and download as PDF. Covers job information, job sequence and hazard analysis, ground control checks & testing.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/mining-job-safety-analysis-haul-truck-operation",
+      "title": "Job Safety Analysis - Haul Truck Operation",
+      "description": "Free Job Safety Analysis - Haul Truck Operation template for mining you can edit online and download as PDF. Covers job information, job sequence and hazard analysis, road conditions & communications.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/mining-job-safety-analysis-shaft-sinking",
+      "title": "Job Safety Analysis - Shaft Sinking",
+      "description": "Free Job Safety Analysis - Shaft Sinking template for mining you can edit online and download as PDF. Covers job information, critical safety controls - must be verified pre-shift, job sequence and hazard analysis.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/mining-job-safety-analysis-ventilation-installation",
+      "title": "Job Safety Analysis - Ventilation Installation",
+      "description": "Free Job Safety Analysis - Ventilation Installation template for mining you can edit online and download as PDF. Covers job information, job sequence and hazard analysis, ventilation installation checklist.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/surface-mining-operations-risk-assessment",
+      "title": "Surface Mining Operations Risk Assessment",
+      "description": "Free Surface Mining Operations Risk Assessment template for mining you can edit online and download as PDF. Covers hazards and controls, pre-shift checks, approval & sign-off.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/underground-mining-operations-risk-assessment",
+      "title": "Underground Mining Operations Risk Assessment",
+      "description": "Free Underground Mining Operations Risk Assessment template for mining you can edit online and download as PDF. Covers hazards and controls, pre-shift checks, approval & sign-off.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/mining-tailings-management-plan",
+      "title": "Tailings Management Plan",
+      "description": "Free Tailings Management Plan template for mining you can edit online and download as PDF. Covers hazards and controls, monitoring programme, governance.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/oil-gas-drilling-procedure-method-statement",
+      "title": "Drilling Procedure Method Statement",
+      "description": "Free Drilling Procedure Method Statement template for oil & gas you can edit online and download as PDF. Covers well information, 1.0 scope of work, 2.0 references and applicable codes.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/oil-gas-environmental-protection-method-statement",
+      "title": "Environmental Protection Method Statement",
+      "description": "Free Environmental Protection Method Statement template for oil & gas you can edit online and download as PDF. Covers facility information, 3.0 waste management plan, 4.0 discharge permit requirements.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/hazard-and-operability-hazop-study-oil-gas-industry",
+      "title": "Hazard And Operability (Hazop) Study - Oil & Gas Industry",
+      "description": "Free Hazard And Operability (Hazop) Study - Oil & Gas Industry template for oil & gas you can edit online and download as PDF. Covers hazop study worksheet, risk assessment & recommendations, study close-out.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/oil-gas-safety-case-method-statement",
+      "title": "Safety Case Method Statement",
+      "description": "Free Safety Case Method Statement template for oil & gas you can edit online and download as PDF. Covers facility information, 3.0 safety case structure, 4.0 safety critical elements (sces) register.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/oil-gas-simops-procedure-method-statement",
+      "title": "Simops Procedure Method Statement",
+      "description": "Free Simops Procedure Method Statement template for oil & gas you can edit online and download as PDF. Covers simops information, 3.0 simops hazard identification, 4.0 simops risk assessment matrix.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/oil-gas-well-control-method-statement",
+      "title": "Well Control Method Statement",
+      "description": "Free Well Control Method Statement template for oil & gas you can edit online and download as PDF. Covers well information, 3.0 bop equipment specification, 4.0 bop testing procedure.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/oil-gas-rig-inspection-method-statement",
+      "title": "Rig Inspection Method Statement",
+      "description": "Free Rig Inspection Method Statement template for oil & gas you can edit online and download as PDF. Covers rig information, 3.0 daily inspection checklist, 4.0 weekly inspection checklist.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/oil-gas-confined-space-entry-permit-enhanced",
+      "title": "Confined Space Entry Permit (Enhanced)",
+      "description": "Free Confined Space Entry Permit (Enhanced) template for oil & gas you can edit online and download as PDF. Covers permit information, entry personnel, hazard identification & risk assessment.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/oil-gas-electrical-work-permit-enhanced",
+      "title": "Electrical Work Permit (Enhanced)",
+      "description": "Free Electrical Work Permit (Enhanced) template for oil & gas you can edit online and download as PDF. Covers permit information, work team, electrical hazard identification & risk assessment.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/oil-gas-h2s-entry-permit-enhanced",
+      "title": "H2S Entry Permit (Enhanced)",
+      "description": "Free H2S Entry Permit (Enhanced) template for oil & gas you can edit online and download as PDF. Covers permit information, entry team & qualifications, h2s hazard awareness & properties.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/oil-gas-lifting-operation-permit-enhanced",
+      "title": "Lifting Operation Permit (Enhanced)",
+      "description": "Free Lifting Operation Permit (Enhanced) template for oil & gas you can edit online and download as PDF. Covers permit information, lift details, lift plan & documentation.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/oil-gas-hot-work-permit-enhanced",
+      "title": "Oil & Gas Hot Work Permit (Enhanced)",
+      "description": "Free Oil & Gas Hot Work Permit (Enhanced) template for oil & gas you can edit online and download as PDF. Covers permit information, risk assessment & hazard identification, equipment inspection checklist.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/oil-gas-permit-to-work-ptw-risk-assessment",
+      "title": "Permit To Work (Ptw) Risk Assessment",
+      "description": "Free Permit To Work (Ptw) Risk Assessment template for oil & gas you can edit online and download as PDF. Covers permit to work system information, permit to work risk assessment, permit classification and requirements.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/oil-gas-confined-space-entry-risk-assessment",
+      "title": "Confined Space Entry Risk Assessment",
+      "description": "Free Confined Space Entry Risk Assessment template for oil & gas you can edit online and download as PDF. Covers confined space information, confined space identification and evaluation, confined space entry risk assessment matrix",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/oil-gas-drilling-operations-risk-assessment",
+      "title": "Drilling Operations Risk Assessment",
+      "description": "Free Drilling Operations Risk Assessment template for oil & gas you can edit online and download as PDF. Covers rig/drilling site information, risk matrix (iso 31000 / iadc hse guidelines), drilling equipment integrity and certifi",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/oil-gas-h2s-exposure-risk-assessment",
+      "title": "H2S Exposure Risk Assessment",
+      "description": "Free H2S Exposure Risk Assessment template for oil & gas you can edit online and download as PDF. Covers facility/work area information, h2s exposure risk assessment matrix, h2s physiological effects and exposure limits.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/oil-gas-hot-work-operations-risk-assessment",
+      "title": "Hot Work Operations Risk Assessment",
+      "description": "Free Hot Work Operations Risk Assessment template for oil & gas you can edit online and download as PDF. Covers hot work information, hot work risk assessment matrix, hot work area inspection checklist.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/oil-gas-hydrocarbon-release-risk-assessment",
+      "title": "Hydrocarbon Release Risk Assessment",
+      "description": "Free Hydrocarbon Release Risk Assessment template for oil & gas you can edit online and download as PDF. Covers facility information, leak detection and monitoring systems, hydrocarbon inventory and isolation capabilities.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/oil-gas-lifting-operations-risk-assessment",
+      "title": "Lifting Operations Risk Assessment",
+      "description": "Free Lifting Operations Risk Assessment template for oil & gas you can edit online and download as PDF. Covers lifting operation information, lift categorization, lifting operations risk assessment matrix.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/oil-gas-offshore-operations-risk-assessment",
+      "title": "Offshore Operations Risk Assessment",
+      "description": "Free Offshore Operations Risk Assessment template for oil & gas you can edit online and download as PDF. Covers offshore facility information, temporary refuge (tr) and muster area status, emergency evacuation and escape equipment",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/oil-gas-process-safety-management-risk-assessment",
+      "title": "Process Safety Management Risk Assessment",
+      "description": "Free Process Safety Management Risk Assessment template for oil & gas you can edit online and download as PDF. Covers facility process safety information, process hazard analysis (pha) methodology and status, process safety inform",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/oil-gas-production-operations-risk-assessment",
+      "title": "Production Operations Risk Assessment",
+      "description": "Free Production Operations Risk Assessment template for oil & gas you can edit online and download as PDF. Covers hazards and controls, operating readiness, approval & sign-off.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/oil-gas-simultaneous-operations-simops-risk-assessment",
+      "title": "Simultaneous Operations (Simops) Risk Assessment",
+      "description": "Free Simultaneous Operations (Simops) Risk Assessment template for oil & gas you can edit online and download as PDF. Covers simops information, simultaneous operations matrix, current simops activities assessment.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/oil-gas-well-control-risk-assessment",
+      "title": "Well Control Risk Assessment",
+      "description": "Free Well Control Risk Assessment template for oil & gas you can edit online and download as PDF. Covers well information, well control equipment status and certification, well control drills and personnel competency.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/oil-gas-gas-processing-safety-plan",
+      "title": "Gas Processing Safety Plan",
+      "description": "Free Gas Processing Safety Plan template for oil & gas you can edit online and download as PDF. Covers major hazards and controls, operating controls, emergency response.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/oil-gas-transportation-safety-plan",
+      "title": "Oil & Gas Transportation Safety Plan",
+      "description": "Free Oil & Gas Transportation Safety Plan template for oil & gas you can edit online and download as PDF. Covers hazards and controls, vehicle and driver requirements, emergency response.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/simultaneous-operations-simops-plan-oil-gas-industry",
+      "title": "Simultaneous Operations (Simops) Plan - Oil & Gas Industry",
+      "description": "Free Simultaneous Operations (Simops) Plan - Oil & Gas Industry template for oil & gas you can edit online and download as PDF. Covers operations interface matrix, communication protocol, emergency response coordination.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/safety-audit-report",
+      "title": "Safety Audit Report",
+      "description": "Free Safety Audit Report template you can edit online and download as PDF. Covers audit information, 1.0 audit objectives & scope, 2.0 audit methodology.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/safety-audit-checklist",
+      "title": "Safety Audit Checklist",
+      "description": "Free Safety Audit Checklist template you can edit online and download as PDF. Covers audit questions, findings, audit conclusion.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/safety-checklist",
+      "title": "Safety Checklist",
+      "description": "Free Safety Checklist template you can edit online and download as PDF. Covers inspection information, section 1: general workplace conditions, section 2: fire safety.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/safety-orientation-checklist",
+      "title": "Safety Orientation Checklist",
+      "description": "Free Safety Orientation Checklist template you can edit online and download as PDF. Covers company and site rules, emergency arrangements, hazards and controls for this job.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/emergency-contact-list",
+      "title": "Emergency Contact List",
+      "description": "Free Emergency Contact List template you can edit online and download as PDF. Covers external emergency services, internal emergency team, management and key contacts.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/emergency-response-plan",
+      "title": "Emergency Response Plan",
+      "description": "Free Emergency Response Plan template you can edit online and download as PDF. Covers facility information, 1.0 emergency response organization, 2.0 emergency contacts.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/calibration-records-measurement-equipment-traceability",
+      "title": "Calibration Records - Measurement Equipment Traceability",
+      "description": "Free Calibration Records - Measurement Equipment Traceability template you can edit online and download as PDF. Covers calibration schedule and status, detailed calibration results, calibration standards and traceability.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/chemical-safety-assessment",
+      "title": "Chemical Safety Assessment",
+      "description": "Free Chemical Safety Assessment template you can edit online and download as PDF. Covers substance information, task exposure assessment, controls.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/lighting-assessment",
+      "title": "Lighting Assessment",
+      "description": "Free Lighting Assessment template you can edit online and download as PDF. Covers illuminance measurements, quality of lighting, actions.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/ppe-hazard-assessment",
+      "title": "PPE Hazard Assessment",
+      "description": "Free PPE Hazard Assessment template you can edit online and download as PDF. Covers hazard assessment and ppe selection, before issuing ppe, ppe issue record.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/safety-management-system",
+      "title": "Safety Management System",
+      "description": "Free Safety Management System template you can edit online and download as PDF. Covers organization information, 1.0 safety policy & leadership, 2.0 safety organization & responsibilities.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/ventilation-assessment",
+      "title": "Ventilation Assessment",
+      "description": "Free Ventilation Assessment template you can edit online and download as PDF. Covers system details, measurements, inspection checklist.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/workplace-safety-policy",
+      "title": "Workplace Safety Policy",
+      "description": "Free Workplace Safety Policy template you can edit online and download as PDF. Covers policy statement, commitments, responsibilities.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/incident-report-form-immediate-reporting",
+      "title": "Incident Report Form - Immediate Reporting",
+      "description": "Free Incident Report Form - Immediate Reporting template you can edit online and download as PDF. Covers personnel involved, incident description, detailed description of incident.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/general-inspection-report",
+      "title": "General Inspection Report",
+      "description": "Free General Inspection Report template you can edit online and download as PDF. Covers inspection information, section 1: exterior conditions, section 2: interior conditions.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/risk-assessment",
+      "title": "Risk Assessment",
+      "description": "Free Risk Assessment template you can edit online and download as PDF. Covers assessment information, 1.0 scope & objectives, 2.0 hazard identification.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/business-continuity-plan",
+      "title": "Business Continuity Plan",
+      "description": "Free Business Continuity Plan template you can edit online and download as PDF. Covers organization information, 1.0 scope & objectives, 2.0 critical business functions.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/environmental-management-plan",
+      "title": "Environmental Management Plan",
+      "description": "Free Environmental Management Plan template you can edit online and download as PDF. Covers environmental aspects and impacts, monitoring programme, emergency and spill response.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/fire-safety-plan",
+      "title": "Fire Safety Plan",
+      "description": "Free Fire Safety Plan template you can edit online and download as PDF. Covers facility information, 1.0 fire prevention measures, 2.0 fire detection & suppression systems.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/hazard-communication-plan",
+      "title": "Hazard Communication Plan",
+      "description": "Free Hazard Communication Plan template you can edit online and download as PDF. Covers purpose and scope, chemical inventory, labels and safety data sheets.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/risk-management-plan",
+      "title": "Risk Management Plan",
+      "description": "Free Risk Management Plan template you can edit online and download as PDF. Covers risk criteria, risk register, monitoring and communication.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/transportation-safety-plan",
+      "title": "Transportation Safety Plan",
+      "description": "Free Transportation Safety Plan template you can edit online and download as PDF. Covers fleet information, 1.0 driver qualification & training, 2.0 vehicle maintenance & inspection.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/safety-training-material",
+      "title": "Safety Training Material",
+      "description": "Free Safety Training Material template you can edit online and download as PDF. Covers training information, 1.0 training objectives, 2.0 training agenda.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/free-safety-documents/safety-training-plan",
+      "title": "Safety Training Plan",
+      "description": "Free Safety Training Plan template you can edit online and download as PDF. Covers training needs analysis, training schedule, competence and records.",
+      "category": "free template",
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/hse-project-management-software",
       "title": "HSE Project Management Software | SafeTrack Pro Global",
       "description": "Run your whole HSE operation in one command center: KPIs, manpower, training, LTI trends, observations, accidents, and overdue compliance tracking.",
       "category": "solution",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/ai-camera-monitoring",
       "title": "AI Camera PPE Monitoring Software | SafeTrack Pro Global",
       "description": "AI camera monitoring that detects missing PPE, unsafe behavior, and hazards in real time, with instant alerts on your existing IP cameras.",
       "category": "solution",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/incident-reporting-software",
       "title": "Incident Reporting Software | SafeTrack Pro Global",
       "description": "Report incidents from any device with photo capture, AI severity scoring, witness tracking, and instant manager alerts. Track actions to closure.",
       "category": "solution",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/permit-to-work-software",
       "title": "Permit to Work Software | SafeTrack Pro Global",
       "description": "Permit to work software to create, approve, and manage work permits with integrated risk assessments and complete audit trails.",
       "category": "solution",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/ai-hse-document-generator",
       "title": "AI HSE Document Generator (SOPs, JHAs) | SafeTrack Pro",
       "description": "Generate formatted HSE documents such as SOPs, JHAs, and incident reports with OSHA and ISO references, approval workflows, and PDF or Word export.",
       "category": "solution",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/document-control-software",
       "title": "HSE Document Control Software | SafeTrack Pro Global",
       "description": "Control the complete HSE document lifecycle: auto-create, modify, submit, digitally sign, download, and archive with version control and audit trails.",
       "category": "solution",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/environmental-monitoring-software",
       "title": "Environmental Monitoring & ESG Software | SafeTrack Pro",
       "description": "Track air quality, water quality, emissions, biodiversity, and carbon footprint in real time with AI predictions, ESG reporting, and regulatory alerts.",
       "category": "solution",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/compliance-management-software",
       "title": "HSE Compliance Management Software | SafeTrack Pro Global",
       "description": "HSE compliance management software with automated regulatory tracking, real-time alerts, and one-click reporting aligned with OSHA, ISO 45001, and more.",
       "category": "solution",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/ai-risk-assessment-software",
       "title": "AI Risk Assessment Software | SafeTrack Pro Global",
       "description": "AI risk assessment software with predictive analytics that help identify hazards before they become incidents, integrated with permit to work.",
       "category": "solution",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/hse-dashboard-software",
       "title": "Real-Time HSE Dashboard Software | SafeTrack Pro Global",
       "description": "Real-time HSE dashboards with live KPIs, incident heatmaps, and compliance status, configurable for any industry and any role.",
       "category": "solution",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/hse-analytics-software",
       "title": "HSE Analytics & Reporting Software | SafeTrack Pro Global",
       "description": "HSE analytics software with trend analysis, predictive modeling, LTI trends, TRIR and LTIFR calculation, and custom reporting for your safety data.",
       "category": "solution",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/workforce-management-software",
       "title": "HSE Workforce & Training Management | SafeTrack Pro Global",
       "description": "Manage manpower, personnel records, certifications, inductions, and training compliance with expiry alerts and role-based access across sites.",
       "category": "solution",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/toolbox-talk-generator",
       "title": "AI Toolbox Talk Generator - Daily Safety Talks | SafeTrack Pro",
       "description": "Generate a daily toolbox talk in seconds from your incidents, near misses, open actions, permits and local weather, or type any topic. Deliver, sign off and track every talk.",
       "category": "solution",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/anonymous-safety-reporting",
       "title": "Anonymous Safety Reporting App with QR Codes | SafeTrack Pro",
       "description": "Let every worker report hazards, near misses and concerns anonymously by QR code or website, with voice, photo or video in 11 languages. Smart routing, tracking codes and Safety Impact rewards.",
       "category": "solution",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/csp-practice-exam",
       "title": "CSP Practice Exam (100 Questions, 4 Hours) | SafeTrack Pro",
       "description": "Prepare for the Certified Safety Professional exam with a full-length CSP-style practice test: 100 scenario questions, a 4-hour timer, instant scoring and explanations. Practice only.",
       "category": "solution",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/industries/healthcare",
       "title": "Healthcare HSE Software | SafeTrack Pro Global",
       "description": "Healthcare HSE software for patient safety, infection control, device compliance, and staff safety. Aligned with HIPAA and Joint Commission requirements.",
       "category": "industry",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/industries/oil-and-gas",
       "title": "Oil & Gas HSE Software | SafeTrack Pro Global",
       "description": "Oil & gas HSE software for process safety, HAZOP studies, permit to work, and emergency response. Aligned with OSHA 1910.119 PSM.",
       "category": "industry",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/industries/construction",
       "title": "Construction HSE Software | SafeTrack Pro Global",
       "description": "Construction HSE software for site safety, fall protection, equipment inspections, and contractor management. Aligned with OSHA 1926.",
       "category": "industry",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/industries/manufacturing",
       "title": "Manufacturing HSE Software | SafeTrack Pro Global",
       "description": "Manufacturing HSE software for machine safety, ergonomics, chemical handling, and industrial hygiene. Aligned with ISO 45001.",
       "category": "industry",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/industries/maritime",
       "title": "Maritime HSE Software | SafeTrack Pro Global",
       "description": "Maritime HSE software for vessel safety, crew management, navigation safety, and ISM compliance. Aligned with MLC 2006.",
       "category": "industry",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/industries/aviation",
       "title": "Aviation HSE & SMS Software | SafeTrack Pro Global",
       "description": "Aviation HSE software for flight safety, ground operations, maintenance tracking, and regulatory compliance. Aligned with ICAO SMS.",
       "category": "industry",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/industries/mining",
       "title": "Mining HSE Software | SafeTrack Pro Global",
       "description": "Mining HSE software for geotechnical safety, ventilation, equipment tracking, and emergency response. Aligned with MSHA requirements.",
       "category": "industry",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/industries/chemical",
       "title": "Chemical Industry HSE Software | SafeTrack Pro Global",
       "description": "Chemical HSE software for HazMat management, spill prevention, process safety, and environmental compliance. Aligned with REACH and TSCA.",
       "category": "industry",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/industries/education",
       "title": "Education & Campus Safety Software | SafeTrack Pro Global",
       "description": "Education HSE software for student safety, campus security, emergency drills, and facility inspections. Aligned with FERPA.",
       "category": "industry",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/compliance/osha",
       "title": "OSHA Compliance Software | SafeTrack Pro Global",
       "description": "OSHA compliance software: injury recordkeeping with OSHA 300 log generation, OSHA-aligned SOPs and JHAs, training tracking, and expiry alerts.",
       "category": "compliance",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/compliance/iso-45001",
       "title": "ISO 45001 Software for OH&S Management | SafeTrack Pro",
       "description": "ISO 45001 software to support your OH&S management system: risk assessment, incident investigation, document control, and performance tracking.",
       "category": "compliance",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/compliance/iso-14001",
       "title": "ISO 14001 Software for Environmental Management | SafeTrack",
       "description": "ISO 14001 software to support your environmental management system with live monitoring, regulatory alerts, document control, and ESG reporting.",
       "category": "compliance",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     },
     {
       "url": "https://www.safetrackproglobal.com/compliance/hipaa",
       "title": "HIPAA-Aligned Healthcare Safety Software | SafeTrack Pro",
       "description": "Healthcare safety software aligned with HIPAA requirements: role-based access, audit trails, clinical incident reporting, and controlled documents.",
       "category": "compliance",
-      "last_modified": "2026-11-23"
+      "last_modified": "2026-11-24"
     }
   ]
 }

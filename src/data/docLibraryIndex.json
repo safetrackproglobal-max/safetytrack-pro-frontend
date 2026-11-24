@@ -1,0 +1,2081 @@
+[
+{
+"slug": "agriculture-barn-safety-assessment",
+"title": "Barn Safety Assessment",
+"industry": "Agriculture",
+"type": "Risk Assessment",
+"description": "Free Barn Safety Assessment template for agriculture you can edit online and download as PDF. Covers hazards and controls, safety features, approval & sign-off.",
+"topics": [
+"Hazards And Controls",
+"Safety Features",
+"Approval & Sign-Off"
+]
+},
+{
+"slug": "agriculture-farm-machinery-safety-assessment",
+"title": "Farm Machinery Safety Assessment",
+"industry": "Agriculture",
+"type": "Risk Assessment",
+"description": "Free Farm Machinery Safety Assessment template for agriculture you can edit online and download as PDF. Covers hazards and controls, daily checks, approval & sign-off.",
+"topics": [
+"Hazards And Controls",
+"Daily Checks",
+"Approval & Sign-Off"
+]
+},
+{
+"slug": "agriculture-grain-handling-safety-assessment",
+"title": "Grain Handling Safety Assessment",
+"industry": "Agriculture",
+"type": "Risk Assessment",
+"description": "Free Grain Handling Safety Assessment template for agriculture you can edit online and download as PDF. Covers hazards and controls, before bin entry, approval & sign-off.",
+"topics": [
+"Hazards And Controls",
+"Before Bin Entry",
+"Approval & Sign-Off"
+]
+},
+{
+"slug": "agriculture-harvesting-safety-assessment",
+"title": "Harvesting Safety Assessment",
+"industry": "Agriculture",
+"type": "Risk Assessment",
+"description": "Free Harvesting Safety Assessment template for agriculture you can edit online and download as PDF. Covers hazards and controls, before the shift, approval & sign-off.",
+"topics": [
+"Hazards And Controls",
+"Before The Shift",
+"Approval & Sign-Off"
+]
+},
+{
+"slug": "agriculture-agricultural-chemical-storage-safety-plan",
+"title": "Agricultural Chemical Storage Safety Plan",
+"industry": "Agriculture",
+"type": "Safety Plan",
+"description": "Free Agricultural Chemical Storage Safety Plan template for agriculture you can edit online and download as PDF. Covers store construction and location, storage practices, spill and emergency kit.",
+"topics": [
+"Store Construction And Location",
+"Storage Practices",
+"Spill And Emergency Kit",
+"Disposal"
+]
+},
+{
+"slug": "agriculture-irrigation-safety-plan",
+"title": "Irrigation Safety Plan",
+"industry": "Agriculture",
+"type": "Safety Plan",
+"description": "Free Irrigation Safety Plan template for agriculture you can edit online and download as PDF. Covers hazards and controls, routine checks, approval & sign-off.",
+"topics": [
+"Hazards And Controls",
+"Routine Checks",
+"Approval & Sign-Off"
+]
+},
+{
+"slug": "agriculture-livestock-safety-plan",
+"title": "Livestock Safety Plan",
+"industry": "Agriculture",
+"type": "Safety Plan",
+"description": "Free Livestock Safety Plan template for agriculture you can edit online and download as PDF. Covers hazards and controls, facilities and practices, approval & sign-off.",
+"topics": [
+"Hazards And Controls",
+"Facilities And Practices",
+"Approval & Sign-Off"
+]
+},
+{
+"slug": "agriculture-pesticide-safety-plan",
+"title": "Pesticide Safety Plan",
+"industry": "Agriculture",
+"type": "Safety Plan",
+"description": "Free Pesticide Safety Plan template for agriculture you can edit online and download as PDF. Covers product register, before application, mixing, application and cleaning.",
+"topics": [
+"Product Register",
+"Before Application",
+"Mixing, Application And Cleaning",
+"Emergency"
+]
+},
+{
+"slug": "aircraft-maintenance-log-aviation-industry",
+"title": "Aircraft Maintenance Log - Aviation Industry",
+"industry": "Aviation",
+"type": "Log & Register",
+"description": "Free Aircraft Maintenance Log - Aviation Industry template for aviation you can edit online and download as PDF. Covers maintenance work record, defect & rectification record, component life tracking.",
+"topics": [
+"Maintenance Work Record",
+"Defect & Rectification Record",
+"Component Life Tracking",
+"Maintenance Release Certification"
+]
+},
+{
+"slug": "aviation-air-traffic-control-risk-assessment",
+"title": "Air Traffic Control Risk Assessment",
+"industry": "Aviation",
+"type": "Risk Assessment",
+"description": "Free Air Traffic Control Risk Assessment template for aviation you can edit online and download as PDF. Covers atc unit information, human factors in atc - shell model analysis, workload and staffing assessment.",
+"topics": [
+"Atc Unit Information",
+"Human Factors In Atc - Shell Model Analysis",
+"Workload And Staffing Assessment",
+"Technical Systems Reliability"
+]
+},
+{
+"slug": "aviation-aircraft-ground-handling-risk-assessment",
+"title": "Aircraft Ground Handling Risk Assessment",
+"industry": "Aviation",
+"type": "Risk Assessment",
+"description": "Free Aircraft Ground Handling Risk Assessment template for aviation you can edit online and download as PDF. Covers operational information, risk tolerance and action requirements, detailed control measures and mitigations.",
+"topics": [
+"Operational Information",
+"Risk Tolerance And Action Requirements",
+"Detailed Control Measures And Mitigations",
+"Safety Action Plan"
+]
+},
+{
+"slug": "aviation-aircraft-maintenance-errors-risk-assessment",
+"title": "Aircraft Maintenance Errors Risk Assessment",
+"industry": "Aviation",
+"type": "Risk Assessment",
+"description": "Free Aircraft Maintenance Errors Risk Assessment template for aviation you can edit online and download as PDF. Covers maintenance organization information, risk priority number (rpn) interpretation, human factors analysis - dirty",
+"topics": [
+"Maintenance Organization Information",
+"Risk Priority Number (Rpn) Interpretation",
+"Human Factors Analysis - Dirty Dozen",
+"Critical Task Analysis - Error Probability And Detection"
+]
+},
+{
+"slug": "aviation-fuel-handling-risk-assessment",
+"title": "Aviation Fuel Handling Risk Assessment",
+"industry": "Aviation",
+"type": "Risk Assessment",
+"description": "Free Aviation Fuel Handling Risk Assessment template for aviation you can edit online and download as PDF. Covers fueling operation information, comprehensive hazard analysis - bowtie methodology, fuel quality control checklist.",
+"topics": [
+"Fueling Operation Information",
+"Comprehensive Hazard Analysis - Bowtie Methodology",
+"Fuel Quality Control Checklist",
+"Emergency Response Procedures - Fuel Spill Scenario"
+]
+},
+{
+"slug": "aviation-bird-strike-management-risk-assessment",
+"title": "Bird Strike Management Risk Assessment",
+"industry": "Aviation",
+"type": "Risk Assessment",
+"description": "Free Bird Strike Management Risk Assessment template for aviation you can edit online and download as PDF. Covers bird/wildlife hazard management information, bird strike risk assessment matrix, bird strike severity classification",
+"topics": [
+"Bird/Wildlife Hazard Management Information",
+"Bird Strike Risk Assessment Matrix",
+"Bird Strike Severity Classification (Icao)",
+"Bird Strike History And Analysis (Last 24 Months)"
+]
+},
+{
+"slug": "aviation-cabin-safety-risk-assessment",
+"title": "Cabin Safety Risk Assessment",
+"industry": "Aviation",
+"type": "Risk Assessment",
+"description": "Free Cabin Safety Risk Assessment template for aviation you can edit online and download as PDF. Covers cabin operations information, cabin safety risk assessment matrix, cabin crew duties and responsibilities.",
+"topics": [
+"Cabin Operations Information",
+"Cabin Safety Risk Assessment Matrix",
+"Cabin Crew Duties And Responsibilities",
+"Emergency Equipment Inventory And Status"
+]
+},
+{
+"slug": "aviation-emergency-evacuation-risk-assessment",
+"title": "Emergency Evacuation Risk Assessment",
+"industry": "Aviation",
+"type": "Risk Assessment",
+"description": "Free Emergency Evacuation Risk Assessment template for aviation you can edit online and download as PDF. Covers emergency evacuation information, emergency evacuation risk assessment matrix, current arff capability vs requirements",
+"topics": [
+"Emergency Evacuation Information",
+"Emergency Evacuation Risk Assessment Matrix",
+"Current Arff Capability Vs Requirements",
+"Emergency Response Plan Assessment"
+]
+},
+{
+"slug": "aviation-fatigue-risk-management-system-frms",
+"title": "Fatigue Risk Management System (Frms)",
+"industry": "Aviation",
+"type": "Risk Assessment",
+"description": "Free Fatigue Risk Management System (Frms) template for aviation you can edit online and download as PDF. Covers fatigue management information, fatigue hazard identification and risk assessment, fatigue risk levels and action req",
+"topics": [
+"Fatigue Management Information",
+"Fatigue Hazard Identification And Risk Assessment",
+"Fatigue Risk Levels And Action Requirements",
+"Fatigue Risk Assessment Tool - Individual/Roster Level"
+]
+},
+{
+"slug": "aviation-ground-handling-comprehensive-risk-assessment",
+"title": "Ground Handling Comprehensive Risk Assessment",
+"industry": "Aviation",
+"type": "Risk Assessment",
+"description": "Free Ground Handling Comprehensive Risk Assessment template for aviation you can edit online and download as PDF. Covers ground handling operations information, ground service equipment (gse) fleet risk assessment, ground handler ",
+"topics": [
+"Ground Handling Operations Information",
+"Ground Service Equipment (Gse) Fleet Risk Assessment",
+"Ground Handler Training And Competency Matrix",
+"Ground Handling Safety Inspection Checklist - Weekly"
+]
+},
+{
+"slug": "aviation-human-remains-handling-risk-assessment",
+"title": "Human Remains Handling Risk Assessment",
+"industry": "Aviation",
+"type": "Risk Assessment",
+"description": "Free Human Remains Handling Risk Assessment template for aviation you can edit online and download as PDF. Covers human remains handling information, human remains handling risk assessment matrix, regulatory and documentation requ",
+"topics": [
+"Human Remains Handling Information",
+"Human Remains Handling Risk Assessment Matrix",
+"Regulatory And Documentation Requirements",
+"Container And Packaging Requirements"
+]
+},
+{
+"slug": "aviation-ramp-operations-risk-assessment",
+"title": "Ramp Operations Risk Assessment",
+"industry": "Aviation",
+"type": "Risk Assessment",
+"description": "Free Ramp Operations Risk Assessment template for aviation you can edit online and download as PDF. Covers operational information, hazard identification and risk assessment - detailed matrix, risk score interpretation and action ",
+"topics": [
+"Operational Information",
+"Hazard Identification And Risk Assessment - Detailed Matrix",
+"Risk Score Interpretation And Action Matrix",
+"Detailed Control Measures By Activity"
+]
+},
+{
+"slug": "aviation-security-screening-risk-assessment",
+"title": "Security Screening Risk Assessment",
+"industry": "Aviation",
+"type": "Risk Assessment",
+"description": "Free Security Screening Risk Assessment template for aviation you can edit online and download as PDF. Covers security screening information, security screening risk assessment matrix, screening checkpoint layout and design assess",
+"topics": [
+"Security Screening Information",
+"Security Screening Risk Assessment Matrix",
+"Screening Checkpoint Layout And Design Assessment",
+"Screening Equipment Inventory And Status"
+]
+},
+{
+"slug": "aviation-security-threat-risk-assessment",
+"title": "Security Threat Risk Assessment",
+"industry": "Aviation",
+"type": "Risk Assessment",
+"description": "Free Security Threat Risk Assessment template for aviation you can edit online and download as PDF. Covers security threat information, security threat risk assessment matrix, physical security measures assessment.",
+"topics": [
+"Security Threat Information",
+"Security Threat Risk Assessment Matrix",
+"Physical Security Measures Assessment",
+"Access Control Assessment"
+]
+},
+{
+"slug": "aviation-weather-operations-risk-assessment",
+"title": "Weather Operations Risk Assessment",
+"industry": "Aviation",
+"type": "Risk Assessment",
+"description": "Free Weather Operations Risk Assessment template for aviation you can edit online and download as PDF. Covers weather operations information, weather hazard risk assessment matrix, weather monitoring and warning systems.",
+"topics": [
+"Weather Operations Information",
+"Weather Hazard Risk Assessment Matrix",
+"Weather Monitoring And Warning Systems",
+"Weather-Related Operating Limits And Procedures"
+]
+},
+{
+"slug": "aviation-hangar-safety-plan",
+"title": "Hangar Safety Plan",
+"industry": "Aviation",
+"type": "Safety Plan",
+"description": "Free Hangar Safety Plan template for aviation you can edit online and download as PDF. Covers hazards and controls, daily hangar checks, emergency response.",
+"topics": [
+"Hazards And Controls",
+"Daily Hangar Checks",
+"Emergency Response",
+"Approval & Sign-Off"
+]
+},
+{
+"slug": "construction-concrete-pour-job-safety-analysis",
+"title": "Concrete Pour Job Safety Analysis",
+"industry": "Construction",
+"type": "Job Safety Analysis",
+"description": "Free Concrete Pour Job Safety Analysis template for construction you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+"topics": [
+"Project Information",
+"Job Steps & Hazard Analysis"
+]
+},
+{
+"slug": "construction-confined-space-job-safety-analysis",
+"title": "Confined Space Job Safety Analysis",
+"industry": "Construction",
+"type": "Job Safety Analysis",
+"description": "Free Confined Space Job Safety Analysis template for construction you can edit online and download as PDF. Covers project information, atmospheric testing results (before entry), job steps & hazard analysis.",
+"topics": [
+"Project Information",
+"Atmospheric Testing Results (Before Entry)",
+"Job Steps & Hazard Analysis"
+]
+},
+{
+"slug": "construction-crane-lift-job-safety-analysis",
+"title": "Crane Lift Job Safety Analysis",
+"industry": "Construction",
+"type": "Job Safety Analysis",
+"description": "Free Crane Lift Job Safety Analysis template for construction you can edit online and download as PDF. Covers lift information, job steps & hazard analysis.",
+"topics": [
+"Lift Information",
+"Job Steps & Hazard Analysis"
+]
+},
+{
+"slug": "construction-demolition-job-safety-analysis",
+"title": "Demolition Job Safety Analysis",
+"industry": "Construction",
+"type": "Job Safety Analysis",
+"description": "Free Demolition Job Safety Analysis template for construction you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+"topics": [
+"Project Information",
+"Job Steps & Hazard Analysis"
+]
+},
+{
+"slug": "construction-electrical-work-job-safety-analysis",
+"title": "Electrical Work Job Safety Analysis",
+"industry": "Construction",
+"type": "Job Safety Analysis",
+"description": "Free Electrical Work Job Safety Analysis template for construction you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+"topics": [
+"Project Information",
+"Job Steps & Hazard Analysis"
+]
+},
+{
+"slug": "construction-excavation-job-safety-analysis",
+"title": "Excavation Job Safety Analysis",
+"industry": "Construction",
+"type": "Job Safety Analysis",
+"description": "Free Excavation Job Safety Analysis template for construction you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+"topics": [
+"Project Information",
+"Job Steps & Hazard Analysis"
+]
+},
+{
+"slug": "construction-hot-work-job-safety-analysis",
+"title": "Hot Work Job Safety Analysis",
+"industry": "Construction",
+"type": "Job Safety Analysis",
+"description": "Free Hot Work Job Safety Analysis template for construction you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+"topics": [
+"Project Information",
+"Job Steps & Hazard Analysis"
+]
+},
+{
+"slug": "construction-roofing-job-safety-analysis",
+"title": "Roofing Job Safety Analysis",
+"industry": "Construction",
+"type": "Job Safety Analysis",
+"description": "Free Roofing Job Safety Analysis template for construction you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+"topics": [
+"Project Information",
+"Job Steps & Hazard Analysis"
+]
+},
+{
+"slug": "construction-scaffold-erection-job-safety-analysis",
+"title": "Scaffold Erection Job Safety Analysis",
+"industry": "Construction",
+"type": "Job Safety Analysis",
+"description": "Free Scaffold Erection Job Safety Analysis template for construction you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+"topics": [
+"Project Information",
+"Job Steps & Hazard Analysis"
+]
+},
+{
+"slug": "construction-steel-erection-job-safety-analysis",
+"title": "Steel Erection Job Safety Analysis",
+"industry": "Construction",
+"type": "Job Safety Analysis",
+"description": "Free Steel Erection Job Safety Analysis template for construction you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+"topics": [
+"Project Information",
+"Job Steps & Hazard Analysis"
+]
+},
+{
+"slug": "construction-cold-work-permit-enhanced",
+"title": "Cold Work Permit (Enhanced)",
+"industry": "Construction",
+"type": "Permit to Work",
+"description": "Free Cold Work Permit (Enhanced) template for construction you can edit online and download as PDF. Covers permit information, hazard identification, attached documents.",
+"topics": [
+"Permit Information",
+"Hazard Identification",
+"Attached Documents",
+"Precautions & Control Measures"
+]
+},
+{
+"slug": "construction-confined-space-entry-permit-enhanced",
+"title": "Confined Space Entry Permit (Enhanced)",
+"industry": "Construction",
+"type": "Permit to Work",
+"description": "Free Confined Space Entry Permit (Enhanced) template for construction you can edit online and download as PDF. Covers permit information, hazard identification, attached documents.",
+"topics": [
+"Permit Information",
+"Hazard Identification",
+"Attached Documents",
+"Entry Team"
+]
+},
+{
+"slug": "construction-electrical-work-permit-enhanced",
+"title": "Electrical Work Permit (Enhanced)",
+"industry": "Construction",
+"type": "Permit to Work",
+"description": "Free Electrical Work Permit (Enhanced) template for construction you can edit online and download as PDF. Covers permit information, work team & qualifications, hazard identification.",
+"topics": [
+"Permit Information",
+"Work Team & Qualifications",
+"Hazard Identification",
+"Attached Documents"
+]
+},
+{
+"slug": "construction-excavation-permit-enhanced",
+"title": "Excavation Permit (Enhanced)",
+"industry": "Construction",
+"type": "Permit to Work",
+"description": "Free Excavation Permit (Enhanced) template for construction you can edit online and download as PDF. Covers permit information, hazard identification, precautions & control measures.",
+"topics": [
+"Permit Information",
+"Hazard Identification",
+"Precautions & Control Measures",
+"Soil Classification"
+]
+},
+{
+"slug": "construction-hot-work-permit-enhanced",
+"title": "Hot Work Permit (Enhanced)",
+"industry": "Construction",
+"type": "Permit to Work",
+"description": "Free Hot Work Permit (Enhanced) template for construction you can edit online and download as PDF. Covers permit information, hazard identification, attached documents.",
+"topics": [
+"Permit Information",
+"Hazard Identification",
+"Attached Documents",
+"Precaution Measures Checklist"
+]
+},
+{
+"slug": "construction-lifting-operation-permit-enhanced",
+"title": "Lifting Operation Permit (Enhanced)",
+"industry": "Construction",
+"type": "Permit to Work",
+"description": "Free Lifting Operation Permit (Enhanced) template for construction you can edit online and download as PDF. Covers permit information, work details, hazard identification.",
+"topics": [
+"Permit Information",
+"Work Details",
+"Hazard Identification",
+"Attached Documents"
+]
+},
+{
+"slug": "construction-work-at-height-permit-enhanced",
+"title": "⬆ Work At Height Permit (Enhanced)",
+"industry": "Construction",
+"type": "Permit to Work",
+"description": "Free ⬆ Work At Height Permit (Enhanced) template for construction you can edit online and download as PDF. Covers permit information, hazard identification, attached documents.",
+"topics": [
+"Permit Information",
+"Hazard Identification",
+"Attached Documents",
+"Precaution Measures Checklist"
+]
+},
+{
+"slug": "construction-concrete-placement-risk-assessment",
+"title": "Concrete Placement Risk Assessment",
+"industry": "Construction",
+"type": "Risk Assessment",
+"description": "Free Concrete Placement Risk Assessment template for construction you can edit online and download as PDF. Covers concrete placement project information, formwork design and engineering - aci 347, formwork inspection checklist.",
+"topics": [
+"Concrete Placement Project Information",
+"Formwork Design And Engineering - Aci 347",
+"Formwork Inspection Checklist",
+"Concrete Pumping Safety - Aci 304.2R"
+]
+},
+{
+"slug": "construction-crane-operations-risk-assessment",
+"title": "Crane Operations Risk Assessment",
+"industry": "Construction",
+"type": "Risk Assessment",
+"description": "Free Crane Operations Risk Assessment template for construction you can edit online and download as PDF. Covers crane and lift information, crane operations hazard identification and risk assessment, power line clearance - osha ta",
+"topics": [
+"Crane And Lift Information",
+"Crane Operations Hazard Identification And Risk Assessment",
+"Power Line Clearance - OSHA Table A (29 Cfr 1926.1408)",
+"Ground Conditions And Crane Setup"
+]
+},
+{
+"slug": "construction-demolition-operations-risk-assessment",
+"title": "Demolition Operations Risk Assessment",
+"industry": "Construction",
+"type": "Risk Assessment",
+"description": "Free Demolition Operations Risk Assessment template for construction you can edit online and download as PDF. Covers demolition project information, pre-demolition engineering survey - osha 29 cfr 1926.850, hazardous materials sur",
+"topics": [
+"Demolition Project Information",
+"Pre-Demolition Engineering Survey - OSHA 29 Cfr 1926.850",
+"Hazardous Materials Survey - Asbestos, Lead, Chemicals",
+"Utility Disconnection And Isolation"
+]
+},
+{
+"slug": "construction-electrical-installation-risk-assessment",
+"title": "Electrical Installation Risk Assessment",
+"industry": "Construction",
+"type": "Risk Assessment",
+"description": "Free Electrical Installation Risk Assessment template for construction you can edit online and download as PDF. Covers electrical installation project information, electrical safety program - osha 29 cfr 1926.950 - 1926.960, locko",
+"topics": [
+"Electrical Installation Project Information",
+"Electrical Safety Program - OSHA 29 Cfr 1926.950 - 1926.960",
+"Lockout/Tagout Procedures - OSHA 29 Cfr 1926.417",
+"Energized Work Permit - NFPA 70E"
+]
+},
+{
+"slug": "construction-mechanical-installation-risk-assessment",
+"title": "Mechanical Installation Risk Assessment",
+"industry": "Construction",
+"type": "Risk Assessment",
+"description": "Free Mechanical Installation Risk Assessment template for construction you can edit online and download as PDF. Covers mechanical installation project information, pre-installation engineering and planning, rigging and lifting pla",
+"topics": [
+"Mechanical Installation Project Information",
+"Pre-Installation Engineering And Planning",
+"Rigging And Lifting Plan - Heavy Mechanical Equipment",
+"Pressure Testing Safety Procedures"
+]
+},
+{
+"slug": "construction-piling-operations-risk-assessment",
+"title": "Piling Operations Risk Assessment",
+"industry": "Construction",
+"type": "Risk Assessment",
+"description": "Free Piling Operations Risk Assessment template for construction you can edit online and download as PDF. Covers 29 cfr 1926 subpart q - concrete, piling, piling project information, pre-piling engineering and site preparation.",
+"topics": [
+"29 Cfr 1926 Subpart Q - Concrete, Piling",
+"Piling Project Information",
+"Pre-Piling Engineering And Site Preparation",
+"Piling Operations Hazard Identification And Risk Assessment"
+]
+},
+{
+"slug": "construction-roofing-operations-risk-assessment",
+"title": "Roofing Operations Risk Assessment",
+"industry": "Construction",
+"type": "Risk Assessment",
+"description": "Free Roofing Operations Risk Assessment template for construction you can edit online and download as PDF. Covers 29 cfr 1926 subpart q - concrete, roofing, roofing project information, fall protection plan - osha 29 cfr 1926.500 ",
+"topics": [
+"29 Cfr 1926 Subpart Q - Concrete, Roofing",
+"Roofing Project Information",
+"Fall Protection Plan - OSHA 29 Cfr 1926.500 - 1926.503",
+"Roof Access And Material Handling"
+]
+},
+{
+"slug": "construction-scaffolding-risk-assessment",
+"title": "Scaffolding Risk Assessment",
+"industry": "Construction",
+"type": "Risk Assessment",
+"description": "Free Scaffolding Risk Assessment template for construction you can edit online and download as PDF. Covers scaffold project information, scaffold design and engineering - osha 29 cfr 1926.451(a), scaffold component inspection.",
+"topics": [
+"Scaffold Project Information",
+"Scaffold Design And Engineering - OSHA 29 Cfr 1926.451(A)",
+"Scaffold Component Inspection",
+"Scaffold Foundation And Support - OSHA 29 Cfr 1926.451(B)"
+]
+},
+{
+"slug": "construction-steel-erection-risk-assessment",
+"title": "Steel Erection Risk Assessment",
+"industry": "Construction",
+"type": "Risk Assessment",
+"description": "Free Steel Erection Risk Assessment template for construction you can edit online and download as PDF. Covers steel erection project information, steel erection hazard identification and risk assessment, critical lift plan - osha ",
+"topics": [
+"Steel Erection Project Information",
+"Steel Erection Hazard Identification And Risk Assessment",
+"Critical Lift Plan - OSHA 29 Cfr 1926.1400",
+"Fall Protection For Steel Erection - OSHA 29 Cfr 1926.760"
+]
+},
+{
+"slug": "construction-structural-work-risk-assessment",
+"title": "Structural Work Risk Assessment",
+"industry": "Construction",
+"type": "Risk Assessment",
+"description": "Free Structural Work Risk Assessment template for construction you can edit online and download as PDF. Covers project information, structural integrity control plan, fall protection plan - osha 29 cfr 1926 subpart m.",
+"topics": [
+"Project Information",
+"Structural Integrity Control Plan",
+"Fall Protection Plan - OSHA 29 Cfr 1926 Subpart M",
+"Structural Work Checklist - Daily Pre-Work Inspection"
+]
+},
+{
+"slug": "construction-temporary-works-risk-assessment",
+"title": "Temporary Works Risk Assessment",
+"industry": "Construction",
+"type": "Risk Assessment",
+"description": "Free Temporary Works Risk Assessment template for construction you can edit online and download as PDF. Covers osha 29 cfr 1926 subpart p - excavations, temporary works project information, temporary works design and procedures - ",
+"topics": [
+"OSHA 29 Cfr 1926 Subpart P - Excavations",
+"Temporary Works Project Information",
+"Temporary Works Design And Procedures - Bs 5975",
+"Temporary Works - Falsework/Formwork"
+]
+},
+{
+"slug": "construction-traffic-management-risk-assessment",
+"title": "Traffic Management Risk Assessment",
+"industry": "Construction",
+"type": "Risk Assessment",
+"description": "Free Traffic Management Risk Assessment template for construction you can edit online and download as PDF. Covers mutcd - manual on uniform traffic control devices, traffic management project information, traffic control plan - mu",
+"topics": [
+"Mutcd - Manual On Uniform Traffic Control Devices",
+"Traffic Management Project Information",
+"Traffic Control Plan - Mutcd Compliance",
+"Traffic Control Devices Inspection"
+]
+},
+{
+"slug": "construction-trenching-excavation-risk-assessment",
+"title": "Trenching & Excavation Risk Assessment",
+"industry": "Construction",
+"type": "Risk Assessment",
+"description": "Free Trenching & Excavation Risk Assessment template for construction you can edit online and download as PDF. Covers excavation information, soil classification and testing - osha appendix a, protective system design - osha requi",
+"topics": [
+"Excavation Information",
+"Soil Classification And Testing - OSHA Appendix A",
+"Protective System Design - OSHA Requirements",
+"Spoil Pile And Equipment Placement"
+]
+},
+{
+"slug": "construction-underground-work-risk-assessment",
+"title": "Underground Work Risk Assessment",
+"industry": "Construction",
+"type": "Risk Assessment",
+"description": "Free Underground Work Risk Assessment template for construction you can edit online and download as PDF. Covers hazards and controls, pre-start checks, approval & sign-off.",
+"topics": [
+"Hazards And Controls",
+"Pre-Start Checks",
+"Approval & Sign-Off"
+]
+},
+{
+"slug": "construction-material-safety-data-sheet",
+"title": "Material Safety Data Sheet",
+"industry": "Construction",
+"type": "Safety Data Sheet",
+"description": "Free Material Safety Data Sheet template for construction you can edit online and download as PDF. Covers section 1: identification, section 2: hazards identification, section 3: composition.",
+"topics": [
+"Section 1: Identification",
+"Section 2: Hazards Identification",
+"Section 3: Composition",
+"Section 4: First Aid Measures"
+]
+},
+{
+"slug": "construction-painting-work-safety-plan",
+"title": "Painting Work Safety Plan",
+"industry": "Construction",
+"type": "Safety Plan",
+"description": "Free Painting Work Safety Plan template for construction you can edit online and download as PDF. Covers hazards and controls, before starting, housekeeping and waste.",
+"topics": [
+"Hazards And Controls",
+"Before Starting",
+"Housekeeping And Waste",
+"Approval & Sign-Off"
+]
+},
+{
+"slug": "education-child-protection-risk-assessment",
+"title": "Child Protection Risk Assessment",
+"industry": "Education",
+"type": "Risk Assessment",
+"description": "Free Child Protection Risk Assessment template for education you can edit online and download as PDF. Covers title ix & state mandated reporter requirements, child protection information, child protection hazard identification and",
+"topics": [
+"Title Ix & State Mandated Reporter Requirements",
+"Child Protection Information",
+"Child Protection Hazard Identification And Risk Assessment",
+"Mandated Reporter Requirements & Training"
+]
+},
+{
+"slug": "education-classroom-safety-risk-assessment",
+"title": "Classroom Safety Risk Assessment",
+"industry": "Education",
+"type": "Risk Assessment",
+"description": "Free Classroom Safety Risk Assessment template for education you can edit online and download as PDF. Covers classroom information, classroom hazard identification and risk assessment, classroom inspection checklist.",
+"topics": [
+"Classroom Information",
+"Classroom Hazard Identification And Risk Assessment",
+"Classroom Inspection Checklist",
+"Classroom Safety Action Plan"
+]
+},
+{
+"slug": "education-emergency-preparedness-risk-assessment",
+"title": "Emergency Preparedness Risk Assessment",
+"industry": "Education",
+"type": "Risk Assessment",
+"description": "Free Emergency Preparedness Risk Assessment template for education you can edit online and download as PDF. Covers emergency preparedness information, emergency operations plan (eop) components, emergency response team.",
+"topics": [
+"Emergency Preparedness Information",
+"Emergency Operations Plan (Eop) Components",
+"Emergency Response Team",
+"Emergency Communications"
+]
+},
+{
+"slug": "education-fire-safety-risk-assessment",
+"title": "Fire Safety Risk Assessment",
+"industry": "Education",
+"type": "Risk Assessment",
+"description": "Free Fire Safety Risk Assessment template for education you can edit online and download as PDF. Covers fire safety information, fire safety hazard identification and risk assessment, fire safety inspection checklist.",
+"topics": [
+"Fire Safety Information",
+"Fire Safety Hazard Identification And Risk Assessment",
+"Fire Safety Inspection Checklist",
+"Fire Drill Log"
+]
+},
+{
+"slug": "education-food-service-risk-assessment",
+"title": "Food Service Risk Assessment",
+"industry": "Education",
+"type": "Risk Assessment",
+"description": "Free Food Service Risk Assessment template for education you can edit online and download as PDF. Covers food service information, food service hazard identification and risk assessment, food safety - haccp principles.",
+"topics": [
+"Food Service Information",
+"Food Service Hazard Identification And Risk Assessment",
+"Food Safety - Haccp Principles",
+"Temperature Logs"
+]
+},
+{
+"slug": "education-laboratory-safety-risk-assessment",
+"title": "Laboratory Safety Risk Assessment",
+"industry": "Education",
+"type": "Risk Assessment",
+"description": "Free Laboratory Safety Risk Assessment template for education you can edit online and download as PDF. Covers laboratory information, laboratory hazard identification and risk assessment, laboratory safety equipment inventory & in",
+"topics": [
+"Laboratory Information",
+"Laboratory Hazard Identification And Risk Assessment",
+"Laboratory Safety Equipment Inventory & Inspection",
+"Chemical Storage & Inventory"
+]
+},
+{
+"slug": "education-maintenance-activities-risk-assessment",
+"title": "Maintenance Activities Risk Assessment",
+"industry": "Education",
+"type": "Risk Assessment",
+"description": "Free Maintenance Activities Risk Assessment template for education you can edit online and download as PDF. Covers maintenance activities information, lockout/tagout (loto) procedures, hot work permit.",
+"topics": [
+"Maintenance Activities Information",
+"Lockout/Tagout (Loto) Procedures",
+"Hot Work Permit",
+"Confined Space Entry"
+]
+},
+{
+"slug": "education-playground-safety-risk-assessment",
+"title": "Playground Safety Risk Assessment",
+"industry": "Education",
+"type": "Risk Assessment",
+"description": "Free Playground Safety Risk Assessment template for education you can edit online and download as PDF. Covers playground information, playground hazard identification and risk assessment, playground inspection checklist.",
+"topics": [
+"Playground Information",
+"Playground Hazard Identification And Risk Assessment",
+"Playground Inspection Checklist",
+"Playground Maintenance Schedule"
+]
+},
+{
+"slug": "education-special-needs-risk-assessment",
+"title": "Special Needs Risk Assessment",
+"industry": "Education",
+"type": "Risk Assessment",
+"description": "Free Special Needs Risk Assessment template for education you can edit online and download as PDF. Covers special needs information, special needs - general risk assessment, individual student safety plan.",
+"topics": [
+"Special Needs Information",
+"Special Needs - General Risk Assessment",
+"Individual Student Safety Plan",
+"Individualized Emergency Evacuation Plan (Ieep)"
+]
+},
+{
+"slug": "education-sports-activities-risk-assessment",
+"title": "Sports Activities Risk Assessment",
+"industry": "Education",
+"type": "Risk Assessment",
+"description": "Free Sports Activities Risk Assessment template for education you can edit online and download as PDF. Covers sports activity information, sports activity hazard identification and risk assessment, sport-specific risk assessments.",
+"topics": [
+"Sports Activity Information",
+"Sports Activity Hazard Identification And Risk Assessment",
+"Sport-Specific Risk Assessments",
+"Pre-Participation Health & Safety"
+]
+},
+{
+"slug": "education-visitor-management-risk-assessment",
+"title": "Visitor Management Risk Assessment",
+"industry": "Education",
+"type": "Risk Assessment",
+"description": "Free Visitor Management Risk Assessment template for education you can edit online and download as PDF. Covers visitor management information, visitor check-in system, visitor identification badges.",
+"topics": [
+"Visitor Management Information",
+"Visitor Check-In System",
+"Visitor Identification Badges",
+"Visitor Check-In Log (Sample)"
+]
+},
+{
+"slug": "education-staff-training-risk-assessment",
+"title": "‍ Staff Training Risk Assessment",
+"industry": "Education",
+"type": "Risk Assessment",
+"description": "Free ‍ Staff Training Risk Assessment template for education you can edit online and download as PDF. Covers state & federal mandated training requirements, staff training information, staff training hazard identification and risk",
+"topics": [
+"State & Federal Mandated Training Requirements",
+"Staff Training Information",
+"Staff Training Hazard Identification And Risk Assessment"
+]
+},
+{
+"slug": "medical-device-safety-check-healthcare-industry",
+"title": "Medical Device Safety Check - Healthcare Industry",
+"industry": "Healthcare",
+"type": "Form",
+"description": "Free Medical Device Safety Check - Healthcare Industry template for healthcare you can edit online and download as PDF. Covers device safety inspection checklist, performance testing results, maintenance & service history.",
+"topics": [
+"Device Safety Inspection Checklist",
+"Performance Testing Results",
+"Maintenance & Service History",
+"Certification"
+]
+},
+{
+"slug": "healthcare-biohazard-exposure-risk-assessment",
+"title": "Biohazard Exposure Risk Assessment",
+"industry": "Healthcare",
+"type": "Risk Assessment",
+"description": "Free Biohazard Exposure Risk Assessment template for healthcare you can edit online and download as PDF. Covers facility/department information, biohazard risk assessment matrix - cdc/nih guidelines, cdc/nih biosafety level risk a",
+"topics": [
+"Facility/Department Information",
+"Biohazard Risk Assessment Matrix - Cdc/Nih Guidelines",
+"Cdc/Nih Biosafety Level Risk Assessment Matrix",
+"Biohazard Exposure Control Plan - OSHA Compliance"
+]
+},
+{
+"slug": "healthcare-medication-safety-risk-assessment",
+"title": "Medication Safety Risk Assessment",
+"industry": "Healthcare",
+"type": "Risk Assessment",
+"description": "Free Medication Safety Risk Assessment template for healthcare you can edit online and download as PDF. Covers pharmacy/medication management information, high-alert medications list - ismp designation, medication safety controls ",
+"topics": [
+"Pharmacy/Medication Management Information",
+"High-Alert Medications List - Ismp Designation",
+"Medication Safety Controls Assessment",
+"Medication Reconciliation Process"
+]
+},
+{
+"slug": "healthcare-surgical-safety-risk-assessment",
+"title": "Surgical Safety Risk Assessment",
+"industry": "Healthcare",
+"type": "Risk Assessment",
+"description": "Free Surgical Safety Risk Assessment template for healthcare you can edit online and download as PDF. Covers surgical department information, surgical safety risk assessment matrix - aorn guidelines, who surgical safety checklist ",
+"topics": [
+"Surgical Department Information",
+"Surgical Safety Risk Assessment Matrix - Aorn Guidelines",
+"Who Surgical Safety Checklist - Comprehensive",
+"Surgical Count Procedures - Aorn Guidelines"
+]
+},
+{
+"slug": "manufacturing-changeover-procedure-method-statement",
+"title": "Changeover Procedure Method Statement",
+"industry": "Manufacturing",
+"type": "Form",
+"description": "Free Changeover Procedure Method Statement template for manufacturing you can edit online and download as PDF. Covers 3.0 changeover tasks (internal tasks - line stopped), 4.0 setup & adjustment (internal tasks - line stopped), 5.",
+"topics": [
+"3.0 Changeover Tasks (Internal Tasks - Line Stopped)",
+"4.0 Setup & Adjustment (Internal Tasks - Line Stopped)",
+"5.0 Startup & Verification"
+]
+},
+{
+"slug": "manufacturing-cleaning-procedure-method-statement",
+"title": "Cleaning Procedure Method Statement",
+"industry": "Manufacturing",
+"type": "Form",
+"description": "Free Cleaning Procedure Method Statement template for manufacturing you can edit online and download as PDF. Covers 1.0 safety & preparation, 2.0 cleaning agents & equipment, 3.0 cleaning procedure.",
+"topics": [
+"1.0 Safety & Preparation",
+"2.0 Cleaning Agents & Equipment",
+"3.0 Cleaning Procedure",
+"4.0 Specialized Cleaning Tasks"
+]
+},
+{
+"slug": "manufacturing-machine-setup-method-statement",
+"title": "Machine Setup Method Statement",
+"industry": "Manufacturing",
+"type": "Form",
+"description": "Free Machine Setup Method Statement template for manufacturing you can edit online and download as PDF. Covers 1.0 required resources, 2.0 pre-setup verification, 3.0 setup procedure.",
+"topics": [
+"1.0 Required Resources",
+"2.0 Pre-Setup Verification",
+"3.0 Setup Procedure",
+"4.0 Calibration & Verification"
+]
+},
+{
+"slug": "manufacturing-maintenance-procedure-method-statement",
+"title": "Maintenance Procedure Method Statement",
+"industry": "Manufacturing",
+"type": "Form",
+"description": "Free Maintenance Procedure Method Statement template for manufacturing you can edit online and download as PDF. Covers 1.0 safety precautions, 2.0 maintenance tasks, 3.0 testing & verification.",
+"topics": [
+"1.0 Safety Precautions",
+"2.0 Maintenance Tasks",
+"3.0 Testing & Verification",
+"4.0 Documentation & Closeout"
+]
+},
+{
+"slug": "manufacturing-material-handling-method-statement",
+"title": "Material Handling Method Statement",
+"industry": "Manufacturing",
+"type": "Form",
+"description": "Free Material Handling Method Statement template for manufacturing you can edit online and download as PDF. Covers 1.0 material characteristics, 2.0 equipment selection, 3.0 load preparation.",
+"topics": [
+"1.0 Material Characteristics",
+"2.0 Equipment Selection",
+"3.0 Load Preparation",
+"4.0 Transport Procedure"
+]
+},
+{
+"slug": "manufacturing-packaging-method-statement",
+"title": "Packaging Method Statement",
+"industry": "Manufacturing",
+"type": "Form",
+"description": "Free Packaging Method Statement template for manufacturing you can edit online and download as PDF. Covers 1.0 packaging specifications, 2.0 packing procedure, 3.0 labeling requirements.",
+"topics": [
+"1.0 Packaging Specifications",
+"2.0 Packing Procedure",
+"3.0 Labeling Requirements",
+"4.0 Palletizing Procedure"
+]
+},
+{
+"slug": "manufacturing-production-line-method-statement",
+"title": "Production Line Method Statement",
+"industry": "Manufacturing",
+"type": "Form",
+"description": "Free Production Line Method Statement template for manufacturing you can edit online and download as PDF. Covers 1.0 line configuration, 2.0 pre-production setup, 3.0 production flow procedure.",
+"topics": [
+"1.0 Line Configuration",
+"2.0 Pre-Production Setup",
+"3.0 Production Flow Procedure",
+"4.0 Quality Control Points"
+]
+},
+{
+"slug": "manufacturing-quality-control-method-statement",
+"title": "Quality Control Method Statement",
+"industry": "Manufacturing",
+"type": "Form",
+"description": "Free Quality Control Method Statement template for manufacturing you can edit online and download as PDF. Covers 1.0 inspection equipment, 2.0 sampling plan, 3.0 inspection characteristics.",
+"topics": [
+"1.0 Inspection Equipment",
+"2.0 Sampling Plan",
+"3.0 Inspection Characteristics",
+"4.0 Acceptance Criteria"
+]
+},
+{
+"slug": "manufacturing-assembly-line-job-safety-analysis",
+"title": "Assembly Line Job Safety Analysis",
+"industry": "Manufacturing",
+"type": "Job Safety Analysis",
+"description": "Free Assembly Line Job Safety Analysis template for manufacturing you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+"topics": [
+"Project Information",
+"Job Steps & Hazard Analysis"
+]
+},
+{
+"slug": "manufacturing-chemical-mixing-job-safety-analysis",
+"title": "Chemical Mixing Job Safety Analysis",
+"industry": "Manufacturing",
+"type": "Job Safety Analysis",
+"description": "Free Chemical Mixing Job Safety Analysis template for manufacturing you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+"topics": [
+"Project Information",
+"Job Steps & Hazard Analysis"
+]
+},
+{
+"slug": "manufacturing-conveyor-maintenance-job-safety-analysis",
+"title": "Conveyor Maintenance Job Safety Analysis",
+"industry": "Manufacturing",
+"type": "Job Safety Analysis",
+"description": "Free Conveyor Maintenance Job Safety Analysis template for manufacturing you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+"topics": [
+"Project Information",
+"Job Steps & Hazard Analysis"
+]
+},
+{
+"slug": "manufacturing-forklift-operation-job-safety-analysis",
+"title": "Forklift Operation Job Safety Analysis",
+"industry": "Manufacturing",
+"type": "Job Safety Analysis",
+"description": "Free Forklift Operation Job Safety Analysis template for manufacturing you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+"topics": [
+"Project Information",
+"Job Steps & Hazard Analysis"
+]
+},
+{
+"slug": "manufacturing-grinding-job-safety-analysis",
+"title": "Grinding Job Safety Analysis",
+"industry": "Manufacturing",
+"type": "Job Safety Analysis",
+"description": "Free Grinding Job Safety Analysis template for manufacturing you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+"topics": [
+"Project Information",
+"Job Steps & Hazard Analysis"
+]
+},
+{
+"slug": "manufacturing-lockout-tagout-job-safety-analysis",
+"title": "Lockout/Tagout Job Safety Analysis",
+"industry": "Manufacturing",
+"type": "Job Safety Analysis",
+"description": "Free Lockout/Tagout Job Safety Analysis template for manufacturing you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+"topics": [
+"Project Information",
+"Job Steps & Hazard Analysis"
+]
+},
+{
+"slug": "manufacturing-machine-operation-job-safety-analysis",
+"title": "Machine Operation Job Safety Analysis",
+"industry": "Manufacturing",
+"type": "Job Safety Analysis",
+"description": "Free Machine Operation Job Safety Analysis template for manufacturing you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+"topics": [
+"Project Information",
+"Job Steps & Hazard Analysis"
+]
+},
+{
+"slug": "manufacturing-press-operation-job-safety-analysis",
+"title": "Press Operation Job Safety Analysis",
+"industry": "Manufacturing",
+"type": "Job Safety Analysis",
+"description": "Free Press Operation Job Safety Analysis template for manufacturing you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+"topics": [
+"Project Information",
+"Job Steps & Hazard Analysis"
+]
+},
+{
+"slug": "manufacturing-robotic-cell-job-safety-analysis",
+"title": "Robotic Cell Job Safety Analysis",
+"industry": "Manufacturing",
+"type": "Job Safety Analysis",
+"description": "Free Robotic Cell Job Safety Analysis template for manufacturing you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+"topics": [
+"Project Information",
+"Job Steps & Hazard Analysis"
+]
+},
+{
+"slug": "manufacturing-welding-job-safety-analysis",
+"title": "Welding Job Safety Analysis",
+"industry": "Manufacturing",
+"type": "Job Safety Analysis",
+"description": "Free Welding Job Safety Analysis template for manufacturing you can edit online and download as PDF. Covers project information, job steps & hazard analysis.",
+"topics": [
+"Project Information",
+"Job Steps & Hazard Analysis"
+]
+},
+{
+"slug": "maritime-enclosed-spaces-risk-assessment",
+"title": "Enclosed Spaces Risk Assessment",
+"industry": "Maritime",
+"type": "Risk Assessment",
+"description": "Free Enclosed Spaces Risk Assessment template for maritime you can edit online and download as PDF. Covers assessment information, atmospheric hazard assessment, physical & environmental hazards.",
+"topics": [
+"Assessment Information",
+"Atmospheric Hazard Assessment",
+"Physical & Environmental Hazards",
+"Entry Team & Equipment"
+]
+},
+{
+"slug": "maritime-vessel-safety-risk-assessment",
+"title": "Vessel Safety Risk Assessment",
+"industry": "Maritime",
+"type": "Risk Assessment",
+"description": "Free Vessel Safety Risk Assessment template for maritime you can edit online and download as PDF. Covers hazards and controls, before departure, approval & sign-off.",
+"topics": [
+"Hazards And Controls",
+"Before Departure",
+"Approval & Sign-Off"
+]
+},
+{
+"slug": "maritime-environmental-safety-plan",
+"title": "Maritime Environmental Safety Plan",
+"industry": "Maritime",
+"type": "Safety Plan",
+"description": "Free Maritime Environmental Safety Plan template for maritime you can edit online and download as PDF. Covers pollution sources and controls (marpol), spill prevention and response, emergency contacts.",
+"topics": [
+"Pollution Sources And Controls (Marpol)",
+"Spill Prevention And Response",
+"Emergency Contacts",
+"Approval & Sign-Off"
+]
+},
+{
+"slug": "mining-blasting-procedure-method-statement",
+"title": "Blasting Procedure Method Statement",
+"industry": "Mining",
+"type": "Form",
+"description": "Free Blasting Procedure Method Statement template for mining you can edit online and download as PDF. Covers operation information, pre-blast safety checklist and procedures, blasting sequence and execution log.",
+"topics": [
+"Operation Information",
+"Pre-Blast Safety Checklist And Procedures",
+"Blasting Sequence And Execution Log",
+"Post-Blast Inspection And Documentation"
+]
+},
+{
+"slug": "mining-dewatering-method-statement",
+"title": "Dewatering Method Statement",
+"industry": "Mining",
+"type": "Form",
+"description": "Free Dewatering Method Statement template for mining you can edit online and download as PDF. Covers operation information, hydrogeological assessment and water inflow data, pumping system inventory and specifications.",
+"topics": [
+"Operation Information",
+"Hydrogeological Assessment And Water Inflow Data",
+"Pumping System Inventory And Specifications",
+"Sump And Drainage System Status"
+]
+},
+{
+"slug": "mining-exploration-method-statement",
+"title": "Exploration Method Statement",
+"industry": "Mining",
+"type": "Form",
+"description": "Free Exploration Method Statement template for mining you can edit online and download as PDF. Covers operation information, exploration program design and target parameters, drilling equipment and specifications.",
+"topics": [
+"Operation Information",
+"Exploration Program Design And Target Parameters",
+"Drilling Equipment And Specifications",
+"Drilling Progress And Sample Log"
+]
+},
+{
+"slug": "mining-extraction-method-statement",
+"title": "Extraction Method Statement",
+"industry": "Mining",
+"type": "Form",
+"description": "Free Extraction Method Statement template for mining you can edit online and download as PDF. Covers operation information, mining method and production parameters, production drilling and blasting specifications.",
+"topics": [
+"Operation Information",
+"Mining Method And Production Parameters",
+"Production Drilling And Blasting Specifications",
+"Loading And Hauling Equipment Deployment"
+]
+},
+{
+"slug": "mining-ground-support-method-statement",
+"title": "Ground Support Method Statement",
+"industry": "Mining",
+"type": "Form",
+"description": "Free Ground Support Method Statement template for mining you can edit online and download as PDF. Covers operation information, ground condition assessment and classification, support installation specifications and monitoring.",
+"topics": [
+"Operation Information",
+"Ground Condition Assessment And Classification",
+"Support Installation Specifications And Monitoring",
+"Ground Movement Monitoring And Instrumentation Log"
+]
+},
+{
+"slug": "mining-processing-method-statement",
+"title": "Processing Method Statement",
+"industry": "Mining",
+"type": "Form",
+"description": "Free Processing Method Statement template for mining you can edit online and download as PDF. Covers operation information, process flowsheet and design parameters, process control and metallurgical performance.",
+"topics": [
+"Operation Information",
+"Process Flowsheet And Design Parameters",
+"Process Control And Metallurgical Performance",
+"Reagent Consumption And Inventory"
+]
+},
+{
+"slug": "mining-ventilation-method-statement",
+"title": "Ventilation Method Statement",
+"industry": "Mining",
+"type": "Form",
+"description": "Free Ventilation Method Statement template for mining you can edit online and download as PDF. Covers operation information, primary ventilation system specifications, ventilation network and airflow distribution.",
+"topics": [
+"Operation Information",
+"Primary Ventilation System Specifications",
+"Ventilation Network And Airflow Distribution",
+"Atmospheric Monitoring And Gas Readings Log"
+]
+},
+{
+"slug": "mining-job-safety-analysis-confined-space-entry",
+"title": "Job Safety Analysis - Confined Space Entry",
+"industry": "Mining",
+"type": "Job Safety Analysis",
+"description": "Free Job Safety Analysis - Confined Space Entry template for mining you can edit online and download as PDF. Covers job information, confined space classification & permit requirements, job sequence and hazard analysis.",
+"topics": [
+"Job Information",
+"Confined Space Classification & Permit Requirements",
+"Job Sequence And Hazard Analysis",
+"Entry Log & Atmospheric Monitoring Record"
+]
+},
+{
+"slug": "mining-job-safety-analysis-conveyor-maintenance",
+"title": "Job Safety Analysis - Conveyor Maintenance",
+"industry": "Mining",
+"type": "Job Safety Analysis",
+"description": "Free Job Safety Analysis - Conveyor Maintenance template for mining you can edit online and download as PDF. Covers job information, job sequence and hazard analysis, tools & equipment checklist.",
+"topics": [
+"Job Information",
+"Job Sequence And Hazard Analysis",
+"Tools & Equipment Checklist",
+"Crew Acknowledgement & Sign-Off"
+]
+},
+{
+"slug": "mining-job-safety-analysis-drilling-blasting",
+"title": "Job Safety Analysis - Drilling & Blasting",
+"industry": "Mining",
+"type": "Job Safety Analysis",
+"description": "Free Job Safety Analysis - Drilling & Blasting template for mining you can edit online and download as PDF. Covers job information, job sequence and hazard analysis, specific controls & permits required.",
+"topics": [
+"Job Information",
+"Job Sequence And Hazard Analysis",
+"Specific Controls & Permits Required",
+"Crew Acknowledgement & Sign-Off"
+]
+},
+{
+"slug": "mining-job-safety-analysis-electrical-maintenance",
+"title": "Job Safety Analysis - Electrical Maintenance",
+"industry": "Mining",
+"type": "Job Safety Analysis",
+"description": "Free Job Safety Analysis - Electrical Maintenance template for mining you can edit online and download as PDF. Covers job information, job sequence and hazard analysis, electrical work permit & authorization.",
+"topics": [
+"Job Information",
+"Job Sequence And Hazard Analysis",
+"Electrical Work Permit & Authorization",
+"Crew Acknowledgement & Sign-Off"
+]
+},
+{
+"slug": "mining-job-safety-analysis-emergency-rescue",
+"title": "Job Safety Analysis - Emergency Rescue",
+"industry": "Mining",
+"type": "Job Safety Analysis",
+"description": "Free Job Safety Analysis - Emergency Rescue template for mining you can edit online and download as PDF. Covers incident information, critical incident command & safety briefing, rescue operations sequence and hazard analysis.",
+"topics": [
+"Incident Information",
+"Critical Incident Command & Safety Briefing",
+"Rescue Operations Sequence And Hazard Analysis",
+"Rescue Team Equipment Inventory"
+]
+},
+{
+"slug": "mining-job-safety-analysis-ground-control",
+"title": "Job Safety Analysis - Ground Control",
+"industry": "Mining",
+"type": "Job Safety Analysis",
+"description": "Free Job Safety Analysis - Ground Control template for mining you can edit online and download as PDF. Covers job information, job sequence and hazard analysis, ground control checks & testing.",
+"topics": [
+"Job Information",
+"Job Sequence And Hazard Analysis",
+"Ground Control Checks & Testing",
+"Crew Acknowledgement & Sign-Off"
+]
+},
+{
+"slug": "mining-job-safety-analysis-haul-truck-operation",
+"title": "Job Safety Analysis - Haul Truck Operation",
+"industry": "Mining",
+"type": "Job Safety Analysis",
+"description": "Free Job Safety Analysis - Haul Truck Operation template for mining you can edit online and download as PDF. Covers job information, job sequence and hazard analysis, road conditions & communications.",
+"topics": [
+"Job Information",
+"Job Sequence And Hazard Analysis",
+"Road Conditions & Communications",
+"Crew Acknowledgement & Sign-Off"
+]
+},
+{
+"slug": "mining-job-safety-analysis-shaft-sinking",
+"title": "Job Safety Analysis - Shaft Sinking",
+"industry": "Mining",
+"type": "Job Safety Analysis",
+"description": "Free Job Safety Analysis - Shaft Sinking template for mining you can edit online and download as PDF. Covers job information, critical safety controls - must be verified pre-shift, job sequence and hazard analysis.",
+"topics": [
+"Job Information",
+"Critical Safety Controls - Must Be Verified Pre-Shift",
+"Job Sequence And Hazard Analysis",
+"Shaft Emergency Procedures"
+]
+},
+{
+"slug": "mining-job-safety-analysis-ventilation-installation",
+"title": "Job Safety Analysis - Ventilation Installation",
+"industry": "Mining",
+"type": "Job Safety Analysis",
+"description": "Free Job Safety Analysis - Ventilation Installation template for mining you can edit online and download as PDF. Covers job information, job sequence and hazard analysis, ventilation installation checklist.",
+"topics": [
+"Job Information",
+"Job Sequence And Hazard Analysis",
+"Ventilation Installation Checklist",
+"Crew Acknowledgement & Sign-Off"
+]
+},
+{
+"slug": "surface-mining-operations-risk-assessment",
+"title": "Surface Mining Operations Risk Assessment",
+"industry": "Mining",
+"type": "Risk Assessment",
+"description": "Free Surface Mining Operations Risk Assessment template for mining you can edit online and download as PDF. Covers hazards and controls, pre-shift checks, approval & sign-off.",
+"topics": [
+"Hazards And Controls",
+"Pre-Shift Checks",
+"Approval & Sign-Off"
+]
+},
+{
+"slug": "underground-mining-operations-risk-assessment",
+"title": "Underground Mining Operations Risk Assessment",
+"industry": "Mining",
+"type": "Risk Assessment",
+"description": "Free Underground Mining Operations Risk Assessment template for mining you can edit online and download as PDF. Covers hazards and controls, pre-shift checks, approval & sign-off.",
+"topics": [
+"Hazards And Controls",
+"Pre-Shift Checks",
+"Approval & Sign-Off"
+]
+},
+{
+"slug": "mining-tailings-management-plan",
+"title": "Tailings Management Plan",
+"industry": "Mining",
+"type": "Safety Plan",
+"description": "Free Tailings Management Plan template for mining you can edit online and download as PDF. Covers hazards and controls, monitoring programme, governance.",
+"topics": [
+"Hazards And Controls",
+"Monitoring Programme",
+"Governance",
+"Approval & Sign-Off"
+]
+},
+{
+"slug": "oil-gas-drilling-procedure-method-statement",
+"title": "Drilling Procedure Method Statement",
+"industry": "Oil & Gas",
+"type": "Form",
+"description": "Free Drilling Procedure Method Statement template for oil & gas you can edit online and download as PDF. Covers well information, 1.0 scope of work, 2.0 references and applicable codes.",
+"topics": [
+"Well Information",
+"1.0 Scope Of Work",
+"2.0 References And Applicable Codes",
+"3.0 Responsibilities And Qualifications"
+]
+},
+{
+"slug": "oil-gas-environmental-protection-method-statement",
+"title": "Environmental Protection Method Statement",
+"industry": "Oil & Gas",
+"type": "Form",
+"description": "Free Environmental Protection Method Statement template for oil & gas you can edit online and download as PDF. Covers facility information, 3.0 waste management plan, 4.0 discharge permit requirements.",
+"topics": [
+"Facility Information",
+"3.0 Waste Management Plan",
+"4.0 Discharge Permit Requirements",
+"5.0 Spill Prevention And Response"
+]
+},
+{
+"slug": "hazard-and-operability-hazop-study-oil-gas-industry",
+"title": "Hazard And Operability (Hazop) Study - Oil & Gas Industry",
+"industry": "Oil & Gas",
+"type": "Form",
+"description": "Free Hazard And Operability (Hazop) Study - Oil & Gas Industry template for oil & gas you can edit online and download as PDF. Covers hazop study worksheet, risk assessment & recommendations, study close-out.",
+"topics": [
+"Hazop Study Worksheet",
+"Risk Assessment & Recommendations",
+"Study Close-Out"
+]
+},
+{
+"slug": "oil-gas-safety-case-method-statement",
+"title": "Safety Case Method Statement",
+"industry": "Oil & Gas",
+"type": "Form",
+"description": "Free Safety Case Method Statement template for oil & gas you can edit online and download as PDF. Covers facility information, 3.0 safety case structure, 4.0 safety critical elements (sces) register.",
+"topics": [
+"Facility Information",
+"3.0 Safety Case Structure",
+"4.0 Safety Critical Elements (Sces) Register",
+"5.0 Major Accident Hazard (Mah) Register"
+]
+},
+{
+"slug": "oil-gas-simops-procedure-method-statement",
+"title": "Simops Procedure Method Statement",
+"industry": "Oil & Gas",
+"type": "Form",
+"description": "Free Simops Procedure Method Statement template for oil & gas you can edit online and download as PDF. Covers simops information, 3.0 simops hazard identification, 4.0 simops risk assessment matrix.",
+"topics": [
+"Simops Information",
+"3.0 Simops Hazard Identification",
+"4.0 Simops Risk Assessment Matrix",
+"5.0 Control Measures Matrix"
+]
+},
+{
+"slug": "oil-gas-well-control-method-statement",
+"title": "Well Control Method Statement",
+"industry": "Oil & Gas",
+"type": "Form",
+"description": "Free Well Control Method Statement template for oil & gas you can edit online and download as PDF. Covers well information, 3.0 bop equipment specification, 4.0 bop testing procedure.",
+"topics": [
+"Well Information",
+"3.0 Bop Equipment Specification",
+"4.0 Bop Testing Procedure",
+"5.0 Primary Well Control (Mud)"
+]
+},
+{
+"slug": "oil-gas-rig-inspection-method-statement",
+"title": "Rig Inspection Method Statement",
+"industry": "Oil & Gas",
+"type": "Inspection Form",
+"description": "Free Rig Inspection Method Statement template for oil & gas you can edit online and download as PDF. Covers rig information, 3.0 daily inspection checklist, 4.0 weekly inspection checklist.",
+"topics": [
+"Rig Information",
+"3.0 Daily Inspection Checklist",
+"4.0 Weekly Inspection Checklist",
+"5.0 Monthly Inspection Checklist"
+]
+},
+{
+"slug": "oil-gas-confined-space-entry-permit-enhanced",
+"title": "Confined Space Entry Permit (Enhanced)",
+"industry": "Oil & Gas",
+"type": "Permit to Work",
+"description": "Free Confined Space Entry Permit (Enhanced) template for oil & gas you can edit online and download as PDF. Covers permit information, entry personnel, hazard identification & risk assessment.",
+"topics": [
+"Permit Information",
+"Entry Personnel",
+"Hazard Identification & Risk Assessment",
+"Atmospheric Testing Log"
+]
+},
+{
+"slug": "oil-gas-electrical-work-permit-enhanced",
+"title": "Electrical Work Permit (Enhanced)",
+"industry": "Oil & Gas",
+"type": "Permit to Work",
+"description": "Free Electrical Work Permit (Enhanced) template for oil & gas you can edit online and download as PDF. Covers permit information, work team, electrical hazard identification & risk assessment.",
+"topics": [
+"Permit Information",
+"Work Team",
+"Electrical Hazard Identification & Risk Assessment",
+"Arc Flash & Shock Risk Assessment (Nfpa 70E)"
+]
+},
+{
+"slug": "oil-gas-h2s-entry-permit-enhanced",
+"title": "H2S Entry Permit (Enhanced)",
+"industry": "Oil & Gas",
+"type": "Permit to Work",
+"description": "Free H2S Entry Permit (Enhanced) template for oil & gas you can edit online and download as PDF. Covers permit information, entry team & qualifications, h2s hazard awareness & properties.",
+"topics": [
+"Permit Information",
+"Entry Team & Qualifications",
+"H2S Hazard Awareness & Properties",
+"H2S Hazard Identification & Risk Assessment"
+]
+},
+{
+"slug": "oil-gas-lifting-operation-permit-enhanced",
+"title": "Lifting Operation Permit (Enhanced)",
+"industry": "Oil & Gas",
+"type": "Permit to Work",
+"description": "Free Lifting Operation Permit (Enhanced) template for oil & gas you can edit online and download as PDF. Covers permit information, lift details, lift plan & documentation.",
+"topics": [
+"Permit Information",
+"Lift Details",
+"Lift Plan & Documentation",
+"Crane & Equipment Inspection Checklist"
+]
+},
+{
+"slug": "oil-gas-hot-work-permit-enhanced",
+"title": "Oil & Gas Hot Work Permit (Enhanced)",
+"industry": "Oil & Gas",
+"type": "Permit to Work",
+"description": "Free Oil & Gas Hot Work Permit (Enhanced) template for oil & gas you can edit online and download as PDF. Covers permit information, risk assessment & hazard identification, equipment inspection checklist.",
+"topics": [
+"Permit Information",
+"Risk Assessment & Hazard Identification",
+"Equipment Inspection Checklist",
+"Area Inspection & Preparation Checklist"
+]
+},
+{
+"slug": "oil-gas-permit-to-work-ptw-risk-assessment",
+"title": "Permit To Work (Ptw) Risk Assessment",
+"industry": "Oil & Gas",
+"type": "Permit to Work",
+"description": "Free Permit To Work (Ptw) Risk Assessment template for oil & gas you can edit online and download as PDF. Covers permit to work system information, permit to work risk assessment, permit classification and requirements.",
+"topics": [
+"Permit To Work System Information",
+"Permit To Work Risk Assessment",
+"Permit Classification And Requirements",
+"Permit Validation Checklist"
+]
+},
+{
+"slug": "oil-gas-confined-space-entry-risk-assessment",
+"title": "Confined Space Entry Risk Assessment",
+"industry": "Oil & Gas",
+"type": "Risk Assessment",
+"description": "Free Confined Space Entry Risk Assessment template for oil & gas you can edit online and download as PDF. Covers confined space information, confined space identification and evaluation, confined space entry risk assessment matrix",
+"topics": [
+"Confined Space Information",
+"Confined Space Identification And Evaluation",
+"Confined Space Entry Risk Assessment Matrix",
+"Confined Space Entry Permit"
+]
+},
+{
+"slug": "oil-gas-drilling-operations-risk-assessment",
+"title": "Drilling Operations Risk Assessment",
+"industry": "Oil & Gas",
+"type": "Risk Assessment",
+"description": "Free Drilling Operations Risk Assessment template for oil & gas you can edit online and download as PDF. Covers rig/drilling site information, risk matrix (iso 31000 / iadc hse guidelines), drilling equipment integrity and certifi",
+"topics": [
+"Rig/Drilling Site Information",
+"Risk Matrix (Iso 31000 / Iadc HSE Guidelines)",
+"Drilling Equipment Integrity And Certification",
+"Well Control Drills And Competency"
+]
+},
+{
+"slug": "oil-gas-h2s-exposure-risk-assessment",
+"title": "H2S Exposure Risk Assessment",
+"industry": "Oil & Gas",
+"type": "Risk Assessment",
+"description": "Free H2S Exposure Risk Assessment template for oil & gas you can edit online and download as PDF. Covers facility/work area information, h2s exposure risk assessment matrix, h2s physiological effects and exposure limits.",
+"topics": [
+"Facility/Work Area Information",
+"H2S Exposure Risk Assessment Matrix",
+"H2S Physiological Effects And Exposure Limits",
+"H2S Detection Equipment Inventory"
+]
+},
+{
+"slug": "oil-gas-hot-work-operations-risk-assessment",
+"title": "Hot Work Operations Risk Assessment",
+"industry": "Oil & Gas",
+"type": "Risk Assessment",
+"description": "Free Hot Work Operations Risk Assessment template for oil & gas you can edit online and download as PDF. Covers hot work information, hot work risk assessment matrix, hot work area inspection checklist.",
+"topics": [
+"Hot Work Information",
+"Hot Work Risk Assessment Matrix",
+"Hot Work Area Inspection Checklist",
+"Hot Work Equipment Inspection"
+]
+},
+{
+"slug": "oil-gas-hydrocarbon-release-risk-assessment",
+"title": "Hydrocarbon Release Risk Assessment",
+"industry": "Oil & Gas",
+"type": "Risk Assessment",
+"description": "Free Hydrocarbon Release Risk Assessment template for oil & gas you can edit online and download as PDF. Covers facility information, leak detection and monitoring systems, hydrocarbon inventory and isolation capabilities.",
+"topics": [
+"Facility Information",
+"Leak Detection And Monitoring Systems",
+"Hydrocarbon Inventory And Isolation Capabilities",
+"Release Scenario Modeling And Consequence Analysis"
+]
+},
+{
+"slug": "oil-gas-lifting-operations-risk-assessment",
+"title": "Lifting Operations Risk Assessment",
+"industry": "Oil & Gas",
+"type": "Risk Assessment",
+"description": "Free Lifting Operations Risk Assessment template for oil & gas you can edit online and download as PDF. Covers lifting operation information, lift categorization, lifting operations risk assessment matrix.",
+"topics": [
+"Lifting Operation Information",
+"Lift Categorization",
+"Lifting Operations Risk Assessment Matrix",
+"Load Information And Calculations"
+]
+},
+{
+"slug": "oil-gas-offshore-operations-risk-assessment",
+"title": "Offshore Operations Risk Assessment",
+"industry": "Oil & Gas",
+"type": "Risk Assessment",
+"description": "Free Offshore Operations Risk Assessment template for oil & gas you can edit online and download as PDF. Covers offshore facility information, temporary refuge (tr) and muster area status, emergency evacuation and escape equipment",
+"topics": [
+"Offshore Facility Information",
+"Temporary Refuge (Tr) And Muster Area Status",
+"Emergency Evacuation And Escape Equipment",
+"Offshore Crane And Lifting Operations"
+]
+},
+{
+"slug": "oil-gas-process-safety-management-risk-assessment",
+"title": "Process Safety Management Risk Assessment",
+"industry": "Oil & Gas",
+"type": "Risk Assessment",
+"description": "Free Process Safety Management Risk Assessment template for oil & gas you can edit online and download as PDF. Covers facility process safety information, process hazard analysis (pha) methodology and status, process safety inform",
+"topics": [
+"Facility Process Safety Information",
+"Process Hazard Analysis (Pha) Methodology And Status",
+"Process Safety Information (Psi) Status",
+"Mechanical Integrity Program Status"
+]
+},
+{
+"slug": "oil-gas-production-operations-risk-assessment",
+"title": "Production Operations Risk Assessment",
+"industry": "Oil & Gas",
+"type": "Risk Assessment",
+"description": "Free Production Operations Risk Assessment template for oil & gas you can edit online and download as PDF. Covers hazards and controls, operating readiness, approval & sign-off.",
+"topics": [
+"Hazards And Controls",
+"Operating Readiness",
+"Approval & Sign-Off"
+]
+},
+{
+"slug": "oil-gas-simultaneous-operations-simops-risk-assessment",
+"title": "Simultaneous Operations (Simops) Risk Assessment",
+"industry": "Oil & Gas",
+"type": "Risk Assessment",
+"description": "Free Simultaneous Operations (Simops) Risk Assessment template for oil & gas you can edit online and download as PDF. Covers simops information, simultaneous operations matrix, current simops activities assessment.",
+"topics": [
+"Simops Information",
+"Simultaneous Operations Matrix",
+"Current Simops Activities Assessment",
+"Simops Control Measures"
+]
+},
+{
+"slug": "oil-gas-well-control-risk-assessment",
+"title": "Well Control Risk Assessment",
+"industry": "Oil & Gas",
+"type": "Risk Assessment",
+"description": "Free Well Control Risk Assessment template for oil & gas you can edit online and download as PDF. Covers well information, well control equipment status and certification, well control drills and personnel competency.",
+"topics": [
+"Well Information",
+"Well Control Equipment Status And Certification",
+"Well Control Drills And Personnel Competency",
+"Kill Mud Availability And Capabilities"
+]
+},
+{
+"slug": "oil-gas-gas-processing-safety-plan",
+"title": "Gas Processing Safety Plan",
+"industry": "Oil & Gas",
+"type": "Safety Plan",
+"description": "Free Gas Processing Safety Plan template for oil & gas you can edit online and download as PDF. Covers major hazards and controls, operating controls, emergency response.",
+"topics": [
+"Major Hazards And Controls",
+"Operating Controls",
+"Emergency Response",
+"Approval & Sign-Off"
+]
+},
+{
+"slug": "oil-gas-transportation-safety-plan",
+"title": "Oil & Gas Transportation Safety Plan",
+"industry": "Oil & Gas",
+"type": "Safety Plan",
+"description": "Free Oil & Gas Transportation Safety Plan template for oil & gas you can edit online and download as PDF. Covers hazards and controls, vehicle and driver requirements, emergency response.",
+"topics": [
+"Hazards And Controls",
+"Vehicle And Driver Requirements",
+"Emergency Response",
+"Approval & Sign-Off"
+]
+},
+{
+"slug": "simultaneous-operations-simops-plan-oil-gas-industry",
+"title": "Simultaneous Operations (Simops) Plan - Oil & Gas Industry",
+"industry": "Oil & Gas",
+"type": "Safety Plan",
+"description": "Free Simultaneous Operations (Simops) Plan - Oil & Gas Industry template for oil & gas you can edit online and download as PDF. Covers operations interface matrix, communication protocol, emergency response coordination.",
+"topics": [
+"Operations Interface Matrix",
+"Communication Protocol",
+"Emergency Response Coordination",
+"Approvals"
+]
+},
+{
+"slug": "safety-audit-report",
+"title": "Safety Audit Report",
+"industry": "All Industries",
+"type": "Audit",
+"description": "Free Safety Audit Report template you can edit online and download as PDF. Covers audit information, 1.0 audit objectives & scope, 2.0 audit methodology.",
+"topics": [
+"Audit Information",
+"1.0 Audit Objectives & Scope",
+"2.0 Audit Methodology",
+"3.0 Audit Findings Summary"
+]
+},
+{
+"slug": "safety-audit-checklist",
+"title": "Safety Audit Checklist",
+"industry": "All Industries",
+"type": "Checklist",
+"description": "Free Safety Audit Checklist template you can edit online and download as PDF. Covers audit questions, findings, audit conclusion.",
+"topics": [
+"Audit Questions",
+"Findings",
+"Audit Conclusion",
+"Approval & Sign-Off"
+]
+},
+{
+"slug": "safety-checklist",
+"title": "Safety Checklist",
+"industry": "All Industries",
+"type": "Checklist",
+"description": "Free Safety Checklist template you can edit online and download as PDF. Covers inspection information, section 1: general workplace conditions, section 2: fire safety.",
+"topics": [
+"Inspection Information",
+"Section 1: General Workplace Conditions",
+"Section 2: Fire Safety",
+"Section 3: Electrical Safety"
+]
+},
+{
+"slug": "safety-orientation-checklist",
+"title": "Safety Orientation Checklist",
+"industry": "All Industries",
+"type": "Checklist",
+"description": "Free Safety Orientation Checklist template you can edit online and download as PDF. Covers company and site rules, emergency arrangements, hazards and controls for this job.",
+"topics": [
+"Company And Site Rules",
+"Emergency Arrangements",
+"Hazards And Controls For This Job",
+"PPE And Equipment"
+]
+},
+{
+"slug": "emergency-contact-list",
+"title": "Emergency Contact List",
+"industry": "All Industries",
+"type": "Emergency Plan",
+"description": "Free Emergency Contact List template you can edit online and download as PDF. Covers external emergency services, internal emergency team, management and key contacts.",
+"topics": [
+"External Emergency Services",
+"Internal Emergency Team",
+"Management And Key Contacts",
+"Maintenance Of This List"
+]
+},
+{
+"slug": "emergency-response-plan",
+"title": "Emergency Response Plan",
+"industry": "All Industries",
+"type": "Emergency Plan",
+"description": "Free Emergency Response Plan template you can edit online and download as PDF. Covers facility information, 1.0 emergency response organization, 2.0 emergency contacts.",
+"topics": [
+"Facility Information",
+"1.0 Emergency Response Organization",
+"2.0 Emergency Contacts",
+"3.0 Emergency Procedures By Type"
+]
+},
+{
+"slug": "calibration-records-measurement-equipment-traceability",
+"title": "Calibration Records - Measurement Equipment Traceability",
+"industry": "All Industries",
+"type": "Form",
+"description": "Free Calibration Records - Measurement Equipment Traceability template you can edit online and download as PDF. Covers calibration schedule and status, detailed calibration results, calibration standards and traceability.",
+"topics": [
+"Calibration Schedule And Status",
+"Detailed Calibration Results",
+"Calibration Standards And Traceability",
+"Out-Of-Tolerance Analysis"
+]
+},
+{
+"slug": "chemical-safety-assessment",
+"title": "Chemical Safety Assessment",
+"industry": "All Industries",
+"type": "Form",
+"description": "Free Chemical Safety Assessment template you can edit online and download as PDF. Covers substance information, task exposure assessment, controls.",
+"topics": [
+"Substance Information",
+"Task Exposure Assessment",
+"Controls",
+"Emergency Measures"
+]
+},
+{
+"slug": "lighting-assessment",
+"title": "Lighting Assessment",
+"industry": "All Industries",
+"type": "Form",
+"description": "Free Lighting Assessment template you can edit online and download as PDF. Covers illuminance measurements, quality of lighting, actions.",
+"topics": [
+"Illuminance Measurements",
+"Quality Of Lighting",
+"Actions",
+"Approval & Sign-Off"
+]
+},
+{
+"slug": "ppe-hazard-assessment",
+"title": "PPE Hazard Assessment",
+"industry": "All Industries",
+"type": "Form",
+"description": "Free PPE Hazard Assessment template you can edit online and download as PDF. Covers hazard assessment and ppe selection, before issuing ppe, ppe issue record.",
+"topics": [
+"Hazard Assessment And PPE Selection",
+"Before Issuing PPE",
+"PPE Issue Record",
+"Approval & Sign-Off"
+]
+},
+{
+"slug": "safety-management-system",
+"title": "Safety Management System",
+"industry": "All Industries",
+"type": "Form",
+"description": "Free Safety Management System template you can edit online and download as PDF. Covers organization information, 1.0 safety policy & leadership, 2.0 safety organization & responsibilities.",
+"topics": [
+"Organization Information",
+"1.0 Safety Policy & Leadership",
+"2.0 Safety Organization & Responsibilities",
+"3.0 Hazard Identification & Risk Assessment"
+]
+},
+{
+"slug": "ventilation-assessment",
+"title": "Ventilation Assessment",
+"industry": "All Industries",
+"type": "Form",
+"description": "Free Ventilation Assessment template you can edit online and download as PDF. Covers system details, measurements, inspection checklist.",
+"topics": [
+"System Details",
+"Measurements",
+"Inspection Checklist",
+"Actions"
+]
+},
+{
+"slug": "workplace-safety-policy",
+"title": "Workplace Safety Policy",
+"industry": "All Industries",
+"type": "Form",
+"description": "Free Workplace Safety Policy template you can edit online and download as PDF. Covers policy statement, commitments, responsibilities.",
+"topics": [
+"Policy Statement",
+"Commitments",
+"Responsibilities",
+"Communication"
+]
+},
+{
+"slug": "incident-report-form-immediate-reporting",
+"title": "Incident Report Form - Immediate Reporting",
+"industry": "All Industries",
+"type": "Incident Form",
+"description": "Free Incident Report Form - Immediate Reporting template you can edit online and download as PDF. Covers personnel involved, incident description, detailed description of incident.",
+"topics": [
+"Personnel Involved",
+"Incident Description",
+"Detailed Description Of Incident",
+"Initial Risk Assessment"
+]
+},
+{
+"slug": "general-inspection-report",
+"title": "General Inspection Report",
+"industry": "All Industries",
+"type": "Inspection Form",
+"description": "Free General Inspection Report template you can edit online and download as PDF. Covers inspection information, section 1: exterior conditions, section 2: interior conditions.",
+"topics": [
+"Inspection Information",
+"Section 1: Exterior Conditions",
+"Section 2: Interior Conditions",
+"Section 3: Aisles, Passageways & Exits"
+]
+},
+{
+"slug": "risk-assessment",
+"title": "Risk Assessment",
+"industry": "All Industries",
+"type": "Risk Assessment",
+"description": "Free Risk Assessment template you can edit online and download as PDF. Covers assessment information, 1.0 scope & objectives, 2.0 hazard identification.",
+"topics": [
+"Assessment Information",
+"1.0 Scope & Objectives",
+"2.0 Hazard Identification",
+"3.0 Risk Analysis"
+]
+},
+{
+"slug": "business-continuity-plan",
+"title": "Business Continuity Plan",
+"industry": "All Industries",
+"type": "Safety Plan",
+"description": "Free Business Continuity Plan template you can edit online and download as PDF. Covers organization information, 1.0 scope & objectives, 2.0 critical business functions.",
+"topics": [
+"Organization Information",
+"1.0 Scope & Objectives",
+"2.0 Critical Business Functions",
+"3.0 Risk Assessment & Business Impact Analysis"
+]
+},
+{
+"slug": "environmental-management-plan",
+"title": "Environmental Management Plan",
+"industry": "All Industries",
+"type": "Safety Plan",
+"description": "Free Environmental Management Plan template you can edit online and download as PDF. Covers environmental aspects and impacts, monitoring programme, emergency and spill response.",
+"topics": [
+"Environmental Aspects And Impacts",
+"Monitoring Programme",
+"Emergency And Spill Response",
+"Compliance And Improvement"
+]
+},
+{
+"slug": "fire-safety-plan",
+"title": "Fire Safety Plan",
+"industry": "All Industries",
+"type": "Safety Plan",
+"description": "Free Fire Safety Plan template you can edit online and download as PDF. Covers facility information, 1.0 fire prevention measures, 2.0 fire detection & suppression systems.",
+"topics": [
+"Facility Information",
+"1.0 Fire Prevention Measures",
+"2.0 Fire Detection & Suppression Systems",
+"3.0 Emergency Evacuation Plan"
+]
+},
+{
+"slug": "hazard-communication-plan",
+"title": "Hazard Communication Plan",
+"industry": "All Industries",
+"type": "Safety Plan",
+"description": "Free Hazard Communication Plan template you can edit online and download as PDF. Covers purpose and scope, chemical inventory, labels and safety data sheets.",
+"topics": [
+"Purpose And Scope",
+"Chemical Inventory",
+"Labels And Safety Data Sheets",
+"Training And Non-Routine Tasks"
+]
+},
+{
+"slug": "risk-management-plan",
+"title": "Risk Management Plan",
+"industry": "All Industries",
+"type": "Safety Plan",
+"description": "Free Risk Management Plan template you can edit online and download as PDF. Covers risk criteria, risk register, monitoring and communication.",
+"topics": [
+"Risk Criteria",
+"Risk Register",
+"Monitoring And Communication",
+"Approval & Sign-Off"
+]
+},
+{
+"slug": "transportation-safety-plan",
+"title": "Transportation Safety Plan",
+"industry": "All Industries",
+"type": "Safety Plan",
+"description": "Free Transportation Safety Plan template you can edit online and download as PDF. Covers fleet information, 1.0 driver qualification & training, 2.0 vehicle maintenance & inspection.",
+"topics": [
+"Fleet Information",
+"1.0 Driver Qualification & Training",
+"2.0 Vehicle Maintenance & Inspection",
+"3.0 Hours Of Service Compliance"
+]
+},
+{
+"slug": "safety-training-material",
+"title": "Safety Training Material",
+"industry": "All Industries",
+"type": "Training Record",
+"description": "Free Safety Training Material template you can edit online and download as PDF. Covers training information, 1.0 training objectives, 2.0 training agenda.",
+"topics": [
+"Training Information",
+"1.0 Training Objectives",
+"2.0 Training Agenda",
+"3.0 Training Content"
+]
+},
+{
+"slug": "safety-training-plan",
+"title": "Safety Training Plan",
+"industry": "All Industries",
+"type": "Training Record",
+"description": "Free Safety Training Plan template you can edit online and download as PDF. Covers training needs analysis, training schedule, competence and records.",
+"topics": [
+"Training Needs Analysis",
+"Training Schedule",
+"Competence And Records",
+"Review Of Plan"
+]
+}
+]

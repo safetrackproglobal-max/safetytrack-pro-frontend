@@ -493,6 +493,12 @@ const AIExamCertificate = forwardRef(function AIExamCertificate(
           }
         } catch (deepSeekError) {
           console.error('❌ [EXAM] DeepSeek error:', deepSeekError);
+          if (/one full practice exam per day|UPGRADE_REQUIRED/i.test(`${deepSeekError?.message || ''} ${JSON.stringify(deepSeekError?.data || deepSeekError?.response?.data || {})}`)) {
+            message.warning({ content: 'Free accounts include one full practice exam per day. Upgrade for unlimited exams and certificates.', key: 'loading', duration: 8 });
+            setExamFlowStep('setup');
+            setLoading(false);
+            return;
+          }
           console.error('❌ [EXAM] Error stack:', deepSeekError.stack);
           debugExam('DEEPSEEK_ERROR', {
             errorMessage: deepSeekError.message,
@@ -1034,75 +1040,11 @@ const AIExamCertificate = forwardRef(function AIExamCertificate(
     }
   };
 
+  // Exams are graded on the server only (the answer key never reaches the browser).
   const performLocalGrading = () => {
-    // 🔴 FIX 1: Kill the "Submitting exam..." spinner — this is what's stuck forever
     message.destroy('submit');
     message.destroy('loading');
-
-    if (!activeExam) {
-      console.error('❌ performLocalGrading: no activeExam');
-      return;
-    }
-
-    console.log('📊 performLocalGrading: grading', Object.keys(userAnswers).length, 'answers');
-
-    let correct = 0;
-    const results = [];
-
-    activeExam.questions.forEach((question, index) => {
-      const userAnswer = userAnswers[index];  // 'A', 'B', 'C', 'D' or undefined
-
-      // 🔴 FIX 2: getOptionText expects options like "A) ..." but gets "A" —
-      //         normalize both user answer AND correct answer to single letters
-      const userLetter = userAnswer ? String(userAnswer).toUpperCase().charAt(0) : null;
-      const correctLetter = String(question.correct_answer || '').toUpperCase().charAt(0);
-
-      // 🔴 FIX 3: Only count CORRECT if user actually answered
-      const isCorrect = userLetter !== null && userLetter === correctLetter;
-      if (isCorrect) correct++;
-
-      // 🔴 FIX 4: getOptionText was looking for "A." but options are "A) ..."
-      //           This means EVERY answer showed "Not found"
-      const userAnswerText = userLetter
-        ? getOptionText(question.options, userLetter)
-        : 'Not answered';
-      const correctAnswerText = getOptionText(question.options, correctLetter);
-
-      results.push({
-        // 🔴 FIX 5: Some questions use `.question`, others use `.question_text` — handle both
-        question: question.question || question.question_text || `Question ${index + 1}`,
-        userAnswer: userAnswerText,
-        correctAnswer: correctAnswerText,
-        isCorrect,
-        explanation: question.explanation || 'No explanation',
-        // 🔴 FIX 6: Preserve domain so results show "Domain 3: Risk Management" not "Unknown"
-        domain: question.domain || question.domain_name || 'CSP General',
-        points: question.points || 2,
-        points_earned: isCorrect ? (question.points || 2) : 0,
-      });
-    });
-
-    const total = activeExam.questions.length;
-    const score = total > 0 ? Math.round((correct / total) * 100) : 0;
-    const passed = score >= (activeExam.passing_score || 70);
-
-    console.log(`✅ Local grading: ${correct}/${total} = ${score}% (${passed ? 'PASS' : 'FAIL'})`);
-
-    setExamScore({
-      score,
-      correct,
-      total,
-      percentage: score,
-      passed,
-      results,
-      professional_analysis: {
-        method: 'local',
-        note: 'Backend grading was unavailable — scored locally against the exam key.',
-      },
-    });
-
-    setExamFlowStep('results');
-    message.success(`Exam submitted! Score: ${score}%`);
+    message.error({ content: 'We could not submit your exam. Your answers are still here - please press Submit again.', duration: 8 });
   };
 
   // 🔴 FIX 4 (continued): Handle BOTH "A) option" and "A. option" formats
@@ -1160,7 +1102,7 @@ const AIExamCertificate = forwardRef(function AIExamCertificate(
     } catch (error) {
       console.error('Certificate generation error:', error);
       // No local fallback: a certificate that is not in our records could never be verified.
-      message.error({ content: 'Could not create your certificate right now. Your result is saved - please try again in a moment.', key: 'cert_gen' });
+      message.error({ content: /plan|upgrade/i.test(error?.message || '') ? 'Your exam result is free. Choose any paid plan to download the certificate of completion.' : 'Could not create your certificate right now. Please try again in a moment.', key: 'cert_gen', duration: 8 });
     }
   };
 

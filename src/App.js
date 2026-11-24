@@ -57,6 +57,9 @@ import AcceptTermsPage from './pages/AcceptTermsPage';
 
 // ✅ SEO marketing pages (solutions, industries, compliance guides, trust, demo)
 import { marketingRoutes } from './pages/marketing/marketingRoutes';
+import LibraryPage from './pages/library/LibraryPage';
+import LibraryDocPage from './pages/library/LibraryDocPage';
+import PracticeTestPage from './pages/library/PracticeTestPage';
 import './pages/marketing/marketing.css';
 // Dashboard Pages - Role Based
 import EmployeeDashboard from './pages/Dashboard/EmployeeDashboard';
@@ -597,6 +600,9 @@ const AppContent = () => {
               <MainLayoutWrapper>{r.element}</MainLayoutWrapper>
             </Route>
           ))}
+          <Route exact path="/free-safety-documents"><MainLayoutWrapper><LibraryPage /></MainLayoutWrapper></Route>
+          <Route exact path="/free-safety-documents/:slug"><MainLayoutWrapper><LibraryDocPage /></MainLayoutWrapper></Route>
+          <Route exact path="/csp-practice-exam/free-test"><MainLayoutWrapper><PracticeTestPage /></MainLayoutWrapper></Route>
           {/* Practice exam lives in AI Documents -> "Exams & Verification" (login required) */}
           <Redirect exact from="/exam" to="/ai-documents?tab=tools" />
           <Redirect exact from="/csp-exam-simulator" to="/csp-practice-exam" />

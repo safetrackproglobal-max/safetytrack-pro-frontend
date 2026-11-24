@@ -17,7 +17,8 @@ const { SITE_URL, ALL_MARKETING_PATHS, SOLUTIONS, INDUSTRIES, COMPLIANCE_PAGES }
 fs.unlinkSync(tmpFile);
 
 // Existing app pages that should be indexed. Edit as needed.
-const EXISTING = ['/', '/pricing', '/features', '/contact', '/voice'];
+const LIBRARY = JSON.parse(fs.readFileSync(path.join(here, '../src/data/docLibraryIndex.json'), 'utf8'));
+const EXISTING = ['/', '/pricing', '/features', '/contact', '/voice', '/csp-practice-exam/free-test', '/free-safety-documents', ...LIBRARY.map((d) => `/free-safety-documents/${d.slug}`)];
 const today = new Date().toISOString().slice(0, 10);
 
 const priority = (p) => {
@@ -68,6 +69,9 @@ const aiMap = {
     { url: `${SITE_URL}/`, title: 'SafeTrack Pro Global | AI HSE & Safety Management Software', category: 'home', last_modified: today },
     { url: `${SITE_URL}/pricing`, title: 'Pricing', category: 'pricing', last_modified: today },
     { url: `${SITE_URL}/voice`, title: 'Workplace Voice - find your company and report safely', category: 'portal', last_modified: today },
+    { url: `${SITE_URL}/free-safety-documents`, title: 'Free safety documents and templates', category: 'library', last_modified: today },
+    { url: `${SITE_URL}/csp-practice-exam/free-test`, title: 'Free CSP practice test (10 questions)', category: 'practice test', last_modified: today },
+    ...LIBRARY.map((d) => ({ url: `${SITE_URL}/free-safety-documents/${d.slug}`, title: d.title, description: d.description, category: 'free template', last_modified: today })),
     ...SOLUTIONS.map((p) => pageEntry(p, '/', 'solution')),
     ...INDUSTRIES.map((p) => pageEntry(p, '/industries/', 'industry')),
     ...COMPLIANCE_PAGES.map((p) => pageEntry(p, '/compliance/', 'compliance'))

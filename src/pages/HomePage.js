@@ -67,7 +67,7 @@ const LINKS = {
   pricing: '/pricing',
   contact: '/contact',
   features: '/features',
-  exam: '/exam',
+  exam: '/csp-practice-exam/free-test',
   // NEW – conversion / trust
   demo: '/demo',
   trust: '/trust',
@@ -1710,7 +1710,7 @@ function HomePage() {
 
                 <div className="hero-actions">
                   <NavButton to={LINKS.exam} type="primary" size="large" className="cta-button">
-                    Start the Practice Exam <ArrowRightOutlined />
+                    Try 10 Free Questions <ArrowRightOutlined />
                   </NavButton>
                   <Link to={LINKS.cspExam} className="section-cta-link">
                     About the CSP Practice Exam

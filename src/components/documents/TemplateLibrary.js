@@ -1,6 +1,7 @@
 // src/components/documents/TemplateLibrary.jsx
 
 import React, { useState, useEffect } from 'react';
+import { sanitizeHtml } from '../../utils/sanitizeHtml';
 import {
   Card, Row, Col, Button, Space, Input, Select, Modal, Form,
   Tag, Badge, Rate, Empty, Spin, Tooltip, message, Upload,
@@ -444,7 +445,7 @@ const TemplateLibrary = ({ companyId, onSelectTemplate, embedded = false }) => {
           <Divider>Template Content</Divider>
           <div 
             dangerouslySetInnerHTML={{ 
-              __html: selectedTemplate.template_content || 'No content' 
+              __html: sanitizeHtml(selectedTemplate.template_content) || 'No content' 
             }} 
             style={{ 
               padding: 16, 
