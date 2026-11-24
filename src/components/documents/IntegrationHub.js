@@ -28,7 +28,8 @@ import {
   DeploymentUnitOutlined, ClusterOutlined, NodeIndexOutlined,
   ApartmentOutlined, SwapOutlined, HistoryOutlined,
   FilterOutlined, SearchOutlined, BugOutlined, CodeOutlined,
-  KeyOutlined, SafetyOutlined, BankOutlined, MedicineBoxOutlined
+  KeyOutlined, SafetyOutlined, BankOutlined, MedicineBoxOutlined,
+  CopyOutlined
 } from '@ant-design/icons';
 import documentService from '../../services/documentService';
 import { useAuth } from '../../context/AuthContext';

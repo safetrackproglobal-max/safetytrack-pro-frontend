@@ -896,8 +896,8 @@ const DocumentControl = ({
   // ============================================================
   const renderFilters = () => (
     <div className="document-filters">
-      <Row gutter={[12, 12]} align="middle">
-        <Col xs={24} md={5}>
+      <div className="dc-filters">
+        <div className="dc-search">
           <Input.Search
             placeholder="Search documents..."
             value={searchText}
@@ -906,43 +906,42 @@ const DocumentControl = ({
             allowClear
             prefix={<SearchOutlined />}
           />
-        </Col>
-        <Col xs={12} sm={8} md={2}>
+        </div>
+        <div className="dc-sel">
           <Select value={filters.module} onChange={(v) => setFilters({ ...filters, module: v })} style={{ width: '100%' }} allowClear placeholder="Module">
             {MODULES.map((mod) => (<Option key={mod.value} value={mod.value}>{mod.icon} {mod.label}</Option>))}
           </Select>
-        </Col>
-        <Col xs={12} sm={8} md={2}>
+        </div>
+        <div className="dc-sel">
           <Select value={filters.document_type} onChange={(v) => setFilters({ ...filters, document_type: v })} style={{ width: '100%' }} allowClear placeholder="Type">
             <Option value="all">All Types</Option>
             {Object.entries(DOCUMENT_TYPES).map(([key, value]) => (<Option key={key} value={key}>{value.icon} {value.label}</Option>))}
           </Select>
-        </Col>
-        <Col xs={12} sm={8} md={2}>
+        </div>
+        <div className="dc-sel">
           <Select value={filters.status} onChange={(v) => setFilters({ ...filters, status: v })} style={{ width: '100%' }} allowClear placeholder="Status">
             <Option value="all">All Statuses</Option>
             {Object.entries(DOCUMENT_STATUSES).map(([key, value]) => (<Option key={key} value={key}>{value.icon} {value.label}</Option>))}
           </Select>
-        </Col>
-        <Col xs={12} sm={8} md={2}>
+        </div>
+        <div className="dc-sel">
           <Select value={filters.priority} onChange={(v) => setFilters({ ...filters, priority: v })} style={{ width: '100%' }} allowClear placeholder="Priority">
             <Option value="all">All Priorities</Option>
             {Object.entries(PRIORITY_LEVELS).map(([key, value]) => (<Option key={key} value={key}>{value.icon} {value.label}</Option>))}
           </Select>
-        </Col>
-        <Col xs={12} sm={8} md={2}>
+        </div>
+        <div className="dc-sel">
           <Select value={filters.tag} onChange={(v) => setFilters({ ...filters, tag: v })} style={{ width: '100%' }} allowClear placeholder="Tag">
             <Option value="all">All Tags</Option>
             {allTags.map((t) => (<Option key={t} value={t}>{t}</Option>))}
           </Select>
-        </Col>
-        <Col xs={12} sm={8} md={2}>
+        </div>
+        <div className="dc-sel">
           <Select value={sortBy} onChange={setSortBy} style={{ width: '100%' }} placeholder="Sort">
             {SORT_OPTIONS.map((o) => (<Option key={o.value} value={o.value}>{o.icon} {o.label}</Option>))}
           </Select>
-        </Col>
-        <Col xs={24} md={5}>
-          <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
+        </div>
+        <div className="dc-actions">
             <Tooltip title="Table view">
               <Button size="small" type={viewMode === 'table' ? 'primary' : 'default'} icon={<TableOutlined />} onClick={() => setViewMode('table')} />
             </Tooltip>
@@ -985,9 +984,8 @@ const DocumentControl = ({
             >
               Upload
             </Button>
-          </Space>
-        </Col>
-      </Row>
+        </div>
+      </div>
     </div>
   );
 

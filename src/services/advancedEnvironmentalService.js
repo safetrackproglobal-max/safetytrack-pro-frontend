@@ -87,18 +87,7 @@ export const advancedEnvironmentalService = {
       return response;
     } catch (error) {
       console.error('Environmental intelligence error:', error);
-      return {
-        success: true,
-        intelligence: {
-          environmental_health_score: 87,
-          carbon_footprint: 1245,
-          sustainability_index: 92,
-          predictive_alerts: [],
-          live_metrics: {},
-          trends: {},
-          recommendations: []
-        }
-      };
+      throw error;
     }
   },
   
@@ -113,21 +102,7 @@ export const advancedEnvironmentalService = {
       return response;
     } catch (error) {
       console.error('Predictive analytics error:', error);
-      return {
-        success: true,
-        analytics: {
-          forecast: [],
-          trend: 'stable',
-          confidence: 85,
-          risk_level: 'low',
-          recommendations: ['Unable to fetch real-time data. Using fallback predictions.'],
-          impact_areas: ['general'],
-          ai_model_details: {
-            model_version: 'fallback_v1',
-            accuracy: 0.85
-          }
-        }
-      };
+      throw error;
     }
   },
 
@@ -140,38 +115,7 @@ export const advancedEnvironmentalService = {
       return response;
     } catch (error) {
       console.error('Compliance automation error:', error);
-      return {
-        success: true,
-        automation: {
-          overall_compliance: 88,
-          upcoming_deadlines: 3,
-          active_violations: 1,
-          automated_tasks: 12,
-          auto_generated_reports: 15,
-          ai_assisted_reviews: 8,
-          scheduled_reports: [
-            {
-              name: 'EPA Form R',
-              due_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-              status: 'scheduled',
-              auto_generate: true,
-              priority: 'high'
-            },
-            {
-              name: 'Water Discharge Report',
-              due_date: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString(),
-              status: 'scheduled',
-              auto_generate: true,
-              priority: 'medium'
-            }
-          ],
-          automation_metrics: {
-            time_saved_hours: 45,
-            accuracy_rate: 94,
-            compliance_improvement: 12
-          }
-        }
-      };
+      throw error;
     }
   },
 
@@ -181,11 +125,7 @@ export const advancedEnvironmentalService = {
       return response;
     } catch (error) {
       console.error('Update automation settings error:', error);
-      return {
-        success: true,
-        message: 'Automation settings updated (demo)',
-        updated_at: new Date().toISOString()
-      };
+      throw error;
     }
   },
 
@@ -197,34 +137,7 @@ export const advancedEnvironmentalService = {
       return response;
     } catch (error) {
       console.error('Impact scorecard error:', error);
-      return {
-        success: true,
-        overall_score: 82,
-        scorecard: [
-          {
-            id: 1,
-            category: 'Carbon Emissions',
-            score: 85,
-            trend: 'improving',
-            impact: 'medium',
-            description: '15% reduction from last quarter',
-            target: 90,
-            progress: 94,
-            initiatives: ['Solar panel installation', 'EV fleet transition']
-          },
-          {
-            id: 2,
-            category: 'Water Usage',
-            score: 92,
-            trend: 'stable',
-            impact: 'low',
-            description: 'Efficient water recycling systems',
-            target: 95,
-            progress: 97,
-            initiatives: ['Greywater recycling', 'Smart irrigation']
-          }
-        ]
-      };
+      throw error;
     }
   },
 
@@ -236,17 +149,7 @@ export const advancedEnvironmentalService = {
       return response;
     } catch (error) {
       console.error('Smart alerts error:', error);
-      return {
-        success: true,
-        alerts: [],
-        total_alerts: 0,
-        critical_count: 0,
-        unacknowledged_count: 0,
-        ai_metadata: {
-          models_active: 1,
-          prediction_accuracy: '94.2%'
-        }
-      };
+      throw error;
     }
   },
 
@@ -256,12 +159,7 @@ export const advancedEnvironmentalService = {
       return response;
     } catch (error) {
       console.error('Acknowledge alert error:', error);
-      return {
-        success: true,
-        message: 'Alert acknowledged (demo)',
-        alert_id: alertId,
-        acknowledged_at: new Date().toISOString()
-      };
+      throw error;
     }
   },
 

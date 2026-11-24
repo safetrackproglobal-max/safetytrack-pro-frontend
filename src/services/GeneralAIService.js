@@ -1,3 +1,4 @@
+import { planAwareApiCall } from './api';
 // src/services/GeneralAIService.js
 import api from './api';
 

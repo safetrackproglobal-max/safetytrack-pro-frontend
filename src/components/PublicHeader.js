@@ -10,6 +10,10 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from 'react-i18next';
 import LanguageSelector from './LanguageSelector';
+import HoverNav, { NavList } from './nav/HoverNav';
+import { SOLUTIONS_BY_SLUG, INDUSTRIES, COMPLIANCE_PAGES } from '../data/marketingPages';
+import { MODULE_GROUPS } from '../data/homeContent';
+import { TRUST_PAGES } from '../data/trustPages';
 import './PublicHeader.css';
 import logoImage from '../assets/images/safetrack-logo.jpeg';
 
@@ -37,14 +41,40 @@ function PublicHeader() {
     { key: 'logout', icon: <LogoutOutlined />, label: t('navigation.logout'), danger: true, onClick: handleLogout },
   ];
 
-  const navLinks = [
-    { path: '/', label: t('navigation.home') },
-    { path: '/features', label: t('navigation.features') },
-    { path: '/pricing', label: t('navigation.pricing') },
-    { path: '/voice', label: t('navigation.reportConcern') || 'Report a Concern', voice: true },
-    { path: '/free-safety-documents', label: t('navigation.freeDocuments') || 'Free Documents' },
-    { path: '/trust', label: t('navigation.trust') || 'Trust' },
-    { path: '/contact', label: t('navigation.contact') },
+  const tr = (key, fallback) => t(`navigation.${key}`) || fallback;
+  const page = (label, to, hint) => ({ key: to, label, to, hint });
+  const guide = (path) => TRUST_PAGES.find((p) => p.path === path);
+  const groups = [
+    { key: 'products', label: tr('products', 'Products'), items: [
+      ...MODULE_GROUPS.flatMap(([, slugs]) => slugs).map((slug) => SOLUTIONS_BY_SLUG[slug]).filter(Boolean).map((m) => page(m.name, `/${m.slug}`)),
+      page(tr('features', 'Features'), '/features'),
+    ] },
+    { key: 'industries', label: tr('industries', 'Industries'), items: [
+      ...INDUSTRIES.map((i) => page(i.name, `/industries/${i.slug}`)),
+      ...COMPLIANCE_PAGES.map((c) => page(`${c.code} guide`, `/compliance/${c.slug}`)),
+    ] },
+    { key: 'free', label: tr('freeTools', 'Free tools'), items: [
+      page('Free safety documents', '/free-safety-documents', '164 templates to edit and download'),
+      page('Free CSP practice test', '/csp-practice-exam/free-test', '10 questions with explanations'),
+      page('Exam and certificate guide', '/csp-practice-exam/exam-guide', guide('/csp-practice-exam/exam-guide') && 'Rules, scoring and limits'),
+    ] },
+    { key: 'voice', label: tr('reportConcern', 'Report a Concern'), accent: true, items: [
+      page('Report now', '/voice', 'Find your company. No account needed'),
+      page('Track a report', '/voice/track', 'Use your tracking code'),
+      page('My reward points', '/voice/rewards', 'Open with your Reward ID'),
+      page('Who sees my report?', '/anonymous-safety-reporting/how-it-works', 'Anonymous, protected or named'),
+    ] },
+    { key: 'trust', label: tr('trust', 'Trust'), items: [
+      page('Trust centre', '/trust', 'Security and what we do not claim'),
+      page('How we use your data', '/data-use', 'Photos, video, voice and text'),
+      page('AI transparency', '/ai-transparency', 'What AI does and gets wrong'),
+      page('Company facts', '/facts', 'Plain answers about us'),
+      page('Privacy policy', '/privacy'), page('Terms', '/terms'),
+    ] },
+    { key: '/pricing', label: t('navigation.pricing'), to: '/pricing' },
+    { key: 'company', label: tr('company', 'Company'), items: [
+      page('About', '/about'), page(t('navigation.contact'), '/contact'), page('Request a demo', '/demo'), page('Support', '/info/support'),
+    ] },
   ];
 
   // Close mobile menu when a link is clicked
@@ -69,17 +99,7 @@ function PublicHeader() {
           </div>
 
           {/* 2. DESKTOP NAVIGATION LINKS */}
-          <nav className="nav-menu">
-            {navLinks.map((link) => (
-              <Link 
-                key={link.path} 
-                to={link.path} 
-                className={`nav-link ${location.pathname === link.path ? 'active' : ''}${link.voice ? ' nav-voice' : ''}`}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+          <HoverNav className="nav-menu" groups={groups} active={location.pathname} label="Main" />
 
           {/* 3. HEADER ACTIONS (Desktop & Mobile) */}
           <div className="header-actions">
@@ -157,16 +177,7 @@ function PublicHeader() {
         className="mobile-drawer"
       >
         <div className="mobile-nav-links">
-          {navLinks.map((link) => (
-            <Link 
-              key={link.path} 
-              to={link.path} 
-              className={`mobile-nav-link ${location.pathname === link.path ? 'active' : ''}`}
-              onClick={() => handleNavClick(link.path)}
-            >
-              {link.label}
-            </Link>
-          ))}
+          <NavList groups={groups} active={location.pathname} onSelect={() => setMobileMenuOpen(false)} label="Main" />
         </div>
 
         <div className="mobile-drawer-actions">

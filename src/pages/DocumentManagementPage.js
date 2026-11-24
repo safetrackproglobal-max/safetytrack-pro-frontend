@@ -1,13 +1,10 @@
 // src/pages/DocumentManagementPage.jsx
-// Full-page Document Management with its own header + grouped sidebar
+// Full-page Document Management: two-line header with hover dropdowns (side drawer on phones)
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import {
-  Layout, Menu, Button, Space, Typography, Badge, Tag,
-  Row, Col, Card, Statistic, Tooltip, Input, Modal,
-  Form, Upload, message, Alert, Divider, Empty, Avatar, Select,
-  Dropdown, Breadcrumb
+  Button, Space, Typography, Badge, Tag, Row, Col, Input, Modal, Form, Upload, message, Alert, Empty, Avatar, Select, Dropdown, Drawer
 } from 'antd';
 import {
   FileTextOutlined, PlusOutlined, SearchOutlined, ReloadOutlined,
@@ -96,9 +93,9 @@ import SubmissionsCenter from '../components/submissions/SubmissionsCenter';
 import PermitCenter from '../components/permits/PermitCenter';
 import ClientsManager from '../components/submissions/ClientsManager';
 import { SigningProfile } from '../components/submissions/SigningTools';
+import HoverNav, { NavList } from '../components/nav/HoverNav';
 import './DocumentManagementPage.css';
 
-const { Header, Sider, Content } = Layout;
 const { Title, Text } = Typography;
 const { Option } = Select;
 
@@ -173,142 +170,77 @@ const PLAN_PERMISSIONS = {
 };
 
 // ============================================================
-// SIDEBAR MENU STRUCTURE
+// SECTIONS (header dropdowns on desktop, side drawer on phones)
 // ============================================================
-const SIDEBAR_GROUPS = [
+const NAV_GROUPS = [
   {
-    key: 'core',
-    label: 'Core',
-    emoji: '📊',
-    color: '#1890ff',
-    tabs: [
-      { key: 'dashboard', label: 'Dashboard', icon: <DashboardOutlined /> },
-      { key: 'documents', label: 'Documents', icon: <FileTextOutlined /> }
+    key: 'g-docs', label: 'Documents', icon: <FolderOpenOutlined />, items: [
+      { key: 'documents', label: 'All documents', hint: 'Find, open and manage files', icon: <FileTextOutlined /> },
+      { key: 'dashboard', label: 'Dashboard', hint: 'Status and activity', icon: <DashboardOutlined /> },
+      { key: 'editor-new', label: 'New document', hint: 'Write in the editor', icon: <EditOutlined /> },
+      { key: 'editor-recent', label: 'Recent drafts', hint: 'Continue where you stopped', icon: <HistoryOutlined /> },
+      { key: 'search-advanced', label: 'Advanced search', hint: 'Search with filters', icon: <SearchOutlined /> },
+      { key: 'compare', label: 'Compare', hint: 'See what changed', icon: <DiffOutlined /> },
+      { key: 'bundles', label: 'Bundles', hint: 'Group files together', icon: <FolderOpenOutlined /> },
+      { key: 'expiry', label: 'Expiry tracking', hint: 'What needs renewal', icon: <CalendarOutlined /> }
     ]
   },
   {
-    // ✅ STEP 5: New "Editing" group
-    key: 'editing',
-    label: 'Editing',
-    emoji: '✍️',
-    color: '#13c2c2',
-    tabs: [
-      { key: 'editor-new', label: 'New Document', icon: <EditOutlined /> },
-      { key: 'editor-recent', label: 'Recent Drafts', icon: <HistoryOutlined /> }
+    key: 'g-sign', label: 'Review & sign', icon: <EditOutlined />, items: [
+      { key: 'submissions', label: 'Approvals inbox', hint: 'Waiting for you, and tracking', icon: <InboxOutlined /> },
+      { key: 'approved-docs', label: 'Approved documents', hint: 'Signed and stamped files', icon: <CheckCircleOutlined /> },
+      { key: 'approvals', label: 'Approval chain', hint: 'Steps and approvers', icon: <SafetyCertificateOutlined /> },
+      { key: 'review', label: 'Periodic review', hint: 'Review dates', icon: <CalendarOutlined /> },
+      { key: 'workflow-builder', label: 'Workflow builder', hint: 'Design approval steps', icon: <ApartmentOutlined /> },
+      { key: 'clients', label: 'Clients', hint: 'Reviewers outside the company', icon: <TeamOutlined /> },
+      { key: 'signing-profile', label: 'My signature & stamp', hint: 'Set up once, use anywhere', icon: <ProfileOutlined /> }
     ]
   },
   {
-    key: 'signing',
-    label: 'Submissions & Signing',
-    emoji: '✍️',
-    color: '#0b3d91',
-    tabs: [
-      { key: 'submissions', label: 'Approvals inbox & tracking', icon: <SafetyCertificateOutlined /> },
-      { key: 'approved-docs', label: 'Approved documents', icon: <SafetyCertificateOutlined /> },
-      { key: 'clients', label: 'Clients', icon: <TeamOutlined /> },
-      { key: 'signing-profile', label: 'My signature & stamp', icon: <EditOutlined /> }
+    key: 'g-hse', label: 'Safety', icon: <SafetyOutlined />, items: [
+      { key: 'ptw', label: 'Permits to work', hint: 'Create, approve and close', icon: <FileProtectOutlined /> },
+      { key: 'incidents', label: 'Incident links', hint: 'Connect documents to incidents', icon: <WarningOutlined /> },
+      { key: 'sds', label: 'Safety data sheets', hint: 'Chemicals on site', icon: <ExperimentOutlined /> }
     ]
   },
   {
-    key: 'workflow',
-    label: 'Workflow',
-    emoji: '⚙️',
-    color: '#722ed1',
-    tabs: [
-      { key: 'review', label: 'Review', icon: <CalendarOutlined /> },
-      { key: 'approvals', label: 'Approvals', icon: <SafetyCertificateOutlined /> },
-      { key: 'workflow-builder', label: 'Workflow Builder', icon: <ApartmentOutlined /> }
+    key: 'g-comp', label: 'Compliance', icon: <AuditOutlined />, items: [
+      { key: 'compliance', label: 'Frameworks', hint: 'Standards and gaps', icon: <SafetyCertificateOutlined /> },
+      { key: 'compliance-reports', label: 'Compliance reports', hint: 'Build and export', icon: <FileTextOutlined /> },
+      { key: 'quality-management', label: 'Quality management', hint: 'QMS records', icon: <CheckCircleOutlined /> },
+      { key: 'retention', label: 'Retention', hint: 'How long to keep files', icon: <ClockCircleOutlined /> },
+      { key: 'audit', label: 'Audit trail', hint: 'Who did what, and when', icon: <AuditOutlined /> }
     ]
   },
   {
-    key: 'security',
-    label: 'Security',
-    emoji: '🔒',
-    color: '#f5222d',
-    tabs: [
-      { key: 'access-control', label: 'Access Control', icon: <KeyOutlined /> },
-      { key: 'retention', label: 'Retention', icon: <ClockCircleOutlined /> },
-      { key: 'watermarking', label: 'Watermarking', icon: <FileProtectOutlined /> },
-      { key: 'anomaly', label: 'Anomaly Detection', icon: <SecurityScanOutlined /> }
+    key: 'g-sec', label: 'Security', icon: <LockOutlined />, items: [
+      { key: 'access-control', label: 'Access control', hint: 'Who can open a document', icon: <KeyOutlined /> },
+      { key: 'watermarking', label: 'Watermarks', hint: 'Mark copies', icon: <FileProtectOutlined /> },
+      { key: 'anomaly', label: 'Unusual activity', hint: 'Check odd access', icon: <SecurityScanOutlined /> }
     ]
   },
   {
-    key: 'compliance',
-    label: 'Compliance',
-    emoji: '✅',
-    color: '#52c41a',
-    tabs: [
-      { key: 'compliance', label: 'Compliance', icon: <SafetyCertificateOutlined /> },
-      { key: 'compliance-reports', label: 'Compliance Reports', icon: <AuditOutlined /> },
-      { key: 'quality-management', label: 'Quality Mgmt', icon: <CheckCircleOutlined /> },
-      { key: 'audit', label: 'Audit Trail', icon: <AuditOutlined /> }
+    key: 'g-ai', label: 'AI tools', icon: <RobotOutlined />, items: [
+      { key: 'assistant', label: 'AI assistant', hint: 'Ask about a document', icon: <MessageOutlined /> },
+      { key: 'ai', label: 'Classify', hint: 'Suggest type and tags', icon: <RobotOutlined /> },
+      { key: 'ocr', label: 'Read scans (OCR)', hint: 'Turn images into text', icon: <ScanOutlined /> },
+      { key: 'smart-intake', label: 'Smart intake', hint: 'Sort many files', icon: <ThunderboltOutlined /> }
     ]
   },
   {
-    key: 'hse',
-    label: 'HSE',
-    emoji: '🦺',
-    color: '#faad14',
-    tabs: [
-      { key: 'incidents', label: 'Incidents', icon: <WarningOutlined /> },
-      { key: 'sds', label: 'SDS Management', icon: <SafetyOutlined /> },
-      { key: 'ptw', label: 'Permits to Work', icon: <FileTextOutlined /> }
+    key: 'g-rep', label: 'Reports', icon: <BarChartOutlined />, items: [
+      { key: 'analytics', label: 'Analytics', hint: 'Use and activity', icon: <BarChartOutlined /> },
+      { key: 'bi', label: 'Business intelligence', hint: 'Deeper charts', icon: <FundOutlined /> },
+      { key: 'predictive', label: 'Forecasts', hint: 'Trends from your records', icon: <ExperimentOutlined /> },
+      { key: 'report-builder', label: 'Report builder', hint: 'Choose fields and layout', icon: <EditOutlined /> }
     ]
   },
   {
-    key: 'ai',
-    label: 'AI & Automation',
-    emoji: '🤖',
-    color: '#13c2c2',
-    tabs: [
-      { key: 'ai', label: 'AI Classify', icon: <RobotOutlined /> },
-      { key: 'ocr', label: 'OCR Processor', icon: <ScanOutlined /> },
-      { key: 'assistant', label: 'AI Assistant', icon: <MessageOutlined /> },
-      { key: 'smart-intake', label: 'Smart Intake', icon: <ThunderboltOutlined /> },
-      { key: 'predictive', label: 'Predictive Analytics', icon: <ExperimentOutlined /> }
-    ]
-  },
-  {
-    key: 'analytics',
-    label: 'Analytics',
-    emoji: '📈',
-    color: '#eb2f96',
-    tabs: [
-      { key: 'analytics', label: 'Analytics', icon: <BarChartOutlined /> },
-      { key: 'bi', label: 'Business Intelligence', icon: <FundOutlined /> },
-      { key: 'report-builder', label: 'Report Builder', icon: <EditOutlined /> }
-    ]
-  },
-  {
-    key: 'collaboration',
-    label: 'Collaboration',
-    emoji: '👥',
-    color: '#2f54eb',
-    tabs: [
-      { key: 'collaborate', label: 'Real-Time Collaborate', icon: <TeamOutlined /> },
-      { key: 'share', label: 'Share Portal', icon: <LinkOutlined /> }
-    ]
-  },
-  {
-    key: 'management',
-    label: 'Management',
-    emoji: '📁',
-    color: '#fa8c16',
-    tabs: [
-      { key: 'bundles', label: 'Document Bundles', icon: <FolderOpenOutlined /> },
-      { key: 'expiry', label: 'Expiry Tracking', icon: <CalendarOutlined /> },
-      { key: 'compare', label: 'Document Compare', icon: <DiffOutlined /> },
-      { key: 'search-advanced', label: 'Advanced Search', icon: <SearchOutlined /> }
-    ]
-  },
-  {
-    key: 'system',
-    label: 'System',
-    emoji: '🖥️',
-    color: '#8c8c8c',
-    tabs: [
-      { key: 'offline', label: 'Offline Manager', icon: <CloudOutlined /> },
-      { key: 'integrations', label: 'Integrations', icon: <ApiOutlined /> }
+    key: 'g-share', label: 'Share', icon: <LinkOutlined />, items: [
+      { key: 'collaborate', label: 'Edit together', hint: 'Work on one file at once', icon: <TeamOutlined /> },
+      { key: 'share', label: 'Share portal', hint: 'Send a controlled link', icon: <LinkOutlined /> },
+      { key: 'offline', label: 'Offline files', hint: 'Use without internet', icon: <CloudOutlined /> },
+      { key: 'integrations', label: 'Integrations', hint: 'Connect other systems', icon: <ApiOutlined /> }
     ]
   }
 ];
@@ -329,8 +261,7 @@ const DocumentManagementPage = ({
   // STATE
   // ============================================================
   const [activeTab, setActiveTab] = useState(initialTab);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [openKeys, setOpenKeys] = useState(['core']);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -390,18 +321,6 @@ const DocumentManagementPage = ({
   const canUpload = permissions.can_upload || isUserSuperAdmin();
 
   // ============================================================
-  // EFFECTS — Auto-open sidebar group for active tab
-  // ============================================================
-  useEffect(() => {
-    const activeGroup = SIDEBAR_GROUPS.find(group =>
-      group.tabs.some(tab => tab.key === activeTab)
-    );
-    if (activeGroup && !openKeys.includes(activeGroup.key)) {
-      setOpenKeys(prev => [...prev, activeGroup.key]);
-    }
-  }, [activeTab]);
-
-  // ============================================================
   // ✅ STEP 5: URL sync — tab + doc (deep link support)
   // ============================================================
   useEffect(() => {
@@ -450,6 +369,7 @@ const DocumentManagementPage = ({
   };
 
   const handleMenuClick = ({ key }) => {
+    setMenuOpen(false);
     setActiveTab(key);
     history.push(`/document-management?tab=${key}`);
   };
@@ -591,267 +511,59 @@ const DocumentManagementPage = ({
   }, [selectedFile, fileList, companyId, form, loadDashboardData]);
 
   // ============================================================
-  // RENDER: CUSTOM HEADER
+  // RENDER: HEADER (line 1: page and actions, line 2: sections)
   // ============================================================
-  const renderCustomHeader = () => (
-    <Header
-      className="docmgmt-header"
-      style={{
-        background: 'white',
-        padding: '0 24px',
-        height: 64,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderBottom: '1px solid #f0f0f0',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-        width: '100%',
-        overflow: 'hidden',
-        gap: 16
-      }}
-    >
-      <Space
-        size="middle"
-        align="center"
-        style={{
-          flex: '1 1 auto',
-          minWidth: 0,
-          overflow: 'hidden',
-          whiteSpace: 'nowrap'
-        }}
-      >
-        <Tooltip title="Back to Main Dashboard">
-          <Button
-            type="text"
-            icon={<ArrowLeftOutlined />}
-            onClick={handleBackToMain}
-            style={{ fontSize: 16, flexShrink: 0 }}
-          >
-            Back
-          </Button>
-        </Tooltip>
+  const activeGroup = NAV_GROUPS.find((g) => g.items.some((t) => t.key === activeTab));
+  const activeItem = activeGroup?.items.find((t) => t.key === activeTab);
 
-        <Divider type="vertical" style={{ height: 24, margin: 0 }} />
-
-        <Button
-          type="text"
-          icon={sidebarCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          style={{ fontSize: 16, flexShrink: 0 }}
-        />
-
-        <Divider type="vertical" style={{ height: 24, margin: 0 }} />
-
-        <Space
-          style={{
-            whiteSpace: 'nowrap',
-            flexShrink: 0,
-            overflow: 'hidden'
-          }}
-        >
-          <FileTextOutlined
-            style={{ fontSize: 22, color: '#4fc3f7', flexShrink: 0 }}
-          />
-          <Title
-            level={4}
-            style={{
-              margin: 0,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              maxWidth: 400
+  const renderHeader = () => (
+    <header className="dm-head">
+      <div className="dm-line1">
+        <button type="button" className="dm-icon dm-burger" aria-label="Open document menu" onClick={() => setMenuOpen(true)}><MenuUnfoldOutlined /></button>
+        <button type="button" className="dm-icon dm-back" aria-label="Back to main dashboard" title="Back to main dashboard" onClick={handleBackToMain}><ArrowLeftOutlined /></button>
+        <div className="dm-title">
+          <h1>{activeItem?.label || 'Documents'}</h1>
+          <span>Document management{activeGroup ? ` / ${activeGroup.label}` : ''}</span>
+        </div>
+        <div className="dm-actions">
+          <span className="dm-plan">{isUserSuperAdmin() ? 'Super admin' : (userPlan || 'free')}</span>
+          <button type="button" className="dm-icon" aria-label={`Approvals waiting: ${pendingTasks.length}`} title="Approvals inbox" onClick={() => handleMenuClick({ key: 'submissions' })}>
+            <Badge count={pendingTasks.length} size="small"><BellOutlined style={{ fontSize: 18 }} /></Badge>
+          </button>
+          <button type="button" className="dm-icon" aria-label="Refresh" title="Refresh" disabled={loading} onClick={loadDashboardData}><ReloadOutlined spin={loading} /></button>
+          {canCreate && canUpload && activeTab !== 'documents' && (
+            <button type="button" className="dm-new" onClick={() => setUploadModalVisible(true)}><PlusOutlined /><span>Upload</span></button>
+          )}
+          <Dropdown
+            menu={{
+              items: [
+                { key: 'profile', icon: <ProfileOutlined />, label: 'My Profile', onClick: () => history.push('/profile') },
+                { key: 'settings', icon: <SettingOutlined />, label: 'Settings', onClick: () => history.push('/settings') },
+                { type: 'divider' },
+                { key: 'back', icon: <HomeOutlined />, label: 'Back to Dashboard', onClick: handleBackToMain },
+                { type: 'divider' },
+                { key: 'logout', icon: <LogoutOutlined />, label: 'Logout', danger: true, onClick: () => { logout(); history.push('/login'); } }
+              ]
             }}
+            trigger={['click']}
+            placement="bottomRight"
           >
-            Document Management
-          </Title>
-          <Badge
-            status="processing"
-            text="Live"
-            style={{ flexShrink: 0 }}
-          />
-        </Space>
-      </Space>
-
-      <Space
-        size="middle"
-        style={{
-          flexShrink: 0,
-          whiteSpace: 'nowrap'
-        }}
-      >
-        <Tag
-          color={isUserSuperAdmin() ? 'gold' : 'blue'}
-          style={{ margin: 0, flexShrink: 0 }}
-        >
-          {isUserSuperAdmin() ? '👑 Super Admin' : (userPlan || 'free').toUpperCase()}
-        </Tag>
-
-        <Tooltip title="Notifications">
-          <Badge count={pendingTasks.length} offset={[-5, 5]}>
-            <Button
-              type="text"
-              icon={<BellOutlined />}
-              style={{ flexShrink: 0 }}
-            />
-          </Badge>
-        </Tooltip>
-
-        <Tooltip title="Refresh">
-          <Button
-            type="text"
-            icon={<ReloadOutlined />}
-            onClick={loadDashboardData}
-            loading={loading}
-            style={{ flexShrink: 0 }}
-          />
-        </Tooltip>
-
-        {canCreate && canUpload && (
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setUploadModalVisible(true)}
-            style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
-          >
-            New Document
-          </Button>
-        )}
-
-        <Divider type="vertical" style={{ height: 24, margin: 0 }} />
-
-        <Dropdown
-          menu={{
-            items: [
-              { key: 'profile', icon: <ProfileOutlined />, label: 'My Profile', onClick: () => history.push('/profile') },
-              { key: 'settings', icon: <SettingOutlined />, label: 'Settings', onClick: () => history.push('/settings') },
-              { type: 'divider' },
-              { key: 'back', icon: <HomeOutlined />, label: 'Back to Dashboard', onClick: handleBackToMain },
-              { type: 'divider' },
-              { key: 'logout', icon: <LogoutOutlined />, label: 'Logout', danger: true, onClick: () => { logout(); history.push('/login'); } }
-            ]
-          }}
-          trigger={['click']}
-        >
-          <Button
-            type="text"
-            style={{ flexShrink: 0, padding: 0 }}
-          >
-            <Avatar
-              size="small"
-              icon={<UserOutlined />}
-              src={user?.avatar}
-            />
-          </Button>
-        </Dropdown>
-      </Space>
-    </Header>
+            <button type="button" className="dm-icon" aria-label="Account menu"><Avatar size={32} icon={<UserOutlined />} src={user?.avatar} /></button>
+          </Dropdown>
+        </div>
+      </div>
+      <div className="dm-line2">
+        <HoverNav groups={NAV_GROUPS} active={activeTab} onSelect={handleMenuClick} label="Document sections" />
+      </div>
+    </header>
   );
 
-  // ============================================================
-  // RENDER: SIDEBAR
-  // ============================================================
-  const renderSidebar = () => (
-    <Sider
-      className="docmgmt-sider"
-      width={280}
-      collapsedWidth={64}
-      collapsed={sidebarCollapsed}
-      theme="light"
-    >
-      {!sidebarCollapsed && (
-        <div className="sidebar-brand">
-          <Space>
-            <FolderOpenOutlined style={{ fontSize: 18 }} />
-            <Text strong>WORKSPACE</Text>
-          </Space>
-        </div>
-      )}
-
-      <Menu
-        className="docmgmt-menu"
-        mode="inline"
-        selectedKeys={[activeTab]}
-        openKeys={sidebarCollapsed ? [] : openKeys}
-        onOpenChange={setOpenKeys}
-        onClick={handleMenuClick}
-        items={SIDEBAR_GROUPS.map(group => ({
-          key: group.key,
-          label: (
-            <span className="group-label">
-              <span className="group-emoji">{group.emoji}</span>
-              <span className="group-text">{group.label}</span>
-              <Badge
-                className="group-badge"
-                count={group.tabs.length}
-                style={{
-                  backgroundColor: `${group.color}22`,
-                  color: group.color
-                }}
-              />
-            </span>
-          ),
-          children: group.tabs.map(tab => ({
-            key: tab.key,
-            icon: tab.icon,
-            label: tab.label
-          }))
-        }))}
-      />
-
-      {!sidebarCollapsed && (
-        <div className="sidebar-footer">
-          <Button
-            block
-            icon={<ArrowLeftOutlined />}
-            onClick={handleBackToMain}
-          >
-            Back to Main App
-          </Button>
-        </div>
-      )}
-    </Sider>
+  const renderPhoneMenu = () => (
+    <Drawer title="Documents" placement="left" open={menuOpen} onClose={() => setMenuOpen(false)} width={300} rootClassName="hn-drawer">
+      <NavList groups={NAV_GROUPS} active={activeTab} onSelect={handleMenuClick} label="Document sections" />
+      <Button block icon={<ArrowLeftOutlined />} onClick={handleBackToMain} style={{ marginTop: 14, height: 44 }}>Back to main app</Button>
+    </Drawer>
   );
-
-  // ============================================================
-  // RENDER: BREADCRUMB
-  // ============================================================
-  const renderBreadcrumb = () => {
-    const activeGroup = SIDEBAR_GROUPS.find(g =>
-      g.tabs.some(t => t.key === activeTab)
-    );
-    const activeChild = activeGroup?.tabs.find(t => t.key === activeTab);
-
-    return (
-      <Breadcrumb
-        style={{ marginBottom: 16 }}
-        items={[
-          {
-            title: (
-              <span style={{ cursor: 'pointer' }} onClick={handleBackToMain}>
-                <HomeOutlined /> Dashboard
-              </span>
-            )
-          },
-          {
-            title: (
-              <span style={{ cursor: 'pointer' }} onClick={() => setActiveTab('dashboard')}>
-                Document Management
-              </span>
-            )
-          },
-          {
-            title: activeGroup ? `${activeGroup.emoji} ${activeGroup.label}` : ''
-          },
-          {
-            title: activeChild?.label || activeTab
-          }
-        ]}
-      />
-    );
-  };
 
   // ============================================================
   // RENDER: SELECTED DOCUMENT BANNER
@@ -1072,38 +784,11 @@ const DocumentManagementPage = ({
   // RENDER: STATS
   // ============================================================
   const renderStats = () => (
-    <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-      <Col xs={24} sm={12} md={4}>
-        <Card size="small" className="stat-card">
-          <Statistic title="Total" value={stats.total || 0} prefix={<FileTextOutlined />} />
-        </Card>
-      </Col>
-      <Col xs={24} sm={12} md={4}>
-        <Card size="small" className="stat-card">
-          <Statistic title="Drafts" value={stats.draft || 0} prefix={<EditOutlined />} valueStyle={{ color: '#d9d9d9' }} />
-        </Card>
-      </Col>
-      <Col xs={24} sm={12} md={4}>
-        <Card size="small" className="stat-card">
-          <Statistic title="In Review" value={stats.review || 0} prefix={<ClockCircleOutlined />} valueStyle={{ color: '#1890ff' }} />
-        </Card>
-      </Col>
-      <Col xs={24} sm={12} md={4}>
-        <Card size="small" className="stat-card">
-          <Statistic title="Approved" value={stats.approved || 0} prefix={<CheckCircleOutlined />} valueStyle={{ color: '#52c41a' }} />
-        </Card>
-      </Col>
-      <Col xs={24} sm={12} md={4}>
-        <Card size="small" className="stat-card">
-          <Statistic title="Published" value={stats.published || 0} prefix={<SafetyCertificateOutlined />} valueStyle={{ color: '#1890ff' }} />
-        </Card>
-      </Col>
-      <Col xs={24} sm={12} md={4}>
-        <Card size="small" className="stat-card">
-          <Statistic title="Archived" value={stats.archived || 0} prefix={<FolderOutlined />} valueStyle={{ color: '#faad14' }} />
-        </Card>
-      </Col>
-    </Row>
+    <dl className="dm-stats">
+      {[['Total', stats.total], ['Drafts', stats.draft], ['In review', stats.review], ['Approved', stats.approved], ['Published', stats.published], ['Archived', stats.archived]].map(([label, value]) => (
+        <div key={label}><dt>{label}</dt><dd>{value || 0}</dd></div>
+      ))}
+    </dl>
   );
 
   // ============================================================
@@ -1229,27 +914,18 @@ const DocumentManagementPage = ({
   // MAIN RENDER
   // ============================================================
   return (
-  <Layout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
-    {renderCustomHeader()}
-
-    <Layout className="docmgmt-inner-layout">
-      {renderSidebar()}
-
-      <Content className="docmgmt-content">
-        {renderBreadcrumb()}
-
-        {['documents', 'dashboard'].includes(activeTab) && renderStats()}
-
-        {renderSelectedDocumentBanner()}
-
-        <div className="docmgmt-panel">
-          {renderTabContent(activeTab)}
-        </div>
-
-        {renderUploadModal()}
-      </Content>
-    </Layout>
-  </Layout>
+  <div className="dm">
+    {renderHeader()}
+    {renderPhoneMenu()}
+    <main className="dm-body">
+      {['documents', 'dashboard'].includes(activeTab) && renderStats()}
+      {renderSelectedDocumentBanner()}
+      <div className="dm-panel">
+        {renderTabContent(activeTab)}
+      </div>
+      {renderUploadModal()}
+    </main>
+  </div>
 );
 };
 

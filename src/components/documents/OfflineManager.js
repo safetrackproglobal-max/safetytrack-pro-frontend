@@ -26,7 +26,8 @@ import {
   LockOutlined, UnlockOutlined, BarChartOutlined, LineChartOutlined,
   PieChartOutlined, FundOutlined, DeploymentUnitOutlined,
   MergeCellsOutlined, SplitCellsOutlined, BugOutlined,
-  ApiOutlined, ClusterOutlined, CloudOutlined
+  ApiOutlined, ClusterOutlined, CloudOutlined,
+  DashboardOutlined
 } from '@ant-design/icons';
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, XAxis, YAxis,

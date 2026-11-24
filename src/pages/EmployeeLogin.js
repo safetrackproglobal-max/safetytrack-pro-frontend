@@ -1,6 +1,6 @@
 // src/pages/EmployeeLogin.js
-import React from 'react';
-import { Form, Input, Button, Card, Row, Col, Typography } from 'antd';
+import React, { useState } from 'react';
+import { Form, Input, Button, Card, Row, Col, Typography, message } from 'antd';
 import { MailOutlined, IdcardOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 import { useAuth } from '../context/AuthContext';
 import { useHistory, Link } from 'react-router-dom';

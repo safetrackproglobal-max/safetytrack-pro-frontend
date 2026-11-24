@@ -28,7 +28,8 @@ import {
   HistoryOutlined, LineChartOutlined as TrendOutlined,
   RiseOutlined, FallOutlined, DeploymentUnitOutlined,
   NodeIndexOutlined, ApartmentOutlined, ClusterOutlined,
-  CompassOutlined, AimOutlined, MonitorOutlined, HeatMapOutlined
+  CompassOutlined, AimOutlined, MonitorOutlined, HeatMapOutlined,
+  PlusOutlined
 } from '@ant-design/icons';
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, AreaChart, Area,

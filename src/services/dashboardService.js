@@ -1,5 +1,5 @@
 // src/services/dashboardService.js
-import api from './api';
+import api, { createAPIError } from './api';
 
 // === AUTHENTICATION ===
 

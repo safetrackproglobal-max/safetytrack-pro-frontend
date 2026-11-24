@@ -581,25 +581,7 @@ const AIExamCertificate = forwardRef(function AIExamCertificate(
           examData: examData ? 'present' : 'null'
         }, 'Questions list is empty, using fallback questions');
 
-        const fallbackQuestions = generateFallbackQuestions(100);
-        questionsList = fallbackQuestions;
-        if (!examData) {
-          examData = {
-            exam_id: sessionId,
-            exam_type: 'CSP_FULL_EXAM_FALLBACK',
-            domain: selectedExamTopic || 'safety_management',
-            total_questions: questionsList.length,
-            passing_score: 75,
-            time_limit_minutes: 240,
-            generated_at: new Date().toISOString(),
-            questions: questionsList,
-            source: 'fallback'
-          };
-        }
-        debugExam('FALLBACK_QUESTIONS', {
-          questionsCount: questionsList.length,
-          firstQuestion: questionsList[0]?.question
-        }, 'Fallback questions generated');
+        throw new Error('The exam could not be prepared. Please try again in a moment.');
       }
 
       console.log('📊 [EXAM] Final counts:');

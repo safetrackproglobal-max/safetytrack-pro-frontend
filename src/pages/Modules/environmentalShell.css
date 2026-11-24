@@ -1,0 +1,75 @@
+/* Environmental page shell. Classes start with ev-. The second half repairs overlaps inside older panels. */
+.ev { color: #17324d; min-width: 0; }
+.ev-head { position: relative; z-index: 60; margin: 16px 0 18px; padding: 14px 20px 6px; background: #fff; border: 1px solid #e3eaf2; border-radius: 14px; }
+.ev-line { display: flex; align-items: center; gap: 12px; }
+.ev-title { flex: 1 1 auto; min-width: 0; }
+.ev-title h1 { margin: 0; font-size: 21px; font-weight: 700; line-height: 1.2; color: #10263d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ev-title span { font-size: 13px; color: #55697f; }
+.ev-tools { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+.ev-btn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border: 1px solid #d3dde8; border-radius: 10px; background: #fff; color: #17324d; font: inherit; font-weight: 600; white-space: nowrap; cursor: pointer; }
+.ev-btn:hover { border-color: #1561c9; color: #1561c9; }
+.ev-btn.main { background: #1561c9; border-color: #1561c9; color: #fff; }
+.ev-btn.main:hover { background: #0f4fa8; }
+.ev-btn:focus-visible, .ev-link:focus-visible, .ev-row:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
+.ev-burger { display: none; }
+.ev-nav { margin: 6px -10px 0; }
+
+.ev-kpis { display: grid; grid-template-columns: repeat(4, 1fr); margin: 0 0 18px; background: #fff; border: 1px solid #e3eaf2; border-radius: 14px; }
+.ev-kpis > div { padding: 16px 20px; border-inline-start: 1px solid #edf2f7; min-width: 0; }
+.ev-kpis > div:first-child { border: 0; }
+.ev-kpis dt { font-size: 13.5px; font-weight: 500; color: #55697f; }
+.ev-kpis dd { margin: 2px 0 0; font-size: 26px; font-weight: 700; color: #10263d; font-variant-numeric: tabular-nums; }
+.ev-kpis small { color: #55697f; font-size: 12.5px; }
+.ev-kpis .warn dd, .ev-kpis .warn small { color: #b23a08; }
+.ev-grid { display: grid; gap: 18px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ev-panel { min-width: 0; padding: 18px 20px; background: #fff; border: 1px solid #e3eaf2; border-radius: 14px; }
+.ev-panel > header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.ev-panel h3 { margin: 0; font-size: 16.5px; font-weight: 700; color: #10263d; }
+.ev-note { margin: 0 0 8px; font-size: 13px; color: #55697f; }
+.ev-link { padding: 4px 0; border: 0; background: none; color: #1561c9; font: inherit; font-size: 14px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+.ev-link:hover { text-decoration: underline; }
+.ev-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; padding: 11px 0; border: 0; border-top: 1px solid #edf2f7; background: none; font: inherit; color: inherit; text-align: start; }
+button.ev-row { cursor: pointer; }
+button.ev-row:hover .ev-row-t { color: #1561c9; }
+.ev-row-t { flex: 1 1 50%; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.ev-row-t small { display: block; font-weight: 400; font-size: 13px; color: #55697f; }
+.ev-row .ant-progress { flex: 1 1 40%; margin: 0; }
+.ev-tags { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.ev-tags .ant-tag { margin: 0; }
+.ev-section { min-width: 0; }
+
+/* ---- repairs inside older panels (they share class names with other pages) ---- */
+.ev-section .environmental-intelligence-panel, .ev-section .impact-scorecard, .ev-section .compliance-automation-panel, .ev-section [class*='-panel'] { min-height: 0; }
+.ev-section .ant-card-head { min-height: 48px; }
+.ev-section .ant-card-head-wrapper { flex-wrap: wrap; gap: 4px 12px; padding: 8px 0; }
+.ev-section .ant-card-head-title { white-space: normal; overflow: visible; padding: 0; }
+.ev-section .ant-card-extra { margin-inline-start: auto; padding: 0; }
+.ev-section .ant-card-extra .ant-space, .ev-section [class*='header'] .ant-space { flex-wrap: wrap; }
+.ev-section .ant-row { row-gap: 16px; }
+.ev-section .stat-card, .ev-section .chart-card { height: auto; padding: 0; overflow: visible; }
+.ev-section .stat-card:hover, .ev-section .ant-card:hover { transform: none; }
+.ev-section .ant-statistic-title { white-space: normal; overflow: visible; }
+.ev-section .ant-statistic-content { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; overflow: visible; line-height: 1.25; }
+.ev-section .ant-statistic-content-value, .ev-section .ant-statistic-content-suffix { white-space: nowrap; }
+.ev-section .ant-progress-line { margin-bottom: 0; }
+.ev-section .ant-tabs-nav { flex-wrap: wrap; gap: 6px; }
+.ev-section .ant-table-wrapper { overflow-x: auto; }
+.ev-section .ant-descriptions { overflow-x: auto; }
+.ev-section h1, .ev-section h2, .ev-section h3 { overflow-wrap: anywhere; }
+
+@media (max-width: 991px) {
+  .ev-head { margin: 0 0 14px; padding: 10px 12px; }
+  .ev-burger { display: inline-flex; padding: 0 11px; }
+  .ev-nav, .ev-title span { display: none; }
+  .ev-kpis { grid-template-columns: repeat(2, 1fr); }
+  .ev-kpis > div { padding: 12px 14px; border-top: 1px solid #edf2f7; }
+  .ev-kpis > div:nth-child(-n+2) { border-top: 0; }
+  .ev-kpis > div:nth-child(3) { border-inline-start: 0; }
+  .ev-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 600px) { .ev-btn span.t { display: none; } .ev-btn { padding: 0 11px; } .ev-kpis dd { font-size: 21px; } .ev-panel { padding: 14px; } .ev-title h1 { font-size: 17px; } }
+.ev-section .ant-col { min-width: 0; }
+.ev-section .ant-descriptions-item-container { flex-wrap: wrap; }
+.ev-section .ant-descriptions-item-content { overflow-wrap: normal; word-break: normal; min-width: 70px; }
+.ev-section .ant-descriptions-item-label { white-space: normal; }
+.ev-section [class*='weather'] .ant-tabs-tab-active .ant-tabs-tab-btn, .ev-section [class*='weather'] .ant-tabs-tab-active .ant-tabs-tab-btn * { color: #fff !important; }

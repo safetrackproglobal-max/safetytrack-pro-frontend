@@ -25,7 +25,8 @@ import {
   BarChartOutlined, PieChartOutlined, DashboardOutlined,
   FilterOutlined, CloudDownloadOutlined, SyncOutlined,
   ThunderboltOutlined, RobotOutlined, ExclamationCircleOutlined,
-  FireOutlined, BugOutlined, ExperimentOutlined, DeploymentUnitOutlined
+  FireOutlined, BugOutlined, ExperimentOutlined, DeploymentUnitOutlined,
+  ScheduleOutlined
 } from '@ant-design/icons';
 import documentService from '../../services/documentService';
 import './ComplianceReports.css';

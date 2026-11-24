@@ -1,0 +1,39 @@
+/* Header navigation with see-through dropdowns. All classes start with hn- */
+.hn { --hn-ink: #17324d; --hn-soft: #4c6079; --hn-blue: #1561c9; min-width: 0; line-height: 1.35; }
+.hn-bar { list-style: none; display: flex; align-items: center; gap: 2px; margin: 0; padding: 0; }
+.hn-bar > li { position: relative; }
+.hn-top { display: inline-flex; align-items: center; gap: 7px; height: 40px; padding: 0 12px; border: 0; border-radius: 9px; background: transparent; color: var(--hn-ink); font: inherit; font-size: 14.5px; font-weight: 600; white-space: nowrap; cursor: pointer; text-decoration: none; transition: background-color 0.15s, color 0.15s; }
+.hn-top:hover, .hn-top.open { background: rgba(21, 97, 201, 0.09); color: var(--hn-blue); }
+.hn-top.on { color: var(--hn-blue); box-shadow: inset 0 -2px 0 var(--hn-blue); border-radius: 9px 9px 0 0; }
+.hn-top.accent { color: #b45309; }
+.hn-caret { font-size: 10px; opacity: 0.7; transition: transform 0.18s; }
+.hn-top.open .hn-caret, .hn-caret.up { transform: rotate(180deg); }
+.hn-top:focus-visible, .hn-item:focus-visible, .hn-row:focus-visible { outline: 2px solid #3b82f6; outline-offset: 1px; }
+
+/* The panel is glass, not a card: the page shows through, blurred enough to keep text readable */
+.hn-panel { position: absolute; top: 100%; left: 0; z-index: 1200; padding-top: 8px; transform: translateX(var(--hn-shift, 0)); animation: hn-in 0.16s ease-out; }
+.hn-grid { display: grid; gap: 2px; padding: 10px; border-radius: 14px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(241, 247, 255, 0.5)); -webkit-backdrop-filter: blur(22px) saturate(1.7); backdrop-filter: blur(22px) saturate(1.7); border: 1px solid rgba(255, 255, 255, 0.55); box-shadow: 0 18px 44px rgba(16, 42, 76, 0.16); max-height: calc(100vh - 130px); overflow-y: auto; }
+.hn-panel.c1 .hn-grid { width: 270px; }
+.hn-panel.c2 .hn-grid { width: min(560px, calc(100vw - 24px)); grid-template-columns: 1fr 1fr; }
+.hn-panel.c3 .hn-grid { width: min(800px, calc(100vw - 24px)); grid-template-columns: repeat(3, 1fr); }
+.hn-item { display: flex; align-items: flex-start; gap: 11px; width: 100%; padding: 10px 11px; border: 0; border-radius: 10px; background: transparent; color: var(--hn-ink); font: inherit; text-align: start; text-decoration: none; cursor: pointer; transition: background-color 0.14s; }
+.hn-item:hover, .hn-item:focus-visible { background: rgba(21, 97, 201, 0.12); color: var(--hn-ink); }
+.hn-item.on { background: rgba(21, 97, 201, 0.16); }
+.hn-ico { flex: 0 0 20px; font-size: 17px; line-height: 20px; color: var(--hn-blue); }
+.hn-text { min-width: 0; }
+.hn-label { display: block; font-size: 14.5px; font-weight: 650; color: #10263d; }
+.hn-hint { display: block; margin-top: 1px; font-size: 12.5px; color: #33475e; line-height: 1.35; }
+.hn-badge { margin-inline-start: 7px; padding: 1px 7px; border-radius: 9px; background: #c2410c; color: #fff; font-size: 11px; font-style: normal; font-weight: 700; }
+@supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) { .hn-grid { background: rgba(250, 252, 255, 0.96); } }
+@keyframes hn-in { from { opacity: 0; translate: 0 -6px; } to { opacity: 1; translate: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .hn-panel { animation: none; } .hn-caret { transition: none; } }
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) { .hn-grid { background: #fff; border-color: #94a3b8; } }
+
+/* Phone side drawer */
+.hn-list { display: flex; flex-direction: column; gap: 2px; }
+.hn-row { display: flex; align-items: center; gap: 11px; width: 100%; min-height: 48px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; color: #17324d; font: inherit; font-size: 16px; font-weight: 600; text-align: start; text-decoration: none; cursor: pointer; }
+.hn-row > span:not(.anticon) { flex: 1; }
+.hn-row.on { color: #1561c9; background: rgba(21, 97, 201, 0.08); }
+.hn-sub { padding: 2px 0 8px 14px; }
+.hn-sub .hn-item { min-height: 44px; align-items: center; }
+.hn-drawer .ant-drawer-body { padding: 10px; }

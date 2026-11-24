@@ -5,7 +5,8 @@ import {
   Form, Input, InputNumber, Checkbox, Radio, Divider, Alert,
   Typography, Modal, message, Steps, Result, Descriptions,
   Timeline, Badge, Progress, Tooltip, Tabs, List, Empty,
-  Collapse, Switch, Upload, notification, Spin
+  Collapse, Switch, Upload, notification, Spin,
+  Avatar
 } from 'antd';
 import {
   FileTextOutlined, SafetyCertificateOutlined, WarningOutlined,

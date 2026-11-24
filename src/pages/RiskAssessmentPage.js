@@ -115,7 +115,8 @@ import {
   DatabaseOutlined,
   CloudOutlined,
   CodeOutlined,
-  RobotOutlined
+  RobotOutlined,
+  BarsOutlined
 } from '@ant-design/icons';
 import { useHistory, useParams } from 'react-router-dom';
 import RiskAssessmentService from '../services/riskAssessmentService';

@@ -169,7 +169,7 @@ const WeatherPanel = ({ initialLocation = 'auto:ip', onWeatherUpdate }) => {
       setWeather(forecastData.current);
       
       const astronomyData = await weatherService.getAstronomy(loc);
-      setAstronomy(astronomyData.astronomy?.astro);
+      setAstronomy(astronomyData.astronomy?.astro || null);
       
       if (forecastData.current?.air_quality) {
         setAirQuality(forecastData.current.air_quality);
@@ -187,19 +187,14 @@ const WeatherPanel = ({ initialLocation = 'auto:ip', onWeatherUpdate }) => {
         })));
       }
       
-      // Generate weather history
-      const history = [];
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        history.push({
-          date: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
-          temp: Math.round(forecastData.current?.temp_c || 25 + (Math.random() - 0.5) * 8),
-          humidity: Math.round(forecastData.current?.humidity || 50 + (Math.random() - 0.5) * 20),
-          wind: Math.round((forecastData.current?.wind_kph || 15) + (Math.random() - 0.5) * 10),
-          condition: ['Sunny', 'Cloudy', 'Partly Cloudy', 'Rainy', 'Clear'][Math.floor(Math.random() * 5)]
-        });
-      }
+      // Daily values from the weather service forecast (nothing is estimated here)
+      const history = (forecastData.forecast?.forecastday || []).map((d) => ({
+        date: new Date(`${d.date}T12:00:00`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+        temp: Math.round(d.day?.avgtemp_c),
+        humidity: Math.round(d.day?.avghumidity),
+        wind: Math.round(d.day?.maxwind_kph),
+        condition: d.day?.condition?.text || ''
+      })).filter((d) => Number.isFinite(d.temp));
       setWeatherHistory(history);
       
       if (onWeatherUpdate) {
@@ -305,8 +300,8 @@ const WeatherPanel = ({ initialLocation = 'auto:ip', onWeatherUpdate }) => {
   // ============================================================
   
   const renderTemperatureTrend = () => (
-    <Card size="small" title="🌡️ Temperature Trend" className="chart-card">
-      <ResponsiveContainer width="100%" height={200}>
+    <Card size="small" title="Temperature, next days" className="chart-card">
+      {weatherHistory.length === 0 ? <p style={{ color: "#55697f", margin: 0 }}>The weather service sent no daily forecast for this place.</p> : <ResponsiveContainer width="100%" height={200}>
         <AreaChart data={weatherHistory}>
           <defs>
             <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
@@ -327,13 +322,13 @@ const WeatherPanel = ({ initialLocation = 'auto:ip', onWeatherUpdate }) => {
             dot={{ fill: '#1890ff' }}
           />
         </AreaChart>
-      </ResponsiveContainer>
+      </ResponsiveContainer>}
     </Card>
   );
 
   const renderHumidityWindChart = () => (
-    <Card size="small" title="💨 Humidity & Wind" className="chart-card">
-      <ResponsiveContainer width="100%" height={200}>
+    <Card size="small" title="Humidity and wind, next days" className="chart-card">
+      {weatherHistory.length === 0 ? <p style={{ color: "#55697f", margin: 0 }}>The weather service sent no daily forecast for this place.</p> : <ResponsiveContainer width="100%" height={200}>
         <ComposedChart data={weatherHistory}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" />
@@ -344,13 +339,13 @@ const WeatherPanel = ({ initialLocation = 'auto:ip', onWeatherUpdate }) => {
           <Bar yAxisId="left" dataKey="humidity" fill="#52c41a" barSize={20} name="Humidity" />
           <Line yAxisId="right" dataKey="wind" stroke="#faad14" strokeWidth={2} name="Wind (km/h)" />
         </ComposedChart>
-      </ResponsiveContainer>
+      </ResponsiveContainer>}
     </Card>
   );
 
   const renderHourlyForecast = () => (
     <Card size="small" title="⏰ Hourly Forecast" className="chart-card">
-      <ResponsiveContainer width="100%" height={200}>
+      {hourlyData.length === 0 ? <p style={{ color: "#55697f", margin: 0 }}>No hourly forecast for this place.</p> : <ResponsiveContainer width="100%" height={200}>
         <BarChart data={hourlyData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="time" />
@@ -361,7 +356,7 @@ const WeatherPanel = ({ initialLocation = 'auto:ip', onWeatherUpdate }) => {
           <Bar yAxisId="left" dataKey="temp" fill="#1890ff" barSize={15} name="Temperature" />
           <Bar yAxisId="right" dataKey="chance_rain" fill="#52c41a" barSize={15} name="Rain %" />
         </BarChart>
-      </ResponsiveContainer>
+      </ResponsiveContainer>}
     </Card>
   );
 
@@ -647,7 +642,7 @@ const WeatherPanel = ({ initialLocation = 'auto:ip', onWeatherUpdate }) => {
               <Col span={12}>
                 <Statistic 
                   title="Pressure"
-                  value={weather?.pressure_mb || 1013}
+                  value={weather?.pressure_mb ?? 'No data'}
                   suffix="mb"
                   valueStyle={{ fontSize: 20 }}
                 />
@@ -655,7 +650,7 @@ const WeatherPanel = ({ initialLocation = 'auto:ip', onWeatherUpdate }) => {
               <Col span={12}>
                 <Statistic 
                   title="Visibility"
-                  value={weather?.vis_km || 10}
+                  value={weather?.vis_km ?? 'No data'}
                   suffix="km"
                   valueStyle={{ fontSize: 20 }}
                 />

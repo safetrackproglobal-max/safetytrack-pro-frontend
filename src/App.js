@@ -10,7 +10,6 @@ import MainLayout from './Layouts/MainLayout';
 import DashboardLayout from './Layouts/DashboardLayout';
 import { NotificationProvider } from './context/NotificationContext';
 import NotificationBell from './components/NotificationBell';
-import ToastNotifications from './components/ToastNotifications';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { AdminProvider } from './context/AdminContext';
@@ -473,8 +472,6 @@ const AppContent = () => {
     <Router>
       <NotificationProvider>
       <ConsentGate>
-
-        <ToastNotifications />
 
         <UpgradeModal />
 

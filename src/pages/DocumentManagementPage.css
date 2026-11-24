@@ -20,361 +20,44 @@
 /* dark-mode block removed: app uses one light theme (see App.css) */
 
 /* ============================================================
-   ROOT LAYOUT — outer Layout wrapper
+   DOCUMENT MANAGEMENT: header, sections and content
    ============================================================ */
-.docmgmt-outer-layout {
-  display: flex !important;
-  flex-direction: column !important;
-  min-height: 100vh;
-  background: var(--dm-bg-secondary);
+.dm { min-height: 100vh; background: #f3f6fa; color: #17324d; --dm-border: #e3eaf2; }
+/* no backdrop-filter here: it would stop the dropdowns from blurring the page */
+.dm-head { position: sticky; top: 0; z-index: 900; background: #fff; border-bottom: 1px solid #e3eaf2; }
+.dm-line1 { display: flex; align-items: center; gap: 12px; height: 60px; padding: 0 22px; }
+.dm-title { flex: 1 1 auto; min-width: 0; }
+.dm-title h1 { margin: 0; font-size: 19px; font-weight: 700; line-height: 1.2; color: #10263d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dm-title span { display: block; font-size: 12.5px; color: #55697f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dm-actions { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+.dm-plan { margin-inline-end: 6px; padding: 3px 11px; border-radius: 20px; background: #e8f1fd; color: #14509f; font-size: 12.5px; font-weight: 600; text-transform: capitalize; white-space: nowrap; }
+.dm-icon { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 10px; background: transparent; color: #33506f; font-size: 17px; cursor: pointer; }
+.dm-icon:hover { background: #eef4fb; color: #1561c9; }
+.dm-icon:focus-visible, .dm-new:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
+.dm-new { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; margin: 0 6px; border: 0; border-radius: 10px; background: #1561c9; color: #fff; font: inherit; font-weight: 600; white-space: nowrap; cursor: pointer; }
+.dm-new:hover { background: #0f4fa8; }
+.dm-burger { display: none; }
+.dm-line2 { padding: 0 16px 6px; }
+.dm-body { padding: 20px 22px 40px; max-width: 1760px; margin: 0 auto; }
+.dm-panel { min-width: 0; background: #fff; border: 1px solid #e3eaf2; border-radius: 14px; padding: 20px; overflow-x: auto; min-height: 60vh; }
+.dm-stats { display: grid; grid-template-columns: repeat(6, 1fr); margin: 0 0 16px; background: #fff; border: 1px solid #e3eaf2; border-radius: 14px; }
+.dm-stats > div { padding: 14px 18px; border-inline-start: 1px solid #edf2f7; }
+.dm-stats > div:first-child { border: 0; }
+.dm-stats dt { font-size: 13px; color: #55697f; font-weight: 500; }
+.dm-stats dd { margin: 2px 0 0; font-size: 24px; font-weight: 700; color: #10263d; font-variant-numeric: tabular-nums; }
+@media (max-width: 1180px) { .dm-line2 .hn-top { padding: 0 8px; font-size: 13.5px; } .dm-line2 .hn-top > .anticon:first-child { display: none; } }
+@media (max-width: 991px) {
+  .dm-burger { display: inline-flex; }
+  .dm-back, .dm-line2, .dm-plan { display: none; }
+  .dm-line1 { padding: 0 10px; gap: 6px; }
+  .dm-body { padding: 12px 10px 32px; }
+  .dm-panel { padding: 12px; border-radius: 12px; }
+  .dm-stats { grid-template-columns: repeat(3, 1fr); }
+  .dm-stats > div { padding: 10px 12px; }
+  .dm-stats > div:nth-child(4) { border: 0; }
 }
-
-/* ============================================================
-   HEADER — fixed top bar
-   ============================================================ */
-.docmgmt-header {
-  position: fixed !important;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  height: 64px;
-  padding: 0 24px;
-  background: var(--dm-bg-primary) !important;
-  border-bottom: 1px solid var(--dm-border);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-  display: flex !important;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.docmgmt-header h4.ant-typography,
-.docmgmt-header h4 {
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  max-width: 400px;
-  color: var(--dm-text-primary);
-  margin: 0;
-}
-
-.docmgmt-header .ant-badge,
-.docmgmt-header .ant-tag {
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-
-.docmgmt-header .ant-tag { margin: 0; }
-
-.docmgmt-header .ant-divider-vertical {
-  margin: 0 4px;
-  flex-shrink: 0;
-  border-color: var(--dm-border);
-}
-
-/* ============================================================
-   INNER LAYOUT — flex row containing Sider + Content
-   Single canonical definition. No duplicates.
-   ============================================================ */
-.docmgmt-inner-layout {
-  display: flex !important;
-  flex-direction: row !important;
-  flex-wrap: nowrap !important;
-  min-width: 0;
-  margin-top: 64px;                                /* clears fixed header */
-  min-height: calc(100vh - 64px);
-  width: 100%;
-  flex: 1 1 auto;
-}
-
-/* ============================================================
-   SIDEBAR — fixed width, never shrinks
-   Single canonical definition.
-   ============================================================ */
-.docmgmt-sider {
-  flex: 0 0 280px !important;
-  width: 280px !important;
-  min-width: 280px !important;
-  max-width: 280px !important;
-  background: var(--dm-bg-primary) !important;
-  border-right: 1px solid var(--dm-border);
-  height: calc(100vh - 64px) !important;
-  overflow-y: auto;
-  overflow-x: hidden;
-  position: relative;
-  z-index: 1;
-}
-
-.docmgmt-sider.ant-layout-sider-collapsed {
-  flex: 0 0 64px !important;
-  width: 64px !important;
-  min-width: 64px !important;
-  max-width: 64px !important;
-}
-
-.docmgmt-sider::-webkit-scrollbar { width: 6px; }
-.docmgmt-sider::-webkit-scrollbar-thumb {
-  background: #d9d9d9;
-  border-radius: 3px;
-}
-.docmgmt-sider::-webkit-scrollbar-thumb:hover { background: #bfbfbf; }
-
-/* ============================================================
-   CONTENT — grows to fill remaining space, shrinks when needed
-   Single canonical definition.
-   ============================================================ */
-.docmgmt-content {
-  flex: 1 1 auto !important;
-  min-width: 0 !important;
-  max-width: 100%;
-  padding: 24px !important;
-  overflow: auto;
-  height: calc(100vh - 64px);
-  background: var(--dm-bg-secondary) !important;
-  scroll-behavior: smooth;
-}
-
-.docmgmt-panel {
-  background: var(--dm-bg-primary);
-  padding: 24px;
-  border-radius: 8px;
-  min-height: calc(100vh - 128px);
-  min-width: 0;
-  overflow-x: hidden;
-}
-
-/* ============================================================
-   SIDEBAR BRAND HEADER
-   ============================================================ */
-.sidebar-brand {
-  padding: 18px 20px;
-  border-bottom: 1px solid var(--dm-border);
-  background: linear-gradient(135deg, #1890ff 0%, #36cfc9 100%);
-  color: white;
-}
-
-.sidebar-brand .ant-typography {
-  font-size: 14px !important;
-  font-weight: 700 !important;
-  letter-spacing: 1px;
-  color: white !important;
-}
-
-/* ============================================================
-   SIDEBAR MENU
-   ============================================================ */
-.docmgmt-menu {
-  border: none !important;
-  padding: 12px 0 80px 0;
-  background: transparent;
-}
-
-.docmgmt-menu .ant-menu-submenu-title {
-  border-radius: 8px !important;
-  margin: 6px 10px !important;
-  height: 46px !important;
-  line-height: 46px !important;
-  font-weight: 700 !important;
-  font-size: 15px !important;
-  color: var(--dm-text-primary) !important;
-  transition: all 0.2s ease;
-  padding-left: 14px !important;
-  padding-right: 12px !important;
-}
-
-.docmgmt-menu .ant-menu-submenu-title:hover {
-  background: var(--dm-bg-hover) !important;
-  color: var(--dm-primary) !important;
-}
-
-.docmgmt-menu .ant-menu-submenu-open > .ant-menu-submenu-title {
-  background: var(--dm-bg-selected) !important;
-  color: var(--dm-primary) !important;
-}
-
-.docmgmt-menu .ant-menu-submenu-selected > .ant-menu-submenu-title {
-  color: var(--dm-primary) !important;
-  font-weight: 800 !important;
-}
-
-.docmgmt-menu .group-label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-}
-
-.docmgmt-menu .group-emoji {
-  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji",
-               "Android Emoji", "EmojiSymbols", sans-serif;
-  font-size: 18px !important;
-  line-height: 1;
-  width: 22px;
-  height: 22px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.docmgmt-menu .group-text {
-  flex: 1;
-  font-size: 15px !important;
-  font-weight: 700 !important;
-  color: inherit;
-  letter-spacing: 0.2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.docmgmt-menu .group-badge { margin-left: auto; flex-shrink: 0; }
-
-.docmgmt-menu .group-badge .ant-badge-count {
-  box-shadow: none !important;
-  font-size: 11px !important;
-  height: 20px !important;
-  line-height: 20px !important;
-  min-width: 24px !important;
-  padding: 0 8px !important;
-  border-radius: 10px;
-  font-weight: 700 !important;
-}
-
-.docmgmt-menu .ant-menu-item {
-  border-radius: 6px !important;
-  margin: 3px 10px 3px 32px !important;
-  height: 42px !important;
-  line-height: 42px !important;
-  font-size: 14px !important;
-  color: var(--dm-text-secondary) !important;
-  padding-left: 14px !important;
-  transition: all 0.2s ease;
-}
-
-.docmgmt-menu .ant-menu-item:hover {
-  background: var(--dm-bg-hover) !important;
-  color: var(--dm-primary) !important;
-}
-
-.docmgmt-menu .ant-menu-item-selected {
-  background: var(--dm-bg-selected) !important;
-  color: var(--dm-primary) !important;
-  font-weight: 600 !important;
-  border-right: 3px solid var(--dm-primary);
-  position: relative;
-}
-
-.docmgmt-menu.ant-menu-light .ant-menu-item-selected::before {
-  content: '';
-  position: absolute;
-  left: -10px;
-  top: 8px;
-  bottom: 8px;
-  width: 3px;
-  background: var(--dm-primary);
-  border-radius: 0 3px 3px 0;
-}
-
-.docmgmt-menu .ant-menu-item .anticon {
-  font-size: 16px !important;
-  margin-right: 12px;
-  vertical-align: middle;
-}
-
-.docmgmt-menu .ant-menu-submenu-arrow {
-  font-size: 12px;
-  color: var(--dm-text-tertiary);
-}
-
-.ant-layout-sider-collapsed .docmgmt-menu .ant-menu-submenu-title,
-.ant-layout-sider-collapsed .docmgmt-menu .ant-menu-item {
-  margin: 4px 8px !important;
-  padding-left: 12px !important;
-  padding-right: 12px !important;
-}
-
-.ant-layout-sider-collapsed .docmgmt-menu .group-emoji { margin: 0 auto; }
-
-/* ============================================================
-   SIDEBAR FOOTER — sticky inside the sider
-   ============================================================ */
-.sidebar-footer {
-  position: sticky;
-  bottom: 0;
-  width: 100%;
-  padding: 12px;
-  border-top: 1px solid var(--dm-border);
-  background: var(--dm-bg-primary);
-  z-index: 10;
-}
-
-.sidebar-footer .ant-btn {
-  height: 40px;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-/* ============================================================
-   BREADCRUMB
-   ============================================================ */
-.docmgmt-breadcrumb,
-.ant-breadcrumb {
-  font-size: 13px;
-  padding: 8px 0;
-  color: var(--dm-text-tertiary);
-}
-
-.ant-breadcrumb a,
-.ant-breadcrumb span[role="link"] {
-  color: var(--dm-text-tertiary);
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-.ant-breadcrumb a:hover,
-.ant-breadcrumb span[role="link"]:hover {
-  color: var(--dm-primary);
-}
-
-/* ============================================================
-   STAT CARDS
-   ============================================================ */
-.stat-card {
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  border: 1px solid var(--dm-border);
-  background: var(--dm-bg-primary);
-  height: 100%;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border-color: var(--dm-primary);
-}
-
-.stat-card .ant-statistic-title {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--dm-text-tertiary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.stat-card .ant-statistic-content {
-  font-size: 20px !important;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+@media (max-width: 520px) { .dm-new span:not(.anticon) { display: none; } .dm-new { padding: 0 12px; margin: 0 2px; } .dm-title span { display: none; } }
+@media print { .dm-head { display: none; } .dm-panel { border: 0; padding: 0; } }
 
 /* ============================================================
    EDITOR TOOLBAR — force single row (safety net)
@@ -385,87 +68,7 @@
   flex-wrap: nowrap !important;
 }
 
-/* ============================================================
-   DARK MODE OVERRIDES
-   ============================================================ */
-/* dark-mode block removed: app uses one light theme (see App.css) */
-
-/* ============================================================
-   RESPONSIVE — Tablet
-   ============================================================ */
-@media (max-width: 1200px) {
-  .docmgmt-menu .ant-menu-submenu-title {
-    font-size: 14px !important;
-    height: 44px !important;
-    line-height: 44px !important;
-  }
-  .docmgmt-menu .group-text { font-size: 14px !important; }
-  .docmgmt-menu .group-emoji { font-size: 16px !important; }
-  .docmgmt-menu .ant-menu-item {
-    font-size: 13px !important;
-    height: 40px !important;
-    line-height: 40px !important;
-  }
-  .docmgmt-header h4 { max-width: 300px; }
-}
-
-/* ============================================================
-   RESPONSIVE — Mobile (sidebar becomes an overlay drawer)
-   ============================================================ */
-@media (max-width: 768px) {
-  /* Sidebar becomes an overlay on mobile — the ONLY place where
-     position: fixed is allowed. */
-  .docmgmt-sider {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    height: 100vh !important;
-    z-index: 1000;
-    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
-    width: 260px !important;
-    min-width: 260px !important;
-    max-width: 260px !important;
-    flex: 0 0 260px !important;
-  }
-  .docmgmt-sider.ant-layout-sider-collapsed {
-    width: 0 !important;
-    min-width: 0 !important;
-    max-width: 0 !important;
-    flex: 0 0 0 !important;
-    overflow: hidden;
-  }
-  .docmgmt-content {
-    padding: 12px !important;
-  }
-  .docmgmt-panel {
-    padding: 12px;
-  }
-  .docmgmt-header { padding: 0 12px !important; gap: 8px; }
-  .docmgmt-header h4 { display: none; }
-  .docmgmt-header .ant-tag { display: none; }
-  .ant-breadcrumb li:not(:first-child):not(:last-child) { display: none; }
-  .docmgmt-menu .ant-menu-submenu-title { font-size: 14px !important; }
-  .docmgmt-menu .ant-menu-item { font-size: 13px !important; }
-}
-
-/* ============================================================
-   PRINT
-   ============================================================ */
-@media print {
-  .docmgmt-header,
-  .docmgmt-sider,
-  .docmgmt-breadcrumb,
-  .sidebar-footer {
-    display: none !important;
-  }
-  .docmgmt-content {
-    padding: 0 !important;
-    height: auto !important;
-    margin-top: 0 !important;
-  }
-  .docmgmt-panel {
-    box-shadow: none;
-    padding: 0;
-    min-height: auto;
-  }
-}
+/* panels already draw their own cards: do not frame them twice */
+.dm-panel:has(> .document-control), .dm-panel:has(> .document-dashboard) { background: transparent; border: 0; padding: 0; }
+.dm-panel .document-control { background: transparent; padding: 0; }
+.dm-panel .ant-space-horizontal { flex-wrap: wrap; row-gap: 8px; }

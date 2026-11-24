@@ -25,7 +25,8 @@ import {
   CheckCircleOutlined, CloseCircleOutlined, InfoCircleOutlined,
   DragOutlined, DatabaseOutlined, ApiOutlined,
   DeploymentUnitOutlined, ClusterOutlined, NodeIndexOutlined,
-  ApartmentOutlined, AppstoreAddOutlined, BuildOutlined
+  ApartmentOutlined, AppstoreAddOutlined, BuildOutlined,
+  CloseOutlined
 } from '@ant-design/icons';
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, AreaChart, Area,

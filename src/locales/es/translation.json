@@ -1,5 +1,9 @@
 {
   "navigation": {
+    "products": "Productos",
+    "industries": "Sectores",
+    "freeTools": "Gratis",
+    "company": "Empresa",
     "reportConcern": "Reportar un riesgo",
     "freeDocuments": "Documentos gratis",
     "trust": "Confianza",

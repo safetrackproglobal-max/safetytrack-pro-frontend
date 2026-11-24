@@ -354,10 +354,9 @@ const EnvironmentalIntelligencePanel = ({ data: initialData, onRefresh, loading:
         <div className="intelligence-header-status">
           <Space>
             <Tag color="blue" icon={<ThunderboltOutlined />}>
-              AI Powered
+              From your records
             </Tag>
-            <Tag color="green">Real-time</Tag>
-            <Switch
+                        <Switch
               checked={autoRefresh}
               onChange={setAutoRefresh}
               checkedChildren="Auto"
@@ -382,8 +381,8 @@ const EnvironmentalIntelligencePanel = ({ data: initialData, onRefresh, loading:
           <Card size="small" className="intel-stat-card intel-stat-card-green">
             <Statistic
               title="Environmental Health"
-              value={data.environmental_health_score ?? 0}
-              suffix="/100"
+              value={data.environmental_health_score ?? 'No data'}
+              suffix={data.environmental_health_score == null ? '' : '/100'}
               valueStyle={{ color: '#52c41a' }}
             />
             <Progress
@@ -398,8 +397,8 @@ const EnvironmentalIntelligencePanel = ({ data: initialData, onRefresh, loading:
           <Card size="small" className="intel-stat-card intel-stat-card-gold">
             <Statistic
               title="Carbon Footprint"
-              value={data.carbon_footprint ?? 0}
-              suffix="tons CO₂"
+              value={data.carbon_footprint ?? 'No data'}
+              suffix={data.carbon_footprint == null ? '' : 'tons CO₂'}
               valueStyle={{ color: '#faad14' }}
             />
           </Card>
@@ -408,8 +407,8 @@ const EnvironmentalIntelligencePanel = ({ data: initialData, onRefresh, loading:
           <Card size="small" className="intel-stat-card intel-stat-card-blue">
             <Statistic
               title="Sustainability Index"
-              value={data.sustainability_index ?? 0}
-              suffix="/100"
+              value={data.sustainability_index ?? 'No data'}
+              suffix={data.sustainability_index == null ? '' : '/100'}
               valueStyle={{ color: '#1890ff' }}
             />
             <Progress
@@ -440,18 +439,7 @@ const EnvironmentalIntelligencePanel = ({ data: initialData, onRefresh, loading:
             description={
               <div>
                 <div>{alert.suggested_action}</div>
-                <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <Tag color={alert.severity === 'high' ? 'red' : alert.severity === 'medium' ? 'orange' : 'blue'}>
-                    AI Confidence: {alert.confidence}%
-                  </Tag>
-                  <Progress
-                    percent={alert.confidence}
-                    size="small"
-                    strokeColor={alert.severity === 'high' ? '#f5222d' : alert.severity === 'medium' ? '#faad14' : '#1890ff'}
-                    style={{ width: 100 }}
-                    showInfo={false}
-                  />
-                </div>
+                {alert.location && <div style={{ marginTop: 4 }}>{alert.location}</div>}
               </div>
             }
             type={alert.severity === 'high' ? 'error' : alert.severity === 'medium' ? 'warning' : 'info'}
@@ -461,8 +449,8 @@ const EnvironmentalIntelligencePanel = ({ data: initialData, onRefresh, loading:
         ))
       ) : (
         <Alert
-          message="No predictive alerts"
-          description="The AI model has no alerts to report at this time."
+          message="No open alerts"
+          description="Your records contain no open alerts."
           type="success"
           showIcon
           style={{ marginBottom: 16, borderRadius: 12 }}
@@ -609,7 +597,7 @@ const EnvironmentalIntelligencePanel = ({ data: initialData, onRefresh, loading:
       <Card
         title="AI Predictions Timeline"
         style={{ marginTop: 16 }}
-        extra={<Tag color="purple">AI Powered</Tag>}
+        extra={<Tag color="purple">From your records</Tag>}
       >
         {data.predictive_alerts?.length > 0 ? (
           <Timeline className="intel-timeline">

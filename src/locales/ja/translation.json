@@ -1,5 +1,9 @@
 {
   "navigation": {
+    "products": "製品",
+    "industries": "業種",
+    "freeTools": "無料ツール",
+    "company": "会社",
     "reportConcern": "懸念を報告",
     "freeDocuments": "無料文書",
     "trust": "信頼",

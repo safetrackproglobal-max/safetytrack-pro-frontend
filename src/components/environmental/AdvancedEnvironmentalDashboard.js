@@ -80,7 +80,7 @@ const VALIDATION = {
   ANOMALY_SEVERITIES: ['low', 'medium', 'high', 'critical']
 };
 
-const AdvancedEnvironmentalDashboard = () => {
+const AdvancedEnvironmentalDashboard = ({ section }) => {
   const [activeTab, setActiveTab] = useState('intelligence');
   
   // State for all data types
@@ -1132,7 +1132,7 @@ const AdvancedEnvironmentalDashboard = () => {
         />
       )}
 
-      <Card 
+      {section ? (tabItems.find((t) => t.key === section)?.children || null) : <Card 
         title={
           <span>
             <DashboardOutlined style={{ marginRight: 8 }} />
@@ -1188,7 +1188,7 @@ const AdvancedEnvironmentalDashboard = () => {
           size="large"
           items={tabItems}
         />
-      </Card>
+      </Card>}
 
       {/* Add Thermal Data Modal */}
       <AddThermalDataModal

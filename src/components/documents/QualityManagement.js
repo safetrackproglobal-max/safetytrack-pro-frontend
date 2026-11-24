@@ -599,7 +599,7 @@ const QualityManagement = ({
                   {Object.entries(distribution.by_type || {}).map(([name], index) => (
                     <Cell 
                       key={index} 
-                      fill={RECORD_TYPES[name]?.color || CHART_COLORS[index % CHART_COLORS.length]} 
+                      fill={RECORD_TYPES[name]?.color || ['#1561c9', '#1d7f5f', '#c2410c', '#7c3aed', '#0e7490', '#b45309'][index % 6]} 
                     />
                   ))}
                 </Pie>

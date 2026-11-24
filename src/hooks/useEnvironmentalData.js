@@ -32,11 +32,12 @@ const useEnvironmentalData = () => {
         environmentalService.getComplianceReports()
       ]);
 
-      setSensors(sensorsData);
-      setWaterSamples(waterSamplesData);
-      setEnvironmentalIncidents(incidentsData);
-      setSustainabilityGoals(goalsData);
-      setComplianceReports(reportsData);
+      const list = (x) => (Array.isArray(x) ? x : []);
+      setSensors(list(sensorsData));
+      setWaterSamples(list(waterSamplesData));
+      setEnvironmentalIncidents(list(incidentsData));
+      setSustainabilityGoals(list(goalsData));
+      setComplianceReports(list(reportsData));
 
     } catch (err) {
       console.error('Error loading environmental data:', err);
@@ -55,7 +56,7 @@ const useEnvironmentalData = () => {
       ]);
 
       setIntelligenceData(intelligence);
-      setSmartAlerts(alerts);
+      setSmartAlerts(Array.isArray(alerts) ? alerts : []);
     } catch (err) {
       console.error('Error loading advanced environmental data:', err);
       // Silently fail for advanced features as they're optional

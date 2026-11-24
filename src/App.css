@@ -146,6 +146,13 @@ h1, h2, h3, h4, h5 {
 .ant-space > .ant-space-item {
   min-width: 0;
 }
+/* ...but buttons and tags must not shrink into each other: the row wraps instead */
+@media (min-width: 600px) {
+  .ant-space-horizontal > .ant-space-item:has(> .ant-btn, > .ant-tag, > .ant-switch, > .ant-badge) { flex-shrink: 0; }
+}
+[class*="header"] .ant-space-horizontal, .ant-card-extra .ant-space-horizontal { flex-wrap: wrap; row-gap: 8px; }
+/* icon-only buttons keep their shape */
+.ant-btn-icon-only { flex-shrink: 0; }
 
 /* Headings inside page/section headers wrap instead of being cut */
 [class*="header"] h1,

@@ -423,7 +423,7 @@
 }
 
 /* Space */
-.ant-space-item {
+.profile-page .ant-space-vertical > .ant-space-item {
   width: 100%;
 }
 

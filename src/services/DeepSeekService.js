@@ -1,5 +1,5 @@
 // src/services/DeepSeekService.js
-import { apiPost, apiGet, isSuperAdmin, getUserPlan } from './api';
+import { apiPost, apiGet, isSuperAdmin, getUserPlan, API_ENDPOINTS } from './api';
 
 class DeepSeekService {
   constructor() {

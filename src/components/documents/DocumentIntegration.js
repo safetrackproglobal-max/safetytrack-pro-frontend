@@ -7,7 +7,8 @@ import {
   Form, message, Popconfirm, Drawer, Descriptions, Tabs, Timeline,
   Avatar, List, Badge, Tooltip, Progress, Switch, Empty, Spin,
   Alert, Divider, Collapse, Typography, Transfer, Tree, Cascader,
-  Radio, Checkbox, Upload, DatePicker
+  Radio, Checkbox, Upload, DatePicker,
+  Statistic
 } from 'antd';
 import {
   LinkOutlined,

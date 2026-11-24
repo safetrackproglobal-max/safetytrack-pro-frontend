@@ -27,7 +27,8 @@ import {
   CloudDownloadOutlined, CloudUploadOutlined, StarOutlined,
   StarFilled, HeartOutlined, BookOutlined, TagsOutlined, SyncOutlined, FolderOutlined,
   ApartmentOutlined, DeploymentUnitOutlined, MergeCellsOutlined, SafetyCertificateOutlined, FileProtectOutlined,
-  SplitCellsOutlined, DragOutlined as DragIcon
+  SplitCellsOutlined, DragOutlined as DragIcon,
+  FileWordOutlined, QrcodeOutlined, MailOutlined
 } from '@ant-design/icons';
 import documentService from '../../services/documentService';
 import { useAuth } from '../../context/AuthContext';

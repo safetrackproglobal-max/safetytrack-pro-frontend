@@ -1,5 +1,9 @@
 {
   "navigation": {
+    "products": "المنتجات",
+    "industries": "القطاعات",
+    "freeTools": "أدوات مجانية",
+    "company": "الشركة",
     "reportConcern": "أبلغ عن مشكلة",
     "freeDocuments": "مستندات مجانية",
     "trust": "الثقة",

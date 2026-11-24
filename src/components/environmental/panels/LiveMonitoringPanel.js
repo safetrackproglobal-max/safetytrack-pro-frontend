@@ -1481,8 +1481,8 @@ const LiveMonitoringPanel = () => {
                               background: 'rgba(0,0,0,0.75)',
                               color: 'white',
                               fontSize: '10px',
-                              top: `${Math.random() * 80 + 10}%`,
-                              left: `${Math.random() * 80 + 10}%`,
+                              top: 8 + idx * 24,
+                              left: 8,
                               pointerEvents: 'none'
                             }}
                           >

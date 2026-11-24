@@ -5,6 +5,10 @@
     "description": "AI-powered safety management solutions for all industries"
   },
   "navigation": {
+    "products": "Products",
+    "industries": "Industries",
+    "freeTools": "Free tools",
+    "company": "Company",
     "reportConcern": "Report a Concern",
     "freeDocuments": "Free Documents",
     "trust": "Trust",

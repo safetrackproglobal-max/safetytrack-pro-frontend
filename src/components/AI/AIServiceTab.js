@@ -65,7 +65,9 @@ import {
   FilePdfOutlined,
   FileExcelOutlined,
   FileWordOutlined,
-  FileZipOutlined
+  FileZipOutlined,
+  CloseOutlined,
+  ReloadOutlined
 } from '@ant-design/icons';
 import environmentalAIService from '../../services/environmentalAIService';
 import EnvironmentalDocumentGenerator from '../environmental/EnvironmentalDocumentGenerator';
@@ -118,11 +120,11 @@ const AIServiceTab = () => {
 
   // Model status
   const [modelStatus, setModelStatus] = useState({
-    air_quality: { status: 'loaded', accuracy: 94.2 },
-    water_quality: { status: 'loaded', accuracy: 89.7 },
-    risk_assessment: { status: 'loaded', accuracy: 91.5 },
-    anomaly_detection: { status: 'loaded', accuracy: 96.8 },
-    camera_monitoring: { status: 'loaded', accuracy: 92.3 }
+    air_quality: { status: 'loaded' },
+    water_quality: { status: 'loaded' },
+    risk_assessment: { status: 'loaded' },
+    anomaly_detection: { status: 'loaded' },
+    camera_monitoring: { status: 'loaded' }
   });
 
 
@@ -602,9 +604,6 @@ const onGetViolationHistory = async () => {
 
         <Card title="Analysis Parameters" size="small" style={{ marginTop: 16 }}>
           <Descriptions size="small" column={1}>
-            <Descriptions.Item label="Model Accuracy">
-              <Progress percent={94.2} size="small" status="active" />
-            </Descriptions.Item>
             <Descriptions.Item label="Processing Time">
               <Tag color="blue">2-5 seconds</Tag>
             </Descriptions.Item>
@@ -878,9 +877,6 @@ const CameraMonitoringBox = () => {
             <Descriptions.Item label="Model Version">
               <Tag color="blue">v2.1.4</Tag>
             </Descriptions.Item>
-            <Descriptions.Item label="Accuracy">
-              <Progress percent={94.2} size="small" status="active" />
-            </Descriptions.Item>
             <Descriptions.Item label="Last Updated">
               <Tag color="green">2 hours ago</Tag>
             </Descriptions.Item>
@@ -1048,9 +1044,6 @@ const CameraMonitoringBox = () => {
 
         <Card title="Risk Assessment Parameters" size="small" style={{ marginTop: 16 }}>
           <Descriptions size="small" column={1}>
-            <Descriptions.Item label="Model Accuracy">
-              <Progress percent={91.5} size="small" status="active" />
-            </Descriptions.Item>
             <Descriptions.Item label="Assessment Framework">
               <Tag color="blue">ISO 31000</Tag>
             </Descriptions.Item>
@@ -1239,9 +1232,6 @@ const CameraMonitoringBox = () => {
 
         <Card title="Anomaly Detection Status" size="small" style={{ marginTop: 16 }}>
           <Descriptions size="small" column={1}>
-            <Descriptions.Item label="Model Accuracy">
-              <Progress percent={96.8} size="small" status="active" />
-            </Descriptions.Item>
             <Descriptions.Item label="False Positive Rate">
               <Tag color="green">2.3%</Tag>
             </Descriptions.Item>
@@ -1845,7 +1835,7 @@ const CameraMonitoringBox = () => {
                         renderItem={(item, index) => (
                           <List.Item>
                             <List.Item.Meta
-                              avatar={<RecycleOutlined style={{ color: '#52c41a' }} />}
+                              avatar={<ReloadOutlined style={{ color: '#52c41a' }} />}
                               description={item}
                             />
                           </List.Item>

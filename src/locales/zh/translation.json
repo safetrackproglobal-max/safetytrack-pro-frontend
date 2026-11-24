@@ -1,5 +1,9 @@
 {
   "navigation": {
+    "products": "产品",
+    "industries": "行业",
+    "freeTools": "免费工具",
+    "company": "公司",
     "reportConcern": "报告隐患",
     "freeDocuments": "免费文档",
     "trust": "信任",

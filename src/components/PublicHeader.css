@@ -362,3 +362,11 @@
   .header-actions, .auth-group { gap: 8px; }
 }
 @media (min-width: 992px) and (max-width: 1119px) { .public-header .logo-text { display: none; } }
+
+/* Dropdown navigation */
+.public-header { line-height: 1.4; }
+.public-header .header-container { overflow: visible; }
+.public-header .nav-menu.hn { gap: 0; margin: 0 12px; }
+.public-header .nav-menu .hn-bar { height: 100%; }
+@media (min-width: 992px) and (max-width: 1279px) { .public-header .hn-top { padding: 0 8px; font-size: 13.5px; } }
+@media (min-width: 992px) and (max-width: 1119px) { .public-header .hn-top { padding: 0 6px; } .public-header .hn-caret { display: none; } }

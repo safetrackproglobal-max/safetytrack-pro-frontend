@@ -6,7 +6,8 @@ import {
   Card, Row, Col, Button, Space, Input, Select, Modal, Form,
   Tag, Badge, Rate, Empty, Spin, Tooltip, message, Upload,
   Tabs, Table, Popconfirm, Switch, Divider, Typography,
-  Collapse, Checkbox, Slider, Progress, Drawer, Descriptions
+  Collapse, Checkbox, Slider, Progress, Drawer, Descriptions,
+  Statistic, Dropdown, Menu
 } from 'antd';
 import {
   FileTextOutlined,
@@ -27,7 +28,8 @@ import {
   ImportOutlined,
   TagsOutlined,
   InboxOutlined,
-  CloudUploadOutlined
+  CloudUploadOutlined,
+  MoreOutlined, ReloadOutlined
 } from '@ant-design/icons';
 import documentService from '../../services/documentService';
 import './TemplateLibrary.css';
@@ -42,6 +44,17 @@ const { Dragger } = Upload;
 // ============================================================
 // CONSTANTS
 // ============================================================
+
+const DOCUMENT_TYPES = {
+  general: { label: 'General document' }, report: { label: 'Report' }, policy: { label: 'Policy / procedure' }, record: { label: 'Record / log' },
+  inspection: { label: 'Inspection report' }, audit: { label: 'Audit document' }, permit: { label: 'Permit / licence' }, training: { label: 'Training material' }
+};
+const MODULES = [
+  { value: 'general', label: 'General' }, { value: 'construction', label: 'Construction' }, { value: 'hospital', label: 'Healthcare' },
+  { value: 'manufacturing', label: 'Manufacturing' }, { value: 'oil_gas', label: 'Oil and gas' }, { value: 'mining', label: 'Mining' },
+  { value: 'environmental', label: 'Environmental' }, { value: 'safety', label: 'Health and safety' }
+];
+const formatDate = (d) => { const x = d ? new Date(d) : null; return x && !Number.isNaN(x.getTime()) ? x.toLocaleDateString() : 'Not set'; };
 
 const TEMPLATE_CATEGORIES = [
   { value: 'report', label: 'Reports', icon: '📊' },

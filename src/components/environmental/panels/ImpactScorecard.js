@@ -149,18 +149,12 @@ const ImpactScorecard = ({ data: initialData, onRefresh, loading: parentLoading 
       impact: item.impact || item.risk_level || 'unknown'
     })).sort((a, b) => (b.score || 0) - (a.score || 0));
 
-    // Weekly Trend (simulated from data)
-    const weeks = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-    const weeklyTrend = weeks.map((week, index) => {
+    // Weekly trend: only when the records contain one
+    const withTrend = data.filter(item => Array.isArray(item.trend_data) && item.trend_data.length > 0);
+    const weeklyTrend = withTrend.length === 0 ? [] : ['Week 1', 'Week 2', 'Week 3', 'Week 4'].map((week, index) => {
       const weekData = { week };
-      data.forEach(item => {
-        const category = item.category || item.name || 'Unnamed';
-        const baseScore = item.score || item.impact_score || item.risk_score || 50;
-        // Use actual data variation if available, otherwise simulate slight variation
-        const variation = item.trend_data && item.trend_data[index] 
-          ? (item.trend_data[index] - baseScore) 
-          : (Math.random() - 0.5) * 10;
-        weekData[category] = Math.max(0, Math.min(100, baseScore + variation));
+      withTrend.forEach(item => {
+        if (item.trend_data[index] !== undefined) weekData[item.category || item.name || 'Unnamed'] = item.trend_data[index];
       });
       return weekData;
     });

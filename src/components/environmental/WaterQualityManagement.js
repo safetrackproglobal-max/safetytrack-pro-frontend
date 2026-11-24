@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import {
   Table, Button, Modal, Form, Input, Select, DatePicker,
   Space, Tag, Card, Row, Col, Statistic, Tooltip, message,
-  Popconfirm, InputNumber, Switch, Upload, Alert, Progress
+  Popconfirm, InputNumber, Switch, Upload, Alert, Progress,
+  Divider
 } from 'antd';
 import {
   PlusOutlined, EditOutlined, DeleteOutlined,
@@ -334,7 +335,7 @@ const WaterQualityManagement = () => {
             </Card>
           </Col>
           <Col xs={24} sm={6} style={{ textAlign: 'right', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-            <Space>
+            <Space wrap style={{ justifyContent: "flex-end" }}>
               <Button
                 icon={<ReloadOutlined />}
                 onClick={loadSamples}

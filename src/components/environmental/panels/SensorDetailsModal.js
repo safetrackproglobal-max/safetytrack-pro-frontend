@@ -1,6 +1,6 @@
 // src/components/environmental/modals/SensorDetailsModal.js
 import React from 'react';
-import { Modal, Descriptions, Tag, Timeline, Statistic, Row, Col, Card } from 'antd';
+import { Modal, Descriptions, Tag, Timeline, Statistic, Row, Col, Card, Space } from 'antd';
 import { 
   ExperimentOutlined, 
   EnvironmentOutlined,

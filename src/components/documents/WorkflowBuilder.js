@@ -28,7 +28,8 @@ import {
   DownloadOutlined, ExportOutlined, ImportOutlined, PrinterOutlined,
   HistoryOutlined, FieldTimeOutlined, ScheduleOutlined,
   ExclamationCircleOutlined, FireOutlined, FlagOutlined, AppstoreOutlined, 
-  StopOutlined, SendOutlined, NotificationOutlined, 
+  StopOutlined, SendOutlined, NotificationOutlined,
+  ZoomInOutlined, ZoomOutOutlined
 } from '@ant-design/icons';
 import documentService from '../../services/documentService';
 import './WorkflowBuilder.css';

@@ -49,8 +49,7 @@ healthcareApi.interceptors.request.use(
 // Response interceptor with healthcare-specific error handling
 healthcareApi.interceptors.response.use(
   (response) => {
-    console.log('🔍 Request Headers being sent:', config.headers);
-    console.log(`✅ Healthcare API Response: ${response.status} ${response.config.url}`, {
+        console.log(`✅ Healthcare API Response: ${response.status} ${response.config.url}`, {
       facility: response.config.headers['X-Healthcare-Facility'],
       timestamp: new Date().toISOString()
     });

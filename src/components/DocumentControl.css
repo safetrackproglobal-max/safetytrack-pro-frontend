@@ -968,3 +968,9 @@
    DARK MODE SUPPORT (Optional)
    ============================================================ */
 /* dark-mode block removed: app uses one light theme (see App.css) */
+/* Filter bar: items wrap instead of overlapping */
+.dc-filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.dc-search { flex: 2 1 240px; min-width: 0; }
+.dc-sel { flex: 1 1 132px; min-width: 0; max-width: 220px; }
+.dc-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-inline-start: auto; }
+@media (max-width: 600px) { .dc-sel { max-width: none; } .dc-actions { margin: 0; width: 100%; } }

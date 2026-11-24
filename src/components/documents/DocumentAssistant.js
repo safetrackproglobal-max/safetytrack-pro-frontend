@@ -29,7 +29,8 @@ import {
   MessageOutlined, CommentOutlined, HighlightOutlined,
   ExportOutlined, ImportOutlined, CloudUploadOutlined,
   SyncOutlined, LoadingOutlined, QuestionCircleOutlined,
-  BulbFilled, RiseOutlined, FallOutlined, NodeIndexOutlined
+  BulbFilled, RiseOutlined, FallOutlined, NodeIndexOutlined,
+  SettingOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../../context/AuthContext';
 import documentService from '../../services/documentService';

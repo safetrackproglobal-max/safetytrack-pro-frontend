@@ -2,76 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Card,
-  Row,
-  Col,
-  Statistic,
-  Table,
-  Tag,
-  Progress,
-  Alert,
-  Button,
-  Modal,
-  Form,
-  Input,
-  Select,
-  Space,
-  Tooltip,
-  Tabs,
-  Badge,
-  message,
-  List,
-  Avatar,
-  Divider,
-  Empty,
-  Timeline,
-  Spin,
-  Descriptions,
-  DatePicker,
-  Dropdown,
-  Menu,
-  Switch,
-  InputNumber
+  Row, Col, Table, Tag, Progress, Alert, Button, Modal, Form, Input, Select, Space, message, Spin, Descriptions, DatePicker, Dropdown, Switch, InputNumber, Drawer
 } from 'antd';
 import {
-  EnvironmentOutlined,
-  CloudOutlined,
-  WarningOutlined,
-  RiseOutlined,
-  TaobaoCircleFilled,
-  SafetyCertificateOutlined,
-  EyeOutlined,
-  PlusOutlined,
-  DownloadOutlined,
-  DashboardOutlined,
-  RobotOutlined,
-  ThunderboltOutlined,
-  ReloadOutlined,
-  CheckCircleOutlined,
-  ClockCircleOutlined,
-  ExclamationCircleOutlined,
-  TrophyOutlined,
-  LineChartOutlined,
-  GlobalOutlined,
-  DropboxOutlined,
-  FireOutlined,
-  FilePdfOutlined,
-  ShareAltOutlined,
-  FullscreenOutlined,
-  BellOutlined,
-  ArrowRightOutlined,
-  HomeOutlined
+  EnvironmentOutlined, CloudOutlined, WarningOutlined, RiseOutlined, SafetyCertificateOutlined, PlusOutlined, DownloadOutlined, DashboardOutlined, RobotOutlined, ThunderboltOutlined, ReloadOutlined, CheckCircleOutlined, ExclamationCircleOutlined, TrophyOutlined, LineChartOutlined, GlobalOutlined, FireOutlined, FilePdfOutlined, BellOutlined, MenuOutlined, ExperimentOutlined
 } from '@ant-design/icons';
-import {
-  LineChart, Line, BarChart, Bar, PieChart, Pie,
-  AreaChart, Area, XAxis, YAxis, CartesianGrid,
-  Tooltip as RechartsTooltip, Legend, ResponsiveContainer,
-  ComposedChart, Cell, RadarChart, Radar,
-  PolarGrid, PolarAngleAxis, PolarRadiusAxis,
-  Scatter
-} from 'recharts';
 import moment from 'moment';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 
 // Import services
 import environmentalService from '../../services/environmentalService';
@@ -79,20 +16,17 @@ import useEnvironmentalData from '../../hooks/useEnvironmentalData';
 import aiService from '../../services/aiService';
 import AIServiceTab from '../../components/AI/AIServiceTab';
 import AdvancedEnvironmentalDashboard from '../../components/environmental/AdvancedEnvironmentalDashboard';
+import EnvironmentalOverview from '../../components/environmental/EnvironmentalOverview';
+import HoverNav, { NavList } from '../../components/nav/HoverNav';
+import './environmentalShell.css';
 import EnvironmentalDocumentGenerator from '../../components/environmental/EnvironmentalDocumentGenerator';
 
 // Import the enhanced components
-import ImpactScorecard from '../../components/environmental/panels/ImpactScorecard';
-import SustainabilityTracker from '../../components/environmental/panels/SustainabilityTracker';
-import ComplianceAutomationPanel from '../../components/environmental/panels/ComplianceAutomationPanel';
-import EnvironmentalIntelligencePanel from '../../components/environmental/panels/EnvironmentalIntelligencePanel';
 
 const { Option } = Select;
 const { TextArea } = Input;
-const { TabPane } = Tabs;
 
 // Color palette for charts
-const COLORS = ['#1890ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2', '#eb2f96', '#fa541c'];
 
 // ✅ Valid sensor types for air quality
 const VALID_SENSOR_TYPES = [
@@ -130,8 +64,60 @@ const WATER_SAMPLE_TYPES = [
   'sea_water'
 ];
 
+// Sections shown as header dropdowns (side drawer on phones)
+const ENV_GROUPS = [
+  { key: 'overview', label: 'Overview', icon: <DashboardOutlined /> },
+  {
+    key: 'e-monitor', label: 'Monitor', icon: <GlobalOutlined />, items: [
+      { key: 'live-monitoring', label: 'Live map', hint: 'Sites, detections and cameras', icon: <GlobalOutlined /> },
+      { key: 'air-quality', label: 'Air quality', hint: 'Sensors and readings', icon: <CloudOutlined /> },
+      { key: 'water-quality', label: 'Water quality', hint: 'Samples and limits', icon: <ExperimentOutlined /> },
+      { key: 'weather', label: 'Weather', hint: 'Area weather, not site readings', icon: <ThunderboltOutlined /> },
+      { key: 'thermal', label: 'Heat and thermal', hint: 'Temperature and comfort', icon: <FireOutlined /> }
+    ]
+  },
+  {
+    key: 'e-respond', label: 'Respond', icon: <WarningOutlined />, items: [
+      { key: 'incidents', label: 'Incidents', hint: 'Report and follow up', icon: <WarningOutlined /> },
+      { key: 'alerts', label: 'Alerts', hint: 'Open alerts from your records', icon: <BellOutlined /> }
+    ]
+  },
+  {
+    key: 'e-perform', label: 'Performance', icon: <RiseOutlined />, items: [
+      { key: 'goals', label: 'Sustainability goals', hint: 'Targets and progress', icon: <TrophyOutlined /> },
+      { key: 'impact', label: 'Impact scorecard', hint: 'Scores by category', icon: <LineChartOutlined /> },
+      { key: 'compliance', label: 'Compliance', hint: 'Deadlines and obligations', icon: <SafetyCertificateOutlined /> }
+    ]
+  },
+  {
+    key: 'e-analyse', label: 'Analyse', icon: <LineChartOutlined />, items: [
+      { key: 'intelligence', label: 'Intelligence', hint: 'Indicators from your records', icon: <DashboardOutlined /> },
+      { key: 'analytics', label: 'Forecasts', hint: 'Estimates to check', icon: <LineChartOutlined /> },
+      { key: 'ai-services', label: 'AI services', hint: 'Analysis tools', icon: <RobotOutlined /> }
+    ]
+  },
+  {
+    key: 'e-report', label: 'Reports', icon: <FilePdfOutlined />, items: [
+      { key: 'report-iso14001', label: 'ISO 14001 report', hint: 'Performance and compliance', icon: <FilePdfOutlined /> },
+      { key: 'report-safety', label: 'Safety inspection', hint: 'Inspection report', icon: <FilePdfOutlined /> },
+      { key: 'report-eia', label: 'Impact assessment', hint: 'Environmental impact (EIA)', icon: <FilePdfOutlined /> }
+    ]
+  }
+];
+const ENV_KEYS = ENV_GROUPS.flatMap((g) => (g.items ? g.items.map((i) => i.key) : [g.key]));
+const ENV_OLD = { sustainability: 'goals', advanced: 'intelligence' };
+const REPORT_KIND = { 'report-iso14001': 'iso14001', 'report-safety': 'safety', 'report-eia': 'eia' };
+const envTab = (search) => {
+  const raw = new URLSearchParams(search).get('tab') || 'overview';
+  const t = ENV_OLD[raw] || raw;
+  return ENV_KEYS.includes(t) ? t : 'overview';
+};
+
 function EnvironmentalManagement() {
   const history = useHistory();
+  const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [dataVersion, setDataVersion] = useState(0);
   const {
     sensors,
     waterSamples,
@@ -149,91 +135,13 @@ function EnvironmentalManagement() {
   const [incidentModalVisible, setIncidentModalVisible] = useState(false);
   const [complianceModalVisible, setComplianceModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [activeTab, setActiveTab] = useState('overview');
+  const activeTab = envTab(location.search);
+  const setActiveTab = (key) => { setMenuOpen(false); if (key !== activeTab) history.push(key === 'overview' ? '/environmental-management' : `/environmental-management?tab=${key}`); };
   const [submitting, setSubmitting] = useState(false);
   const [goalDetailVisible, setGoalDetailVisible] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [timeRange, setTimeRange] = useState('7d');
-  const [chartData, setChartData] = useState({
-    aqiTrend: [],
-    complianceTrend: [],
-    incidentTrend: [],
-    goalProgress: [],
-    categoryDistribution: []
-  });
-
-  // Update clock
-  useEffect(() => {
-    const timer = setInterval(() => setLastUpdated(new Date()), 60000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Generate chart data
-  useEffect(() => {
-    if (sensors.length > 0 || waterSamples.length > 0) {
-      generateChartData();
-    }
-  }, [sensors, waterSamples, environmentalIncidents, sustainabilityGoals]);
-
-  const generateChartData = () => {
-    // AQI Trend (last 7 days - simulated)
-    const aqiTrend = [];
-    for (let i = 6; i >= 0; i--) {
-      const date = moment().subtract(i, 'days');
-      aqiTrend.push({
-        date: date.format('MMM DD'),
-        aqi: Math.round(50 + Math.random() * 80),
-        pm25: Math.round(10 + Math.random() * 40),
-        pm10: Math.round(20 + Math.random() * 60)
-      });
-    }
-
-    // Compliance Trend (last 7 days)
-    const complianceTrend = [];
-    for (let i = 6; i >= 0; i--) {
-      const date = moment().subtract(i, 'days');
-      complianceTrend.push({
-        date: date.format('MMM DD'),
-        compliance: Math.round(70 + Math.random() * 25),
-        samples: Math.round(5 + Math.random() * 10)
-      });
-    }
-
-    // Incident Trend (last 7 days)
-    const incidentTrend = [];
-    for (let i = 6; i >= 0; i--) {
-      incidentTrend.push({
-        date: moment().subtract(i, 'days').format('MMM DD'),
-        count: Math.floor(Math.random() * 4)
-      });
-    }
-
-    // Goal Progress
-    const goalProgress = sustainabilityGoals.slice(0, 5).map(goal => ({
-      name: goal.goal?.length > 20 ? goal.goal.substring(0, 20) + '...' : goal.goal,
-      progress: goal.progress_percentage || goal.progress || 0,
-      target: goal.target_value || 100
-    }));
-
-    // Category Distribution
-    const categoryDistribution = [
-      { name: 'Air Quality', value: sensors.filter(s => s.sensor_type === 'air_quality' || s.type === 'air_quality').length || 12 },
-      { name: 'Water Quality', value: waterSamples.length || 8 },
-      { name: 'Emissions', value: sensors.filter(s => s.sensor_type === 'emissions' || s.type === 'emissions').length || 5 },
-      { name: 'Waste', value: 3 },
-      { name: 'Biodiversity', value: 2 }
-    ];
-
-    setChartData({
-      aqiTrend,
-      complianceTrend,
-      incidentTrend,
-      goalProgress,
-      categoryDistribution
-    });
-  };
-
   // Show error alert if any
   useEffect(() => {
     if (error) {
@@ -275,6 +183,7 @@ function EnvironmentalManagement() {
         message.success('Sensor added successfully');
         setModalVisible(false);
         refetch();
+        setDataVersion((v) => v + 1);
       } else {
         message.error(response?.error || 'Failed to add sensor');
       }
@@ -330,6 +239,7 @@ function EnvironmentalManagement() {
         message.success('Water sample recorded successfully');
         setWaterSampleModalVisible(false);
         refetch();
+        setDataVersion((v) => v + 1);
       } else {
         message.error(response?.error || 'Failed to add water sample');
       }
@@ -379,6 +289,7 @@ function EnvironmentalManagement() {
         message.success('Environmental incident reported successfully');
         setIncidentModalVisible(false);
         refetch();
+        setDataVersion((v) => v + 1);
       } else {
         message.error(response?.error || 'Failed to report incident');
       }
@@ -418,10 +329,6 @@ function EnvironmentalManagement() {
       } catch (e) { /* keep the generic message */ }
       message.error('Export failed: ' + msg, 6);
     }
-  };
-
-  const navigateToDashboard = () => {
-    history.push('/environmental/dashboard');
   };
 
   const getStatusColor = (status) => {
@@ -476,255 +383,13 @@ function EnvironmentalManagement() {
   };
 
   // Table columns
-  const sensorColumns = [
-    {
-      title: 'Sensor',
-      dataIndex: 'name',
-      key: 'name',
-      render: (text, record) => (
-        <Space direction="vertical" size={0}>
-          <div style={{ fontWeight: 500 }}>{text || 'Unnamed'}</div>
-          <div style={{ fontSize: 12, color: '#666' }}>
-            <EnvironmentOutlined /> {record.location || 'N/A'}
-          </div>
-        </Space>
-      ),
-    },
-    {
-      title: 'Type',
-      dataIndex: 'sensor_type',
-      key: 'sensor_type',
-      render: (type) => (
-        <Tag color="blue">{type?.replace('_', ' ').toUpperCase() || 'UNKNOWN'}</Tag>
-      ),
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status) => (
-        <Tag color={getStatusColor(status)}>{status?.toUpperCase() || 'UNKNOWN'}</Tag>
-      ),
-    },
-    {
-      title: 'Device ID',
-      dataIndex: 'device_id',
-      key: 'device_id',
-      render: (id) => <Tag color="default">{id || 'N/A'}</Tag>
-    },
-    {
-      title: 'Compliance',
-      dataIndex: 'compliance_score',
-      key: 'compliance_score',
-      render: (score) => {
-        if (score === null || score === undefined) return '--';
-        const color = score >= 90 ? 'green' : score >= 70 ? 'orange' : 'red';
-        return <Tag color={color}>{score}%</Tag>;
-      }
-    },
-    {
-      title: 'Last Updated',
-      dataIndex: 'updated_at',
-      key: 'updated_at',
-      render: (date) => date ? moment(date).format('MMM DD, HH:mm') : '-',
-    }
-  ];
 
-  const waterSampleColumns = [
-    {
-      title: 'Location',
-      dataIndex: 'location',
-      key: 'location',
-      render: (text, record) => (
-        <Space direction="vertical" size={0}>
-          <div style={{ fontWeight: 500 }}>{text || 'N/A'}</div>
-          <div style={{ fontSize: 12, color: '#666' }}>{record.site_name || record.siteName || 'No site name'}</div>
-        </Space>
-      ),
-    },
-    {
-      title: 'Sample Type',
-      dataIndex: 'sample_type',
-      key: 'sample_type',
-      render: (type) => <Tag color="blue">{type || 'water'}</Tag>,
-    },
-    {
-      title: 'pH Level',
-      key: 'ph_level',
-      render: (_, record) => {
-        const ph = record.ph_level || record.ph;
-        if (ph === undefined || ph === null) return '--';
-        let color = 'green';
-        if (ph < 6.5 || ph > 8.5) color = 'red';
-        else if (ph < 6.8 || ph > 8.2) color = 'orange';
-        return <Tag color={color}>{ph} pH</Tag>;
-      },
-    },
-    {
-      title: 'Compliance',
-      key: 'compliant',
-      render: (_, record) => {
-        const compliant = record.compliant !== undefined ? record.compliant : true;
-        return compliant ? 
-          <Tag color="success" icon={<CheckCircleOutlined />}>Compliant</Tag> :
-          <Tag color="error" icon={<CloseCircleOutlined />}>Non-Compliant</Tag>;
-      },
-    },
-    {
-      title: 'Collected',
-      dataIndex: 'collection_time',
-      key: 'collection_time',
-      render: (date) => date ? moment(date).format('MMM DD, YYYY HH:mm') : '-',
-    }
-  ];
 
-  const incidentColumns = [
-    {
-      title: 'Incident',
-      dataIndex: 'title',
-      key: 'title',
-      render: (text) => <strong>{text || 'Untitled'}</strong>,
-    },
-    {
-      title: 'Type',
-      dataIndex: 'type',
-      key: 'type',
-      render: (type) => <Tag>{type || 'Other'}</Tag>,
-    },
-    {
-      title: 'Severity',
-      dataIndex: 'severity',
-      key: 'severity',
-      render: (severity) => (
-        <Tag color={getSeverityColor(severity)}>{severity?.toUpperCase() || 'UNKNOWN'}</Tag>
-      ),
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status) => (
-        <Tag color={getStatusColor(status)}>{status?.replace('_', ' ').toUpperCase() || 'UNKNOWN'}</Tag>
-      ),
-    },
-    {
-      title: 'Location',
-      dataIndex: 'location',
-      key: 'location',
-      render: (location) => location || '--'
-    },
-    {
-      title: 'Reported',
-      dataIndex: 'reported_date',
-      key: 'reported_date',
-      render: (date) => date ? moment(date).format('MMM DD, YYYY') : '-',
-    }
-  ];
 
   // Calculate overall sustainability progress
-  const overallSustainabilityProgress = sustainabilityGoals.length > 0
-    ? Math.round(sustainabilityGoals.reduce((sum, goal) => sum + (goal.progress_percentage || goal.progress || 0), 0) / sustainabilityGoals.length)
-    : 0;
-
-  const completedGoals = sustainabilityGoals.filter(g => (g.progress_percentage || g.progress || 0) >= 100).length;
-  const activeGoals = sustainabilityGoals.filter(g => (g.progress_percentage || g.progress || 0) < 100 && g.status === 'active').length;
-
-  // Chart render functions
-  const renderAQITrend = () => (
-    <Card size="small" title="🌡️ AQI Trend" className="chart-card">
-      <ResponsiveContainer width="100%" height={200}>
-        <AreaChart data={chartData.aqiTrend}>
-          <defs>
-            <linearGradient id="aqiGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#1890ff" stopOpacity={0.8}/>
-              <stop offset="95%" stopColor="#1890ff" stopOpacity={0.1}/>
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="date" />
-          <YAxis domain={[0, 200]} />
-          <RechartsTooltip />
-          <Legend />
-          <Area type="monotone" dataKey="aqi" stroke="#1890ff" fill="url(#aqiGradient)" />
-          <Line type="monotone" dataKey="pm25" stroke="#52c41a" strokeWidth={2} />
-          <Line type="monotone" dataKey="pm10" stroke="#faad14" strokeWidth={2} />
-        </AreaChart>
-      </ResponsiveContainer>
-    </Card>
-  );
-
-  const renderComplianceTrend = () => (
-    <Card size="small" title="📊 Compliance Trend" className="chart-card">
-      <ResponsiveContainer width="100%" height={200}>
-        <ComposedChart data={chartData.complianceTrend}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="date" />
-          <YAxis yAxisId="left" domain={[0, 100]} />
-          <YAxis yAxisId="right" orientation="right" domain={[0, 20]} />
-          <RechartsTooltip />
-          <Legend />
-          <Bar yAxisId="left" dataKey="compliance" fill="#52c41a" barSize={30} name="Compliance %" />
-          <Line yAxisId="right" type="monotone" dataKey="samples" stroke="#1890ff" strokeWidth={2} name="Samples" />
-        </ComposedChart>
-      </ResponsiveContainer>
-    </Card>
-  );
-
-  const renderIncidentTrend = () => (
-    <Card size="small" title="⚠️ Incident Trend" className="chart-card">
-      <ResponsiveContainer width="100%" height={200}>
-        <BarChart data={chartData.incidentTrend}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="date" />
-          <YAxis domain={[0, 5]} />
-          <RechartsTooltip />
-          <Bar dataKey="count" fill="#f5222d" barSize={30} radius={[4, 4, 0, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
-    </Card>
-  );
-
-  const renderGoalProgressChart = () => (
-    <Card size="small" title="🎯 Goal Progress" className="chart-card">
-      <ResponsiveContainer width="100%" height={200}>
-        <BarChart data={chartData.goalProgress} layout="vertical">
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis type="number" domain={[0, 100]} />
-          <YAxis type="category" dataKey="name" width={80} fontSize={10} />
-          <RechartsTooltip />
-          <Bar dataKey="progress" fill="#722ed1" radius={[0, 4, 4, 0]}>
-            {chartData.goalProgress.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={getGoalProgressColor(entry.progress)} />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
-    </Card>
-  );
-
-  const renderCategoryDistribution = () => (
-    <Card size="small" title="📊 Category Distribution" className="chart-card">
-      <ResponsiveContainer width="100%" height={200}>
-        <PieChart>
-          <Pie
-            data={chartData.categoryDistribution}
-            cx="50%"
-            cy="50%"
-            innerRadius={40}
-            outerRadius={70}
-            paddingAngle={5}
-            dataKey="value"
-          >
-            {chartData.categoryDistribution.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Pie>
-          <RechartsTooltip />
-          <Legend />
-        </PieChart>
-      </ResponsiveContainer>
-    </Card>
-  );
+  const refreshAll = () => { refetch(); setDataVersion((v) => v + 1); setLastUpdated(new Date()); };
+  const activeGroup = ENV_GROUPS.find((g) => g.key === activeTab || (g.items || []).some((i) => i.key === activeTab));
+  const activeItem = (activeGroup?.items || []).find((i) => i.key === activeTab);
 
   if (loading && sensors.length === 0 && waterSamples.length === 0) {
     return (
@@ -735,671 +400,56 @@ function EnvironmentalManagement() {
   }
 
   return (
-    <div className="environmental-management-page">
-      {/* Enhanced Header with Dashboard Link */}
-      <div className="module-header">
-        <div className="header-content">
-          <div className="header-title">
-            <div className="title-icon">
-              <EnvironmentOutlined />
-            </div>
-            <div>
-              <h1>Environmental Management System</h1>
-              <p>Real-time monitoring, compliance tracking, and sustainability goals</p>
-            </div>
+    <div className="ev">
+      <div className="ev-head">
+        <div className="ev-line">
+          <button type="button" className="ev-btn ev-burger" aria-label="Open environmental menu" onClick={() => setMenuOpen(true)}><MenuOutlined /></button>
+          <div className="ev-title">
+            <h1>{activeItem?.label && activeTab !== 'overview' ? activeItem.label : 'Environmental management'}</h1>
+            <span>{activeTab === 'overview' ? 'Figures come from your own records' : `Environmental management / ${activeGroup?.label || ''}`}</span>
           </div>
-          <div className="header-actions">
-            <Space>
-              <Tooltip title="Go to Dashboard">
-                <Button 
-                  icon={<HomeOutlined />} 
-                  onClick={navigateToDashboard}
-                  type="primary"
-                  ghost
-                >
-                  Dashboard
-                </Button>
-              </Tooltip>
-              <Tooltip title="Last updated">
-                <Badge color="green" text={lastUpdated.toLocaleTimeString()} />
-              </Tooltip>
-              <Button 
-                icon={<ReloadOutlined />} 
-                onClick={refetch}
-                loading={loading}
-                size="small"
-              >
-                Refresh
-              </Button>
-              <Button 
-                icon={<DownloadOutlined />}
-                onClick={handleExportData}
-                loading={loading}
-                size="small"
-              >
-                Export
-              </Button>
-              <Button 
-                type="primary" 
-                icon={<PlusOutlined />}
-                onClick={() => setModalVisible(true)}
-                loading={loading}
-                size="small"
-              >
-                Add Sensor
-              </Button>
-            </Space>
+          <div className="ev-tools">
+            <button type="button" className="ev-btn" onClick={refreshAll} disabled={loading} aria-label="Refresh" title={`Updated ${lastUpdated.toLocaleTimeString()}`}><ReloadOutlined spin={loading} /><span className="t">Refresh</span></button>
+            <button type="button" className="ev-btn" onClick={handleExportData} disabled={loading} aria-label="Export data"><DownloadOutlined /><span className="t">Export</span></button>
+            <Dropdown
+              trigger={['click', 'hover']}
+              placement="bottomRight"
+              menu={{
+                items: [
+                  { key: 's', icon: <CloudOutlined />, label: 'Add sensor', onClick: () => setModalVisible(true) },
+                  { key: 'w', icon: <ExperimentOutlined />, label: 'Add water sample', onClick: () => setWaterSampleModalVisible(true) },
+                  { key: 'i', icon: <WarningOutlined />, label: 'Report incident', onClick: () => setIncidentModalVisible(true) }
+                ]
+              }}
+            >
+              <button type="button" className="ev-btn main"><PlusOutlined /><span>Add</span></button>
+            </Dropdown>
           </div>
         </div>
+        <div className="ev-nav"><HoverNav groups={ENV_GROUPS} active={activeTab} onSelect={(g) => setActiveTab(g.key)} label="Environmental sections" /></div>
       </div>
+      <Drawer title="Environmental" placement="left" open={menuOpen} onClose={() => setMenuOpen(false)} width={300} rootClassName="hn-drawer">
+        <NavList groups={ENV_GROUPS} active={activeTab} onSelect={(g) => setActiveTab(g.key)} label="Environmental sections" />
+      </Drawer>
 
-      {/* Dashboard Quick Link Banner */}
-      <Alert
-        message={
-          <Space>
-            <DashboardOutlined />
-            <span>Access the full Environmental Dashboard for comprehensive analytics and visualizations</span>
-          </Space>
-        }
-        description={
-          <div style={{ marginTop: 4 }}>
-            <Button type="primary" size="small" onClick={navigateToDashboard}>
-              Go to Dashboard <ArrowRightOutlined />
-            </Button>
-          </div>
-        }
-        type="info"
-        showIcon
-        style={{ marginBottom: 16, borderRadius: 8 }}
-        closable
-      />
-
-      {/* Statistics Row - Enhanced */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12} md={6}>
-          <Card className="stat-card" hoverable>
-            <Statistic
-              title="Active Sensors"
-              value={statistics.activeSensors || 0}
-              prefix={<CloudOutlined />}
-              valueStyle={{ color: '#1890ff' }}
-              loading={loading}
-            />
-            <Progress 
-              percent={statistics.totalSensors > 0 ? (statistics.activeSensors / statistics.totalSensors) * 100 : 0} 
-              size="small" 
-              showInfo={false}
-              strokeColor="#1890ff"
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card className="stat-card" hoverable>
-            <Statistic
-              title="Water Compliance"
-              value={statistics.compliantSamples || 0}
-              suffix={`/ ${statistics.totalWaterSamples || 0}`}
-              prefix={<TaobaoCircleFilled />}
-              valueStyle={{ color: '#52c41a' }}
-              loading={loading}
-            />
-            <Progress 
-              percent={statistics.complianceRate || 0} 
-              size="small" 
-              showInfo={false}
-              strokeColor="#52c41a"
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card className="stat-card" hoverable>
-            <Statistic
-              title="Active Incidents"
-              value={statistics.activeIncidents || 0}
-              prefix={<WarningOutlined />}
-              valueStyle={{ color: '#fa541c' }}
-              loading={loading}
-            />
-            {statistics.activeIncidents > 0 && (
-              <Tag color="orange" style={{ marginTop: 8 }}>{statistics.activeIncidents} Need Attention</Tag>
-            )}
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card className="stat-card" hoverable>
-            <Statistic
-              title="Sustainability Progress"
-              value={overallSustainabilityProgress}
-              suffix="%"
-              prefix={<RiseOutlined />}
-              valueStyle={{ color: '#722ed1' }}
-              loading={loading}
-            />
-            <Progress 
-              percent={overallSustainabilityProgress} 
-              size="small" 
-              showInfo={false}
-              strokeColor="#722ed1"
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      {/* Charts Section - Overview */}
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <h3 style={{ margin: 0 }}>📈 Environmental Analytics</h3>
-          <Button 
-            type="link" 
-            icon={<LineChartOutlined />}
-            onClick={() => setActiveTab('advanced')}
-          >
-            View Advanced Analytics →
-          </Button>
-        </div>
-        <Row gutter={[16, 16]}>
-          <Col xs={24} lg={12}>
-            {renderAQITrend()}
-          </Col>
-          <Col xs={24} lg={12}>
-            {renderComplianceTrend()}
-          </Col>
-          <Col xs={24} lg={12}>
-            {renderIncidentTrend()}
-          </Col>
-          <Col xs={24} lg={12}>
-            {renderGoalProgressChart()}
-          </Col>
-        </Row>
-      </div>
-
-      {/* Main Tabs */}
-      <Tabs 
-        activeKey={activeTab} 
-        onChange={setActiveTab}
-        type="card"
-        className="management-tabs"
-      >
-        {/* Overview Tab - Enhanced with Charts */}
-        <TabPane 
-          tab={
-            <span>
-              <DashboardOutlined />
-              Overview
-            </span>
-          } 
-          key="overview"
-        >
-          {/* Quick Stats Cards */}
-          <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-            <Col xs={24} md={8}>
-              <Card style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <div style={{ fontSize: 14, opacity: 0.8 }}>Total Sensors</div>
-                    <div style={{ fontSize: 32, fontWeight: 'bold' }}>{statistics.totalSensors || 0}</div>
-                    <div style={{ fontSize: 12, marginTop: 8 }}>
-                      <CheckCircleOutlined /> {statistics.activeSensors || 0} Active
-                    </div>
-                  </div>
-                  <CloudOutlined style={{ fontSize: 48, opacity: 0.5 }} />
-                </div>
-              </Card>
-            </Col>
-            <Col xs={24} md={8}>
-              <Card style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', color: 'white' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <div style={{ fontSize: 14, opacity: 0.8 }}>Water Quality</div>
-                    <div style={{ fontSize: 32, fontWeight: 'bold' }}>{statistics.complianceRate || 0}%</div>
-                    <div style={{ fontSize: 12, marginTop: 8 }}>
-                      <CheckCircleOutlined /> {statistics.compliantSamples || 0}/{statistics.totalWaterSamples || 0} Compliant
-                    </div>
-                  </div>
-                  <DropboxOutlined style={{ fontSize: 48, opacity: 0.5 }} />
-                </div>
-              </Card>
-            </Col>
-            <Col xs={24} md={8}>
-              <Card style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <div style={{ fontSize: 14, opacity: 0.8 }}>Sustainability Goals</div>
-                    <div style={{ fontSize: 32, fontWeight: 'bold' }}>{sustainabilityGoals.length}</div>
-                    <div style={{ fontSize: 12, marginTop: 8 }}>
-                      <CheckCircleOutlined /> {completedGoals} Completed
-                    </div>
-                  </div>
-                  <TrophyOutlined style={{ fontSize: 48, opacity: 0.5 }} />
-                </div>
-              </Card>
-            </Col>
-          </Row>
-
-          <Row gutter={[24, 24]}>
-            {/* Air Quality Section */}
-            <Col xs={24} lg={12}>
-              <Card 
-                title="🌬️ Air Quality Monitoring"
-                loading={loading}
-                extra={
-                  <Button 
-                    type="link" 
-                    size="small"
-                    onClick={() => setActiveTab('air-quality')}
-                  >
-                    View All Sensors →
-                  </Button>
-                }
-              >
-                {sensors.length > 0 ? (
-                  <List
-                    dataSource={sensors.slice(0, 3)}
-                    renderItem={sensor => {
-                      const aqi = sensor.currentMetrics?.aqi;
-                      const aqiInfo = aqi ? getAQIStatus(aqi) : null;
-                      return (
-                        <List.Item>
-                          <List.Item.Meta
-                            avatar={<Avatar icon={<CloudOutlined />} style={{ backgroundColor: '#1890ff' }} />}
-                            title={<strong>{sensor.name || 'Unnamed Sensor'}</strong>}
-                            description={
-                              <div>
-                                <div>{sensor.location || 'N/A'}</div>
-                                {aqiInfo && (
-                                  <Tag color={aqiInfo.color} icon={aqiInfo.icon} style={{ marginTop: 4 }}>
-                                    {aqi} AQI - {aqiInfo.level}
-                                  </Tag>
-                                )}
-                              </div>
-                            }
-                          />
-                          <div>
-                            <Tag color={getStatusColor(sensor.status)}>{sensor.status?.toUpperCase() || 'UNKNOWN'}</Tag>
-                          </div>
-                        </List.Item>
-                      );
-                    }}
-                  />
-                ) : (
-                  <Empty description="No sensors configured" image={Empty.PRESENTED_IMAGE_SIMPLE} />
-                )}
-              </Card>
-            </Col>
-
-            {/* Water Quality Section */}
-            <Col xs={24} lg={12}>
-              <Card 
-                title="💧 Water Quality Samples"
-                loading={loading}
-                extra={
-                  <Button 
-                    type="link" 
-                    size="small"
-                    onClick={() => setActiveTab('water-quality')}
-                  >
-                    View All Samples →
-                  </Button>
-                }
-              >
-                {waterSamples.length > 0 ? (
-                  <List
-                    dataSource={waterSamples.slice(0, 3)}
-                    renderItem={sample => (
-                      <List.Item>
-                        <List.Item.Meta
-                          avatar={<Avatar icon={<TaobaoCircleFilled />} style={{ backgroundColor: '#52c41a' }} />}
-                          title={<strong>{sample.location || 'Unknown Location'}</strong>}
-                          description={
-                            <div>
-                              <div>{sample.site_name || sample.siteName || 'No site name'}</div>
-                              <div>pH: {sample.ph_level || sample.ph || '--'}</div>
-                            </div>
-                          }
-                        />
-                        <Tag color={sample.compliant ? 'green' : 'red'}>
-                          {sample.compliant ? 'COMPLIANT' : 'NON-COMPLIANT'}
-                        </Tag>
-                      </List.Item>
-                    )}
-                  />
-                ) : (
-                  <Empty description="No water samples recorded" image={Empty.PRESENTED_IMAGE_SIMPLE} />
-                )}
-              </Card>
-            </Col>
-
-            {/* Sustainability Goals Section */}
-            <Col xs={24} lg={12}>
-              <Card 
-                title="🎯 Sustainability Goals"
-                loading={loading}
-                extra={
-                  <Button 
-                    type="link" 
-                    size="small"
-                    onClick={() => setActiveTab('sustainability')}
-                  >
-                    View All Goals →
-                  </Button>
-                }
-              >
-                {sustainabilityGoals.length > 0 ? (
-                  <List
-                    dataSource={sustainabilityGoals.slice(0, 3)}
-                    renderItem={goal => {
-                      const progress = goal.progress_percentage || goal.progress || 0;
-                      return (
-                        <List.Item
-                          actions={[
-                            <Tooltip title="View Details">
-                              <Button 
-                                type="link" 
-                                size="small"
-                                onClick={() => handleViewGoalDetails(goal)}
-                              >
-                                Details
-                              </Button>
-                            </Tooltip>
-                          ]}
-                        >
-                          <List.Item.Meta
-                            avatar={<Avatar icon={<RiseOutlined />} style={{ backgroundColor: '#722ed1' }} />}
-                            title={<strong>{goal.goal || 'Untitled Goal'}</strong>}
-                            description={
-                              <div>
-                                <div>{goal.target || 'No target specified'}</div>
-                                <div style={{ marginTop: 8 }}>
-                                  <Progress 
-                                    percent={progress} 
-                                    size="small" 
-                                    strokeColor={getGoalProgressColor(progress)}
-                                  />
-                                </div>
-                                <div style={{ marginTop: 4, fontSize: 12, color: '#666' }}>
-                                  Current: {goal.current_value || 0} {goal.unit || '%'} | Target: {goal.target_value || 100} {goal.unit || '%'}
-                                </div>
-                              </div>
-                            }
-                          />
-                        </List.Item>
-                      );
-                    }}
-                  />
-                ) : (
-                  <Empty 
-                    description="No sustainability goals found" 
-                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  >
-                    <Button type="primary" size="small" onClick={() => setActiveTab('sustainability')}>
-                      Add Your First Goal
-                    </Button>
-                  </Empty>
-                )}
-              </Card>
-            </Col>
-
-            {/* Recent Incidents Section */}
-            <Col xs={24} lg={12}>
-              <Card 
-                title="⚠️ Recent Incidents"
-                loading={loading}
-                extra={
-                  <Button 
-                    type="link" 
-                    size="small"
-                    onClick={() => setActiveTab('incidents')}
-                  >
-                    View All Incidents →
-                  </Button>
-                }
-              >
-                {environmentalIncidents.length > 0 ? (
-                  <Timeline
-                    items={environmentalIncidents.slice(0, 3).map(incident => ({
-                      color: getSeverityColor(incident.severity),
-                      children: (
-                        <div>
-                          <strong>{incident.title || 'Untitled Incident'}</strong>
-                          <div style={{ fontSize: 12, color: '#666' }}>{incident.location || 'N/A'}</div>
-                          <div style={{ marginTop: 4 }}>
-                            <Tag color={getSeverityColor(incident.severity)}>{incident.severity?.toUpperCase() || 'UNKNOWN'}</Tag>
-                            <Tag color={getStatusColor(incident.status)}>{incident.status?.replace('_', ' ').toUpperCase() || 'UNKNOWN'}</Tag>
-                          </div>
-                          <div style={{ fontSize: 11, color: '#999', marginTop: 4 }}>
-                            {incident.reported_date ? moment(incident.reported_date).fromNow() : 'N/A'}
-                          </div>
-                        </div>
-                      )
-                    }))}
-                  />
-                ) : (
-                  <Empty description="No incidents reported" image={Empty.PRESENTED_IMAGE_SIMPLE} />
-                )}
-              </Card>
-            </Col>
-          </Row>
-        </TabPane>
-
-        {/* Air Quality Tab */}
-        <TabPane 
-          tab={
-            <span>
-              <CloudOutlined />
-              Air Quality
-              <Badge count={statistics.totalSensors || 0} style={{ marginLeft: 8 }} />
-            </span>
-          } 
-          key="air-quality"
-        >
-          <Card
-            title="🌬️ Air Quality Monitoring"
-            extra={
-              <Button 
-                type="primary" 
-                icon={<PlusOutlined />}
-                onClick={() => setModalVisible(true)}
-              >
-                Add Sensor
-              </Button>
-            }
-            loading={loading}
-          >
-            <Table
-              columns={sensorColumns}
-              dataSource={sensors}
-              rowKey="id"
-              pagination={{ pageSize: 10 }}
-            />
-          </Card>
-        </TabPane>
-
-        {/* Water Quality Tab */}
-        <TabPane 
-          tab={
-            <span>
-              <TaobaoCircleFilled />
-              Water Quality
-              <Badge count={statistics.totalWaterSamples || 0} style={{ marginLeft: 8 }} />
-            </span>
-          } 
-          key="water-quality"
-        >
-          <Card
-            title="💧 Water Quality Management"
-            extra={
-              <Button 
-                type="primary" 
-                icon={<PlusOutlined />}
-                onClick={() => setWaterSampleModalVisible(true)}
-              >
-                Add Water Sample
-              </Button>
-            }
-            loading={loading}
-          >
-            <Table
-              columns={waterSampleColumns}
-              dataSource={waterSamples}
-              rowKey="id"
-              pagination={{ pageSize: 10 }}
-            />
-          </Card>
-        </TabPane>
-
-        {/* Incidents Tab */}
-        <TabPane 
-          tab={
-            <span>
-              <WarningOutlined />
-              Incidents
-              <Badge count={statistics.activeIncidents || 0} style={{ marginLeft: 8 }} />
-            </span>
-          } 
-          key="incidents"
-        >
-          <Card
-            title="⚠️ Environmental Incidents"
-            extra={
-              <Button 
-                type="primary" 
-                icon={<PlusOutlined />}
-                onClick={() => setIncidentModalVisible(true)}
-              >
-                Report Incident
-              </Button>
-            }
-            loading={loading}
-          >
-            <Table
-              columns={incidentColumns}
-              dataSource={environmentalIncidents}
-              rowKey="id"
-              pagination={{ pageSize: 10 }}
-            />
-          </Card>
-        </TabPane>
-
-        {/* Sustainability Tab */}
-        <TabPane 
-          tab={
-            <span>
-              <RiseOutlined />
-              Sustainability
-              <Badge count={sustainabilityGoals.length} style={{ marginLeft: 8 }} />
-            </span>
-          } 
-          key="sustainability"
-        >
-          <SustainabilityTracker />
-        </TabPane>
-
-        {/* Compliance Tab */}
-        <TabPane 
-          tab={
-            <span>
-              <SafetyCertificateOutlined />
-              Compliance
-              <Badge count="AUTO" style={{ marginLeft: 8, backgroundColor: '#1890ff' }} />
-            </span>
-          } 
-          key="compliance"
-        >
-          <ComplianceAutomationPanel />
-        </TabPane>
-
-        {/* Impact Tab */}
-        <TabPane 
-          tab={
-            <span>
-              <LineChartOutlined />
-              Impact
-            </span>
-          } 
-          key="impact"
-        >
-          <ImpactScorecard data={sustainabilityGoals} />
-        </TabPane>
-
-        {/* Intelligence Tab */}
-        <TabPane 
-          tab={
-            <span>
-              <GlobalOutlined />
-              Intelligence
-              <Badge count="AI" style={{ marginLeft: 8, backgroundColor: '#722ed1' }} />
-            </span>
-          } 
-          key="intelligence"
-        >
-          <EnvironmentalIntelligencePanel 
-            data={{
-              environmental_health_score: overallSustainabilityProgress,
-              carbon_footprint: 45,
-              sustainability_index: overallSustainabilityProgress,
-              predictive_alerts: environmentalIncidents.map(inc => ({
-                id: inc.id,
-                message: inc.title || 'Untitled Incident',
-                severity: inc.severity === 'critical' ? 'high' : inc.severity === 'high' ? 'medium' : 'low',
-                confidence: 85,
-                suggested_action: inc.description || 'Investigate incident'
-              })),
-              live_metrics: {
-                air_quality: statistics.activeSensors > 0 ? 75 : 0,
-                water_quality: statistics.complianceRate || 0,
-                biodiversity: 68,
-                energy_efficiency: 82,
-                emissions: 45,
-                sustainability: overallSustainabilityProgress
-              }
-            }}
-          />
-        </TabPane>
-
-        {/* AI Services Tab */}
-        <TabPane 
-          tab={
-            <span>
-              <RobotOutlined />
-              AI Services
-            </span>
-          } 
-          key="ai-services"
-        >
-          <AIServiceTab 
-            environmentalData={{
-              sensors,
-              waterSamples,
-              incidents: environmentalIncidents,
-              goals: sustainabilityGoals,
-              reports: complianceReports
-            }}
+      {activeTab === 'overview' && (
+        <EnvironmentalOverview sensors={sensors} waterSamples={waterSamples} incidents={environmentalIncidents} goals={sustainabilityGoals}
+          onGo={setActiveTab} onGoal={handleViewGoalDetails} />
+      )}
+      {activeTab === 'ai-services' && (
+        <div className="ev-section">
+          <AIServiceTab
+            environmentalData={{ sensors, waterSamples, incidents: environmentalIncidents, goals: sustainabilityGoals, reports: complianceReports }}
             aiServices={aiService}
           />
-        </TabPane>
-
-        {/* Advanced Dashboard Tab */}
-        <TabPane 
-          tab={
-            <span>
-              <ThunderboltOutlined />
-              Advanced
-              <Badge count="NEW" style={{ marginLeft: 8, backgroundColor: '#52c41a' }} />
-            </span>
-          } 
-          key="advanced"
-        >
-          <AdvancedEnvironmentalDashboard 
-            environmentalData={{
-              sensors,
-              waterSamples,
-              incidents: environmentalIncidents,
-              goals: sustainabilityGoals,
-              reports: complianceReports
-            }}
-          />
-        </TabPane>
-      </Tabs>
+        </div>
+      )}
+      {REPORT_KIND[activeTab] && (
+        <div className="ev-section"><EnvironmentalDocumentGenerator key={activeTab} kinds={[REPORT_KIND[activeTab]]} onGenerated={() => refetch()} /></div>
+      )}
+      {!['overview', 'ai-services'].includes(activeTab) && !REPORT_KIND[activeTab] && (
+        <div className="ev-section"><AdvancedEnvironmentalDashboard key={dataVersion} section={activeTab} /></div>
+      )}
 
       {/* Goal Details Modal */}
       <Modal

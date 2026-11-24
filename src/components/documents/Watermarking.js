@@ -8,7 +8,8 @@ import {
   message, Slider, Switch, ColorPicker, Radio, Checkbox, Tag,
   Divider, Typography, Alert, Spin, Tooltip, Badge, Progress,
   Drawer, Descriptions, Tabs, List, Empty, Upload, Popconfirm,
-  Segmented, InputNumber, Statistic, Result, Steps
+  Segmented, InputNumber, Statistic, Result, Steps,
+  Avatar
 } from 'antd';
 import {
   FileProtectOutlined, BgColorsOutlined, EyeOutlined,

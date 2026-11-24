@@ -186,23 +186,7 @@ const PredictiveAnalyticsPanel = () => {
   }, [analyticsType, extractForecastData]);
 
   const getFallbackData = useCallback(() => {
-    return {
-      forecast: Array.from({ length: 7 }, (_, i) => ({
-        date: new Date(Date.now() + i * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        aqi: 45 + Math.random() * 30,
-        confidence: 0.85 - (i * 0.03),
-        pm2_5: 10 + Math.random() * 20,
-        pm10: 20 + Math.random() * 30,
-        health_impact: i % 3 === 0 ? 'moderate' : 'good',
-        recommendations: ['Normal outdoor activities']
-      })),
-      trend: 'stable',
-      confidence: 85,
-      risk_level: 'low',
-      recommendations: ['Maintain current environmental controls'],
-      impact_areas: ['general'],
-      isEmpty: false
-    };
+    return { forecast: [], trend: 'unknown', confidence: 0, risk_level: 'unknown', recommendations: [], impact_areas: [], isEmpty: true, message: 'No predictive analytics data available' };
   }, []);
 
   // Load data when analyticsType changes
@@ -541,12 +525,12 @@ const PredictiveAnalyticsPanel = () => {
                 <Card size="small">
                   <Statistic
                     title="Confidence"
-                    value={analyticsData.confidence || 85}
+                    value={analyticsData.confidence || 0}
                     suffix="%"
                     valueStyle={{ color: '#52c41a' }}
                   />
                   <Progress
-                    percent={analyticsData.confidence || 85}
+                    percent={analyticsData.confidence || 0}
                     size="small"
                     strokeColor="#52c41a"
                     showInfo={false}
@@ -616,8 +600,8 @@ const PredictiveAnalyticsPanel = () => {
                 <ul>
                   <li><strong>Trend:</strong> {analyticsData.trend || 'stable'} environmental conditions for the next 7 days</li>
                   <li><strong>Risk Level:</strong> {analyticsData.risk_level || 'Low'} risk of environmental incidents</li>
-                  <li><strong>Confidence:</strong> {analyticsData.confidence || 85}% in predictions</li>
-                  <li><strong>Data Quality:</strong> High reliability with {forecastData.length} data points</li>
+                  <li><strong>Confidence:</strong> {analyticsData.confidence || 0}% in predictions</li>
+                  <li><strong>Data:</strong> {forecastData.length} data points. This is an estimate; check it before use.</li>
                 </ul>
               </div>
             }

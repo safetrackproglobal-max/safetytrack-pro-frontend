@@ -24,52 +24,29 @@ const weatherService = {
 
       const data = response.data;
       
-      // ✅ Transform backend response to WeatherPanel expected format
-      if (data && data.success) {
+      // The backend passes on the weather service's own answer. Nothing is filled in when a value is missing.
+      if (data && data.current && data.current.temp_c !== undefined) {
+        return { ...data, forecast: { forecastday: data.forecast?.forecastday || [] }, alerts: data.alerts || { alert: [] }, success: true };
+      }
+      if (data && data.success && data.temperature !== undefined) {
         return {
-          location: {
-            name: data.location_name || location || 'Unknown',
-            region: data.location_region || '',
-            country: data.location_country || '',
-            localtime: data.localtime || new Date().toISOString()
-          },
+          location: { name: data.location_name || location, region: data.location_region || '', country: data.location_country || '', localtime: data.localtime },
           current: {
-            temp_c: data.temperature || 0,
-            feelslike_c: data.feels_like || data.temperature || 0,
-            humidity: data.humidity || 0,
-            wind_kph: data.wind_kph || 0,
-            pressure_mb: data.pressure || 1013,
-            vis_km: data.visibility || 10,
-            uv: data.uv_index || 0,
-            precip_mm: data.precipitation || 0,
-            cloud: data.clouds || 0,
-            is_day: data.is_day || 1,
-            condition: {
-              text: data.condition || 'Unknown',
-              code: 1000
-            },
-            air_quality: {
-              'us-epa-index': data.air_quality || 1,
-              pm2_5: data.air_quality_score || 50
-            },
-            last_updated: data.last_updated || new Date().toISOString()
+            temp_c: data.temperature, feelslike_c: data.feels_like, humidity: data.humidity, wind_kph: data.wind_kph, pressure_mb: data.pressure,
+            vis_km: data.visibility, uv: data.uv_index, precip_mm: data.precipitation, cloud: data.clouds, is_day: data.is_day,
+            condition: { text: data.condition || '', code: 1000 },
+            air_quality: data.air_quality !== undefined ? { 'us-epa-index': data.air_quality } : undefined,
+            last_updated: data.last_updated
           },
-          forecast: {
-            forecastday: generateForecastDays(data)
-          },
-          alerts: {
-            alert: []
-          },
+          forecast: { forecastday: (data.forecast?.forecastday || (Array.isArray(data.forecast) ? data.forecast : data.forecast_days) || []).map((d) => (d.day ? d : { date: d.date, day: { ...d, condition: typeof d.condition === 'string' ? { text: d.condition } : d.condition }, hour: d.hour || [] })) },
+          alerts: { alert: [] },
           success: true
         };
       }
-
-      // Fallback
-      return getFallbackWeather(location);
-      
+      throw new Error('Weather is not available for this place right now.');
     } catch (error) {
       console.error('Forecast API error:', error);
-      return getFallbackWeather(location);
+      throw error;
     }
   },
 
@@ -86,53 +63,11 @@ const weatherService = {
       });
 
       const data = response.data;
-      
-      if (data && data.success) {
-        const astro = data.data?.astronomy || {};
-        return {
-          astronomy: {
-            astro: {
-              sunrise: astro.sunrise || '06:00 AM',
-              sunset: astro.sunset || '06:00 PM',
-              moonrise: astro.moonrise || '12:00 PM',
-              moonset: astro.moonset || '12:00 AM',
-              moon_phase: astro.moon_phase || 'First Quarter',
-              moon_illumination: astro.moon_illumination || 50
-            }
-          },
-          success: true
-        };
-      }
-
-      return {
-        astronomy: {
-          astro: {
-            sunrise: '06:00 AM',
-            sunset: '06:00 PM',
-            moonrise: '12:00 PM',
-            moonset: '12:00 AM',
-            moon_phase: 'First Quarter',
-            moon_illumination: 50
-          }
-        },
-        success: true
-      };
-      
+      const astro = data?.astronomy?.astro || data?.data?.astronomy?.astro || data?.data?.astronomy;
+      return { astronomy: astro && astro.sunrise ? { astro } : null, success: Boolean(astro) };
     } catch (error) {
       console.error('Astronomy API error:', error);
-      return {
-        astronomy: {
-          astro: {
-            sunrise: '06:00 AM',
-            sunset: '06:00 PM',
-            moonrise: '12:00 PM',
-            moonset: '12:00 AM',
-            moon_phase: 'First Quarter',
-            moon_illumination: 50
-          }
-        },
-        success: true
-      };
+      return { astronomy: null, success: false };
     }
   },
 
@@ -149,21 +84,11 @@ const weatherService = {
         return response.data.results || [];
       }
       
-      // Fallback mock results
-      return [
-        { id: 1, name: query || 'New York', country: 'US', url: 'new-york' },
-        { id: 2, name: query || 'London', country: 'UK', url: 'london' },
-        { id: 3, name: query || 'Tokyo', country: 'Japan', url: 'tokyo' },
-        { id: 4, name: query || 'Paris', country: 'France', url: 'paris' },
-        { id: 5, name: query || 'Sydney', country: 'Australia', url: 'sydney' }
-      ];
+      return Array.isArray(response.data) ? response.data : [];
       
     } catch (error) {
       console.error('Location search error:', error);
-      return [
-        { id: 1, name: query || 'New York', country: 'US', url: 'new-york' },
-        { id: 2, name: query || 'London', country: 'UK', url: 'london' }
-      ];
+      return [];
     }
   },
 
@@ -313,80 +238,6 @@ const weatherService = {
 // ============================================================================
 // HELPERS
 // ============================================================================
-
-/**
- * Generate forecast days from backend data
- */
-function generateForecastDays(data) {
-  const days = [];
-  const now = new Date();
-  const conditions = ['Sunny', 'Partly Cloudy', 'Cloudy', 'Light Rain', 'Clear'];
-  
-  for (let i = 0; i < 5; i++) {
-    const date = new Date(now);
-    date.setDate(date.getDate() + i);
-    const tempOffset = (Math.random() - 0.5) * 10;
-    
-    days.push({
-      date: date.toISOString().split('T')[0],
-      day: {
-        maxtemp_c: Math.round((data.temperature || 20) + 5 + tempOffset),
-        mintemp_c: Math.round((data.temperature || 20) - 5 + tempOffset),
-        avgtemp_c: Math.round((data.temperature || 20) + tempOffset),
-        avghumidity: Math.round((data.humidity || 60) + (Math.random() - 0.5) * 20),
-        maxwind_kph: Math.round((data.wind_kph || 15) + (Math.random() - 0.5) * 10),
-        daily_chance_of_rain: Math.round(Math.random() * 30),
-        uv: Math.round(Math.random() * 8),
-        condition: {
-          text: conditions[i % conditions.length],
-          code: [1000, 1003, 1006, 1063, 1000][i % 5]
-        }
-      }
-    });
-  }
-  
-  return days;
-}
-
-/**
- * Get fallback weather data
- */
-function getFallbackWeather(location) {
-  return {
-    location: {
-      name: location === 'auto:ip' ? 'Unknown Location' : location,
-      region: '',
-      country: '',
-      localtime: new Date().toISOString()
-    },
-    current: {
-      temp_c: 20,
-      feelslike_c: 20,
-      humidity: 60,
-      wind_kph: 10,
-      pressure_mb: 1013,
-      vis_km: 10,
-      uv: 0,
-      precip_mm: 0,
-      cloud: 30,
-      is_day: 1,
-      condition: {
-        text: 'Partly Cloudy',
-        code: 1003
-      },
-      air_quality: {
-        'us-epa-index': 1,
-        pm2_5: 50
-      },
-      last_updated: new Date().toISOString()
-    },
-    forecast: {
-      forecastday: generateForecastDays({})
-    },
-    alerts: { alert: [] },
-    success: true
-  };
-}
 
 // ============================================================================
 // WEATHER CACHE (Frontend cache)

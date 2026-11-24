@@ -982,7 +982,7 @@ const AviationSafety = () => {
                 <Card 
                   title="Incident Reporting & Investigation"
                   extra={
-                    <Button type="primary" icon={<PlusOutlined />} onClick={() => setIncidentModalVisible(true)}>
+                    <Button type="primary" icon={<PlusOutlined />} onClick={() => { window.location.href = '/incidents'; }}>
                       Report Incident
                     </Button>
                   }
