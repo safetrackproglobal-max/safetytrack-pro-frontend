@@ -44,6 +44,7 @@ import ApprovalActions from './ApprovalActions';
 import StatsOverview from './StatsOverview';
 import './safetyproDashboard.css';
 import PaymentVerification from '../components/PaymentVerification';
+import CompanyQuotes from '../components/CompanyQuotes';
 
 import {
   PLAN_OPTIONS,
@@ -894,6 +895,10 @@ const SafetyProDashboard = () => {
 >
   <PaymentVerification />
 </TabPane>
+
+          <TabPane tab={<span><DollarOutlined /> Company Prices</span>} key="company-prices">
+            <CompanyQuotes />
+          </TabPane>
 
           {/* User Management Tab */}
           <TabPane tab={<span><TeamOutlined /> User Management</span>} key="user-management">

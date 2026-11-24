@@ -1,231 +1,97 @@
 // src/pages/PaymentCallbackPage.js
-import React, { useEffect, useState } from 'react';
-import { Result, Button, Alert, Card, Typography, Space, Steps } from 'antd';
-import { CheckCircleOutlined, CloseCircleOutlined, LoadingOutlined, PayPalOutlined } from '@ant-design/icons';
+// Where Paystack and PayPal return to. The address never decides the result: the server is asked.
+// Routes: /payment-callback, /payment/callback, /payment-success, /payment-failed, /payment-cancel
+import React, { useEffect, useRef, useState } from 'react';
+import { Button, Result, Spin } from 'antd';
 import { useHistory, useLocation } from 'react-router-dom';
-import PaymentService from '../services/paymentService';
+import api from '../services/api';
+import { storeStage } from '../utils/billingStage';
+import './BillingPage.css';
 
-const { Title, Text } = Typography;
-const { Step } = Steps;
+const TRIES = 8;
+const REASON = {
+  amount_mismatch: 'The amount received does not match the price.',
+  payment_not_found: 'We could not find this payment.',
+  execution_failed: 'PayPal did not complete the payment.',
+};
+const pause = () => new Promise((r) => { setTimeout(r, 3000); });
+const hasToken = () => {
+  try { return !!(localStorage.getItem('authToken') || sessionStorage.getItem('authToken')); } catch (e) { return false; }
+};
+const savedRef = () => {
+  try { return sessionStorage.getItem('stp:pay-ref') || ''; } catch (e) { return ''; }
+};
 
 function PaymentCallbackPage() {
-  const [status, setStatus] = useState('processing');
-  const [paymentData, setPaymentData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [paymentMethod, setPaymentMethod] = useState(null);
   const history = useHistory();
-  const location = useLocation();
+  const { pathname, search } = useLocation();
+  const q = new URLSearchParams(search);
+  const [reference] = useState(() => (q.get('reference') || q.get('trxref') || savedRef()).slice(0, 128));
+  const [state, setState] = useState('checking');
+  const [info, setInfo] = useState(null);
+  const [round, setRound] = useState(0);
+  const error = q.get('error');
+  const checked = q.get('checked') === '1';
+  const visit = useRef({ pathname, checked });
 
   useEffect(() => {
-    processPaymentCallback();
-  }, []);
-
-  const processPaymentCallback = async () => {
-    const queryParams = new URLSearchParams(location.search);
-    const reference = queryParams.get('reference') || queryParams.get('trxref') || queryParams.get('paymentId');
-    const method = queryParams.get('method') || 'paystack';
-    const token = queryParams.get('token');
-    const payerId = queryParams.get('PayerID');
-    
-    setPaymentMethod(method);
-
-    try {
-      let verification;
-      
-      if (method === 'paypal' && token && payerId) {
-        // PayPal callback with token and PayerID
-        verification = await PaymentService.verifyPayPalPayment(token);
-      } else if (reference) {
-        // Paystack or other payment methods
-        if (method === 'paystack') {
-          verification = await PaymentService.verifyPaystackPayment(reference);
-        } else {
-          // Generic verification
-          verification = { status: 'success', data: { reference } };
-        }
-      } else {
-        throw new Error('No payment reference found');
+    let on = true;
+    const at = visit.current;
+    const put = (s) => { if (on) setState(s); };
+    const check = async () => {
+      if (at.pathname === '/payment-cancel') { put('cancelled'); return; }
+      if (!hasToken()) {
+        // not signed in: the server confirms with Paystack, then sends the browser back here
+        const fresh = !at.checked && (at.pathname === '/payment-callback' || at.pathname === '/payment/callback');
+        if (fresh && reference) window.location.replace(`${api.defaults.baseURL}/payment/paystack/public-callback?reference=${encodeURIComponent(reference)}`);
+        else put(at.pathname === '/payment-failed' ? 'failed' : 'signin');
+        return;
       }
-      
-      if (verification.status === 'success') {
-        setStatus('success');
-        setPaymentData(verification.data);
-        
-        // Create payment record
-        const paymentRecord = {
-          amount: verification.data.amount ? verification.data.amount / 100 : 0,
-          currency: verification.data.currency || 'USD',
-          plan: verification.data.metadata?.plan || 'basic',
-          duration: verification.data.metadata?.duration || '1_month',
-          payment_method: method,
-          status: 'completed',
-          transaction_id: verification.data.id || reference,
-          paystack_reference: method === 'paystack' ? reference : null,
-          paypal_payment_id: method === 'paypal' ? verification.data.id : null,
-          payment_details: JSON.stringify(verification.data),
-          user_id: localStorage.getItem('userId') || verification.data.metadata?.userId
-        };
-
-        await PaymentService.createPaymentRecord(paymentRecord);
-        
-        // Create subscription if payment successful
-        if (verification.data.metadata?.plan !== 'free') {
-          await PaymentService.createSubscription({
-            user_id: localStorage.getItem('userId') || verification.data.metadata?.userId,
-            plan: verification.data.metadata?.plan || 'basic',
-            status: 'active',
-            payment_method: method,
-            start_date: new Date().toISOString(),
-            auto_renew: true
-          });
+      if (!reference) { put(at.pathname === '/payment-failed' ? 'failed' : 'unknown'); return; }
+      put('checking');
+      for (let i = 0; i < TRIES && on; i += 1) {
+        try {
+          const { data } = await api.get(`/payment/paystack/verify/${encodeURIComponent(reference)}`);
+          if (!on) return;
+          setInfo(data);
+          if (data.status === 'failed') { put('failed'); return; }
+          if (data.status === 'completed') {
+            try { sessionStorage.removeItem('stp:pay-ref'); } catch (e) { /* private window */ }
+            try {
+              const o = await api.get('/billing/overview');
+              storeStage(o.data.stage, o.data.redirect_to);
+            } catch (e) { /* the plan is active; the next sign-in reads it */ }
+            put('done');
+            return;
+          }
+        } catch (e) {
+          const code = e?.status || e?.response?.status;
+          if (code === 404) { put('unknown'); return; }
+          if (code === 401) { put('signin'); return; }
         }
-        
-      } else {
-        setStatus('failed');
+        await pause();
       }
-    } catch (error) {
-      console.error('Payment verification error:', error);
-      setStatus('error');
-    } finally {
-      setLoading(false);
-    }
-  };
+      put('pending');
+    };
+    check();
+    return () => { on = false; };
+  }, [reference, round]);
 
-  const getPaymentMethodIcon = () => {
-    switch (paymentMethod) {
-      case 'paypal':
-        return <PayPalOutlined style={{ color: '#003087', fontSize: '24px', marginRight: '8px' }} />;
-      case 'paystack':
-        return <CreditCardOutlined style={{ color: '#1890ff', fontSize: '24px', marginRight: '8px' }} />;
-      default:
-        return null;
-    }
-  };
-
-  const getResultConfig = () => {
-    switch (status) {
-      case 'success':
-        return {
-          icon: <CheckCircleOutlined style={{ color: '#52c41a', fontSize: '64px' }} />,
-          title: 'Payment Successful!',
-          subTitle: 'Your payment has been processed successfully.',
-          extra: [
-            <Button type="primary" key="dashboard" onClick={() => history.push('/dashboard')}>
-              Go to Dashboard
-            </Button>,
-            <Button key="home" onClick={() => history.push('/')}>
-              Back to Home
-            </Button>
-          ]
-        };
-      case 'failed':
-        return {
-          icon: <CloseCircleOutlined style={{ color: '#ff4d4f', fontSize: '64px' }} />,
-          title: 'Payment Failed',
-          subTitle: 'Your payment could not be processed. Please try again.',
-          extra: [
-            <Button type="primary" key="retry" onClick={() => history.push('/pricing')}>
-              Try Again
-            </Button>,
-            <Button key="support" onClick={() => window.open('mailto:support@safetytrack.com')}>
-              Contact Support
-            </Button>
-          ]
-        };
-      case 'error':
-        return {
-          icon: <CloseCircleOutlined style={{ color: '#ff4d4f', fontSize: '64px' }} />,
-          title: 'Error Processing Payment',
-          subTitle: 'There was an error processing your payment. Please contact support.',
-          extra: [
-            <Button key="home" onClick={() => history.push('/')}>
-              Back to Home
-            </Button>
-          ]
-        };
-      default:
-        return {
-          icon: <LoadingOutlined style={{ color: '#1890ff', fontSize: '64px' }} />,
-          title: 'Processing Payment...',
-          subTitle: 'Please wait while we verify your payment.',
-          extra: []
-        };
-    }
-  };
-
-  const resultConfig = getResultConfig();
-
-  return (
-    <div style={{ maxWidth: 700, margin: '50px auto', padding: '20px' }}>
-      <Card>
-        <Result {...resultConfig} />
-        
-        <div style={{ marginTop: 24 }}>
-          <Steps current={status === 'success' ? 2 : status === 'failed' ? 1 : 0} size="small">
-            <Step title="Payment Initiated" />
-            <Step title="Processing" />
-            <Step title="Completed" />
-          </Steps>
-        </div>
-        
-        {paymentData && status === 'success' && (
-          <Alert
-            message={
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                {getPaymentMethodIcon()}
-                <span>Payment Details</span>
-              </div>
-            }
-            description={
-              <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                <div>
-                  <Text strong>Reference:</Text> {paymentData.reference || paymentData.id}
-                </div>
-                {paymentData.amount && (
-                  <div>
-                    <Text strong>Amount:</Text> {paymentData.currency || 'USD'} {(paymentData.amount / 100).toLocaleString()}
-                  </div>
-                )}
-                {paymentData.metadata?.plan && (
-                  <div>
-                    <Text strong>Plan:</Text> {paymentData.metadata.plan.toUpperCase()}
-                  </div>
-                )}
-                {paymentData.paid_at && (
-                  <div>
-                    <Text strong>Date:</Text> {new Date(paymentData.paid_at).toLocaleString()}
-                  </div>
-                )}
-                <div>
-                  <Text strong>Method:</Text> {paymentMethod?.toUpperCase()}
-                </div>
-              </Space>
-            }
-            type="info"
-            showIcon
-            style={{ marginTop: 24 }}
-          />
-        )}
-        
-        {loading && (
-          <div style={{ textAlign: 'center', marginTop: 24 }}>
-            <LoadingOutlined style={{ fontSize: 24 }} />
-            <div style={{ marginTop: 8 }}>
-              <Text type="secondary">Verifying payment...</Text>
-            </div>
-          </div>
-        )}
-        
-        <div style={{ marginTop: 24, textAlign: 'center' }}>
-          <Text type="secondary">
-            {status === 'success' 
-              ? 'You will receive a payment confirmation email shortly.' 
-              : 'If you have any issues, please contact our support team.'}
-          </Text>
-        </div>
-      </Card>
-    </div>
-  );
+  const billing = <Button key="b" onClick={() => history.push('/payment')}>Back to billing</Button>;
+  const contact = <Button key="c" onClick={() => history.push('/contact-team')}>Contact us</Button>;
+  const reason = REASON[info?.failure_reason || error];
+  const ref = reference ? ` Reference: ${reference}` : '';
+  const paid = info?.payment ? `${info.payment.currency} ${Number(info.payment.amount).toLocaleString()} received. ` : '';
+  const view = {
+    checking: <Result icon={<Spin size="large" />} title="Checking your payment" subTitle="Please keep this page open." />,
+    done: <Result status="success" title="Payment confirmed" subTitle={`${paid}Your plan is active.${ref}`} extra={<Button type="primary" onClick={() => window.location.assign('/dashboard')}>Go to dashboard</Button>} />,
+    pending: <Result status="info" title="Payment not confirmed yet" subTitle={`The provider has not confirmed it. If you paid, it can take a few minutes.${ref}`} extra={[<Button key="a" type="primary" onClick={() => setRound(round + 1)}>Check again</Button>, billing, contact]} />,
+    failed: <Result status="error" title="Payment not completed" subTitle={`${reason || 'The provider did not complete this payment.'} Your plan was not changed.${ref}`} extra={[billing, contact]} />,
+    cancelled: <Result status="warning" title="Payment cancelled" subTitle="Your plan was not changed." extra={[billing]} />,
+    signin: <Result status="info" title="Sign in to see your plan" subTitle={`Your payment status is shown after you sign in.${ref}`} extra={<Button type="primary" onClick={() => history.push('/login')}>Sign in</Button>} />,
+    unknown: <Result status="warning" title="We could not find this payment" subTitle={`If you were charged, send us the reference.${ref}`} extra={[billing, contact]} />,
+  }[state];
+  return <div className="bl-result" data-state={state}>{view}</div>;
 }
 
 export default PaymentCallbackPage;

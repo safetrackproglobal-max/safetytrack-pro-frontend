@@ -107,7 +107,7 @@ class PaymentService {
     try {
       // Remove /api prefix - was '/api/payment/paystack/verify/${reference}'
       const response = await apiGet(`/payment/paystack/verify/${reference}`);
-      return response.data;
+      return response;
     } catch (error) {
       console.error('Error verifying Paystack payment:', error);
       throw error;

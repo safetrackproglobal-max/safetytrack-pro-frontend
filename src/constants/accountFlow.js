@@ -148,7 +148,8 @@ export const formatPrice = (amount, currency = 'USD') => {
   if (amount === null || amount === undefined) return 'Custom pricing';
   if (amount === 0) return 'Free';
   const symbol = CURRENCY_SYMBOLS[currency] ?? `${currency} `;
-  return `${symbol}${Number(amount).toLocaleString()}`;
+  const n = Number(amount);
+  return `${symbol}${n.toLocaleString(undefined, { minimumFractionDigits: Number.isInteger(n) ? 0 : 2 })}`;
 };
 
 // ================= LEGAL ENTITY & PAYMENT ACCOUNTS =================

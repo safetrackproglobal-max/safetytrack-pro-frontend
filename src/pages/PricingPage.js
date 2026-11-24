@@ -263,6 +263,23 @@ function PricingPage(props) {
   };
 
   const handleGetStarted = (planId) => {
+    // signed-in customers pay on the billing page (prices come from the server there)
+    if (user && isAdmin) {
+      history.push('/payment');
+      return;
+    }
+    if (planId === 'enterprise' || planId === 'custom') {
+      history.push('/contact-team');
+      return;
+    }
+    if (user && planId !== 'free') {
+      history.push(`/payment?plan=${planId}&duration=${selectedDuration}`);
+      return;
+    }
+    if (!user) {
+      history.push('/signup');
+      return;
+    }
     if (planId === currentPlanName.toLowerCase()) {
       message.info(`You are already on the ${planId.toUpperCase()} plan`);
       return;

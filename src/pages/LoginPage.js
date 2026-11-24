@@ -141,6 +141,11 @@ function LoginPage() {
       return;
     }
     if (stage === 'needs_plan' || stage === 'needs_payment') {
+      if (isCompanyAdmin(result.user)) {
+        // company plans: agreed price, request and payment live on the billing page
+        history.push('/payment');
+        return;
+      }
       await openPlanDialog(result);
       return;
     }

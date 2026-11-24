@@ -26,7 +26,7 @@ import notificationService from './services/notificationService';
 // ✅ ADD NEW COMPONENTS
 import ApprovalActions from './pages/ApprovalActions';
 import StatsOverview from './pages/StatsOverview';
-import PaymentWaitingPage from './pages/PaymentWaitingPage';
+import PaymentCallbackPage from './pages/PaymentCallbackPage';
 import SafetyProDashboard from './pages/safetyproDashboard';
 import PerformanceDashboard from './pages/PerformanceDashboard';
 
@@ -163,7 +163,7 @@ const EscalationManagementPage = React.lazy(() => import('./pages/safety/Escalat
 const InvestigationWorkspacePage = React.lazy(() => import('./pages/safety/InvestigationWorkspacePage').catch(() => ({ default: () => <div>Loading...</div> })));
 
 // Existing Protected Routes
-import SubscriptionPage from './pages/SubscriptionPage';
+import BillingPage from './pages/BillingPage';
 import AIDocumentsPage from './pages/AIDocumentsPage';
 import ToolboxTalksPage from './pages/ToolboxTalksPage';
 import WorkplaceVoicePage from './pages/WorkplaceVoicePage';
@@ -374,6 +374,10 @@ const SmartDashboardRedirect = () => {
     return <Redirect to="/verify-email" />;
   }
 
+  if (stage === 'needs_plan' && ['admin', 'company_admin'].includes(userData?.user_type)) {
+    return <Redirect to="/payment" />;
+  }
+
   if (stage === 'needs_plan' || requiresPlanSelection) {
     console.log('📋 needs_plan → /select-plan');
     return <Redirect to="/select-plan" />;
@@ -500,6 +504,12 @@ const AppContent = () => {
           <Route path="/voice/rewards" exact><VoiceRewards /></Route>
           <Route path="/voice/:slug"><VoiceReport /></Route>
           <Route path="/voice" exact><VoiceHome /></Route>
+
+          <Route exact path={['/payment-callback', '/payment/callback', '/payment-success', '/payment-failed', '/payment-cancel']}>
+            <MainLayoutWrapper>
+              <PaymentCallbackPage />
+            </MainLayoutWrapper>
+          </Route>
 
           <Route path="/pricing">
             <MainLayoutWrapper>
@@ -640,7 +650,7 @@ const AppContent = () => {
 
 <ProtectedRoute path="/payment-waiting">
   <MainLayoutWrapper>
-    <PaymentWaitingPage />
+    <BillingPage />
   </MainLayoutWrapper>
 </ProtectedRoute>
 
@@ -658,7 +668,7 @@ const AppContent = () => {
 
           <ProtectedRoute path="/payment" exact>
             <MainLayoutWrapper>
-              <SubscriptionPage />
+              <BillingPage />
             </MainLayoutWrapper>
           </ProtectedRoute>
 
@@ -1339,7 +1349,7 @@ const AppContent = () => {
 
           <ProtectedRoute path="/subscription">
             <DashboardLayoutWrapper>
-              <SubscriptionPage />
+              <BillingPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
