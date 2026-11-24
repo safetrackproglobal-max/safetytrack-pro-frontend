@@ -59,7 +59,7 @@ export function Breadcrumbs({ items }) {
 }
 
 export function PageHero({ breadcrumbs, eyebrow, h1, lead, primary, secondary }) {
-  const main = primary || { label: 'Start Free Trial', to: '/signup' };
+  const main = primary || { label: 'Create Free Account', to: '/signup' };
   const alt = secondary || { label: 'Book a Demo', to: '/demo' };
   return (
     <section className="mk-hero">
@@ -184,7 +184,7 @@ export function FaqList({ faqs, title = 'Frequently asked questions' }) {
 }
 
 export function CtaBand({ title = 'Ready to see SafeTrack Pro in action?', primary, secondary }) {
-  const main = primary || { label: 'Start Free Trial', to: '/signup' };
+  const main = primary || { label: 'Create Free Account', to: '/signup' };
   const alt = secondary || { label: 'Book a Demo', to: '/demo' };
   return (
     <section className="mk-cta">

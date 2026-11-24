@@ -41,6 +41,9 @@ function PublicHeader() {
     { path: '/', label: t('navigation.home') },
     { path: '/features', label: t('navigation.features') },
     { path: '/pricing', label: t('navigation.pricing') },
+    { path: '/voice', label: t('navigation.reportConcern') || 'Report a Concern', voice: true },
+    { path: '/free-safety-documents', label: t('navigation.freeDocuments') || 'Free Documents' },
+    { path: '/trust', label: t('navigation.trust') || 'Trust' },
     { path: '/contact', label: t('navigation.contact') },
   ];
 
@@ -71,7 +74,7 @@ function PublicHeader() {
               <Link 
                 key={link.path} 
                 to={link.path} 
-                className={`nav-link ${location.pathname === link.path ? 'active' : ''}`}
+                className={`nav-link ${location.pathname === link.path ? 'active' : ''}${link.voice ? ' nav-voice' : ''}`}
               >
                 {link.label}
               </Link>
@@ -129,7 +132,8 @@ function PublicHeader() {
             {/* ✅ Mobile Hamburger Button (Only visible on mobile) */}
             <Button 
               type="text" 
-              icon={<MenuOutlined style={{ fontSize: '20px' }} />} 
+              icon={<MenuOutlined style={{ fontSize: '20px' }} />}
+              aria-label="Open menu"
               className="mobile-menu-btn"
               onClick={() => setMobileMenuOpen(true)}
             />

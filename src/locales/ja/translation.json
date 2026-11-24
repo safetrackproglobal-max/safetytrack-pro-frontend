@@ -1,5 +1,8 @@
 {
   "navigation": {
+    "reportConcern": "懸念を報告",
+    "freeDocuments": "無料文書",
+    "trust": "信頼",
     "home": "ホーム",
     "settings": "設定",
     "profile": "プロフィール",
@@ -471,7 +474,6 @@
     "title": "エンタープライズチームへのお問い合わせ",
     "description": "SafeTrack Pro Global についてご質問がありますか？エンタープライズチームが、貴社に最適な安全管理ソリューション選びをお手伝いします。",
     "responseTime": "24時間以内に返信",
-    "isoCertified": "ISO 27001 認証取得",
     "multiLanguage": "10言語でサポート",
     "formTitle": "メッセージを送信",
     "formSubtitle": "以下のフォームにご記入ください。24時間以内にチームよりご連絡します。",

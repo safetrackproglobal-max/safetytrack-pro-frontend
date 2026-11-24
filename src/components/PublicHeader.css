@@ -61,7 +61,7 @@
 .nav-menu {
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 22px;
   height: 100%;
   margin: 0 20px;
 }
@@ -351,3 +351,14 @@
 /* Add this to the bottom of PublicHeader.css */
 
 /* dark-mode block removed: app uses one light theme (see App.css) */
+
+.nav-link { white-space: nowrap; }
+.nav-link.nav-voice { color: #b45309; font-weight: 700; }
+@media (min-width: 992px) and (max-width: 1279px) {
+  .header-container { padding: 0 14px; }
+  .nav-menu { gap: 14px; margin: 0 10px; }
+  .nav-link { font-size: 14px; }
+  .public-header .logo-text { font-size: 18px; }
+  .header-actions, .auth-group { gap: 8px; }
+}
+@media (min-width: 992px) and (max-width: 1119px) { .public-header .logo-text { display: none; } }

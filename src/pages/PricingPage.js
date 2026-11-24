@@ -132,8 +132,8 @@ function PricingPage(props) {
         'Dedicated infrastructure',
         'Custom integrations (API)',
         'Dedicated account manager',
-        '24/7 priority support',
-        'SLA 99.9% uptime',
+        'Priority support',
+        'Support terms agreed in your contract',
         'Custom training sessions'
       ] : [
         // Mirrors PLANS['pro'] in the backend — keep in sync
@@ -186,8 +186,8 @@ function PricingPage(props) {
         'Dedicated infrastructure',
         'Custom integrations (API)',
         'Dedicated account manager',
-        '24/7 priority support',
-        'SLA 99.9% uptime',
+        'Priority support',
+        'Support terms agreed in your contract',
         'Custom training sessions'
       ],
       limits: {
@@ -215,7 +215,7 @@ function PricingPage(props) {
       'Custom dashboards & reports',
       'Dedicated infrastructure',
       'On-premise or cloud deployment',
-      '24/7 premium support'
+      'Premium support'
     ],
     requiresPayment: true
   };

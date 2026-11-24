@@ -159,7 +159,7 @@ function ContactTeamPage() {
     {
       icon: <MessageOutlined />,
       title: t('contact.liveChat') || 'Live Chat',
-      value: t('contact.chatAvailable') || 'Available 24/7',
+      value: 'Use the contact form or WhatsApp',
       link: '/support',
       description: t('contact.chatDesc') || 'Instant AI assistance',
       color: '#722ed1'
@@ -231,7 +231,7 @@ function ContactTeamPage() {
               </div>
               <div className="trust-signal">
                 <SafetyCertificateOutlined />
-                <span>{t('contact.isoCertified') || 'ISO 27001 Certified'}</span>
+                <span>Clear data and AI policies</span>
               </div>
               <div className="trust-signal">
                 <GlobalOutlined />

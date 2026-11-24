@@ -194,9 +194,9 @@ const AIMedicalAnalysisTab = () => {
                 <SafetyCertificateOutlined style={{ color: 'white', fontSize: 18 }} />
               </div>
               <div>
-                <Text strong>HIPAA</Text>
+                <Text strong>Review</Text>
                 <br />
-                <Text type="secondary">Compliant</Text>
+                <Text type="secondary">Required</Text>
               </div>
             </Space>
           </Card>

@@ -69,7 +69,7 @@ const PLAN_INFO = {
   basic: { label: 'Basic', highlights: ['PDF/Word/Excel generation', 'Basic analytics', '100 uploads / month', 'Up to 10 team members'] },
   pro: { label: 'Professional', highlights: ['ML image & video analysis', 'Advanced analytics', '500 uploads / month', 'Up to 50 team members'] },
   enterprise: { label: 'Enterprise', highlights: ['Unlimited usage & team', 'Dedicated account manager', 'Custom integrations', 'SLA & priority support'] },
-  custom: { label: 'Custom Enterprise', highlights: ['Tailored workflows', 'Dedicated infrastructure', 'On-premise option', '24/7 premium support'] }
+  custom: { label: 'Custom Enterprise', highlights: ['Tailored workflows', 'Dedicated infrastructure', 'On-premise option', 'Premium support'] }
 };
 
 const PAYMENT_METHODS = [

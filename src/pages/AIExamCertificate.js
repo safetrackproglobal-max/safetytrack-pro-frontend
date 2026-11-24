@@ -127,9 +127,9 @@ const AIExamCertificate = forwardRef(function AIExamCertificate(
 
   // Admin signature
   const [adminSignature, setAdminSignature] = useState({
-    name: 'Abigalistic Safety Pro',
+    name: 'SafeTrack Pro Global',
     title: 'Platform Owner',
-    company: 'Abigalistic Safety Pro Platform',
+    company: 'SafeTrack Pro Global',
     signature_id: 'ADMIN-PLATFORM-OWNER',
     loading: true
   });

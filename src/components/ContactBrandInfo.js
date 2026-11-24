@@ -33,7 +33,7 @@ const CONTACT = {
   address: 'Doha, Qatar'
 };
 
-const ContactBrandInfo = () => {
+const ContactBrandInfo = ({ headingLevel = 2 }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
 
@@ -103,7 +103,7 @@ const ContactBrandInfo = () => {
              PAGE HEADER
              ============================================ */}
         <div className="contact-page-header">
-          <Title level={1}>Contact Us</Title>
+          <Title level={headingLevel}>Contact Us</Title>
           <Text className="contact-page-description">
             Have questions or need assistance? Send us a message, chat on WhatsApp,
             or reach out through any of the channels below — we'll get back to you

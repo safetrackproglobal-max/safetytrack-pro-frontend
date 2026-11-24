@@ -1,5 +1,8 @@
 {
   "navigation": {
+    "reportConcern": "Relatar um problema",
+    "freeDocuments": "Documentos grátis",
+    "trust": "Confiança",
     "home": "Início",
     "settings": "Configurações",
     "profile": "Perfil",
@@ -471,7 +474,6 @@
     "title": "Fale com nossa equipe empresarial",
     "description": "Dúvidas sobre o SafeTrack Pro Global? Nossa equipe empresarial ajuda você a encontrar a solução de segurança certa para sua organização.",
     "responseTime": "Resposta em até 24 horas",
-    "isoCertified": "Certificado ISO 27001",
     "multiLanguage": "Suporte em 10 idiomas",
     "formTitle": "Envie-nos uma mensagem",
     "formSubtitle": "Preencha o formulário abaixo e nossa equipe responderá em até 24 horas.",

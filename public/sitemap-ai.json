@@ -53,6 +53,69 @@
       "last_modified": "2026-11-24"
     },
     {
+      "url": "https://www.safetrackproglobal.com/trust",
+      "title": "Trust Centre: Security, Privacy & AI | SafeTrack Pro Global",
+      "description": "How SafeTrack Pro Global protects safety data, how photos, video and AI are handled, and an honest list of the certifications we do and do not hold.",
+      "category": "trust",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/csp-practice-exam/exam-guide",
+      "title": "CSP Practice Exam Guide: Rules, Scoring & Certificate | SafeTrack Pro",
+      "description": "How the SafeTrack CSP-style practice exam works: free 10 questions, full 100-question timed mode, scoring, result bands, certificate of completion and what it is not.",
+      "category": "product guide",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/ai-camera-monitoring/how-it-works",
+      "title": "How AI Camera Monitoring Works & What Is Stored | SafeTrack Pro",
+      "description": "How SafeTrack AI camera monitoring detects PPE and hazards, what happens to each video frame, what is stored, what it cannot do, and duties for workplaces.",
+      "category": "product guide",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/environmental-monitoring-software/how-it-works",
+      "title": "How Environmental Monitoring Works: Sources & Limits | SafeTrack Pro",
+      "description": "What the SafeTrack environmental module records, where weather and air-quality data comes from, how scores and predictions are made, and their limits.",
+      "category": "product guide",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/anonymous-safety-reporting/how-it-works",
+      "title": "Workplace Voice: Is It Really Anonymous? | SafeTrack Pro",
+      "description": "How Workplace Voice reporting works, what your company sees for anonymous, protected and named reports, what is stored, and how to stay safe when you report.",
+      "category": "product guide",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/data-use",
+      "title": "How We Use Your Data: Photos, Video, Voice & Text | SafeTrack Pro",
+      "description": "A plain list of what SafeTrack Pro collects on every feature, including photos, video, voice and location: why, where it is stored, whether AI uses it, and how to delete it.",
+      "category": "trust",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/ai-transparency",
+      "title": "AI Transparency: How AI Uses Your Data & Its Limits | SafeTrack Pro",
+      "description": "Which SafeTrack Pro features use AI, what data each one sends, which AI provider receives it, what AI can get wrong, and how to check results.",
+      "category": "trust",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/privacy",
+      "title": "Privacy Policy | SafeTrack Pro Global",
+      "description": "SafeTrack Pro Global privacy policy: what personal data we collect, why, who receives it, how long it is kept, security measures and your rights.",
+      "category": "trust",
+      "last_modified": "2026-11-24"
+    },
+    {
+      "url": "https://www.safetrackproglobal.com/facts",
+      "title": "SafeTrack Pro Global: Facts & Common Questions",
+      "description": "Plain facts about SafeTrack Pro Global for customers, journalists and AI assistants: what it is, what it is not, certifications, plans, data and contact details.",
+      "category": "trust",
+      "last_modified": "2026-11-24"
+    },
+    {
       "url": "https://www.safetrackproglobal.com/free-safety-documents/agriculture-barn-safety-assessment",
       "title": "Barn Safety Assessment",
       "description": "Free Barn Safety Assessment template for agriculture you can edit online and download as PDF. Covers hazards and controls, safety features, approval & sign-off.",
@@ -1308,7 +1371,7 @@
     {
       "url": "https://www.safetrackproglobal.com/industries/healthcare",
       "title": "Healthcare HSE Software | SafeTrack Pro Global",
-      "description": "Healthcare HSE software for patient safety, infection control, device compliance, and staff safety. Aligned with HIPAA and Joint Commission requirements.",
+      "description": "Healthcare HSE software for patient safety, infection control, device compliance, and staff safety. Templates covering HIPAA and Joint Commission topics.",
       "category": "industry",
       "last_modified": "2026-11-24"
     },

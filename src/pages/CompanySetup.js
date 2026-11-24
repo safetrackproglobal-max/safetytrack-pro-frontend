@@ -63,7 +63,7 @@ const PLAN_DEFINITIONS = {
       'Custom integrations (API)',
       'Dedicated account manager',
       '24/7 priority support',
-      'SLA 99.9% uptime',
+      'Support terms agreed in your contract',
       'Custom training sessions'
     ],
     requiresPayment: true,

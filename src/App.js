@@ -15,6 +15,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { AdminProvider } from './context/AdminContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import ConsentGate, { AiWarningBar } from './components/ConsentGate';
 import { syncLanguage } from './services/languageSync';
 import ResponsiveWrapper from './components/ResponsiveWrapper';
 
@@ -257,6 +258,18 @@ import './pages/PerformanceDashboard.css';
 import './App.css';
 
 
+const NotFoundMeta = () => {
+  useEffect(() => {
+    document.title = 'Page not found | SafeTrack Pro Global';
+    let m = document.head.querySelector('meta[name="robots"]');
+    const before = m ? m.getAttribute('content') : null;
+    if (!m) { m = document.createElement('meta'); m.setAttribute('name', 'robots'); document.head.appendChild(m); }
+    m.setAttribute('content', 'noindex');
+    return () => m.setAttribute('content', before || 'index, follow');
+  }, []);
+  return null;
+};
+
 const FULL_PAGE_ROUTES = [
   '/document-management',
   '/investigation-workspace',
@@ -289,7 +302,7 @@ const DashboardLayoutWrapper = ({ children }) => {
   console.log('🔍 [Layout] Path:', location.pathname, '| Full-page?', isFullPageRoute);
 
   if (isFullPageRoute) {
-    return <>{children}</>;
+    return <><AiWarningBar />{children}</>;
   }
 
   const handleToggleSidebar = () => {
@@ -302,6 +315,7 @@ const DashboardLayoutWrapper = ({ children }) => {
       onToggleSidebar={handleToggleSidebar}
     >
       <BillingBanner />
+      <AiWarningBar />
       {children}
     </DashboardLayout>
   );
@@ -458,6 +472,7 @@ const AppContent = () => {
   return (
     <Router>
       <NotificationProvider>
+      <ConsentGate>
 
         <ToastNotifications />
 
@@ -556,15 +571,9 @@ const AppContent = () => {
             </MainLayoutWrapper>
           </Route>
 
-          <Route path="/privacy">
-            <MainLayoutWrapper>
-              <TermsPolicy />
-            </MainLayoutWrapper>
-          </Route>
-
           <Route path="/contact">
             <MainLayoutWrapper>
-              <ContactBrandInfo />
+              <ContactBrandInfo headingLevel={1} />
             </MainLayoutWrapper>
           </Route>
                                                                                                                  
@@ -605,6 +614,11 @@ const AppContent = () => {
           <Route exact path="/csp-practice-exam/free-test"><MainLayoutWrapper><PracticeTestPage /></MainLayoutWrapper></Route>
           {/* Practice exam lives in AI Documents -> "Exams & Verification" (login required) */}
           <Redirect exact from="/exam" to="/ai-documents?tab=tools" />
+          <Redirect exact from="/security" to="/trust" />
+          <Redirect exact from="/info/security" to="/trust" />
+          <Redirect exact from="/info/cookies" to="/data-use" />
+          <Redirect exact from="/info/compliance" to="/compliance-management-software" />
+          <Redirect exact from="/info/sla" to="/trust" />
           <Redirect exact from="/csp-exam-simulator" to="/csp-practice-exam" />
 
           {/* ============================================ */}
@@ -1473,6 +1487,7 @@ const AppContent = () => {
           {/* ============================================ */}
           <Route path="*">
             <MainLayoutWrapper>
+              <NotFoundMeta />
               <div style={{ padding: '50px', textAlign: 'center' }}>
                 <h1>404 - Page Not Found</h1>
                 <p>The page you're looking for doesn't exist.</p>
@@ -1489,6 +1504,7 @@ const AppContent = () => {
             </MainLayoutWrapper>
           </Route>
         </Switch>
+      </ConsentGate>
       </NotificationProvider>
     </Router>
   );

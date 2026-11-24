@@ -101,14 +101,14 @@ const SIGNUP_PHONE_PATTERN = /^[+\d\s()-]{7,20}$/; // same rule as backend _clea
 
 const REGION_BY_COUNTRY = (country) => {
   const EU = ['Austria', 'Belgium', 'Bulgaria', 'Croatia', 'Cyprus', 'Czech Republic', 'Denmark', 'Estonia', 'Finland', 'France', 'Germany', 'Greece', 'Hungary', 'Ireland', 'Italy', 'Latvia', 'Lithuania', 'Luxembourg', 'Malta', 'Netherlands', 'Poland', 'Portugal', 'Romania', 'Slovakia', 'Slovenia', 'Spain', 'Sweden', 'Iceland', 'Liechtenstein', 'Norway'];
-  if (EU.includes(country)) return { region: 'EU', regulator: 'GDPR / EU supervisory authority', residency: 'EU (Frankfurt)' };
-  if (country === 'Qatar') return { region: 'GCC-QA', regulator: 'Qatar NDPPL 2016', residency: 'Qatar / GCC' };
-  if (country === 'United Arab Emirates') return { region: 'GCC-AE', regulator: 'UAE PDPL', residency: 'UAE / GCC' };
-  if (country === 'Saudi Arabia') return { region: 'GCC-SA', regulator: 'Saudi PDPL', residency: 'KSA / GCC' };
-  if (country === 'United States') return { region: 'US', regulator: 'HIPAA (if ePHI) / state laws', residency: 'United States' };
-  if (country === 'United Kingdom') return { region: 'UK', regulator: 'UK GDPR / DPA 2018', residency: 'United Kingdom' };
-  if (country === 'Ghana') return { region: 'AF-GH', regulator: 'Ghana DPA 2012 (Act 843)', residency: 'Ghana' };
-  return { region: 'GLOBAL', regulator: 'Local data-protection law', residency: 'Default region' };
+  if (EU.includes(country)) return { region: 'EU', regulator: 'GDPR / EU supervisory authority' };
+  if (country === 'Qatar') return { region: 'GCC-QA', regulator: 'Qatar NDPPL 2016' };
+  if (country === 'United Arab Emirates') return { region: 'GCC-AE', regulator: 'UAE PDPL' };
+  if (country === 'Saudi Arabia') return { region: 'GCC-SA', regulator: 'Saudi PDPL' };
+  if (country === 'United States') return { region: 'US', regulator: 'HIPAA (if ePHI) / state laws' };
+  if (country === 'United Kingdom') return { region: 'UK', regulator: 'UK GDPR / DPA 2018' };
+  if (country === 'Ghana') return { region: 'AF-GH', regulator: 'Ghana DPA 2012 (Act 843)' };
+  return { region: 'GLOBAL', regulator: 'Local data-protection law' };
 };
 
 const getAge = (dob) => {
@@ -747,8 +747,8 @@ function SignupPage() {
             type="info"
             showIcon
             icon={<GlobalOutlined />}
-            message={`Data protection: ${residency.regulator}`}
-            description={`Your data is processed under ${residency.regulator}.`}
+            message={`Law to check for your country: ${residency.regulator}`}
+            description={'Our providers may process data in other countries. See the privacy policy for details and your rights.'}
             style={{ marginBottom: 16 }}
           />
         )}

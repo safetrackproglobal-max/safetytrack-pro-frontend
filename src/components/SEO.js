@@ -39,6 +39,7 @@ export default function Seo({ title, description, canonical, image, jsonLd }) {
     }
 
     if (canonical) {
+      upsert('meta[name="robots"]', 'meta', { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' });
       upsert('link[rel="canonical"]', 'link', { rel: 'canonical', href: canonical });
       upsert('meta[property="og:url"]', 'meta', { property: 'og:url', content: canonical });
     }

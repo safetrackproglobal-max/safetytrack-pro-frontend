@@ -1,5 +1,8 @@
 {
   "navigation": {
+    "reportConcern": "报告隐患",
+    "freeDocuments": "免费文档",
+    "trust": "信任",
     "home": "首页",
     "settings": "设置",
     "profile": "个人资料",
@@ -473,7 +476,6 @@
     "title": "联系我们的企业团队",
     "description": "对 SafeTrack Pro Global 有疑问？我们的企业团队将帮助您为组织找到合适的安全管理解决方案。",
     "responseTime": "24 小时内回复",
-    "isoCertified": "ISO 27001 认证",
     "multiLanguage": "支持 10 种语言",
     "formTitle": "给我们留言",
     "formSubtitle": "请填写以下表单，我们的团队将在 24 小时内回复您。",

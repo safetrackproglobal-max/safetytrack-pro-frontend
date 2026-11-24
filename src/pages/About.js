@@ -31,14 +31,14 @@ import {
 import './About.css';
 
 // ============================================================
-// AFDALTECH SOLUTIONS / SAFETRACK PRO GLOBAL
+// SAFETRACK PRO GLOBAL
 // About Us Page — International Edition
 // No external animation library required
 // ============================================================
 
 const COMPANY = {
   name: 'SafeTrack Pro Global',
-  parent: 'AfdalTech Solutions',
+  parent: 'SafeTrack Pro Global',
   tagline: 'The Future of Technology',
   email: 'info@safetrackproglobal.com',
   phone: '+974 3325 1705',
@@ -94,7 +94,7 @@ const About = () => {
           </h1>
 
           <p className="about-hero-subtitle">
-            We are {COMPANY.parent} — creators of {COMPANY.name}, an AI-powered
+            We are {COMPANY.name}, an AI-powered
             HSE, environmental, and compliance platform serving{' '}
             <strong>9+ industries</strong> across{' '}
             <strong>Qatar, the Middle East, Africa, and beyond</strong>.
@@ -247,7 +247,7 @@ const About = () => {
               { icon: <SmileOutlined />, title: 'Trust & Integrity', desc: 'We build tools that professionals can rely on when lives and livelihoods are at stake.' },
               { icon: <TeamOutlined />, title: 'Customer Obsessed', desc: 'Every feature, every fix, every improvement starts with listening to our users.' },
               { icon: <TrophyOutlined />, title: 'Excellence', desc: 'We deliver enterprise-grade quality — from the code we write to the support we provide.' },
-              { icon: <ClockCircleOutlined />, title: 'Reliability', desc: 'When professionals depend on us, we must be available, accurate, and fast.' },
+              { icon: <ClockCircleOutlined />, title: 'Reliability', desc: 'When professionals depend on us, we must be clear about what the software can and cannot do.' },
               { icon: <CrownOutlined />, title: 'Global Accessibility', desc: 'We make world-class safety technology affordable and accessible across the Middle East, Africa, Asia, and beyond.' }
             ].map((value, i) => (
               <div
@@ -284,8 +284,8 @@ const About = () => {
               'Live environmental monitoring with ESG and sustainability reporting',
               'Full document lifecycle: auto-generate, sign, approve, archive',
               'Configurable for 9+ industries — from construction to healthcare',
-              'Cloud-based with regional data residency options',
-              'Enterprise-grade security, SOC2, and ISO 27001 practices'
+              'Cloud-based: works in any modern browser',
+              'Plain-language pages on security, data and AI'
             ].map((point, i) => (
               <div
                 className="about-why-item reveal"
@@ -310,9 +310,8 @@ const About = () => {
               Headquartered in Doha.<br />Built for the World.
             </h2>
             <p className="about-reach-desc">
-              {COMPANY.parent} is a global technology company with headquarters in{' '}
-              <strong>Doha, Qatar</strong> and operations across the Middle East, Africa,
-              and Asia. Our mission: bring enterprise-grade HSE, environmental, and
+              {COMPANY.name} is based in{' '}
+              <strong>Doha, Qatar</strong> and available online worldwide. Our mission: bring enterprise-grade HSE, environmental, and
               compliance technology to organizations of every size — from single-site
               operations to multi-national enterprises.
             </p>
@@ -322,7 +321,7 @@ const About = () => {
               <h3>{COMPANY.name}</h3>
               <p className="about-reach-tagline">{COMPANY.tagline}</p>
               <p className="about-reach-sub">
-                A product of {COMPANY.parent} · {COMPANY.address}
+                {COMPANY.address}
               </p>
             </div>
           </div>
@@ -337,8 +336,7 @@ const About = () => {
           <div className="about-cta reveal">
             <h2 className="about-cta-title">Ready to Transform Your HSE Program?</h2>
             <p className="about-cta-desc">
-              Join safety, environmental, and compliance teams across 9+ industries worldwide
-              who trust {COMPANY.name} to keep their people safe and their operations compliant.
+              Try {COMPANY.name} free, read how we handle your data, and decide with the facts.
             </p>
 
             <div className="about-cta-actions">

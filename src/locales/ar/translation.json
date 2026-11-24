@@ -1,5 +1,8 @@
 {
   "navigation": {
+    "reportConcern": "أبلغ عن مشكلة",
+    "freeDocuments": "مستندات مجانية",
+    "trust": "الثقة",
     "home": "الرئيسية",
     "settings": "الإعدادات",
     "profile": "الملف الشخصي",
@@ -471,7 +474,6 @@
     "title": "تواصل مع فريق المؤسسات",
     "description": "لديك أسئلة حول SafeTrack Pro Global؟ فريق المؤسسات جاهز لمساعدتك في اختيار حل السلامة المناسب لمؤسستك.",
     "responseTime": "الرد خلال 24 ساعة",
-    "isoCertified": "حاصل على شهادة ISO 27001",
     "multiLanguage": "دعم بـ 10 لغات",
     "formTitle": "أرسل لنا رسالة",
     "formSubtitle": "املأ النموذج أدناه وسيرد فريقنا خلال 24 ساعة.",

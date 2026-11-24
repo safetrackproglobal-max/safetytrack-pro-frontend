@@ -17,14 +17,6 @@ export const CONTACT = {
   location: 'Doha, Qatar'
 };
 
-/* ------------------------------------------------------------
-   TRUST PAGE: fill this in once certificates/audits are confirmed.
-   Entries render as a status table on /trust. Leave empty to hide it.
-   Example:
-   { standard: 'ISO/IEC 27001', status: 'Certified', scope: 'Platform & hosting',
-     issuer: 'Certification body name', date: '2026-03-01' }
-   ------------------------------------------------------------ */
-export const TRUST_STATUS = [];
 
 /* ============================================================
    SOLUTION PAGES   ->  /<slug>
@@ -94,12 +86,12 @@ export const SOLUTIONS = [
       'Our AI-powered camera system detects PPE compliance, unsafe behavior, and hazardous conditions in real time, across every site, shift, and zone.',
     benefits: [
       {
-        title: 'Always-on coverage',
-        text: 'Monitoring runs 24/7 across every site and shift, so unsafe conditions are not missed between inspections.'
+        title: 'More eyes between inspections',
+        text: 'Monitoring runs while a camera session is on, adding to your inspections. It does not replace them, and it can miss hazards.'
       },
       {
         title: 'Instant alerts',
-        text: 'Safety violations trigger alerts to your team right away, so they can act before an incident occurs.'
+        text: 'Detected issues raise alerts for a trained person to check and act on.'
       },
       {
         title: 'Use the cameras you have',
@@ -112,7 +104,7 @@ export const SOLUTIONS = [
       'Restricted zone and hazard area enforcement',
       'Fire, smoke, and spill detection',
       'Works with your existing IP cameras',
-      '24/7 coverage across every site and shift'
+      'Results and history for review by your team'
     ],
     industries: ['construction', 'manufacturing', 'oil-and-gas', 'mining'],
     related: ['incident-reporting-software', 'ai-risk-assessment-software', 'hse-dashboard-software'],
@@ -344,7 +336,7 @@ export const SOLUTIONS = [
     benefits: [
       {
         title: 'Live environmental data',
-        text: 'Follow air, water, emissions, and carbon metrics as they change, with live sensors feeding the dashboard.'
+        text: 'Follow air, water, emissions and carbon records as your team enters or connects them, with area weather and air quality.'
       },
       {
         title: 'Predictions, not just readings',
@@ -360,7 +352,7 @@ export const SOLUTIONS = [
       'Emissions tracking',
       'Biodiversity and carbon footprint tracking',
       'Environmental health and sustainability index',
-      'Live sensor data',
+      'Readings you enter, import or connect',
       'AI predictions',
       'Automated ESG reporting',
       'Instant regulatory alerts'
@@ -571,7 +563,7 @@ export const SOLUTIONS = [
         text: 'See how your workforce is allocated across sections, shifts, and disciplines, including contractor vs. staff ratios.'
       },
       {
-        title: 'Certifications that never lapse',
+        title: 'Expiry dates in view',
         text: 'Automatic expiry alerts for certifications, medicals, and training keep records current.'
       },
       {
@@ -708,13 +700,13 @@ export const INDUSTRIES = [
     name: 'Healthcare',
     title: 'Healthcare HSE Software | SafeTrack Pro Global',
     description:
-      'Healthcare HSE software for patient safety, infection control, device compliance, and staff safety. Aligned with HIPAA and Joint Commission requirements.',
+      'Healthcare HSE software for patient safety, infection control, device compliance, and staff safety. Templates covering HIPAA and Joint Commission topics.',
     lead:
       'Patient safety, infection control, medical equipment compliance, and healthcare workforce protection across hospitals, clinics, and care facilities.',
     tags: ['Patient Safety', 'Infection Control', 'Device Compliance', 'Staff Safety'],
     highlights: [
-      'Aligned with HIPAA & Joint Commission requirements',
-      'Real-time patient monitoring',
+      'Templates covering HIPAA and Joint Commission topics',
+      'Patient safety events and actions',
       'Medication tracking',
       'Clinical incident reporting'
     ],
@@ -737,8 +729,8 @@ export const INDUSTRIES = [
     tags: ['Process Safety', 'HAZOP Studies', 'Permit-to-Work', 'Emergency Response'],
     highlights: [
       'Aligned with OSHA 1910.119 PSM',
-      'Real-time gas detection',
-      'Fire & gas mapping',
+      'Gas test records on permits',
+      'Fire and gas risk registers',
       'Offshore & onshore coverage'
     ],
     modules: [
@@ -852,7 +844,7 @@ export const INDUSTRIES = [
     tags: ['Geotechnical Safety', 'Ventilation', 'Equipment Tracking', 'Emergency Response'],
     highlights: [
       'Aligned with MSHA requirements',
-      'Gas detection',
+      'Gas test records',
       'Ground control monitoring',
       'Blast management'
     ],

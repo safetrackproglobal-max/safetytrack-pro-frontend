@@ -13,12 +13,16 @@ const source = fs.readFileSync(path.join(here, '../src/data/marketingPages.js'),
 const tmpFile = path.join(os.tmpdir(), `marketingPages-${Date.now()}.mjs`);
 fs.writeFileSync(tmpFile, source);
 
+const trustTmp = path.join(os.tmpdir(), `trustPages-${Date.now()}.mjs`);
+fs.writeFileSync(trustTmp, fs.readFileSync(path.join(here, '../src/data/trustPages.js'), 'utf8'));
+const { TRUST_PAGES, STATUS_ROWS, AI_WARNING, TRUST_META } = await import(pathToFileURL(trustTmp).href);
+fs.unlinkSync(trustTmp);
 const { SITE_URL, ALL_MARKETING_PATHS, SOLUTIONS, INDUSTRIES, COMPLIANCE_PAGES } = await import(pathToFileURL(tmpFile).href);
 fs.unlinkSync(tmpFile);
 
 // Existing app pages that should be indexed. Edit as needed.
 const LIBRARY = JSON.parse(fs.readFileSync(path.join(here, '../src/data/docLibraryIndex.json'), 'utf8'));
-const EXISTING = ['/', '/pricing', '/features', '/contact', '/voice', '/csp-practice-exam/free-test', '/free-safety-documents', ...LIBRARY.map((d) => `/free-safety-documents/${d.slug}`)];
+const EXISTING = ['/', '/pricing', '/features', '/contact', '/voice', '/about', '/terms', ...TRUST_PAGES.map((p) => p.path), '/csp-practice-exam/free-test', '/free-safety-documents', ...LIBRARY.map((d) => `/free-safety-documents/${d.slug}`)];
 const today = new Date().toISOString().slice(0, 10);
 
 const priority = (p) => {
@@ -71,6 +75,8 @@ const aiMap = {
     { url: `${SITE_URL}/voice`, title: 'Workplace Voice - find your company and report safely', category: 'portal', last_modified: today },
     { url: `${SITE_URL}/free-safety-documents`, title: 'Free safety documents and templates', category: 'library', last_modified: today },
     { url: `${SITE_URL}/csp-practice-exam/free-test`, title: 'Free CSP practice test (10 questions)', category: 'practice test', last_modified: today },
+    { url: `${SITE_URL}/trust`, title: TRUST_META.title, description: TRUST_META.description, category: 'trust', last_modified: today },
+    ...TRUST_PAGES.map((p) => ({ url: `${SITE_URL}${p.path}`, title: p.title, description: p.description, category: p.group === 'Trust' ? 'trust' : 'product guide', last_modified: today })),
     ...LIBRARY.map((d) => ({ url: `${SITE_URL}/free-safety-documents/${d.slug}`, title: d.title, description: d.description, category: 'free template', last_modified: today })),
     ...SOLUTIONS.map((p) => pageEntry(p, '/', 'solution')),
     ...INDUSTRIES.map((p) => pageEntry(p, '/industries/', 'industry')),
@@ -79,3 +85,17 @@ const aiMap = {
 };
 fs.writeFileSync(path.join(here, '../public/sitemap-ai.json'), `${JSON.stringify(aiMap, null, 2)}\n`);
 console.log(`Wrote ${aiMap.pages.length} pages to public/sitemap-ai.json`);
+
+// llms-full.txt: the guide and trust pages as plain text for AI assistants. llms.txt gets the same links.
+const md = (p) => [`# ${p.h1}`, `URL: ${SITE_URL}${p.path}`, '', p.lead, p.warning ? `\nNote: ${p.warning}` : '',
+  ...p.sections.flatMap((s) => ['', `## ${s.h}`, ...(s.list || []).map((x) => `- ${x}`), ...(s.steps || []).map((x, i) => `${i + 1}. ${x}`),
+    ...(s.table ? [s.table.head.join(' | '), ...s.table.rows.map((r) => r.join(' | '))] : []), ...(s.p || [])]),
+  ...(p.faqs.length ? ['', '## Questions', ...p.faqs.flatMap((f) => [`Q: ${f.q}`, `A: ${f.a}`])] : [])].join('\n');
+fs.writeFileSync(path.join(here, '../public/llms-full.txt'), [
+  '# SafeTrack Pro Global: facts, guides, data use and AI', '', AI_WARNING, '', '## Certification status', ...STATUS_ROWS.map(([a, b]) => `- ${a}: ${b}`), '',
+  [...TRUST_PAGES].reverse().map(md).join('\n\n---\n\n'), ''].join('\n'));
+const llmsFile = path.join(here, '../public/llms.txt');
+const block = `<!-- trust:start -->\n## Facts, trust and how each tool works\n\n${[...TRUST_PAGES].reverse().map((p) => `- [${p.nav}](${SITE_URL}${p.path}): ${p.lead}`).join('\n')}\n- [Trust centre](${SITE_URL}/trust): security measures and the certifications not held.\n- [Full text for AI assistants](${SITE_URL}/llms-full.txt)\n<!-- trust:end -->`;
+const llms = fs.readFileSync(llmsFile, 'utf8');
+fs.writeFileSync(llmsFile, /<!-- trust:start -->[\s\S]*<!-- trust:end -->/.test(llms) ? llms.replace(/<!-- trust:start -->[\s\S]*<!-- trust:end -->/, () => block) : llms.replace('## Main features', () => `${block}\n\n## Main features`));
+console.log('Wrote llms.txt and llms-full.txt');

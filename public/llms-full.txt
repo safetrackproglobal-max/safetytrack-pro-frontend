@@ -1,0 +1,473 @@
+# SafeTrack Pro Global: facts, guides, data use and AI
+
+AI can make mistakes. It can miss hazards, invent details or misread photos. A competent person must check every AI result independently before anyone relies on it.
+
+## Certification status
+- ISO/IEC 27001: Not certified
+- SOC 2: No report
+- HIPAA: Not certified; do not enter identifiable patient data
+- ISO 45001 / ISO 14001: Not certified; templates cover their topics
+- Uptime guarantee: No public guarantee
+- Choice of storage country: Not offered
+- Independent penetration test: None published. We test an isolated copy ourselves
+
+# SafeTrack Pro Global: the facts
+URL: https://www.safetrackproglobal.com/facts
+
+A single page with the correct answers about us, for buyers, journalists, search engines and AI assistants.
+
+
+## Key facts
+Question | Answer
+Name | SafeTrack Pro Global (also written SafeTrack Pro)
+Website | https://www.safetrackproglobal.com (domain registered July 15, 2026)
+What it is | Web-based health, safety and environment (HSE / EHS) software
+Location | Doha, Qatar
+Contact | info@safetrackproglobal.com, +974 3325 1705
+Price | Free plan; paid plans on the pricing page
+Works on | Any modern web browser on computer, tablet or phone
+Certifications | None. SafeTrack Pro Global does not hold ISO 27001, SOC 2, ISO 45001 or HIPAA certification
+AI used | DeepSeek model through Tencent Cloud TokenHub for text; our own server for photo and video detection
+
+## What it does
+- Incident and near-miss reporting, investigation and corrective actions
+- Permit to work
+- Daily AI toolbox talks
+- Workplace Voice: worker reporting by QR code or website, with anonymous, protected or named choices
+- AI-assisted safety documents, document control, review and signing
+- AI camera, photo and video checks for PPE and hazards
+- Environmental records and reports
+- CSP-style practice exam
+- 164 free editable safety documents
+
+## What it is not
+- Not an emergency service
+- Not a certification or accreditation body
+- Not affiliated with BCSP, OSHA, ISO or any regulator
+- Not a medical device
+- Not a replacement for a competent safety professional
+- Not related to SafeStart SafeTrack, MaxAccel SafeTrack, Brady SafeTrak, shipping companies with similar names, or GPS tracking apps
+
+## Words we use carefully
+“Helps with” or “based on” a standard means that templates and workflows follow its topics. It does not mean that we, or a customer using our software, are certified or compliant.
+We do not publish customer counts, accuracy percentages, ratings or testimonials that we cannot prove.
+
+## Questions
+Q: Is SafeTrack Pro Global ISO 27001 or SOC 2 certified?
+A: No. Some older pages said so; that was wrong and was corrected on November 24, 2026.
+Q: Is SafeTrack Pro Global a delivery or tracking company?
+A: No. It is workplace safety software and does not ship parcels.
+Q: Does it guarantee compliance or prevent all accidents?
+A: No. It helps people do and record safety work. The employer remains responsible.
+
+---
+
+# Privacy policy
+URL: https://www.safetrackproglobal.com/privacy
+
+Last updated November 24, 2026. This policy covers safetrackproglobal.com, the SafeTrack Pro app and the Workplace Voice reporting pages.
+
+
+## 1. Who we are
+SafeTrack Pro Global, Doha, Qatar. Contact for privacy: info@safetrackproglobal.com or +974 3325 1705.
+For records inside a company workspace, the customer company decides how they are used and we process them for it. For accounts, billing, security and our own website, we decide.
+
+## 2. What we collect
+The data use page lists every feature. In short: account details, company details, safety records, files, photos, videos and recordings you provide, exam results, payment references, messages to us, and technical data such as IP address and browser.
+
+## 3. Why we use it
+- To provide the service you or your company asked for
+- To keep accounts secure and prevent abuse
+- To handle payments and support
+- To meet legal duties
+- With your consent: AI, camera, microphone, uploads and marketing emails
+
+## 4. Photos, video, voice and AI
+We ask for acceptance before first use. Pictures are analysed on our own server. Text for AI goes to an outside provider. We do not use your content to train AI models. Details are on the AI transparency page.
+
+## 5. Who receives it
+Provider | What for | What they receive
+Railway | Application server, database and uploaded file storage | Account and company records, documents, photos, videos and recordings
+Vercel | Delivers the website and app screens | Technical connection data such as IP address and browser type
+Tencent Cloud TokenHub (DeepSeek model) | Writes and analyses text for AI features | The text you type or the records the AI feature uses. Photos and videos are not sent to it
+Groq (Whisper model), when voice transcription is switched on | Turns Workplace Voice recordings into text | The voice recording
+Your own browser maker (for example Google in Chrome) | Optional live speech-to-text while you record a Workplace Voice report | Your speech, if your browser supports this feature
+Paystack and PayPal | Payments | Payment details go to them. We keep the amount, plan, reference and status, not full card numbers
+WeatherAPI, ipapi.co | Weather and air quality for your area | Coordinates or city, or the IP address to estimate a city
+OpenStreetMap, Esri and other map providers | Map images and place search | The map area you view and your IP address
+Google Fonts, cdnjs, unpkg, LaunchIgniter | Fonts, code libraries and one badge image on public pages | IP address and browser type, as with any web request
+Our email provider | Account, security and notification emails | Your email address and the message
+Error monitoring (Sentry), when switched on | Finding software faults | Technical error details
+We may also disclose data when the law requires it or to protect people. We do not sell personal data.
+
+## 6. Countries
+Our providers may process data outside your country, including outside Qatar, the EU and the UK. We do not currently offer a choice of storage country. If your law needs a specific transfer agreement, contact us before you use the service.
+
+## 7. How long we keep it
+While your account or your company’s account is active. There is no automatic deletion of this content today. We answer deletion requests within 30 days; some records may be kept when the law requires it.
+
+## 8. Security
+- Encrypted connections (HTTPS)
+- Passwords stored as hashes, not readable text
+- Optional multi-factor login
+- Role-based access and separation between companies
+- Login limits, attack detection and IP blocking
+- Activity logs
+No system is perfectly secure. SafeTrack Pro Global does not hold ISO 27001, SOC 2 or HIPAA certification. Report a security problem to us and we will look into it.
+
+## 9. Your rights
+Depending on your law you can ask to see, correct, move, limit or delete your data, object to a use, or withdraw consent. Write to us. You may also complain to your data-protection authority. If your employer controls the data, we may refer you to them.
+
+## 10. Young people
+The service is for workplaces. People under 18 need a parent or guardian’s consent, and it is not for children under 13.
+
+## 11. Cookies and browser storage
+We use browser storage needed for login, language, settings, drafts and accepted notices. We do not use advertising cookies. Some outside providers listed above receive your IP address when the page loads their fonts, maps or images.
+
+## 12. Changes
+We will change the date above and ask logged-in users to accept important changes.
+
+---
+
+# AI transparency: what AI does, and what it gets wrong
+URL: https://www.safetrackproglobal.com/ai-transparency
+
+Where AI is used, what it receives, and why a person must always check the answer.
+
+Note: AI can make mistakes. It can miss hazards, invent details or misread photos. A competent person must check every AI result independently before anyone relies on it.
+
+## Two kinds of AI
+ | Text AI | Picture AI
+Used for | Documents, chat, investigations, toolbox talks, translation, exam questions, health and environmental text | PPE and hazard detection in photos, video and cameras
+Where it runs | Outside provider: a DeepSeek model through Tencent Cloud TokenHub | Our own server
+What it receives | What you type plus the records the feature needs, such as incident details | The picture or video frame
+Receives your photos? | No | Yes
+Kept by us | Prompts and answers may be kept in your history | Results
+
+## We ask before you use it
+Before you first open an AI tool, upload a file or use a camera, we show what will happen and ask you to accept. For logged-in users the acceptance is recorded with its date and version. If the notice changes, we ask again. A short warning stays visible on AI pages.
+If you do not accept, that feature stays closed. The rest of the app still works.
+
+## What AI can get wrong
+- Invent a regulation, clause number, limit value or quotation
+- Miss a hazard or report one that is not there
+- Use rules from the wrong country or an old edition
+- Translate a worker’s words incorrectly
+- Give a risk score that looks precise but is only an estimate
+- Reflect bias in the data it learned from
+
+## How to check a result
+1. Compare regulations and limits with the official text for your country.
+2. Compare with what is really on site.
+3. Have a competent person review, correct and approve it.
+4. Record who checked it.
+5. Never use AI output alone to start, stop or approve dangerous work.
+
+## Never rely on AI alone for
+- Emergency decisions
+- Gas test results, isolation or entry to confined spaces
+- Medical diagnosis or treatment
+- Structural, lifting or electrical design
+- Discipline or other decisions about a person
+- Legal or compliance sign-off
+
+## What not to type into AI
+- Passwords, card or ID numbers
+- Patient names or numbers
+- Names of people when a role is enough
+- Trade secrets or classified information
+
+## Health tools
+Symptom, lab and medical text tools give general information for qualified staff. They are not medical devices, they do not diagnose, and they are not certified for HIPAA or any other health-privacy scheme. Do not enter information that identifies a patient.
+
+## Report a bad answer
+Send the answer and what is wrong to info@safetrackproglobal.com. Please remove personal data first.
+
+## Questions
+Q: Which AI does SafeTrack Pro use?
+A: Text features use a DeepSeek model through Tencent Cloud TokenHub. Photo and video detection runs on our own server.
+Q: Can I rely on an AI-written risk assessment?
+A: Only after a competent person has checked it against the real work, site and law and approved it.
+Q: Can I refuse AI?
+A: Yes. Do not accept the AI notice. You can still use the features that do not need AI.
+
+---
+
+# How we use your data
+URL: https://www.safetrackproglobal.com/data-use
+
+Feature by feature: what we collect, why, where it goes, and whether AI touches it.
+
+
+## The short version
+- We do not sell your data and we show no third-party adverts
+- We do not use your photos, videos, recordings or documents to train AI models
+- Photos and video are analysed by a detector on our own server, not by a chatbot
+- Text used in AI features is sent to an outside AI provider, after you accept a notice
+- Your company controls the records in its workspace
+- You can ask for a copy or deletion at any time
+
+## Every feature that collects data
+Feature | What we collect | Why | Where it is kept | Does AI use it?
+Account and profile | Name, email, phone, country, role, company, profile photo | To log you in and show who did what | Database; photo in file storage. A profile photo can be opened by anyone who has its long random link | No
+Incident and near-miss reports | Description, people involved, location, photos, witness statements | To investigate and track actions | Your company workspace | Only if you use an AI helper: the text is sent
+Workplace Voice (public reporting) | Voice, photo, video, text, language, site. Name and contact only if the worker gives them | To send the concern to the right people | The reported company’s workspace | Text is translated and triaged; photos and video are checked by our own detector; voice may be transcribed
+AI camera: live camera or CCTV | Video frames while the camera is running | To detect people, PPE and hazards | Frames are analysed on our server and not saved as images by live analysis. Results and times may be kept | Yes: detector on our own server, not a text AI provider
+AI video and photo analysis | The video or photo you upload | To detect PPE and hazards | The uploaded video is deleted after analysis. Results are kept. Reports you create may contain still images | Yes: detector on our own server
+Environmental monitoring | Readings, sites, coordinates, map images, documents | Trends, weather, reports | Your company workspace | Only if you use an AI helper
+Documents, PDF editor, signatures | Files you upload or create, signature images | To edit, review, sign and store | Your company workspace. A signature image can be opened by anyone who has its long random link | Only if you use an AI helper: the text is sent
+AI documents and chat | What you type and the answer | To write the draft and show your history | Database, linked to your account | Yes: the text is sent to the AI text provider
+Health and hospital tools | Health text or results you choose to enter | To help qualified staff organise information | Database | Yes for AI tools: the text is sent. Remove names and patient numbers first
+Practice exam and certificate | Name, email, answers, score | To grade the practice exam and issue a certificate | Database. A certificate can be checked by anyone who has its ID | Questions are AI-assisted; grading is done by our server
+Free documents and free test | The text, company name and logo you add | To make your PDF | Your draft stays in your browser. It is sent to our server only to build the PDF | No
+Contact and demo forms | Name, email, message | To answer you | Email and database | No
+Security logs | IP address, browser, time and action | To stop attacks and keep an audit trail | Database and hosting logs | No
+
+## Photos and video
+- The browser asks before using your camera or microphone, and we show our own notice before the first use
+- Incident, permit and document photos are kept with the record
+- Live camera frames are analysed and not saved as images by live analysis
+- Uploaded analysis videos are deleted after analysis
+- Workplace Voice photos, videos and recordings are kept with the report
+- Only upload pictures of people if you are allowed to. Avoid faces when they are not needed
+
+## Location
+Your browser asks before sharing exact location. We use it for weather, maps and the site of a record. If you refuse, weather may use an approximate city from your IP address.
+
+## Storage in your browser
+We use browser storage, not advertising cookies, to keep you logged in, remember language and settings, keep unsent drafts, and remember that you accepted a notice. Clearing your browser data removes it.
+
+## Who processes data for us
+Provider | What for | What they receive
+Railway | Application server, database and uploaded file storage | Account and company records, documents, photos, videos and recordings
+Vercel | Delivers the website and app screens | Technical connection data such as IP address and browser type
+Tencent Cloud TokenHub (DeepSeek model) | Writes and analyses text for AI features | The text you type or the records the AI feature uses. Photos and videos are not sent to it
+Groq (Whisper model), when voice transcription is switched on | Turns Workplace Voice recordings into text | The voice recording
+Your own browser maker (for example Google in Chrome) | Optional live speech-to-text while you record a Workplace Voice report | Your speech, if your browser supports this feature
+Paystack and PayPal | Payments | Payment details go to them. We keep the amount, plan, reference and status, not full card numbers
+WeatherAPI, ipapi.co | Weather and air quality for your area | Coordinates or city, or the IP address to estimate a city
+OpenStreetMap, Esri and other map providers | Map images and place search | The map area you view and your IP address
+Google Fonts, cdnjs, unpkg, LaunchIgniter | Fonts, code libraries and one badge image on public pages | IP address and browser type, as with any web request
+Our email provider | Account, security and notification emails | Your email address and the message
+Error monitoring (Sentry), when switched on | Finding software faults | Technical error details
+These companies may process data in countries other than yours. We do not currently offer a choice of country for storage.
+
+## How long we keep it
+We keep your account and company records while the account is active, because safety records are often needed for years. There is no automatic deletion of this content today. When you ask us to delete data, we answer within 30 days. Some records may be kept if the law or your company’s legal duties require it, and copies in backups may take longer to disappear.
+
+## Ask for a copy, a correction or deletion
+Write to info@safetrackproglobal.com from your account email. Say what you want: copy, correction, deletion, or to stop an AI use. If your data is in your employer’s workspace, we may need to refer you to your employer.
+
+## Questions
+Q: Do you sell my data?
+A: No.
+Q: Do you train AI on my photos or documents?
+A: No. The AI text provider processes text under its own terms to produce the answer.
+Q: Who can see my company’s records?
+A: People in your company with the right role. A small number of SafeTrack platform administrators can access data to run, support and secure the service.
+
+---
+
+# Workplace Voice: how reporting works and who sees what
+URL: https://www.safetrackproglobal.com/anonymous-safety-reporting/how-it-works
+
+A plain answer for workers and companies: what happens after you press Send.
+
+Note: SafeTrack Pro is not an emergency service. If someone is in danger, call your local emergency number and follow your site emergency plan first. AI can make mistakes. It can miss hazards, invent details or misread photos. A competent person must check every AI result independently before anyone relies on it.
+
+## How to report
+1. Scan your company’s QR code or find your company on the Workplace Voice page.
+2. Choose your language and the type of concern.
+3. Read the notice and accept it.
+4. Speak, take a photo or video, or type.
+5. Choose anonymous, protected or named, and press Send.
+6. Save your tracking code. It is the only way to follow an anonymous report.
+
+## Who sees your name
+Your choice | Your company sees | SafeTrack sees
+Anonymous | The report. No name or contact is asked for | The report. No name or contact
+Protected | The report without your name | Your name and contact. Only platform administrators can open it, and each view is logged
+Named | The report with your name and contact | The same
+
+## What anonymous cannot hide
+- Your voice, face, clothes or handwriting in a recording or photo
+- Details only you would know
+- What you write in the text yourself
+- Use on a company phone or company Wi-Fi that your employer may monitor
+If you need strong anonymity, type instead of speaking, do not film people, and use your own phone and network.
+
+## Technical data we keep
+To stop spam we store a one-way code made from your network address and a random device number, not the address itself. The company does not see it. Our hosting providers handle your IP address to deliver the page, and our security log can record an IP address when an attack or flood is detected.
+Photos are re-saved, which removes hidden location data (EXIF and GPS). Video and voice files are stored as recorded and may contain hidden data.
+
+## What AI does with a report
+- Translates and summarises the text, and suggests a category and risk level, using our AI text provider
+- May turn a voice recording into text using a speech service
+- Checks photos and video frames for PPE and hazards on our own server
+- It does not decide the outcome. People at the company do
+
+## After you send it
+The people your company chose are notified. You can follow progress and answer questions with your tracking code. SafeTrack does not investigate the report and cannot promise what the company will do.
+Reward points, where a company offers them, use an alias and a PIN. The company sees the alias, not who you are.
+
+## Retaliation and legal rights
+Workplace Voice does not replace your right to contact a regulator, a union, the police or a lawyer. Use those routes if you are threatened or your concern is ignored.
+
+## Questions
+Q: Can my company find out who sent an anonymous report?
+A: The report contains no name or contact unless you add one. But your voice, a photo or details in your text could still identify you.
+Q: Do I need an account?
+A: No. You can report from a QR code or the website without an account.
+Q: Can I delete my report?
+A: Write to info@safetrackproglobal.com with your tracking code. We will pass the request to the company, which may need to keep some safety records by law.
+
+---
+
+# How environmental monitoring works
+URL: https://www.safetrackproglobal.com/environmental-monitoring-software/how-it-works
+
+Which numbers are measured by you, which come from a public service, which are calculated, and how far to trust each one.
+
+Note: AI can make mistakes. It can miss hazards, invent details or misread photos. A competent person must check every AI result independently before anyone relies on it.
+
+## Where the numbers come from
+Data | Source | Use it as
+Weather and area air quality | A weather service (WeatherAPI) for your coordinates or city | General information about the area, not a site measurement
+Water, emissions, noise and waste readings | What your team enters, imports or connects | Your records, as accurate as your instruments and sampling
+Maps and satellite images | OpenStreetMap, Esri and other map providers | Background. Images may be old
+ESG and compliance scores | Calculated from your own records | A management indicator, not an audit result
+Predictions and AI text | Statistical models and an AI text provider | An estimate to check, never proof of compliance
+
+## What you can do
+- Record readings per site and see trends
+- Set alerts for limits you choose
+- Map sites and observations
+- Write environmental plans and reports
+- Keep an audit trail of who entered what
+
+## What it does not replace
+- Calibrated instruments and accredited laboratories
+- Permits, statutory monitoring and reporting
+- An environmental professional’s judgement
+- Emergency gas or chemical alarms
+
+## Photos, video and location
+If you use a photo, video or your device location, the browser asks first. Location is used for weather and maps. Images are used for the analysis or record you asked for. See the data use page for storage.
+
+## Questions
+Q: Is the air quality value measured at my site?
+A: Not unless you enter or connect your own readings. The automatic value comes from a weather service for the area.
+Q: Can I use an AI prediction as compliance evidence?
+A: No. Use measured results from suitable instruments or laboratories, checked by a competent person.
+
+---
+
+# How AI camera monitoring works
+URL: https://www.safetrackproglobal.com/ai-camera-monitoring/how-it-works
+
+What the camera tool looks for, what happens to the picture, and what your organisation must do before switching it on.
+
+Note: AI can make mistakes. It can miss hazards, invent details or misread photos. A competent person must check every AI result independently before anyone relies on it.
+
+## Three ways to use it
+Mode | What you do | What happens to the picture
+Device camera | Allow the browser to use your phone or laptop camera | Frames are sent to our server, analysed in memory and not saved as images by live analysis
+CCTV or IP camera | Enter the stream address of a camera you are allowed to use | The server reads frames while the session runs and shows them to you with results
+Upload a video | Choose a video file | It is saved temporarily, analysed and deleted. Results stay in your history
+
+## What it tries to detect
+- People on site
+- Hard hats, vests and other PPE, or missing PPE
+- Vehicles, machinery and some visible hazards
+- A risk level calculated from what was found
+
+## What it does not do
+- No face recognition and no identification of people by name
+- No voice recording
+- No decisions about discipline, pay or employment
+- No guarantee that a hazard will be found or that an alert is correct
+- Not a fire alarm, gas detector, machine guard or other safety-rated device
+
+## Why results can be wrong
+- Poor light, rain, dust, glare or low resolution
+- People far away, hidden or facing away
+- Unusual PPE colours or equipment
+- Network delay: only some frames are analysed
+
+## Before you switch it on
+1. Check that you have a lawful reason to film and tell workers with clear signs.
+2. Complete any privacy assessment or worker consultation your law requires.
+3. Do not film toilets, changing rooms, rest areas, medical areas or people who must not be filmed.
+4. Limit who can see results.
+5. Have a trained person check every alert before acting on it.
+
+## Who is responsible
+The company that runs the camera decides why and how people are filmed. SafeTrack Pro processes the frames for that company. If you are a worker and want to know about a camera at your site, ask your employer first, or write to us and we will pass it on.
+
+## Questions
+Q: Are my camera images stored?
+A: Live camera frames are analysed on our server and not saved as images by live analysis. Uploaded videos are deleted after analysis. Detection results are kept in your history.
+Q: Does it use face recognition?
+A: No. It detects objects such as people, helmets and vests. It does not identify who a person is.
+Q: Is camera video sent to a chatbot AI?
+A: No. Detection runs with a computer-vision model on our own server.
+
+---
+
+# Practice exam and certificate: the complete guide
+URL: https://www.safetrackproglobal.com/csp-practice-exam/exam-guide
+
+What each exam mode is, how it is scored, what the certificate means, and what it does not mean.
+
+Note: Independent practice tool. CSP® is a registered mark of the Board of Certified Safety Professionals (BCSP). SafeTrack Pro Global is not affiliated with or endorsed by BCSP, and passing does not grant the CSP credential or CEUs.
+
+## The two exam modes
+ | Free test | Full practice exam
+Account needed | No | Yes, a free account is enough
+Questions | 10, with explanations | 100 scenario-based questions
+Time | No limit | 4 hours, then it is submitted automatically
+How often | Any time | Free account: one full exam every 24 hours. Paid plans: more, within fair-use limits
+Result | Score and topics to study | Score, result band and explanations
+Certificate | No | Certificate of completion with a paid plan, after passing
+
+## How the full exam runs
+1. Log in and open AI Documents, then Exams & Verification.
+2. Enter the name you want on the result and choose the exam.
+3. Answer 100 questions. The timer keeps running; you can move between questions.
+4. Submit, or let the timer submit for you.
+5. Our server grades the answers. The correct answers are not sent to your browser before you submit.
+6. Read the explanations and study the weak topics.
+
+## Scoring and result bands
+- Pass: 70% or more
+- Bronze: 75% or more
+- Silver: 80% or more
+- Gold: 85% or more
+- Platinum: 90% or more
+The bands are our own labels for practice results. They are not an industry grade, and they do not predict your score on the real CSP exam.
+
+## What the certificate of completion says
+- Your name, the practice exam, your score and date
+- A unique ID starting with STP- that anyone can check online
+- That it records completion of a practice exam by SafeTrack Pro Global
+
+## What the certificate is not
+- Not the CSP® credential and not issued by BCSP
+- No CEUs, CPD points or licence
+- Not accredited by any accreditation body
+- Not proof that a person is competent for a job: employers must check that themselves
+
+## Where the questions come from
+Questions follow the publicly published topics of the CSP exam outline. They are our own practice questions and AI helps to write them. They are not real exam questions.
+A question or explanation may be wrong or out of date. Check it against the current regulation or standard, and tell us so we can correct it.
+
+## Your exam data
+We keep your name, email, answers and score so we can grade the exam, show your history and verify the certificate. Verification shows certificate details to anyone who has the ID.
+
+## Questions
+Q: Is this the official CSP exam?
+A: No. It is an independent practice exam. The official CSP exam is run only by BCSP.
+Q: Is the full exam free?
+A: Yes. A free account can take one full 100-question exam every 24 hours. A paid plan is needed for the certificate of completion.
+Q: Does the certificate give CEUs?
+A: No. It is a certificate of completion for a practice exam and carries no CEUs or accreditation.

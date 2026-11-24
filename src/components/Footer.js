@@ -6,12 +6,8 @@ import {
   PhoneOutlined,
   EnvironmentOutlined,
   GlobalOutlined,
-  SafetyCertificateOutlined,
   LinkedinOutlined,
-  TwitterOutlined,
-  FacebookOutlined,
-  YoutubeOutlined,
-  CheckCircleOutlined
+  FacebookOutlined
 } from '@ant-design/icons';
 import ContactBrandInfo from "./ContactBrandInfo";
 import "./Footer.css";
@@ -52,16 +48,6 @@ function Footer() {
               chemical, healthcare, and education — one platform.
             </p>
 
-            {/* Trust badges */}
-            <div className="footer-trust-badges" style={{ marginBottom: '20px' }}>
-              <span className="footer-trust-badge">
-                <SafetyCertificateOutlined /> Aligned with ISO 27001
-              </span>
-              <span className="footer-trust-badge">
-                <CheckCircleOutlined /> SOC 2 aligned controls
-              </span>
-            </div>
-
             {/* ✅ LaunchIgniter Badge */}
             <div className="footer-launch-badge" style={{ marginBottom: '20px' }}>
               <a 
@@ -81,17 +67,11 @@ function Footer() {
 
             {/* Social */}
             <div className="footer-social">
-              <a href="https://twitter.com/safetrackproglobal" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
-                <TwitterOutlined />
-              </a>
               <a href="https://linkedin.com/company/safetrackproglobal" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
                 <LinkedinOutlined />
               </a>
               <a href="https://facebook.com/safetrackproglobal" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
                 <FacebookOutlined />
-              </a>
-              <a href="https://youtube.com/@safetrackproglobal" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
-                <YoutubeOutlined />
               </a>
             </div>
           </div>
@@ -150,6 +130,7 @@ function Footer() {
               <Link to="/toolbox-talk-generator">AI Toolbox Talks</Link>
               <Link to="/anonymous-safety-reporting">Anonymous Reporting</Link>
               <Link to="/csp-practice-exam">CSP Practice Exam</Link>
+              <Link to="/csp-practice-exam/free-test">Free Practice Test</Link>
               <Link to="/free-safety-documents">Free Safety Documents</Link>
               <Link to="/demo">Request a Demo</Link>
             </div>
@@ -180,11 +161,12 @@ function Footer() {
             </div>
 
             <div className="link-group">
-              <h4>Resources</h4>
-              <Link to="/info/documentation">Documentation</Link>
-              <Link to="/info/guides">Guides</Link>
-              <Link to="/info/blog">Blog</Link>
-              <Link to="/info/api-docs">API Docs</Link>
+              <h4>How It Works</h4>
+              <Link to="/csp-practice-exam/exam-guide">Exam &amp; Certificate Guide</Link>
+              <Link to="/ai-camera-monitoring/how-it-works">AI Camera Guide</Link>
+              <Link to="/environmental-monitoring-software/how-it-works">Environmental Guide</Link>
+              <Link to="/anonymous-safety-reporting/how-it-works">Workplace Voice Guide</Link>
+              <Link to="/voice">Report a Concern</Link>
               <Link to="/info/support">Support</Link>
             </div>
 
@@ -193,20 +175,21 @@ function Footer() {
               <Link to="/about">About Us</Link>
               <Link to="/contact">Contact</Link>
               <Link to="/info/careers">Careers</Link>
-              <Link to="/trust">Trust &amp; Security</Link>
+              <Link to="/facts">Company Facts</Link>
+              <Link to="/trust">Trust Centre</Link>
               <Link to="/info/partners">Partners</Link>
             </div>
 
             <div className="link-group">
-              <h4>Legal</h4>
+              <h4>Trust &amp; Legal</h4>
+              <Link to="/data-use">How We Use Your Data</Link>
+              <Link to="/ai-transparency">AI Transparency</Link>
               <Link to="/terms">Terms of Service</Link>
               <Link to="/privacy">Privacy Policy</Link>
-              <Link to="/info/cookies">Cookie Policy</Link>
               <Link to="/compliance/osha">OSHA</Link>
               <Link to="/compliance/iso-45001">ISO 45001</Link>
               <Link to="/compliance/iso-14001">ISO 14001</Link>
               <Link to="/compliance/hipaa">HIPAA</Link>
-              <Link to="/info/sla">SLA</Link>
             </div>
           </div>
         </div>
@@ -218,11 +201,9 @@ function Footer() {
 
         <div className="footer-bottom">
           <p className="footer-copyright">
-            © {currentYear} <strong>AfdalTech Solutions</strong>. All rights reserved.
+            © {currentYear} <strong>SafeTrack Pro Global</strong>. All rights reserved.
             <span className="footer-separator">•</span>
-            SafeTrack Pro Global™
-            <span className="footer-separator">•</span>
-            Headquartered in Doha, Qatar
+            Doha, Qatar
           </p>
 
           <div className="footer-bottom-links">
@@ -230,9 +211,9 @@ function Footer() {
             <span className="footer-separator">•</span>
             <Link to="/terms">Terms</Link>
             <span className="footer-separator">•</span>
-            <Link to="/info/cookies">Cookies</Link>
+            <Link to="/data-use">Data use</Link>
             <span className="footer-separator">•</span>
-            <Link to="/info/sla">SLA</Link>
+            <Link to="/ai-transparency">AI can make mistakes: verify results</Link>
           </div>
         </div>
       </div>

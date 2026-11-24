@@ -16,8 +16,8 @@ import {
 import './TermsPolicy.css';
 
 export default function TermsPolicy() {
-  const lastUpdated = 'September 16, 2026';
-  const companyName = 'Abigalistic Studios';
+  const lastUpdated = 'November 24, 2026';
+  const companyName = 'SafeTrack Pro Global';
   const productName = 'SafeTrack Pro Global';
   const contactEmail = 'info@safetrackproglobal.com';
   const contactPhone = '+974 3325 1705';
@@ -40,9 +40,6 @@ export default function TermsPolicy() {
         <div className="terms-meta">
           <span className="terms-meta-item">
             <CheckCircleOutlined /> Last Updated: {lastUpdated}
-          </span>
-          <span className="terms-meta-item">
-            <SafetyCertificateOutlined /> ISO 27001 Compliant
           </span>
         </div>
       </header>
@@ -69,8 +66,7 @@ export default function TermsPolicy() {
         <article id="acceptance" className="terms-article">
           <h2>1. Acceptance of Terms</h2>
           <p>
-            By accessing or using <strong>{productName}</strong> (the "Service"), operated by{' '}
-            <strong>{companyName}</strong> ("we," "us," or "our"), you agree to be bound by
+            By accessing or using <strong>{productName}</strong> (the "Service", "we," "us," or "our"), you agree to be bound by
             these Terms and Conditions ("Terms"). If you do not agree to all of these Terms,
             you must not access or use the Service.
           </p>
@@ -95,7 +91,7 @@ export default function TermsPolicy() {
             <li>AI camera monitoring with PPE detection and hazard identification</li>
             <li>Live environmental monitoring (air, water, emissions, carbon footprint)</li>
             <li>Permit to Work (PTW) system with audit trails</li>
-            <li>HSE exams and professional certification tracking</li>
+            <li>Practice exams and training and certification tracking</li>
           </ul>
           <p className="terms-note">
             <WarningOutlined /> <strong>Professional Review Required:</strong> All
@@ -201,28 +197,32 @@ export default function TermsPolicy() {
           </p>
           <ul className="terms-list">
             <li>
-              <strong>Encryption:</strong> All data is encrypted in transit (TLS 1.3) and at
-              rest (AES-256)
+              <strong>Encryption:</strong> Connections to the Service use HTTPS
             </li>
             <li>
-              <strong>Certifications:</strong> Our platform is ISO 27001 and SOC2 Type II
-              compliant
+              <strong>Certifications:</strong> We do not hold ISO 27001, SOC 2 or HIPAA
+              certification. See the <Link to="/trust">Trust centre</Link>
             </li>
             <li>
               <strong>Access control:</strong> Role-based access ensures only authorized users
               can view sensitive data
             </li>
             <li>
-              <strong>No third-party sharing:</strong> We do not sell or share your data with
-              third parties except as necessary to provide the Service or as required by law
+              <strong>Providers:</strong> We do not sell your data. Providers that process it for
+              us, including AI providers, are listed on the <Link to="/data-use">data use page</Link>
             </li>
             <li>
-              <strong>Data retention:</strong> Data is retained only as long as necessary for
-              the Service and to meet legal obligations
+              <strong>Data retention:</strong> Data is kept while the account is active and
+              deleted on request, unless the law requires us to keep it
             </li>
             <li>
               <strong>Your rights:</strong> You may request access, correction, or deletion of
               your data at any time
+            </li>
+            <li>
+              <strong>AI and media:</strong> Before you first use AI, a camera or file upload we
+              show a notice for you to accept. AI can make mistakes: verify every result
+              independently. See <Link to="/ai-transparency">AI transparency</Link>
             </li>
           </ul>
           <p>
@@ -324,15 +324,14 @@ export default function TermsPolicy() {
         <div className="privacy-content">
           <p>
             Your privacy is fundamental to how we operate {productName}. We are committed to
-            protecting your personal and organizational data through industry-leading security
-            practices and transparent data handling.
+            protecting your personal and organizational data and to saying clearly how it is used.
           </p>
 
           <div className="privacy-highlights">
             <div className="privacy-highlight">
               <div className="privacy-icon"><LockOutlined /></div>
-              <h3>Encrypted Storage</h3>
-              <p>All data encrypted with AES-256 at rest and TLS 1.3 in transit</p>
+              <h3>Encrypted Connections</h3>
+              <p>The site and app use HTTPS. Passwords are stored as hashes</p>
             </div>
             <div className="privacy-highlight">
               <div className="privacy-icon"><UserOutlined /></div>
@@ -341,13 +340,13 @@ export default function TermsPolicy() {
             </div>
             <div className="privacy-highlight">
               <div className="privacy-icon"><SafetyCertificateOutlined /></div>
-              <h3>Certified Security</h3>
-              <p>ISO 27001 and SOC2 Type II compliant platform</p>
+              <h3>Honest Status</h3>
+              <p>No security certification is held today. The Trust centre lists what protects your data</p>
             </div>
             <div className="privacy-highlight">
               <div className="privacy-icon"><CheckCircleOutlined /></div>
               <h3>No Data Selling</h3>
-              <p>We never sell or share your data with third parties for marketing</p>
+              <p>We never sell your data or share it with third parties for marketing</p>
             </div>
           </div>
 

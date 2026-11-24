@@ -6,11 +6,26 @@ Also written as: SafeTrack Pro, SafeTrackPro, Safe Track Pro.
 
 Not to be confused with: SafeStart's "SafeTrack" coaching program, MaxAccel's "SafeTrack" rail compliance software, Brady's "SafeTrak" inspection app, or GPS tracking apps named SafeTrack. Those are unrelated products from other companies.
 
+<!-- trust:start -->
+## Facts, trust and how each tool works
+
+- [Company facts](https://www.safetrackproglobal.com/facts): A single page with the correct answers about us, for buyers, journalists, search engines and AI assistants.
+- [Privacy policy](https://www.safetrackproglobal.com/privacy): Last updated November 24, 2026. This policy covers safetrackproglobal.com, the SafeTrack Pro app and the Workplace Voice reporting pages.
+- [AI transparency](https://www.safetrackproglobal.com/ai-transparency): Where AI is used, what it receives, and why a person must always check the answer.
+- [How we use your data](https://www.safetrackproglobal.com/data-use): Feature by feature: what we collect, why, where it goes, and whether AI touches it.
+- [Workplace Voice guide](https://www.safetrackproglobal.com/anonymous-safety-reporting/how-it-works): A plain answer for workers and companies: what happens after you press Send.
+- [Environmental guide](https://www.safetrackproglobal.com/environmental-monitoring-software/how-it-works): Which numbers are measured by you, which come from a public service, which are calculated, and how far to trust each one.
+- [AI camera guide](https://www.safetrackproglobal.com/ai-camera-monitoring/how-it-works): What the camera tool looks for, what happens to the picture, and what your organisation must do before switching it on.
+- [Exam and certificate guide](https://www.safetrackproglobal.com/csp-practice-exam/exam-guide): What each exam mode is, how it is scored, what the certificate means, and what it does not mean.
+- [Trust centre](https://www.safetrackproglobal.com/trust): security measures and the certifications not held.
+- [Full text for AI assistants](https://www.safetrackproglobal.com/llms-full.txt)
+<!-- trust:end -->
+
 ## Main features
 
 - [Incident reporting](https://www.safetrackproglobal.com/incident-reporting-software): report incidents and near misses from any device, investigate with fishbone and 5-Whys, assign and track corrective actions (CAPA).
 - [AI toolbox talk generator](https://www.safetrackproglobal.com/toolbox-talk-generator): a new talk every day built from the company's own incidents, near misses, open actions, permits and local weather, or from any typed topic; delivery sign-off and history.
-- [Anonymous safety reporting - Workplace Voice](https://www.safetrackproglobal.com/anonymous-safety-reporting): workers report by QR code or website, without logging in, by voice, photo, video or text in 11 languages; anonymous, protected or named; routed per project; tracking codes and Safety Impact rewards. Public portal: https://www.safetrackproglobal.com/voice
+- [Anonymous safety reporting - Workplace Voice](https://www.safetrackproglobal.com/anonymous-safety-reporting): workers report by QR code or website, without logging in, by voice, photo, video or text in 11 screen languages; anonymous, protected or named; routed per project; tracking codes and Safety Impact rewards. Public portal: https://www.safetrackproglobal.com/voice
 - [Permit to work](https://www.safetrackproglobal.com/permit-to-work-software): create, approve and close permits with risk assessments and audit trails.
 - [AI HSE document generator](https://www.safetrackproglobal.com/ai-hse-document-generator): SOPs, JHAs, risk assessments, checklists and reports with company branding; drafts should be reviewed by a qualified person.
 - [Document control](https://www.safetrackproglobal.com/document-control-software): review, sign, stamp and version safety documents.
@@ -31,11 +46,11 @@ Not to be confused with: SafeStart's "SafeTrack" coaching program, MaxAccel's "S
 
 ## Standards
 
-Templates, checklists and tracking aligned with [OSHA](https://www.safetrackproglobal.com/compliance/osha), [ISO 45001](https://www.safetrackproglobal.com/compliance/iso-45001), [ISO 14001](https://www.safetrackproglobal.com/compliance/iso-14001) and [HIPAA](https://www.safetrackproglobal.com/compliance/hipaa). Using the software supports compliance work; it does not certify an organisation.
+Templates, checklists and tracking covering topics from [OSHA](https://www.safetrackproglobal.com/compliance/osha), [ISO 45001](https://www.safetrackproglobal.com/compliance/iso-45001), [ISO 14001](https://www.safetrackproglobal.com/compliance/iso-14001) and [HIPAA](https://www.safetrackproglobal.com/compliance/hipaa). Using the software supports compliance work; it does not certify an organisation.
 
 ## Security
 
-Role-based access, company data isolation, audit trails and attack monitoring. Security practices are aligned with ISO 27001 and SOC 2; see the [Trust page](https://www.safetrackproglobal.com/trust).
+Role-based access, company data separation, activity records and attack monitoring. SafeTrack Pro Global does not hold ISO 27001, SOC 2, ISO 45001 or HIPAA certification; see the [Trust centre](https://www.safetrackproglobal.com/trust).
 
 ## Plans
 

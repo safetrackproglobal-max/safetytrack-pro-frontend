@@ -5,6 +5,8 @@ import IndustryPage from './IndustryPage';
 import CompliancePage from './CompliancePage';
 import TrustPage from './TrustPage';
 import DemoPage from './DemoPage';
+import TrustContentPage from './TrustContentPage';
+import { TRUST_PAGES } from '../../data/trustPages';
 
 /**
  * Every marketing route as { path, element }.
@@ -26,6 +28,7 @@ export const marketingRoutes = [
     path: `/compliance/${p.slug}`,
     element: <CompliancePage slug={p.slug} />
   })),
+  ...TRUST_PAGES.map((p) => ({ path: p.path, element: <TrustContentPage path={p.path} /> })),
   { path: '/trust', element: <TrustPage /> },
   { path: '/demo', element: <DemoPage /> }
 ];

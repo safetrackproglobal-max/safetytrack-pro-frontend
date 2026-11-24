@@ -130,7 +130,7 @@ const SubscriptionPage = () => {
         "Custom workflows & forms",
         "API Integration",
         "Advanced analytics & custom dashboards",
-        "Dedicated infrastructure (SLA)",
+        "Support terms agreed in your contract",
         "On-premise deployment options",
         "Dedicated account manager & support",
         "Custom training & onboarding",
@@ -520,7 +520,7 @@ const SubscriptionPage = () => {
                   <CheckCircleOutlined /> Dedicated Support Team
                 </div>
                 <div className="enterprise-feature">
-                  <CheckCircleOutlined /> HIPAA Compliance
+                  <CheckCircleOutlined /> Healthcare modules
                 </div>
                 <div className="enterprise-feature">
                   <CheckCircleOutlined /> On-premise Deployment

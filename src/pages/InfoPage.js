@@ -34,9 +34,9 @@ const SECTIONS = {
   documentation: {
     title: 'Documentation',
     icon: <BookOutlined />,
-    tagline: 'Complete product documentation is on the way.',
+    tagline: 'Product guides and how each tool works.',
     description:
-      'Step-by-step guides, API references, and configuration manuals for every SafeTrack Pro module. Whether you are onboarding a new team or rolling out a new site, everything you need is here.',
+      'Public guides explain the practice exam, AI cameras, environmental monitoring, Workplace Voice, data use and AI. More help is inside the app.',
     bullets: [
       'Getting started guide for new teams',
       'Module-by-module configuration walkthroughs',
@@ -44,7 +44,6 @@ const SECTIONS = {
       'Admin, security, and integration reference'
     ],
     status: 'coming-soon',
-    eta: 'Q1 2026',
     related: ['guides', 'api-docs', 'support']
   },
   guides: {
@@ -61,23 +60,21 @@ const SECTIONS = {
       'Mining: ventilation, blasting, ground control'
     ],
     status: 'coming-soon',
-    eta: 'Q1 2026',
     related: ['documentation', 'blog', 'support']
   },
   blog: {
     title: 'Insights & Blog',
     icon: <FileTextOutlined />,
-    tagline: 'Safety intelligence, delivered weekly.',
+    tagline: 'Safety articles are planned.',
     description:
-      'Deep dives into regulatory changes, AI in HSE, and lessons from the field. Written by our team and guest experts across the industries we serve.',
+      'Planned articles on regulatory changes, AI in HSE and lessons from the field.',
     bullets: [
       'Regulatory updates across regions',
-      'Case studies from real customers',
+      'Practical lessons from the field',
       'AI and automation in HSE',
       'Compliance strategy and best practices'
     ],
     status: 'coming-soon',
-    eta: 'Q1 2026',
     related: ['guides', 'documentation', 'compliance']
   },
   'api-docs': {
@@ -88,12 +85,11 @@ const SECTIONS = {
       'REST endpoints, webhooks, and SDKs for integrating SafeTrack Pro with your existing systems. Full OpenAPI specification, interactive playground, and code samples in multiple languages.',
     bullets: [
       'REST API reference with interactive examples',
-      'Authentication (OAuth 2.0 + JWT)',
+      'Authentication',
       'Webhooks for incidents, documents, and compliance events',
       'Sample SDKs: Python, Node.js, cURL'
     ],
     status: 'coming-soon',
-    eta: 'Q2 2026',
     related: ['documentation', 'partners', 'security']
   },
   support: {
@@ -101,12 +97,12 @@ const SECTIONS = {
     icon: <QuestionCircleOutlined />,
     tagline: "We're here to help.",
     description:
-      'Search the knowledge base or reach our team directly. Enterprise customers get 24/7 priority support with a dedicated account manager.',
+      'Reach our team by email, phone, WhatsApp or the contact form.',
     bullets: [
-      'Knowledge base with 500+ articles',
-      'Live chat during business hours (Sun–Thu, 9AM–6PM AST)',
-      'Enterprise: 24/7 priority support',
-      'Status page for uptime and incidents'
+      'Public product guides',
+      'Email, phone and WhatsApp',
+      'Enterprise: support terms agreed in your contract',
+      'Contact form on every public page'
     ],
     status: 'available',
     contactEmail: 'info@safetrackproglobal.com',
@@ -120,7 +116,7 @@ const SECTIONS = {
     icon: <TeamOutlined />,
     tagline: 'Join a global team building the future of HSE technology.',
     description:
-      "We're hiring engineers, designers, and HSE domain experts across Doha, Dubai, and remote. Help us protect millions of workers worldwide.",
+      'Interested in HSE technology? Send us your CV and we will contact you when a suitable role opens.',
     bullets: [
       'Engineering (Full-stack, ML/AI, DevOps)',
       'Design (Product, UX, Brand)',
@@ -128,27 +124,26 @@ const SECTIONS = {
       'Sales and customer success across MENA'
     ],
     status: 'available',
-    contactEmail: 'careers@safetrackproglobal.com',
+    contactEmail: 'info@safetrackproglobal.com',
     ctaText: 'Send Your CV',
-    ctaLink: 'mailto:careers@safetrackproglobal.com',
+    ctaLink: 'mailto:info@safetrackproglobal.com',
     related: ['about', 'partners', 'security']
   },
   security: {
     title: 'Security & Trust',
     icon: <SafetyCertificateOutlined />,
-    tagline: 'Enterprise-grade security, end to end.',
+    tagline: 'Clear answers, no borrowed badges.',
     description:
-      'Encryption in transit and at rest, SOC 2 aligned controls, ISO 27001 practices, and regional data residency options. Security is a feature, not an afterthought.',
+      'How we protect data and what we do not claim. See the Trust centre.',
     bullets: [
-      'AES-256 encryption at rest, TLS 1.3 in transit',
-      'SOC 2 Type II aligned controls (audit in progress)',
-      'Role-based access control (RBAC) with SSO',
-      'Regional data residency: MENA, EU, US',
-      'Regular penetration testing and vulnerability management'
+      'HTTPS connections and hashed passwords',
+      'Role-based access and company separation',
+      'Attack detection and activity records',
+      'No ISO 27001, SOC 2 or HIPAA certification is held'
     ],
     status: 'available',
     ctaText: 'Contact Security Team',
-    ctaLink: 'mailto:security@safetrackproglobal.com',
+    ctaLink: 'mailto:info@safetrackproglobal.com',
     related: ['compliance', 'partners', 'api-docs']
   },
   partners: {
@@ -156,7 +151,7 @@ const SECTIONS = {
     icon: <UserSwitchOutlined />,
     tagline: 'Grow with SafeTrack Pro.',
     description:
-      'Reseller, technology, and consulting partners across the Middle East, Africa, and Asia. Join a growing ecosystem building safer workplaces.',
+      'We welcome reseller, technology and consulting partners. Contact us to talk.',
     bullets: [
       'Reseller program: MENA, Africa, Asia',
       'Technology partners: ERP, HRMS, IoT integrations',
@@ -164,9 +159,9 @@ const SECTIONS = {
       'API-first architecture for custom integrations'
     ],
     status: 'available',
-    contactEmail: 'partners@safetrackproglobal.com',
+    contactEmail: 'info@safetrackproglobal.com',
     ctaText: 'Become a Partner',
-    ctaLink: 'mailto:partners@safetrackproglobal.com',
+    ctaLink: 'mailto:info@safetrackproglobal.com',
     related: ['api-docs', 'security', 'careers']
   },
   compliance: {
@@ -174,7 +169,7 @@ const SECTIONS = {
     icon: <AuditOutlined />,
     tagline: 'Built for every regulatory standard.',
     description:
-      'OSHA, ISO 45001, ISO 14001, HIPAA, MLC 2006, ICAO SMS, MSHA, REACH, TSCA, GDPR, and more — pre-configured modules that ship with the platform.',
+      'OSHA, ISO 45001, ISO 14001, HIPAA, MLC 2006, ICAO SMS, MSHA, REACH, TSCA, GDPR, and more — templates and checklists. Using them does not certify an organisation.',
     bullets: [
       'HSE: OSHA 1910/1926, ISO 45001, ISO 14001',
       'Healthcare: HIPAA, Joint Commission, CDC',
@@ -182,7 +177,7 @@ const SECTIONS = {
       'Aviation: ICAO SMS, FAA, EASA',
       'Mining: MSHA, Mine Act',
       'Chemical: REACH, TSCA, GHS',
-      'Data: GDPR, SOC 2, ISO 27001'
+      'Coverage means templates and checklists, not certification'
     ],
     status: 'available',
     ctaText: 'Explore Compliance',
@@ -194,10 +189,10 @@ const SECTIONS = {
     icon: <InfoCircleOutlined />,
     tagline: 'How we use cookies on safetrackproglobal.com.',
     description:
-      'We only use strictly necessary cookies for authentication and essential functionality. Our detailed cookie policy is being finalized.',
+      'We only use strictly necessary cookies for authentication and essential functionality. See the data use page for details.',
     bullets: [
       'Strictly necessary: session, authentication',
-      'Analytics: aggregate, anonymized usage data',
+      'Browser storage: language, settings and drafts',
       'No third-party advertising or tracking cookies',
       'You can manage cookies in your browser settings'
     ],
@@ -207,19 +202,16 @@ const SECTIONS = {
   sla: {
     title: 'Service Level Agreement',
     icon: <ClockCircleOutlined />,
-    tagline: 'Uptime commitments for enterprise customers.',
+    tagline: 'Service terms are agreed by contract.',
     description:
-      'Our SLA provides a 99.9% uptime guarantee, response time targets, and incident credits. The full document is available under your enterprise contract.',
+      'We do not publish a general uptime guarantee. Service terms for enterprise customers are agreed in the contract.',
     bullets: [
-      '99.9% monthly uptime guarantee',
-      'Critical issues: 1-hour response, 4-hour resolution',
-      'High-priority: 4-hour response, 24-hour resolution',
-      'Service credits for missed targets',
-      'Scheduled maintenance announced 7 days in advance'
+      'No general uptime guarantee',
+      'Enterprise terms by written agreement'
     ],
     status: 'available',
     ctaText: 'Request SLA Copy',
-    ctaLink: 'mailto:legal@safetrackproglobal.com',
+    ctaLink: 'mailto:info@safetrackproglobal.com',
     related: ['security', 'compliance', 'support']
   },
   demo: {

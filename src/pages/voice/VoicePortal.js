@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useHistory, useLocation, useParams } from 'react-router-dom';
 import { voicePublic, API_BASE, SERVER_BASE, GROUP_META, CATEGORY_META } from '../../services/workplaceVoiceService';
 import { VOICE_LANGS, t } from './voiceI18n';
+import { VOICE_NOTICE_VERSION, acceptVoiceNotice, voiceNotice, voiceNoticeAccepted } from './voiceNotice';
 import './voice.css';
 
 const LANG_KEY = 'wv:lang';
@@ -300,6 +301,7 @@ export const VoiceReport = () => {
   const [showText, setShowText] = useState(false);
   const [text, setText] = useState('');
   const [anonymity, setAnonymity] = useState('anonymous');
+  const [noticeOk, setNoticeOk] = useState(voiceNoticeAccepted);
   const [name, setName] = useState('');
   const [contact, setContact] = useState('');
   const [honey, setHoney] = useState('');
@@ -371,6 +373,7 @@ export const VoiceReport = () => {
       if (savedReward?.reward_code) { fd.append('reward_code', savedReward.reward_code); fd.append('reward_pin', savedReward.pin || ''); }
       else if (joinRewards) fd.append('want_rewards', '1');
     }
+    fd.append('notice_version', VOICE_NOTICE_VERSION);
     fd.append('group', group || 'safety'); fd.append('category', category); fd.append('language', L);
     fd.append('anonymity', anonymity); fd.append('website', honey);
     if (typed) fd.append('text', typed);
@@ -475,6 +478,19 @@ export const VoiceReport = () => {
         {result.media_errors?.length > 0 && <div className="wv-err">{result.media_errors.join('. ')}</div>}
         {savedReward?.reward_code && <Link className="wv-btn" style={{ textDecoration: 'none', marginTop: 10 }} to="/voice/rewards">🏆 {t(L, 'myPoints')}</Link>}
         <button type="button" className="wv-primary" onClick={restart}>➕ {t(L, 'another')}</button>
+      </div>,
+    );
+  }
+
+  if (!noticeOk) {
+    const n = voiceNotice(L);
+    return shell(
+      <div data-testid="wv-notice">
+        <button type="button" className="wv-back" onClick={() => setStep('type')}>← {t(L, 'back')}</button>
+        <div className="wv-h">{n.title} <Listen lang={L} text={`${n.title}. ${n.points.join(' ')}`} /></div>
+        <div className="wv-card"><ul style={{ margin: 0, paddingInlineStart: 20, fontSize: 17, lineHeight: 1.6 }}>{n.points.map((p) => <li key={p} style={{ marginBottom: 8 }}>{p}</li>)}</ul></div>
+        <a href="/anonymous-safety-reporting/how-it-works" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', margin: '12px 0', color: '#1d4ed8' }}>{n.more}</a>
+        <button type="button" className="wv-primary" data-testid="wv-notice-ok" onClick={() => { acceptVoiceNotice(); setNoticeOk(true); }}>✔ {n.accept}</button>
       </div>,
     );
   }

@@ -350,3 +350,14 @@
 [dir='rtl'] .mk-page .mk-checklist li { padding: 14px 44px 14px 16px; }
 [dir='rtl'] .mk-page .mk-checklist li::before { left: auto; right: 16px; }
 [dir='rtl'] .mk-page .mk-breadcrumbs li + li::before { margin-right: 0; margin-left: 8px; }
+
+/* ---------- Trust and guide pages ---------- */
+.mk-hero-sm { padding: 40px 0 44px; }
+.mk-hero-sm h1 { font-size: 30px; }
+@media (min-width: 768px) { .mk-hero-sm { padding: 52px 0 56px; } .mk-hero-sm h1 { font-size: 40px; } }
+.mk-warning { margin: 24px 0 0; padding: 14px 18px; border-left: 4px solid #d97706; background: #fffbeb; border-radius: 8px; color: #78350f; font-size: 15px; }
+.mk-olist { max-width: 760px; padding-left: 22px; margin: 0; color: var(--mk-muted); }
+.mk-olist li { margin: 8px 0; padding-left: 4px; }
+.mk-page .mk-table-wrap { overflow-x: auto; }
+.mk-page .mk-table th[scope='row'] { text-align: left; font-weight: 600; background: transparent; color: var(--mk-text); }
+.mk-page .mk-table td, .mk-page .mk-table th { vertical-align: top; min-width: 130px; text-align: left; }

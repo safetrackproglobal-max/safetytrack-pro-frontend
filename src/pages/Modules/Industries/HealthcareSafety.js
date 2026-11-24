@@ -722,8 +722,8 @@ const HealthcareSafety = () => {
                 <Row gutter={[16, 16]}>
                   <Col span={24}>
                     <Alert
-                      message="HIPAA Compliant AI Services"
-                      description="All patient data is anonymized, encrypted, and processed in compliance with healthcare privacy regulations."
+                      message="Before you use AI with health information"
+                      description="AI tools send the text you enter to an outside AI provider. Remove patient names and numbers first. Results are not a diagnosis and must be checked by a qualified professional."
                       type="info"
                       showIcon
                     />
@@ -1008,8 +1008,8 @@ const HealthcareSafety = () => {
         width={600}
       >
         <Alert
-          message="HIPAA Compliant AI Services"
-          description="All AI services are designed to comply with healthcare privacy regulations. Patient data is anonymized and encrypted throughout processing."
+          message="Before you use AI with health information"
+          description="AI tools send the text you enter to an outside AI provider. Remove patient names and numbers first. Results are not a diagnosis and must be checked by a qualified professional."
           type="info"
           showIcon
         />

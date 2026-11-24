@@ -56,7 +56,7 @@ export default function AcceptTermsPage() {
             <SafetyCertificateOutlined style={{ fontSize: 40, color: '#1890ff' }} />
             <Title level={2}>Updated Terms & Policies</Title>
             <Text type="secondary">
-              Please review and accept the following to continue using SafetyTrack Pro.
+              Please review and accept the following to continue using SafeTrack Pro.
             </Text>
           </div>
 
@@ -70,14 +70,14 @@ export default function AcceptTermsPage() {
           <div>
             <Paragraph strong>Terms of Service</Paragraph>
             <Checkbox checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)}>
-              I agree to the Terms of Service ({TERMS_VERSION})
+              I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer">Terms of Service</a>
             </Checkbox>
           </div>
 
           <div>
             <Paragraph strong>Privacy Policy</Paragraph>
             <Checkbox checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)}>
-              I agree to the Privacy Policy ({PRIVACY_VERSION})
+              I agree to the <a href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
             </Checkbox>
           </div>
 
