@@ -3,7 +3,7 @@
 console.log('🔴 App component is rendering');
 
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Route, Switch, Redirect, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Switch, Redirect, Link, useLocation } from 'react-router-dom';
 import { I18nextProvider, useTranslation } from 'react-i18next';
 import i18n from './i18n';
 import MainLayout from './Layouts/MainLayout';
@@ -896,9 +896,10 @@ const AppContent = () => {
           {/* ✅ NEW: Standalone PDF Editor (full-page, bypasses global layout) */}
           <ProtectedRoute path="/documents/pdf-editor/:documentId">
             <DashboardLayoutWrapper>
-              <PDFEditor
-                documentId={Number(window.location.pathname.split('/').filter(Boolean).pop())}
-              />
+              <div className="pe-full">
+                <div className="pe-full-bar"><Link to="/document-management?tab=documents">Back to documents</Link></div>
+                <PDFEditor documentId={Number(window.location.pathname.split('/').filter(Boolean).pop())} />
+              </div>
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 

@@ -10,7 +10,7 @@ import {
   DeleteOutlined, PlusOutlined, ExportOutlined,
   DragOutlined, CheckOutlined, CloseOutlined
 } from '@ant-design/icons';
-import * as pdfjsLib from 'pdfjs-dist';
+import { openPdf } from '../../utils/pdfjs';
 import api from '../../services/api';  
 import documentService from '../../services/documentService';
 
@@ -40,8 +40,7 @@ const PageThumbnailPanel = ({
       const res = await api.get(`/documents/${documentId}/raw`, {
         responseType: 'arraybuffer'
       });
-      const loadingTask = pdfjsLib.getDocument({ data: res.data });
-      const pdf = await loadingTask.promise;
+      const pdf = await openPdf(new Uint8Array(res.data));
       const total = pdf.numPages;
       const thumbs = [];
 

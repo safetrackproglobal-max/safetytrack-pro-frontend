@@ -70,6 +70,7 @@ import { useTrackChanges } from './useTrackChanges';
 import TrackChangesPanel from './TrackChangesPanel';
 import EditorRibbon from '../editor/EditorRibbon';
 import PDFEditor from '../editor/PDFEditor';
+import { isPdfDocument } from '../../utils/pdfjs';
 import EditorStatusBar from '../editor/EditorStatusBar';
 import '../editor/EditorRibbon.css';
 import './DocumentEditor.css';
@@ -105,7 +106,7 @@ const DocumentEditor = ({
   // ============================================================
   // STATE — Document metadata
   // ============================================================
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!!documentId);
   const [saving, setSaving] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -176,7 +177,7 @@ const DocumentEditor = ({
   // ============================================================
   const [ribbonTab, setRibbonTab] = useState('home');
   const [editorMode, setEditorMode] = useState(
-    isPdf || (initialPdfUrl && initialPdfUrl.endsWith('.pdf')) ? 'pdf' : 'html'
+    isPdf || isPdfDocument({ file_url: initialPdfUrl }) ? 'pdf' : 'html'
   );
   const [activePdfTool, setActivePdfTool] = useState('select');
   const [signaturePlacing, setSignaturePlacing] = useState(false);
@@ -189,6 +190,7 @@ const DocumentEditor = ({
   const importInputRef = useRef(null);
   const autoSaveTimer = useRef(null);
   const pdfEditorRef = useRef(null);
+  const loadedIdRef = useRef(null);
 
   // Turndown for Markdown export
   const turndown = useMemo(() => new TurndownService({ headingStyle: 'atx' }), []);
@@ -272,10 +274,14 @@ const DocumentEditor = ({
   // ============================================================
   const loadDocument = useCallback(async () => {
     if (!documentId) return;
-    setLoading(true);
+    // the spinner replaces the whole editor, so show it only for a document that is not open yet:
+    // showing it again would close the PDF editor and lose unsaved changes
+    if (loadedIdRef.current !== documentId) setLoading(true);
     try {
       const data = await documentService.getDocument(documentId);
       const html = data.content || data.html_content || '<p></p>';
+      if (loadedIdRef.current !== documentId) setEditorMode(isPdf || isPdfDocument(data) ? 'pdf' : 'html');
+      loadedIdRef.current = documentId;
       setTitle(data.title || '');
       setDescription(data.description || '');
       setDocumentType(data.document_type || 'report');
@@ -298,10 +304,15 @@ const DocumentEditor = ({
     } finally {
       setLoading(false);
     }
-  }, [documentId, editor, updateCounts]);
+  }, [documentId, editor, isPdf, updateCounts]);
 
   useEffect(() => {
     if (documentId) loadDocument();
+    else if (loadedIdRef.current) {
+      loadedIdRef.current = null;
+      setLoading(false);
+      setEditorMode('html');
+    }
   }, [documentId, loadDocument]);
 
   // ============================================================
@@ -345,6 +356,10 @@ const DocumentEditor = ({
   // SAVE / AUTOSAVE
   // ============================================================
   const handleSave = async () => {
+    if (editorMode === 'pdf') {
+      pdfEditorRef.current?.save?.();
+      return;
+    }
     const tErr = validateTitle(title);
     if (tErr) return message.error(tErr);
     const html = editor?.getHTML() || '';
@@ -432,7 +447,7 @@ const DocumentEditor = ({
   };
 
   const handleAutoSave = useCallback(async () => {
-    if (!autoSave || !documentId || !title.trim()) return;
+    if (!autoSave || !documentId || !title.trim() || editorMode === 'pdf') return;
     const html = editor?.getHTML() || '';
     if (validateContent(html)) return;
     try {
@@ -445,7 +460,7 @@ const DocumentEditor = ({
     } catch (err) {
       console.error('Autosave failed:', err);
     }
-  }, [autoSave, documentId, title, description, editor]);
+  }, [autoSave, documentId, title, description, editor, editorMode]);
 
   useEffect(() => {
     if (!autoSave) return;
@@ -473,6 +488,7 @@ const DocumentEditor = ({
   // KEYBOARD SHORTCUTS
   // ============================================================
   useEffect(() => {
+    if (editorMode === 'pdf') return undefined; // the PDF editor has its own shortcuts
     const h = (e) => {
       if (e.ctrlKey && e.key.toLowerCase() === 's') {
         e.preventDefault();
@@ -496,7 +512,7 @@ const DocumentEditor = ({
     };
     document.addEventListener('keydown', h);
     return () => document.removeEventListener('keydown', h);
-  }, [findOpen]);
+  }, [findOpen, editorMode]);
 
   // ============================================================
   // IMAGE / FILE UPLOAD
@@ -1029,7 +1045,7 @@ const DocumentEditor = ({
           <div className="editor-header">
             <div className="editor-header-title">
               <Title level={4} style={{ margin: 0 }}>
-                {documentId ? 'Edit Document' : 'New Document'}
+                {isPdfMode ? (title || 'Edit PDF') : documentId ? 'Edit Document' : 'New Document'}
               </Title>
               {documentId && <Tag color="blue">v{version}</Tag>}
               {readingMode && <Tag icon={<ReadOutlined />} color="purple">Reading</Tag>}
@@ -1044,15 +1060,11 @@ const DocumentEditor = ({
               )}
               {documentId && (
                 <>
-                  <Button icon={<CopyOutlined />} onClick={handleSaveAsNew} loading={saving}>
-                    Save As
-                  </Button>
-                  <Button
-                    icon={<EyeOutlined />}
-                    onClick={() => onDocumentUpdate?.({ id: documentId })}
-                  >
-                    View
-                  </Button>
+                  {!isPdfMode && (
+                    <Button icon={<CopyOutlined />} onClick={handleSaveAsNew} loading={saving}>
+                      Save As
+                    </Button>
+                  )}
                   <Button
                     icon={<SignatureOutlined />}
                     onClick={() => setSignatureModalVisible(true)}
@@ -1062,6 +1074,7 @@ const DocumentEditor = ({
                 </>
               )}
 
+              {!isPdfMode && (<>
               <Tooltip title="Import file (HTML, MD, TXT)">
                 <Button
                   icon={<ImportOutlined />}
@@ -1090,6 +1103,7 @@ const DocumentEditor = ({
               >
                 {documentId ? 'Update' : 'Create'}
               </Button>
+              </>)}
             </div>
           </div>
 
@@ -1099,8 +1113,8 @@ const DocumentEditor = ({
           {/* BODY */}
           {/* ============================================================ */}
           <div className="editor-body">
-            {/* Ribbon — always visible */}
-            {renderRibbon()}
+            {/* Ribbon — text documents only; the PDF editor has its own tools */}
+            {!isPdfMode && renderRibbon()}
 
             {/* Editor area — PDF or HTML */}
             {isPdfMode && (initialPdfUrl || documentId) ? (

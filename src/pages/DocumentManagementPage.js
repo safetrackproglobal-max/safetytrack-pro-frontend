@@ -262,6 +262,8 @@ const DocumentManagementPage = ({
   // ============================================================
   const [activeTab, setActiveTab] = useState(initialTab);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [find, setFind] = useState('');
+  const [findOpen, setFindOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -382,7 +384,6 @@ const DocumentManagementPage = ({
       ? `/document-management?tab=${featureKey}&doc=${docId}`
       : `/document-management?tab=${featureKey}`;
     history.push(qs);
-    message.success(`Opened ${featureKey}`);
   }, [history]);
 
   // ============================================================
@@ -516,15 +517,40 @@ const DocumentManagementPage = ({
   const activeGroup = NAV_GROUPS.find((g) => g.items.some((t) => t.key === activeTab));
   const activeItem = activeGroup?.items.find((t) => t.key === activeTab);
 
+  const term = find.trim().toLowerCase();
+  const found = term.length < 2 ? [] : [
+    ...NAV_GROUPS.flatMap((g) => g.items.map((t) => ({ ...t, group: g.label }))).filter((t) => `${t.label} ${t.hint}`.toLowerCase().includes(term))
+      .map((t) => ({ key: `t-${t.key}`, icon: t.icon, label: t.label, hint: t.group, open: () => handleMenuClick({ key: t.key }) })).slice(0, 4),
+    ...documents.filter((d) => `${d.title || ''} ${d.document_number || ''}`.toLowerCase().includes(term))
+      .map((d) => ({ key: `d-${d.id}`, icon: <FileTextOutlined />, label: d.title, hint: [d.document_number, d.status].filter(Boolean).join(', ') || 'Document', open: () => handleNavigateToFeature('editor-new', d.id) })).slice(0, 6)
+  ];
+
   const renderHeader = () => (
     <header className="dm-head">
       <div className="dm-line1">
         <button type="button" className="dm-icon dm-burger" aria-label="Open document menu" onClick={() => setMenuOpen(true)}><MenuUnfoldOutlined /></button>
         <button type="button" className="dm-icon dm-back" aria-label="Back to main dashboard" title="Back to main dashboard" onClick={handleBackToMain}><ArrowLeftOutlined /></button>
+        <span className="dm-logo" aria-hidden="true">{activeItem?.icon || <FolderOpenOutlined />}</span>
         <div className="dm-title">
-          <h1>{activeItem?.label || 'Documents'}</h1>
           <span>Document management{activeGroup ? ` / ${activeGroup.label}` : ''}</span>
+          <h1>{activeItem?.label || 'Documents'}</h1>
         </div>
+        <form
+          className="dm-find"
+          role="search"
+          onSubmit={(e) => { e.preventDefault(); setFindOpen(true); }}
+          onFocus={() => setFindOpen(true)}
+          onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setFindOpen(false); }}
+        >
+          <SearchOutlined />
+          <input value={find} onChange={(e) => { setFind(e.target.value); setFindOpen(true); }} onKeyDown={(e) => { if (e.key === 'Escape') setFindOpen(false); }} placeholder="Find a document or a tool" aria-label="Find a document or a tool" />
+          {findOpen && find.trim().length > 1 && (
+            <div className="dm-found">
+              {found.map((f) => <button key={f.key} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => { setFindOpen(false); setFind(''); f.open(); }}>{f.icon}<span>{f.label}<small>{f.hint}</small></span></button>)}
+              {!found.length && <p>Nothing found. <button type="button" className="dm-more" onMouseDown={(e) => e.preventDefault()} onClick={() => { setFindOpen(false); handleMenuClick({ key: 'search-advanced' }); }}>Use advanced search</button></p>}
+            </div>
+          )}
+        </form>
         <div className="dm-actions">
           <span className="dm-plan">{isUserSuperAdmin() ? 'Super admin' : (userPlan || 'free')}</span>
           <button type="button" className="dm-icon" aria-label={`Approvals waiting: ${pendingTasks.length}`} title="Approvals inbox" onClick={() => handleMenuClick({ key: 'submissions' })}>
@@ -640,6 +666,7 @@ const DocumentManagementPage = ({
       case 'editor-new':
         return (
           <DocumentEditor
+            key={selectedDocumentId || 'new'}
             documentId={selectedDocumentId || null}
             initialContent="<p></p>"
             editingSource="sidebar"

@@ -32,7 +32,7 @@ import {
   AlignCenterOutlined, AlignRightOutlined, BgColorsOutlined, MenuOutlined, DownOutlined,
   InfoCircleOutlined, LeftOutlined, RightOutlined,
 } from '@ant-design/icons';
-import * as pdfjsLib from 'pdfjs-dist';
+import { openPdf } from '../../utils/pdfjs';
 
 import documentService from '../../services/documentService';
 import PDFFormPanel from '../documents/PDFFormPanel';
@@ -41,9 +41,6 @@ import PageThumbnailPanel from '../documents/PageThumbnailPanel';
 import './PDFEditor.css';
 
 const { Text, Title, Paragraph } = Typography;
-
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
 const API_BASE = (
   process.env.REACT_APP_API_URL ||
@@ -412,7 +409,7 @@ const PDFEditor = forwardRef(({
       if (head !== '%PDF-') throw new Error('This file is not a PDF.');
       setPdfBytes(buffer);
       // PDF.js transfers the buffer to its worker, so give it a copy and keep ours intact
-      const doc = await pdfjsLib.getDocument({ data: new Uint8Array(buffer.slice(0)) }).promise;
+      const doc = await openPdf(new Uint8Array(buffer.slice(0)));
       const dims = [];
       for (let i = 1; i <= doc.numPages; i++) {
         const vp = (await doc.getPage(i)).getViewport({ scale: 1 });

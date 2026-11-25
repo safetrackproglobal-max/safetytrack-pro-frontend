@@ -91,6 +91,8 @@ import {
   PLAN_HIERARCHY
 } from '../services/api';
 import DocumentEditor from './documents/DocumentEditor';
+import PdfPreview from './documents/PdfPreview';
+import { isPdfDocument } from '../utils/pdfjs';
 import DocumentSignature from './documents/DocumentSignature';
 import RealtimeCollaborativeEditor from './editor/RealtimeCollaborativeEditor';
 import SubmitForApproval from './submissions/SubmitForApproval';
@@ -1354,15 +1356,11 @@ const DocumentControl = ({
             </Descriptions>
 
             {/* PDF preview if applicable */}
-            {selectedDocument.file_url && selectedDocument.mime_type === 'application/pdf' && (
+            {isPdfDocument(selectedDocument) && (
               <>
                 <Divider />
                 <Title level={5}>Preview</Title>
-                <iframe
-                  title="Document preview"
-                  src={selectedDocument.file_url}
-                  style={{ width: '100%', height: 500, border: '1px solid #f0f0f0', borderRadius: 6 }}
-                />
+                <PdfPreview documentId={selectedDocument.id} />
               </>
             )}
 
@@ -1545,7 +1543,8 @@ const DocumentControl = ({
   // ============================================================
     const renderEditorModal = () => (
     <Modal
-      title="Edit Document"
+      title={null}
+      className="dc-editor-modal"
       open={editorVisible}
       onCancel={() => { setEditorVisible(false); setEditingDocument(null); }}
       footer={null}
@@ -1564,7 +1563,7 @@ const DocumentControl = ({
         companyId={siteId}
         currentUser={user}
         userRole={userPlan}
-        isPdf={editingDocument?.file_url?.endsWith('.pdf')}
+        isPdf={isPdfDocument(editingDocument)}
         editingSource="regular"
       />
     </Modal>

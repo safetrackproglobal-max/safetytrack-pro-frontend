@@ -9,14 +9,13 @@ import {
   CheckOutlined, CloseOutlined, DownloadOutlined, ArrowLeftOutlined, EditOutlined, SafetyCertificateOutlined,
   ZoomInOutlined, ZoomOutOutlined,
 } from '@ant-design/icons';
-import * as pdfjsLib from 'pdfjs-dist';
+import { openPdf } from '../../utils/pdfjs';
 import submissionService from '../../services/submissionService';
 import { SignatureCreator, StampDesigner } from './SigningTools';
 import { SignerChain, STATUS } from './SubmissionsCenter';
 import './Submissions.css';
 
 const { Text, Title, Paragraph } = Typography;
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
 // mirrors pdf_edit_engine.default_slots on the server
 const SLOT_W = 160; const SLOT_H = 64; const SLOT_GAP = 12; const SLOT_MARGIN = 40;
@@ -81,7 +80,7 @@ function ReviewAndSign({ submissionId }) {
       const s = (await submissionService.get(submissionId)).submission;
       setSub(s);
       const bytes = await submissionService.fileBytes(submissionId);
-      const doc = await pdfjsLib.getDocument({ data: new Uint8Array(bytes) }).promise;
+      const doc = await openPdf(new Uint8Array(bytes));
       setPdf(doc);
       if (s.my_role?.can_act) {
         const list = (await submissionService.listAssets()).assets || [];

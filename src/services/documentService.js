@@ -44,7 +44,8 @@ class DocumentService {
   async getDocument(id) {
     try {
       const response = await api.get(`/documents/${id}`);
-      return response.data;
+      // the server answers { success, document: {...} }; every screen reads the fields directly
+      return { ...response.data, ...(response.data?.document || {}) };
     } catch (error) {
       console.error(`Failed to fetch document ${id}:`, error);
       throw error;

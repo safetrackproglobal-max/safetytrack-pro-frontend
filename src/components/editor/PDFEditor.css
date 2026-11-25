@@ -1,8 +1,9 @@
 /* PDF editor (Document Control) — PDF-XChange / PDFgear style layout */
 
+/* a fixed height keeps the tools in view and lets the pages scroll inside */
 .pe-root {
-  height: 100%;
-  min-height: 560px;
+  height: calc(100vh - 250px);
+  min-height: 480px;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -438,3 +439,10 @@
   .pe-actions { width: 100%; justify-content: flex-end; }
   .pe-viewport { padding: 12px; }
 }
+
+/* full-page route and the edit window */
+.pe-full .pe-root { height: calc(100vh - 56px); border: 0; border-radius: 0; }
+.pe-full-bar { display: flex; align-items: center; gap: 10px; height: 56px; padding: 0 14px; background: #fff; border-bottom: 1px solid #e5e7eb; font-weight: 600; }
+.dc-editor-modal .pe-root { height: calc(100vh - 270px); }
+.dc-editor-modal .editor-card > .ant-card-body { padding: 4px; }
+@media (max-width: 700px) { .pe-root, .dc-editor-modal .pe-root { height: calc(100vh - 150px); } }
