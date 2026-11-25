@@ -166,6 +166,7 @@ const InvestigationWorkspacePage = React.lazy(() => import('./pages/safety/Inves
 import BillingPage from './pages/BillingPage';
 import AIDocumentsPage from './pages/AIDocumentsPage';
 import ToolboxTalksPage from './pages/ToolboxTalksPage';
+import ReadyCheckPage from './pages/ReadyCheckPage';
 import WorkplaceVoicePage from './pages/WorkplaceVoicePage';
 import { VoiceHome, VoiceReport, VoiceTrack, VoiceRewards } from './pages/voice/VoicePortal';
 import NotificationsPage from './pages/NotificationsPage';
@@ -1357,6 +1358,12 @@ const AppContent = () => {
           <ProtectedRoute path="/workplace-voice">
             <DashboardLayoutWrapper>
               <WorkplaceVoicePage />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          <ProtectedRoute path="/ready-check">
+            <DashboardLayoutWrapper>
+              <ReadyCheckPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 

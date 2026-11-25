@@ -63,6 +63,7 @@ import { useAuth } from '../../context/AuthContext';
 import dashboardService from '../../services/dashboardService';
 import DashboardOverview from '../../components/dashboard/DashboardOverview';
 import ToolboxTalkWidget from '../../components/toolbox/ToolboxTalkWidget';
+import ReadyCheckBanner from '../../components/readycheck/ReadyCheckBanner';
 import { useHistory } from 'react-router-dom';
 import notificationService from '../../services/notificationService';
 import './EmployeeDashboard.css';
@@ -583,6 +584,8 @@ function EmployeeDashboard() {
       </div>
 
       <DashboardOverview title="My safety status" />
+
+      <ReadyCheckBanner />
 
       <ToolboxTalkWidget />
 

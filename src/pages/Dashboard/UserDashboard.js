@@ -48,6 +48,7 @@ import { useAuth } from '../../context/AuthContext';
 import dashboardService from '../../services/dashboardService';
 import DashboardOverview from '../../components/dashboard/DashboardOverview';
 import ToolboxTalkWidget from '../../components/toolbox/ToolboxTalkWidget';
+import ReadyCheckBanner from '../../components/readycheck/ReadyCheckBanner';
 import MyTraining from '../../components/dashboard/MyTraining';
 import { useHistory } from 'react-router-dom';
 import './UserDashboard.css';
@@ -204,6 +205,8 @@ function UserDashboard() {
       </div>
 
       <DashboardOverview title="My safety status" />
+
+      <ReadyCheckBanner />
 
       <ToolboxTalkWidget />
 

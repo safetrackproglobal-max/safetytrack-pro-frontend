@@ -87,6 +87,7 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
 
   const adminMenuItems = [
     { key: dashboardPath, icon: <DashboardOutlined />, label: 'Dashboard' },
+    { key: '/ready-check', icon: <SafetyCertificateOutlined />, label: 'Ready Check' },
     { key: '/toolbox-talks', icon: <SoundOutlined />, label: 'Toolbox Talks' },
     { key: '/workplace-voice', icon: <AudioOutlined />, label: 'Workplace Voice' },
     { key: '/analytics', icon: <BarChartOutlined />, label: 'Analytics' },
@@ -102,6 +103,7 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
 
   const employeeMenuItems = [
     { key: dashboardPath, icon: <DashboardOutlined />, label: 'Dashboard' },
+    { key: '/ready-check', icon: <SafetyCertificateOutlined />, label: 'Ready Check' },
     { key: '/toolbox-talks', icon: <SoundOutlined />, label: 'Toolbox Talks' },
     { key: '/workplace-voice', icon: <AudioOutlined />, label: 'Workplace Voice' },
     { key: '/incidents', icon: <SafetyCertificateOutlined />, label: 'Report Incident' },
@@ -113,6 +115,7 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
 
   const superAdminMenuItems = [
     { key: dashboardPath, icon: <DashboardOutlined />, label: 'Dashboard' },
+    { key: '/ready-check', icon: <SafetyCertificateOutlined />, label: 'Ready Check' },
     { key: '/toolbox-talks', icon: <SoundOutlined />, label: 'Toolbox Talks' },
     { key: '/workplace-voice', icon: <AudioOutlined />, label: 'Workplace Voice' },
     { key: '/analytics', icon: <BarChartOutlined />, label: 'Analytics' },
@@ -167,7 +170,8 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
 
     return [
       { key: dashboardPath, icon: <DashboardOutlined />, label: 'Dashboard' },
-      { key: '/toolbox-talks', icon: <SoundOutlined />, label: 'Toolbox Talks' },
+      { key: '/ready-check', icon: <SafetyCertificateOutlined />, label: 'Ready Check' },
+    { key: '/toolbox-talks', icon: <SoundOutlined />, label: 'Toolbox Talks' },
       { key: '/workplace-voice', icon: <AudioOutlined />, label: 'Workplace Voice' },
       { key: '/analytics', icon: <BarChartOutlined />, label: 'Analytics' },
       { key: '/ai-documents', icon: <FileTextOutlined />, label: 'AI Documents' },

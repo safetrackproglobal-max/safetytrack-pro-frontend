@@ -27,6 +27,7 @@ import adminService from '../../services/adminService';
 import dashboardService from '../../services/dashboardService';
 import DashboardOverview from '../../components/dashboard/DashboardOverview';
 import ToolboxTalkWidget from '../../components/toolbox/ToolboxTalkWidget';
+import ReadyCheckBanner from '../../components/readycheck/ReadyCheckBanner';
 import './AdminDashboard.css';
 
 const { Title, Text } = Typography;
@@ -443,6 +444,8 @@ const AdminDashboard = () => {
       )}
 
       <DashboardOverview title="Company safety status" />
+
+      <ReadyCheckBanner />
 
       <ToolboxTalkWidget />
 
