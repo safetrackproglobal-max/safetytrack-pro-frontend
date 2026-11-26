@@ -63,7 +63,7 @@ const Before = ({ data, t }) => {
 };
 
 // ------------------------------------------------------------------ the worker's check
-const Check = ({ meta, cached, onSaved }) => {
+const Check = ({ meta, cached, onSaved, startTask }) => {
   const [lang, setLang] = useState(() => { try { return localStorage.getItem('rc:lang') || 'en'; } catch (e) { return 'en'; } });
   const t = ui(lang);
   const chooseLang = (v) => { setLang(v); try { localStorage.setItem('rc:lang', v); } catch (e) { /* optional */ } };
@@ -85,6 +85,10 @@ const Check = ({ meta, cached, onSaved }) => {
     readyCheckService.lessons(t.key).then((r) => { if (ref.current === id) setBefore(r.data); }).catch(() => {});
     window.scrollTo(0, 0);
   };
+  useEffect(() => {
+    const tk = startTask && meta.tasks.find((x) => x.key === startTask);
+    if (tk) pick(tk);
+  }, [startTask]);
   const reset = () => { ref.current = newId(); setTask(null); setDone(null); setAnswers({}); setLone(false); };
   // a changed answer is a new check: never let the server match it to an earlier attempt
   const set = (id, v) => { ref.current = newId(); setAnswers((a) => ({ ...a, [id]: v })); };
@@ -402,7 +406,7 @@ const ReadyCheckPage = () => {
       {!meta && !err && <Skeleton active />}
       {meta && (
         <Tabs activeKey={tab === 'board' && !meta.is_staff ? 'check' : tab} onChange={(k) => history.replace(`/ready-check?tab=${k}`)} items={[
-          { key: 'check', label: 'Check', children: <Check meta={meta} cached={cached} onSaved={afterSave} /> },
+          { key: 'check', label: 'Check', children: <Check meta={meta} cached={cached} onSaved={afterSave} startTask={params.get('task')} /> },
           { key: 'mine', label: 'My checks', children: <History rows={mine} /> },
           ...(meta.is_staff ? [{ key: 'board', label: 'Board', children: <Board meta={meta} now={now} onChange={loadMine} /> }] : []),
         ]} />

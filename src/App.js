@@ -111,14 +111,7 @@ import SupplyChainManagement from './pages/Modules/SupplyChainManagement';
 
 // NEW: Industry-Specific HSE Pages
 import IndustryHSEDashboard from './pages/Modules/IndustryHSEDashboard';
-import OilGasSafety from './pages/Modules/Industries/OilGasSafety';
-import ConstructionSafety from './pages/Modules/Industries/ConstructionSafety';
-import HealthcareSafety from './pages/Modules/Industries/HealthcareSafety';
-import MiningSafety from './pages/Modules/Industries/MiningSafety';
-import ChemicalSafety from './pages/Modules/Industries/ChemicalSafety';
-import AviationSafety from './pages/Modules/Industries/AviationSafety';
-import MaritimeSafety from './pages/Modules/Industries/MaritimeSafety';
-import GeneralIndustry from './pages/Modules/Industries/GeneralIndustry';
+import IndustryWorkspace from './pages/Modules/Industries/IndustryWorkspace';
 import UpgradeModal from './components/UpgradeModal';
 
 // ✅ KEPT: Valid imports
@@ -1264,54 +1257,49 @@ const AppContent = () => {
 
           <ProtectedRoute path="/hse/oil_gas/:tab?">
             <DashboardLayoutWrapper>
-              <OilGasSafety />
+              <IndustryWorkspace industryId="oil_gas" />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          <Route
-            path="/hse/construction/:tab?"
-            render={(props) => (
-              <ProtectedRoute>
-                <DashboardLayoutWrapper>
-                  <ConstructionSafety {...props} />
-                </DashboardLayoutWrapper>
-              </ProtectedRoute>
-            )}
-          />
+          <ProtectedRoute path="/hse/construction/:tab?">
+            <DashboardLayoutWrapper>
+              <IndustryWorkspace industryId="construction" />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
 
           <ProtectedRoute path="/hse/healthcare/:tab?">
             <DashboardLayoutWrapper>
-              <HealthcareSafety />
+              <IndustryWorkspace industryId="healthcare" />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
           <ProtectedRoute path="/hse/mining/:tab?">
             <DashboardLayoutWrapper>
-              <MiningSafety />
+              <IndustryWorkspace industryId="mining" />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
           <ProtectedRoute path="/hse/chemical/:tab?">
             <DashboardLayoutWrapper>
-              <ChemicalSafety />
+              <IndustryWorkspace industryId="chemical" />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
           <ProtectedRoute path="/hse/aviation/:tab?">
             <DashboardLayoutWrapper>
-              <AviationSafety />
+              <IndustryWorkspace industryId="aviation" />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
           <ProtectedRoute path="/hse/maritime/:tab?">
             <DashboardLayoutWrapper>
-              <MaritimeSafety />
+              <IndustryWorkspace industryId="maritime" />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
           <ProtectedRoute path="/hse/general/:tab?">
             <DashboardLayoutWrapper>
-              <GeneralIndustry />
+              <IndustryWorkspace industryId="general" />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 

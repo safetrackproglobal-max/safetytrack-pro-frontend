@@ -14,14 +14,7 @@ import {
 } from '@ant-design/icons';
 
 // Import your industry components
-import OilGasSafety from './Industries/OilGasSafety';
-import ConstructionSafety from './Industries/ConstructionSafety';
-import HealthcareSafety from './Industries/HealthcareSafety';
-import MiningSafety from './Industries/MiningSafety';
-import ChemicalSafety from './Industries/ChemicalSafety';
-import AviationSafety from './Industries/AviationSafety';
-import MaritimeSafety from './Industries/MaritimeSafety';
-import GeneralIndustry from './Industries/GeneralIndustry';
+import IndustryWorkspace from './Industries/IndustryWorkspace';
 
 const { Title, Paragraph } = Typography;
 const { TabPane } = Tabs;
@@ -34,8 +27,8 @@ const industries = [
     color: '#389e0d',
     description: 'Process safety, well control, pipeline management',
     risk: 'Very High',
-    features: ['Process Safety', 'Hazard Analysis', 'Emergency Response'],
-    component: OilGasSafety
+    features: ['Ready Check for permits and isolation', 'Gas test and noise calculators', 'Hazards, controls and standards'],
+    component: IndustryWorkspace
   },
   {
     id: 'construction', 
@@ -44,8 +37,8 @@ const industries = [
     color: '#fa8c16',
     description: 'Fall protection, scaffold safety, excavation',
     risk: 'High',
-    features: ['Fall Protection', 'Scaffold Safety', 'Equipment Operations'],
-    component: ConstructionSafety
+    features: ['Ready Check for height, trenches and lifting', 'Risk matrix and noise calculators', 'Hazards, controls and standards'],
+    component: IndustryWorkspace
   },
   {
     id: 'healthcare',
@@ -54,8 +47,8 @@ const industries = [
     color: '#eb2f96',
     description: 'Infection control, patient safety, biohazards',
     risk: 'High',
-    features: ['Infection Control', 'Patient Safety', 'Biohazard Management'],
-    component: HealthcareSafety
+    features: ['Hazards, controls and standards', 'Risk matrix', 'Documents and AI procedures'],
+    component: IndustryWorkspace
   },
   {
     id: 'mining',
@@ -64,8 +57,8 @@ const industries = [
     color: '#faad14',
     description: 'Ground control, ventilation, explosives safety',
     risk: 'Very High',
-    features: ['Ground Control', 'Ventilation', 'Explosives Management'],
-    component: MiningSafety
+    features: ['Ready Check for mobile plant and isolation', 'Noise and gas calculators', 'Hazards, controls and standards'],
+    component: IndustryWorkspace
   },
   {
     id: 'chemical',
@@ -74,8 +67,8 @@ const industries = [
     color: '#722ed1',
     description: 'Process safety, chemical handling, reactivity',
     risk: 'High',
-    features: ['Process Safety', 'Chemical Management', 'Containment'],
-    component: ChemicalSafety
+    features: ['Chemical inventory', 'Gas test calculator', 'Ready Check for permits and isolation'],
+    component: IndustryWorkspace
   },
   {
     id: 'aviation',
@@ -84,8 +77,8 @@ const industries = [
     color: '#13c2c2',
     description: 'Flight safety, maintenance, ground operations',
     risk: 'High',
-    features: ['Flight Safety', 'Maintenance', 'Ground Operations'],
-    component: AviationSafety
+    features: ['Ready Check for ramp and hangar work', 'Noise dose calculator', 'Hazards, controls and standards'],
+    component: IndustryWorkspace
   },
   {
     id: 'maritime',
@@ -94,8 +87,8 @@ const industries = [
     color: '#1890ff',
     description: 'Vessel safety, cargo operations, navigation',
     risk: 'High',
-    features: ['Vessel Safety', 'Cargo Operations', 'Navigation'],
-    component: MaritimeSafety
+    features: ['Ready Check for enclosed spaces and lifting', 'Gas test calculator', 'Hazards, controls and standards'],
+    component: IndustryWorkspace
   },
   {
     id: 'general',
@@ -104,8 +97,8 @@ const industries = [
     color: '#52c41a',
     description: 'Manufacturing, warehousing, office safety',
     risk: 'Medium',
-    features: ['Incident Management', 'Safety Protocols', 'Training'],
-    component: GeneralIndustry
+    features: ['Ready Check for machinery and isolation', 'Noise dose calculator', 'Hazards, controls and standards'],
+    component: IndustryWorkspace
   }
 ];
 
@@ -214,11 +207,11 @@ const HSEManagement = () => {
 
   const renderIndustryContent = (industryId) => {
     const industry = industries.find(ind => ind.id === industryId);
-    const IndustryComponent = industry ? industry.component : GeneralIndustry;
+    const IndustryComponent = industry ? industry.component : IndustryWorkspace;
     
     return (
       <div style={{ padding: '0' }}>
-        <IndustryComponent />
+        <IndustryComponent industryId={industryId} />
       </div>
     );
   };
