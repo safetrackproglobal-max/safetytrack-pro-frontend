@@ -92,11 +92,10 @@ const RISK_LEVELS = {
   low: { label: 'Low', color: '#52c41a', bgColor: '#f6ffed' }
 };
 
+// Forecasts are a trend line fitted to the company's own records (no trained machine-learning model yet).
 const MODEL_TYPES = {
-  time_series: { label: 'Time Series (ARIMA)', description: 'Statistical forecasting' },
-  regression: { label: 'Regression', description: 'Linear/polynomial models' },
-  ml_model: { label: 'ML Model', description: 'Random Forest / XGBoost' },
-  neural_network: { label: 'Neural Network', description: 'LSTM / Transformer' }
+  time_series: { label: 'Trend line from your records', description: 'Least squares on daily counts; expiry and review dates are the dates set on documents' },
+  trend: { label: 'Trend line from your records', description: 'Least squares on daily counts' }
 };
 
 const CHART_COLORS = ['#1890ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2'];
@@ -203,7 +202,7 @@ const PredictiveAnalytics = ({
         company_id: companyId
       });
       
-      message.success(`Model trained successfully (accuracy: ${(result.accuracy * 100).toFixed(1)}%)`);
+      message.success(result.message || (result.accuracy != null ? `Accuracy on the last 14 days: ${(result.accuracy * 100).toFixed(1)}%` : 'Not enough history yet to measure accuracy'));
       loadData();
       
     } catch (error) {
@@ -885,7 +884,7 @@ const PredictiveAnalytics = ({
               {selectedPrediction.timeframe}
             </Descriptions.Item>
             <Descriptions.Item label="Model Used">
-              {selectedPrediction.model || 'ARIMA'}
+              {selectedPrediction.model || 'Rules and trend line from your records'}
             </Descriptions.Item>
             <Descriptions.Item label="Description">
               {selectedPrediction.description}

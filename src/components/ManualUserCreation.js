@@ -122,7 +122,7 @@ const ManualUserCreation = ({ onUserCreated }) => {
         company_name: values.company_name?.trim() || '',
         phone: values.phone?.trim() || '',
         role: values.role || 'user',
-        industry: values.industry || 'Healthcare',
+        industry: values.industry || 'Other',
         timezone: values.timezone || 'UTC',
         preferred_language: values.preferred_language || 'en',
         department: values.department?.trim() || '',
@@ -160,7 +160,7 @@ const ManualUserCreation = ({ onUserCreated }) => {
           country: 'default',
           currency: 'USD',
           role: 'user',
-          industry: 'Healthcare',
+          industry: 'Other',
           timezone: 'UTC',
           preferred_language: 'en',
           send_welcome_email: true,
@@ -246,7 +246,7 @@ const ManualUserCreation = ({ onUserCreated }) => {
           country: 'default',
           currency: 'USD',
           role: 'user',
-          industry: 'Healthcare',
+          industry: 'Other',
           timezone: 'UTC',
           preferred_language: 'en',
           send_welcome_email: true,
@@ -466,7 +466,7 @@ const ManualUserCreation = ({ onUserCreated }) => {
                   <Row gutter={16}>
                     <Col span={8}>
                       <Form.Item name="admin_role" label="Admin Role">
-                        <Input placeholder="safetypro, hospital_admin, etc." size="large" />
+                        <Input placeholder="safety_officer, manager, etc." size="large" />
                       </Form.Item>
                     </Col>
                     <Col span={8}>

@@ -49,6 +49,7 @@ import {
 // ============================================================
 import DocumentControl from '../components/DocumentControl';
 import DocumentReview from '../components/documents/DocumentReview';
+import { RequiredReading, ControlledCopies, ChangeRequests } from '../components/documents/DocControlPlus';
 import DocumentAudit from '../components/documents/DocumentAudit';
 import DocumentDashboard from '../components/documents/DocumentDashboard';
 import DocumentAnalytics from '../components/documents/DocumentAnalytics';
@@ -102,6 +103,10 @@ const { Option } = Select;
 // ============================================================
 // DOCUMENT TYPES
 // ============================================================
+// roles that may assign reading and see everyone's progress (mirrors INC_STAFF_ROLES / OV_COMPANY_TYPES on the server)
+const DOC_STAFF = new Set(['admin', 'administrator', 'company_admin', 'super_admin', 'platform_owner', 'safety_officer', 'safety_manager', 'hse_manager',
+  'manager', 'investigator', 'safety_director', 'compliance_manager', 'operations_manager', 'supervisor', 'safetypro', 'safety_pro']);
+
 const DOCUMENT_TYPES = [
   { value: 'general', label: 'General Document', icon: <FileTextOutlined /> },
   { value: 'report', label: 'Report', icon: <FileTextOutlined /> },
@@ -189,6 +194,9 @@ const NAV_GROUPS = [
     key: 'g-sign', label: 'Review & sign', icon: <EditOutlined />, items: [
       { key: 'submissions', label: 'Approvals inbox', hint: 'Waiting for you, and tracking', icon: <InboxOutlined /> },
       { key: 'approved-docs', label: 'Approved documents', hint: 'Signed and stamped files', icon: <CheckCircleOutlined /> },
+      { key: 'reading', label: 'Required reading', hint: 'Read, quiz and acknowledge', icon: <BookOutlined /> },
+      { key: 'change-requests', label: 'Change requests', hint: 'Ask for a document to change', icon: <DiffOutlined /> },
+      { key: 'controlled-copies', label: 'Controlled copies & QR', hint: 'Numbered prints, QR labels', icon: <FileProtectOutlined /> },
       { key: 'approvals', label: 'Approval chain', hint: 'Steps and approvers', icon: <SafetyCertificateOutlined /> },
       { key: 'review', label: 'Periodic review', hint: 'Review dates', icon: <CalendarOutlined /> },
       { key: 'workflow-builder', label: 'Workflow builder', hint: 'Design approval steps', icon: <ApartmentOutlined /> },
@@ -726,6 +734,13 @@ const DocumentManagementPage = ({
         return <SigningProfile user={user} />;
       case 'review':
         return <DocumentReview companyId={companyId} onReviewUpdate={loadDashboardData} />;
+      case 'reading':
+        return <RequiredReading documents={documents} canManage={DOC_STAFF.has(String(user?.user_type || '').toLowerCase()) || DOC_STAFF.has(String(user?.role || '').toLowerCase().replace(/ /g, '_'))}
+          onOpenDocument={(id) => handleNavigateToFeature('editor-new', id)} />;
+      case 'change-requests':
+        return <ChangeRequests documents={documents} />;
+      case 'controlled-copies':
+        return <ControlledCopies documents={documents} />;
       case 'approvals':
         return <ApprovalChain companyId={companyId} embedded={true} onUpdate={loadDashboardData} />;
       case 'workflow-builder':

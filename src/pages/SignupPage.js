@@ -70,7 +70,9 @@ import {
   formatPrice,
   USER_JOURNEY,
   ADMIN_JOURNEY,
-  INDUSTRY_OPTIONS
+  INDUSTRY_OPTIONS,
+  PROFESSIONAL_ROLE_GROUPS,
+  ADMIN_ROLE_OPTIONS,
 } from '../constants/accountFlow';
 import './AuthPages.css';
 
@@ -291,27 +293,7 @@ const countryOptions = [
 // ============================================
 // ROLE OPTIONS
 // ============================================
-const userRoleOptions = [
-  { value: 'Safety Officer', label: 'Safety Officer' },
-  { value: 'Environmental Officer', label: 'Environmental Officer' },
-  { value: 'QA/QC Officer', label: 'QA/QC Officer' },
-  { value: 'Infection Control Officer', label: 'Infection Control Officer' },
-  { value: 'BioSafety Officer', label: 'BioSafety Officer' },
-  { value: 'Radiation Safety Officer', label: 'Radiation Safety Officer' },
-  { value: 'Hospital Administrator', label: 'Hospital Administrator' },
-  { value: 'Chief Medical Officer', label: 'Chief Medical Officer' },
-  { value: 'Head Nurse', label: 'Head Nurse' },
-  { value: 'Healthcare Professional', label: 'Healthcare Professional' },
-  { value: 'Other', label: 'Other' },
-];
-
-const adminRoleOptions = [
-  { value: 'Hospital Administrator', label: 'Hospital Administrator' },
-  { value: 'IT Manager', label: 'IT Manager' },
-  { value: 'Safety Director', label: 'Safety Director' },
-  { value: 'Compliance Manager', label: 'Compliance Manager' },
-  { value: 'Operations Manager', label: 'Operations Manager' },
-];
+// Role lists live in constants/accountFlow (PROFESSIONAL_ROLE_GROUPS, ADMIN_ROLE_OPTIONS).
 
 // ============================================
 // PAYMENT METHODS
@@ -758,11 +740,9 @@ function SignupPage() {
           label={isAdmin ? 'Your Role' : 'Professional Role'}
           rules={[{ required: true, message: 'Please select your role' }]}
         >
-          <Select placeholder="Select your role" size="large">
-            {(isAdmin ? adminRoleOptions : userRoleOptions).map((r) => (
-              <Option key={r.value} value={r.value}>{r.label}</Option>
-            ))}
-          </Select>
+          <Select placeholder="Select your role (type to search)" size="large" showSearch optionFilterProp="label"
+            options={isAdmin ? ADMIN_ROLE_OPTIONS
+              : PROFESSIONAL_ROLE_GROUPS.map((g) => ({ label: g.label, options: g.roles.map((r) => ({ value: r, label: r })) }))} />
         </Form.Item>
 
         <Form.Item name="preferredLanguage" label="Language" initialValue="en" rules={[{ required: true, message: 'Please select language' }]}>

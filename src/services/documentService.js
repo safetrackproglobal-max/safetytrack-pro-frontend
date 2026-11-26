@@ -1,5 +1,8 @@
 // src/services/documentService.js
-import api from './api'; // Your API client
+import api from './api';
+
+// Files saved for offline use live in this browser cache (the service worker never caches /api)
+const OFFLINE_CACHE = 'safetrack-offline-docs-v1';// Your API client
 
 class DocumentService {
   // ============================================================
@@ -2958,6 +2961,16 @@ async applyTextEdits(documentId, edits) {
     }
   }
 
+  async downloadWatermarked(documentId) {
+    const response = await api.get(`/dm-documents/${documentId}/watermark/download`, { responseType: 'blob', timeout: 180000 });
+    return response.data;
+  }
+
+  async downloadWatermarked(documentId) {
+    const response = await api.get(`/dm-documents/${documentId}/watermark/download`, { responseType: 'blob', timeout: 180000 });
+    return response.data;
+  }
+
   async uploadWatermarkImage(file) {
     try {
       const formData = new FormData();
@@ -3218,7 +3231,8 @@ async applyTextEdits(documentId, edits) {
 
   async exportBundle(bundleId, options = {}) {
     try {
-      const response = await api.post(`/dm-documents/bundles/${bundleId}/export`, options);
+      // the server answers with the file itself (ZIP or PDF)
+      const response = await api.post(`/dm-documents/bundles/${bundleId}/export`, options, { responseType: 'blob', timeout: 300000 });
       return response.data;
     } catch (error) {
       console.error('Failed to export bundle:', error);
@@ -3955,7 +3969,21 @@ async applyTextEdits(documentId, edits) {
         document_ids: documentIds,
         ...options
       });
-      return response.data;
+      // keep a real copy of each file in this browser so it opens without internet
+      const failed = [];
+      if (typeof caches !== 'undefined') {
+        const cache = await caches.open(OFFLINE_CACHE);
+        for (const id of documentIds) {
+          try {
+            const r = await api.get(`/documents/${id}/download`, { responseType: 'blob', timeout: 300000 });
+            const type = r.headers?.['content-type'] || r.data.type || 'application/octet-stream';
+            const disp = r.headers?.['content-disposition'] || '';
+            const name = decodeURIComponent((disp.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i) || [])[1] || `document-${id}`);
+            await cache.put(`/offline-doc/${id}`, new Response(r.data, { headers: { 'Content-Type': type, 'X-File-Name': encodeURIComponent(name) } }));
+          } catch (e) { failed.push(id); }
+        }
+      }
+      return { ...response.data, saved_on_device: documentIds.length - failed.length, failed_ids: failed };
     } catch (error) {
       console.error('Failed to download for offline:', error);
       throw error;
@@ -3964,6 +3992,10 @@ async applyTextEdits(documentId, edits) {
 
   async removeFromOffline(documentIds) {
     try {
+      if (typeof caches !== 'undefined') {
+        const cache = await caches.open(OFFLINE_CACHE);
+        await Promise.all(documentIds.map((id) => cache.delete(`/offline-doc/${id}`)));
+      }
       const response = await api.post('/dm-documents/offline/remove', {
         document_ids: documentIds
       });
@@ -4058,8 +4090,33 @@ async applyTextEdits(documentId, edits) {
     }
   }
 
+  /** Open a file saved for offline use (works without internet). Returns false when it is not on this device. */
+  async openOfflineDocument(documentId) {
+    if (typeof caches === 'undefined') return false;
+    const cache = await caches.open(OFFLINE_CACHE);
+    const r = await cache.match(`/offline-doc/${documentId}`);
+    if (!r) return false;
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const name = decodeURIComponent(r.headers.get('X-File-Name') || `document-${documentId}`);
+    if (/pdf|image|text/.test(blob.type)) {
+      window.open(url, '_blank', 'noopener');
+    } else {
+      const a = document.createElement('a'); a.href = url; a.download = name; a.click();
+    }
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    return true;
+  }
+
+  async isSavedOnDevice(documentId) {
+    if (typeof caches === 'undefined') return false;
+    const cache = await caches.open(OFFLINE_CACHE);
+    return !!(await cache.match(`/offline-doc/${documentId}`));
+  }
+
   async clearOfflineCache(params = {}) {
     try {
+      if (typeof caches !== 'undefined') await caches.delete(OFFLINE_CACHE);
       const response = await api.post('/dm-documents/offline/clear-cache', params);
       return response.data;
     } catch (error) {

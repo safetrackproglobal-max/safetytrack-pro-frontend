@@ -135,7 +135,7 @@ const DocumentAssistant = ({
   const [maxTokens, setMaxTokens] = useState(2000);
   const [autoCitation, setAutoCitation] = useState(true);
   const [showSources, setShowSources] = useState(true);
-  const [streamingEnabled, setStreamingEnabled] = useState(true);
+  const [streamingEnabled, setStreamingEnabled] = useState(false);
   
   // Refs
   const messagesEndRef = useRef(null);
@@ -207,7 +207,7 @@ const DocumentAssistant = ({
         company_id: companyId
       };
       
-      if (streamingEnabled) {
+      if (streamingEnabled && typeof documentService.streamAssistantResponse === 'function') {
         // Streaming response
         await handleStreamingResponse(content, context);
       } else {

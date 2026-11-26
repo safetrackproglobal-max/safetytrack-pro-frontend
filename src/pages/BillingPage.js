@@ -1,7 +1,8 @@
 // src/pages/BillingPage.js
 // One billing page for everybody (routes /payment, /subscription, /payment-waiting).
-// Data: GET /api/billing/overview. Company admins pay the price our team agreed with them;
-// individuals pay the list price of their country. The server sets every amount itself.
+// Data: GET /api/billing/overview. Company admins pay Enterprise at the listed price of their country (card or manual
+// payment), or the price our team agreed with them (quote). Only the Custom plan goes to the sales team.
+// Individuals pay the list price of their country. The server sets every amount itself.
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Button, Form, Input, Radio, Select, Spin, Tag, message } from 'antd';
 import { CreditCardOutlined, DollarOutlined, BankOutlined, MobileOutlined, ReloadOutlined } from '@ant-design/icons';
@@ -37,6 +38,7 @@ function BillingPage() {
   const [busy, setBusy] = useState('');
   const [manual, setManual] = useState(null);
   const [asking, setAsking] = useState(false);
+  const [companyPlan, setCompanyPlan] = useState(query.get('plan') === 'custom' ? 'custom' : 'enterprise');
 
   const load = useCallback(async () => {
     setError('');
@@ -65,6 +67,9 @@ function BillingPage() {
   let order = null;
   if (quote) order = { plan: quote.plan, duration: quote.billing_cycle, amount: quote.amount, currency: quote.currency };
   else if (row && typeof row[cycle] === 'number') order = { plan, duration: cycle, amount: row[cycle], currency: row.currency };
+  else if (company && companyPlan === 'enterprise' && typeof data.enterprise?.[cycle] === 'number') {
+    order = { plan: 'enterprise', duration: cycle, amount: data.enterprise[cycle], currency: data.enterprise.currency };
+  }
   const status = STATUS[data.status] || ['default', data.status || 'Not active'];
   const active = data.stage === 'complete' && data.plan !== 'free';
 
@@ -146,6 +151,23 @@ function BillingPage() {
                   </div>
                 </>
               )}
+              {company && !quote && (
+                <>
+                  <h2>{active ? 'Renew or change plan' : 'Choose a plan'}</h2>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 14 }}>
+                    <Radio.Group
+                      value={companyPlan}
+                      onChange={(e) => setCompanyPlan(e.target.value)}
+                      optionType="button"
+                      buttonStyle="solid"
+                      options={[{ value: 'enterprise', label: 'Enterprise' }, { value: 'custom', label: 'Custom' }]}
+                    />
+                    {companyPlan === 'enterprise' && (
+                      <Select value={cycle} onChange={setCycle} style={{ minWidth: 130 }} aria-label="Billing period" options={DURATION_OPTIONS.map((d) => ({ value: d.value, label: d.label }))} />
+                    )}
+                  </div>
+                </>
+              )}
               {quote && <h2>{active ? 'Renew your plan' : 'Your agreed price'}</h2>}
               {order && (
                 <>
@@ -160,21 +182,21 @@ function BillingPage() {
                   <p className="bl-note">We do not store your card details. Cards are handled by the payment provider.</p>
                 </>
               )}
-              {company && !quote && (
+              {company && !quote && companyPlan === 'custom' && (
                 <>
-                  <h2>{data.request ? 'Price requested' : 'Request your price'}</h2>
+                  <h3 style={{ marginTop: 4 }}>{data.request ? 'Custom plan requested' : 'Custom plan: talk to our sales team'}</h3>
                   {data.request
                     ? <Alert type="info" showIcon style={{ marginBottom: 14 }} message="We are preparing your price" description={`${PLAN_LABEL[data.request.plan]}, ${durationLabel(data.request.billing_cycle).toLowerCase()} billing. We will email you when it is ready to pay. You can change the request below.`} />
-                    : <p className="bl-note" style={{ margin: '0 0 12px' }}>Company plans are priced for your size and needs. Tell us what you need and we will set a price you can pay here.</p>}
+                    : <p className="bl-note" style={{ margin: '0 0 12px' }}>For special terms, many sites or volume pricing. Tell us what you need and our sales team will set a price you can pay here.</p>}
                   <Form
                     layout="vertical"
                     onFinish={ask}
-                    initialValues={{ plan: data.request?.plan || (data.plan === 'custom' ? 'custom' : 'enterprise'), billing_cycle: data.request?.billing_cycle || '1_year', note: data.request?.request_note || '' }}
+                    initialValues={{ plan: 'custom', billing_cycle: data.request?.billing_cycle || '1_year', note: data.request?.request_note || '' }}
                   >
-                    <Form.Item name="plan" label="Plan" rules={[{ required: true }]}><Select options={[{ value: 'enterprise', label: 'Enterprise' }, { value: 'custom', label: 'Custom' }]} /></Form.Item>
+                    <Form.Item name="plan" hidden><Input /></Form.Item>
                     <Form.Item name="billing_cycle" label="Billing period" rules={[{ required: true }]}><Select options={DURATION_OPTIONS.map((d) => ({ value: d.value, label: d.label }))} /></Form.Item>
                     <Form.Item name="note" label="What do you need?"><Input.TextArea rows={3} maxLength={2000} placeholder="Number of sites and users, cameras, special requirements" /></Form.Item>
-                    <Button type="primary" htmlType="submit" loading={asking} block size="large">{data.request ? 'Update request' : 'Request price'}</Button>
+                    <Button type="primary" htmlType="submit" loading={asking} block size="large">{data.request ? 'Update request' : 'Send to sales team'}</Button>
                   </Form>
                 </>
               )}

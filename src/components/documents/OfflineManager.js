@@ -203,12 +203,15 @@ const OfflineManager = ({
     
     setDownloading(true);
     try {
-      await documentService.downloadForOffline(documentIds, {
+      const res = await documentService.downloadForOffline(documentIds, {
         encrypt: encryptCache,
         company_id: companyId
       });
-      
-      message.success(`${documentIds.length} document(s) available offline`);
+      if (res?.failed_ids?.length) {
+        message.warning(`${res.saved_on_device || 0} saved on this device. ${res.failed_ids.length} could not be downloaded (no file attached?).`);
+      } else {
+        message.success(`${documentIds.length} document(s) saved on this device for offline use`);
+      }
       setDocumentPicker(false);
       setSelectedDocs([]);
       loadData();
@@ -652,17 +655,22 @@ const OfflineManager = ({
         width: 120,
         render: (_, record) => (
           <Space>
-            <Tooltip title="Open">
+            <Tooltip title="Open (works without internet)">
               <Button
                 type="text"
                 size="small"
                 icon={<EyeOutlined />}
+                aria-label="Open offline copy"
+                onClick={async () => {
+                  const ok = await documentService.openOfflineDocument(record.document_id);
+                  if (!ok) message.info('This file is not saved on this device. Save it again while online.');
+                }}
               />
             </Tooltip>
             <Tooltip title="Remove from cache">
               <Popconfirm
                 title="Remove from offline cache?"
-                onConfirm={() => handleRemoveFromCache([record.id])}
+                onConfirm={() => handleRemoveFromCache([record.document_id])}
               >
                 <Button type="text" size="small" icon={<DeleteOutlined />} danger />
               </Popconfirm>

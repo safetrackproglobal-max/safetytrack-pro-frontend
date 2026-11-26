@@ -160,6 +160,7 @@ import AIDocumentsPage from './pages/AIDocumentsPage';
 import ToolboxTalksPage from './pages/ToolboxTalksPage';
 import ReadyCheckPage from './pages/ReadyCheckPage';
 import RollCallPage from './pages/RollCallPage';
+import QrOpenPage from './pages/QrOpenPage';
 import ContractorsPage from './pages/ContractorsPage';
 import WorkplaceVoicePage from './pages/WorkplaceVoicePage';
 import { VoiceHome, VoiceReport, VoiceTrack, VoiceRewards } from './pages/voice/VoicePortal';
@@ -1343,6 +1344,12 @@ const AppContent = () => {
           <ProtectedRoute path="/workplace-voice">
             <DashboardLayoutWrapper>
               <WorkplaceVoicePage />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          <ProtectedRoute path="/d/:token">
+            <DashboardLayoutWrapper>
+              <QrOpenPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 

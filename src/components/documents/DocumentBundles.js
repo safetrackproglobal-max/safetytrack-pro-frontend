@@ -290,19 +290,21 @@ const DocumentBundles = ({
         password: passwordProtected ? exportPassword : null
       });
       
-      if (result.download_url) {
-        const a = document.createElement('a');
-        a.href = result.download_url;
-        a.download = `${selectedBundle.name}.${exportFormat}`;
-        a.click();
-      }
+      const url = URL.createObjectURL(result);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${selectedBundle.name}.${exportFormat === 'pdf' ? 'pdf' : 'zip'}`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
       
       message.success('Bundle exported successfully');
       setExportModalVisible(false);
       
     } catch (error) {
       console.error('Failed to export bundle:', error);
-      message.error(error.message || 'Failed to export bundle');
+      let msg = error.message || 'Failed to export bundle';
+      try { const t = await error?.response?.data?.text?.(); if (t) msg = JSON.parse(t).error || msg; } catch (e) { /* not JSON */ }
+      message.error(msg);
     } finally {
       setSaving(false);
     }

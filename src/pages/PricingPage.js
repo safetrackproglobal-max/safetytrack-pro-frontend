@@ -268,8 +268,14 @@ function PricingPage(props) {
       history.push('/payment');
       return;
     }
-    if (planId === 'enterprise' || planId === 'custom') {
+    // only the Custom plan goes to the sales team; Enterprise has a listed price paid by a company administrator
+    if (planId === 'custom') {
       history.push('/contact-team');
+      return;
+    }
+    if (planId === 'enterprise') {
+      if (!user) { history.push('/signup'); return; }
+      message.info('Enterprise is a company plan. Your company administrator pays for it on the billing page.');
       return;
     }
     if (user && planId !== 'free') {
@@ -1083,7 +1089,7 @@ function PricingPage(props) {
                   <Button 
                     type="primary" 
                     size="large"
-                    onClick={() => handleGetStarted('pro')}
+                    onClick={() => handleGetStarted('enterprise')}
                     loading={loading}
                     block
                     style={{ background: '#722ed1', borderColor: '#722ed1' }}
@@ -1104,9 +1110,11 @@ function PricingPage(props) {
                   </div>
                   <Title level={3}>Enterprise</Title>
                   <div className="price" style={{ fontSize: '36px', fontWeight: 'bold', color: '#722ed1' }}>
-                    Custom Pricing
+                    {typeof countryPricing?.enterprise?.[selectedDuration] === 'number'
+                      ? PaymentService.formatCurrency(countryPricing.enterprise[selectedDuration], countryPricing.enterprise.currency)
+                      : 'See billing page'}
                   </div>
-                  <Text type="secondary">Tailored to your organization</Text>
+                  <Text type="secondary">per {selectedDuration === '1_year' ? 'year' : selectedDuration === '6_month' ? '6 months' : 'month'}, pay by card or bank transfer</Text>
                 </div>
 
                 <Divider style={{ margin: '16px 0' }} />
@@ -1349,19 +1357,24 @@ function PricingPage(props) {
                       </Paragraph>
                       <div style={{ marginBottom: 16 }}>
                         <Title level={2} style={{ margin: 0, color: '#fa8c16' }}>
-                          Custom Pricing
+                          {typeof countryPricing?.enterprise?.['1_month'] === 'number'
+                            ? `${PaymentService.formatCurrency(countryPricing.enterprise['1_month'], countryPricing.enterprise.currency)} per month`
+                            : 'Company plan'}
                         </Title>
-                        <Text type="secondary">Contact us for volume discounts and custom requirements</Text>
+                        <Text type="secondary">For companies. Pay by card or bank transfer. Need special terms or volume pricing? Ask for a Custom plan.</Text>
                       </div>
-                      <Button 
-                        type="primary" 
-                        size="large" 
-                        icon={<RocketOutlined />}
-                        onClick={() => handleGetStarted('enterprise')}
-                        style={{ background: '#fa8c16', borderColor: '#fa8c16' }}
-                      >
-                        Contact Sales for Custom Quote
-                      </Button>
+                      <Space wrap>
+                        <Button
+                          type="primary"
+                          size="large"
+                          icon={<RocketOutlined />}
+                          onClick={() => handleGetStarted('enterprise')}
+                          style={{ background: '#fa8c16', borderColor: '#fa8c16' }}
+                        >
+                          Get Enterprise
+                        </Button>
+                        <Button size="large" onClick={() => handleGetStarted('custom')}>Custom plan: talk to sales</Button>
+                      </Space>
                     </Col>
                     <Col xs={24} md={10}>
                       <div className="enterprise-features">

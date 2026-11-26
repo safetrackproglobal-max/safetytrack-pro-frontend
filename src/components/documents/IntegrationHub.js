@@ -56,6 +56,17 @@ const INTEGRATION_CATEGORIES = {
   custom: { label: 'Custom & API', icon: <CodeOutlined />, color: '#8c8c8c' }
 };
 
+// Connectors that work today: they post events to an address the customer pastes (no OAuth app needed).
+// The others need an OAuth app registered with each vendor and show as "Coming soon".
+const LIVE_CONNECTORS = ['webhook', 'slack', 'teams', 'zapier', 'make'];
+const URL_HELP = {
+  slack: 'Slack: Apps > Incoming Webhooks > Add to a channel, then copy the Webhook URL.',
+  teams: 'Microsoft Teams: channel > Workflows > "Post to a channel when a webhook request is received", then copy the URL.',
+  zapier: 'Zapier: create a Zap with the trigger "Webhooks by Zapier > Catch Hook" and copy its URL.',
+  make: 'Make: add a "Webhooks > Custom webhook" module and copy its address.',
+  webhook: 'Any https address that accepts a JSON POST. Requests are signed with your secret (header X-SafeTrack-Signature).'
+};
+
 const AVAILABLE_INTEGRATIONS = {
   sharepoint: {
     id: 'sharepoint',
@@ -722,6 +733,9 @@ const IntegrationHub = ({
                   <Tag color={statusConfig.color} icon={statusConfig.icon}>
                     {statusConfig.label}
                   </Tag>
+                  {!LIVE_CONNECTORS.includes(key) && !connected ? (
+                    <Tag color="default">Coming soon</Tag>
+                  ) : (
                   <Button
                     size="small"
                     type={connected ? 'default' : 'primary'}
@@ -736,6 +750,7 @@ const IntegrationHub = ({
                   >
                     {connected ? 'Manage' : 'Connect'}
                   </Button>
+                  )}
                 </div>
               </Card>
             </Col>
@@ -1066,8 +1081,8 @@ const IntegrationHub = ({
         <>
           <Alert
             message={selectedIntegration.description}
-            description="Enter the required credentials to connect this integration."
-            type="info"
+            description={URL_HELP[selectedIntegration.id] || 'This connector is not available yet.'}
+type="info"
             showIcon
             style={{ marginBottom: 16 }}
           />
@@ -1077,47 +1092,26 @@ const IntegrationHub = ({
             layout="vertical"
             onFinish={handleSaveConfig}
           >
-            {/* Generic fields - would be customized per integration */}
             <Form.Item
-              name="api_key"
-              label="API Key"
-              rules={[{ required: true, message: 'API Key is required' }]}
+              name="url"
+              label="Address (https)"
+              rules={[{ required: true, message: 'Paste the address' }, { pattern: /^https:\/\//, message: 'The address must start with https://' }]}
             >
-              <Input.Password placeholder="Enter API Key" />
+              <Input placeholder="https://..." />
             </Form.Item>
-            
-            <Form.Item
-              name="api_secret"
-              label="API Secret"
-            >
-              <Input.Password placeholder="Enter API Secret (if required)" />
-            </Form.Item>
-            
-            <Form.Item
-              name="base_url"
-              label="Base URL"
-            >
-              <Input placeholder="https://api.example.com" />
-            </Form.Item>
-            
-            <Form.Item
-              name="sync_enabled"
-              valuePropName="checked"
-              initialValue={true}
-            >
-              <Checkbox>Enable automatic sync</Checkbox>
-            </Form.Item>
-            
-            <Form.Item
-              name="sync_frequency"
-              label="Sync Frequency"
-              initialValue="hourly"
-            >
-              <Select>
-                <Option value="realtime">Real-time</Option>
-                <Option value="15min">Every 15 minutes</Option>
-                <Option value="hourly">Hourly</Option>
-                <Option value="daily">Daily</Option>
+
+            {selectedIntegration.id !== 'slack' && selectedIntegration.id !== 'teams' && (
+              <Form.Item name="secret" label="Signing secret (optional)">
+                <Input.Password placeholder="Used to sign each request" />
+              </Form.Item>
+            )}
+
+            <Form.Item name="events" label="Send these events" initialValue={['document.created', 'document.updated', 'document.approved', 'document.deleted']}>
+              <Select mode="multiple">
+                <Option value="document.created">Document created</Option>
+                <Option value="document.updated">Document updated</Option>
+                <Option value="document.approved">Document approved or published</Option>
+                <Option value="document.deleted">Document archived or deleted</Option>
               </Select>
             </Form.Item>
             

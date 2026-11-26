@@ -57,12 +57,39 @@ export const passwordValidator = (_, value) => {
 // One list for signup, company setup and admin user creation. `value` is what is stored in
 // users.industry / companies.industry (VARCHAR 64/100) and what the backend _map_industry()
 // understands for industry-specific safety content.
+// Job roles offered at sign-up, grouped. The value is stored as the user's role (free text on the server).
+// Keep "Safety Officer" etc. spelled as before: company staff checks read the role (e.g. safety_officer, hse_manager).
+export const PROFESSIONAL_ROLE_GROUPS = [
+  { label: 'Health & safety', roles: ['Safety Officer', 'HSE Officer', 'HSE Manager', 'Safety Supervisor', 'Safety Engineer', 'Fire Safety Officer',
+    'Industrial Hygienist', 'Occupational Health & Safety Specialist', 'Emergency Response Coordinator', 'Risk Manager', 'Process Safety Engineer'] },
+  { label: 'Environment', roles: ['Environmental Officer', 'Environmental Engineer', 'Environmental Health Officer', 'Sustainability / ESG Officer',
+    'Waste Management Officer', 'Water Quality Officer'] },
+  { label: 'Medical & health care', roles: ['Medical Doctor', 'Occupational Health Physician', 'Nurse', 'Occupational Health Nurse', 'Paramedic / First Aider',
+    'Infection Control Officer', 'Biosafety Officer', 'Radiation Safety Officer', 'Pharmacist', 'Laboratory Scientist', 'Hospital Administrator'] },
+  { label: 'Quality & compliance', roles: ['QA/QC Officer', 'Quality Manager', 'Compliance Officer', 'Auditor', 'Document Controller'] },
+  { label: 'Operations & engineering', roles: ['Site Engineer', 'Site Supervisor', 'Project Manager', 'Construction Manager', 'Plant Manager',
+    'Maintenance Engineer', 'Electrical Engineer', 'Mechanical Engineer', 'Mining Engineer', 'Petroleum Engineer', 'Facility Manager',
+    'Fleet / Transport Manager', 'Logistics Manager'] },
+  { label: 'Sector specialists', roles: ['Aviation Safety Officer', 'Marine / Ship Safety Officer', 'Food Safety Officer', 'Security Officer',
+    'Chemical Safety Officer', 'Lifting / Rigging Supervisor'] },
+  { label: 'People & training', roles: ['HR Manager', 'Training Coordinator', "Workers' Representative"] },
+  { label: 'Other', roles: ['Consultant', 'Contractor', 'Business Owner', 'Student / Researcher', 'Other'] },
+];
+
+export const ADMIN_ROLE_OPTIONS = ['Company Owner / Director', 'Managing Director', 'General Manager', 'HSE Director', 'Safety Director',
+  'Compliance Manager', 'Operations Manager', 'Project Director', 'HR Manager', 'IT Manager', 'Hospital Administrator', 'System Administrator']
+  .map((r) => ({ value: r, label: r }));
+
 export const INDUSTRY_OPTIONS = [
-  { value: 'Healthcare', label: 'Healthcare / Hospital' },
-  { value: 'Oil & Gas', label: 'Oil & Gas' },
   { value: 'Construction', label: 'Construction' },
-  { value: 'Manufacturing', label: 'Manufacturing' },
+  { value: 'Oil & Gas', label: 'Oil & Gas' },
   { value: 'Mining', label: 'Mining' },
+  { value: 'Manufacturing', label: 'Manufacturing' },
+  { value: 'Healthcare', label: 'Healthcare / Hospital' },
+  { value: 'Agriculture', label: 'Agriculture' },
+  { value: 'Food & Beverage', label: 'Food & Beverage' },
+  { value: 'Environmental Services', label: 'Waste & Environmental Services' },
+  { value: 'Facility Management', label: 'Facility Management' },
   { value: 'Utilities / Energy', label: 'Utilities / Energy' },
   { value: 'Transportation', label: 'Transportation & Logistics' },
   { value: 'Pharmaceutical', label: 'Pharmaceutical / Biotech' },
@@ -95,25 +122,25 @@ export const FALLBACK_COUNTRY_PRICING = {
     free: { '1_month': 0, '6_month': 0, '1_year': 0, currency: 'GHS' },
     basic: { '1_month': 100, '6_month': 500, '1_year': 900, currency: 'GHS' },
     pro: { '1_month': 200, '6_month': 1000, '1_year': 1800, currency: 'GHS' },
-    enterprise: { '1_month': 'Custom', '6_month': 'Custom', '1_year': 'Custom', currency: 'GHS' },
+    enterprise: { '1_month': 500, '6_month': 2500, '1_year': 4500, currency: 'GHS' },
   },
   Qatar: {
     free: { '1_month': 0, '6_month': 0, '1_year': 0, currency: 'QAR' },
     basic: { '1_month': 100, '6_month': 500, '1_year': 900, currency: 'QAR' },
     pro: { '1_month': 300, '6_month': 1500, '1_year': 2700, currency: 'QAR' },
-    enterprise: { '1_month': 'Custom', '6_month': 'Custom', '1_year': 'Custom', currency: 'QAR' },
+    enterprise: { '1_month': 750, '6_month': 3750, '1_year': 6750, currency: 'QAR' },
   },
   'United States': {
     free: { '1_month': 0, '6_month': 0, '1_year': 0, currency: 'USD' },
     basic: { '1_month': 50, '6_month': 250, '1_year': 370, currency: 'USD' },
     pro: { '1_month': 100, '6_month': 500, '1_year': 950, currency: 'USD' },
-    enterprise: { '1_month': 'Custom', '6_month': 'Custom', '1_year': 'Custom', currency: 'USD' },
+    enterprise: { '1_month': 250, '6_month': 1250, '1_year': 2250, currency: 'USD' },
   },
   default: {
     free: { '1_month': 0, '6_month': 0, '1_year': 0, currency: 'USD' },
     basic: { '1_month': 50, '6_month': 250, '1_year': 370, currency: 'USD' },
     pro: { '1_month': 100, '6_month': 250, '1_year': 450, currency: 'USD' },
-    enterprise: { '1_month': 'Custom', '6_month': 'Custom', '1_year': 'Custom', currency: 'USD' },
+    enterprise: { '1_month': 250, '6_month': 1250, '1_year': 2250, currency: 'USD' },
   },
 };
 

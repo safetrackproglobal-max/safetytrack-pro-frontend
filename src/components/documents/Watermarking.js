@@ -321,25 +321,14 @@ const Watermarking = ({
         apply_to: 'both' // 'original', 'preview', 'both'
       });
       
-      message.success('Watermark applied successfully');
-      
-      if (result.download_url) {
-        Modal.success({
-          title: 'Watermark Applied',
-          content: (
-            <div>
-              <p>Watermarked document is ready for download.</p>
-              <Button 
-                type="primary" 
-                icon={<DownloadOutlined />}
-                onClick={() => window.open(result.download_url, '_blank')}
-              >
-                Download Watermarked PDF
-              </Button>
-            </div>
-          )
-        });
-      }
+      const blob = await documentService.downloadWatermarked(documentId);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'watermarked.pdf';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      message.success(result?.message ? 'Watermark applied. The stamped PDF is downloading.' : 'Watermarked PDF downloaded');
       
       loadWatermarkSettings();
       if (onUpdate) onUpdate();

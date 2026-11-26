@@ -206,8 +206,9 @@ const SmartIntake = ({
         const result = await documentService.submitSmartIntake(formData);
         
         // Add to queue
+        const itemId = result.id || result.item?.id;
         setQueue(prev => [...prev, {
-          id: result.id,
+          id: itemId,
           file_name: file.name,
           status: 'processing',
           stage: 'uploading',
@@ -216,7 +217,7 @@ const SmartIntake = ({
         }]);
         
         // Start polling for this item
-        pollIntakeItem(result.id);
+        if (itemId) pollIntakeItem(itemId);
       }
       
       message.success(`${fileList.length} file(s) submitted for processing`);
