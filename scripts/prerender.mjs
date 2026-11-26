@@ -126,3 +126,13 @@ const he = home.lastIndexOf('</body>');
 const homeBody = `<h1>${esc(H.HOME_H1)}</h1><p>${esc(H.HOME_LEAD)}</p>${links(H.DOORS.map((d) => [d.title, d.to]))}<h2>Know what happens to your data</h2><p>${esc(AI_WARNING)}</p>${list(H.TRUST_POINTS.map((t) => `<strong>${esc(t.title)}</strong> - ${esc(t.text)} <a href="${t.to}">${esc(t.cta)}</a>`))}<h2>Tools</h2>${list(H.SPOTLIGHTS.map((t) => `<a href="${t.to}">${esc(t.title)}</a> - ${esc(t.text)} <a href="${t.guide}">${esc(t.guideLabel)}</a>`))}${list(SOLUTIONS.map((p) => `<a href="/${p.slug}">${esc(p.name)}</a> - ${esc(p.summary)}`))}<h2>Industries</h2>${links(INDUSTRIES.map((i) => [i.name, `/industries/${i.slug}`]))}<h2>Standards</h2>${links(COMPLIANCE_PAGES.map((c) => [c.code, `/compliance/${c.slug}`]))}<h2>Questions</h2>${faq(H.HOME_FAQS)}<h2>All pages</h2>${links([...TRUST_PAGES.map((p) => [p.nav, p.path]), ['Trust centre', '/trust'], ...H.OTHER_PAGES.flatMap(([, l]) => l)])}<p>SafeTrack Pro Global is not related to SafeStart SafeTrack, MaxAccel SafeTrack or Brady SafeTrak.</p>`;
 fs.writeFileSync(path.join(build, 'index.html'), `${home.slice(0, hs)}<div class="seo-only">${homeBody}</div></div>${home.slice(he)}`);
 console.log(`prerendered ${n} pages`);
+
+// ---- service worker: a new version name per build, so installed apps fetch the new files
+{
+  const swPath = path.join(build, 'sw.js');
+  if (fs.existsSync(swPath)) {
+    const am = JSON.parse(fs.readFileSync(path.join(build, 'asset-manifest.json'), 'utf8'));
+    const tag = String(am.files && am.files['main.js'] || Date.now()).replace(/[^\w]/g, '').slice(-24);
+    fs.writeFileSync(swPath, fs.readFileSync(swPath, 'utf8').replace("const VERSION = 'st-shell-v1';", `const VERSION = 'st-shell-${tag}';`));
+  }
+}

@@ -10,6 +10,7 @@ import {
   ArrowLeftOutlined, CheckCircleFilled, CloseCircleFilled, ReloadOutlined, SoundOutlined, StopOutlined, WarningOutlined,
 } from '@ant-design/icons';
 import readyCheckService, { errorText, isOffline, newId, queued } from '../services/readyCheckService';
+import { RC_LANGS, SPEECH, controlText, taskName, ui } from '../data/readyCheckI18n';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -23,12 +24,12 @@ const STATUS = {
 const when = (d) => (d ? new Date(d).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : '');
 const clock = (d) => new Date(d).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-const speak = (text) => {
+const speak = (text, lang = 'en') => {
   try {
     if (!window.speechSynthesis) { message.info('This phone cannot read aloud.'); return; }
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'en';
+    u.lang = SPEECH[lang] || 'en';
     window.speechSynthesis.speak(u);
   } catch (e) { /* reading aloud is optional */ }
 };
@@ -40,12 +41,12 @@ const left = (end, now) => {
 };
 
 // ------------------------------------------------------------------ what happened here before
-const Before = ({ data }) => {
+const Before = ({ data, t }) => {
   if (!data) return null;
   const { lessons = [], events = [], weak_controls: weak = [], incident_count: inc = 0, near_miss_count: near = 0 } = data;
   if (!lessons.length && !weak.length && !inc && !near) return null;
   return (
-    <Alert type="warning" showIcon icon={<WarningOutlined />} style={{ marginBottom: 16 }} message="This happened here before"
+    <Alert type="warning" showIcon icon={<WarningOutlined />} style={{ marginBottom: 16 }} message={t.history}
       description={(
         <div>
           {(inc > 0 || near > 0) && (
@@ -63,6 +64,9 @@ const Before = ({ data }) => {
 
 // ------------------------------------------------------------------ the worker's check
 const Check = ({ meta, cached, onSaved }) => {
+  const [lang, setLang] = useState(() => { try { return localStorage.getItem('rc:lang') || 'en'; } catch (e) { return 'en'; } });
+  const t = ui(lang);
+  const chooseLang = (v) => { setLang(v); try { localStorage.setItem('rc:lang', v); } catch (e) { /* optional */ } };
   const [task, setTask] = useState(null);
   const [before, setBefore] = useState(null);
   const [answers, setAnswers] = useState({});
@@ -112,8 +116,8 @@ const Check = ({ meta, cached, onSaved }) => {
       <Card style={{ borderRadius: 16, textAlign: 'center', background: stop ? '#fff1f0' : '#f6ffed', borderColor: stop ? '#ff4d4f' : '#52c41a' }}>
         <div role="status">
           {stop ? <CloseCircleFilled style={{ fontSize: 72, color: '#cf1322' }} /> : <CheckCircleFilled style={{ fontSize: 72, color: '#389e0d' }} />}
-          <Title level={2} style={{ margin: '8px 0', color: stop ? '#a8071a' : '#237804' }}>{stop ? 'STOP. Do not start.' : 'Controls confirmed'}</Title>
-          {stop && missing.length > 0 && <div style={{ marginBottom: 12 }}>{missing.map((c) => <div key={c.id}><b>Missing:</b> {c.text}</div>)}</div>}
+          <Title level={2} style={{ margin: '8px 0', color: stop ? '#a8071a' : '#237804' }}>{stop ? t.stop : t.go}</Title>
+          {stop && missing.length > 0 && <div style={{ marginBottom: 12 }}>{missing.map((c) => <div key={c.id}><b>{t.missing}</b> {controlText(lang, task, c)}</div>)}</div>}
           {done.sent && stop && (
             <Paragraph>{done.alerted > 0 ? `${done.alerted} supervisor${done.alerted === 1 ? ' is' : 's are'} being told now.` : 'No supervisor is set up to be told. Tell your supervisor yourself.'}</Paragraph>
           )}
@@ -135,14 +139,18 @@ const Check = ({ meta, cached, onSaved }) => {
   if (!task) {
     return (
       <div>
-        <Title level={4} style={{ marginTop: 0 }}>What are you about to do?</Title>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <Title level={4} style={{ margin: 0 }}>{t.what}</Title>
+          <Select aria-label="Language" value={lang} onChange={chooseLang} options={RC_LANGS} style={{ width: 140 }} />
+        </div>
+        {lang !== 'en' && <Alert type="info" showIcon style={{ marginBottom: 12 }} message="Translated by AI. Ask a native speaker on your site to check the wording." />}
         {cached && <Alert type="info" showIcon style={{ marginBottom: 12 }} message="No signal. You can still do the check; it will be sent later." />}
         <Row gutter={[12, 12]}>
-          {meta.tasks.map((t) => (
-            <Col xs={12} sm={8} lg={6} key={t.key}>
-              <button type="button" onClick={() => pick(t)} style={{ width: '100%', minHeight: 116, padding: 12, borderRadius: 14, border: '1px solid #d9d9d9', background: '#fff', color: '#1f1f1f', cursor: 'pointer', font: 'inherit' }}>
-                <span aria-hidden="true" style={{ fontSize: 34, display: 'block' }}>{PICTURE[t.key] || '🦺'}</span>
-                <b>{t.name}</b>
+          {meta.tasks.map((tk) => (
+            <Col xs={12} sm={8} lg={6} key={tk.key}>
+              <button type="button" onClick={() => pick(tk)} style={{ width: '100%', minHeight: 116, padding: 12, borderRadius: 14, border: '1px solid #d9d9d9', background: '#fff', color: '#1f1f1f', cursor: 'pointer', font: 'inherit' }}>
+                <span aria-hidden="true" style={{ fontSize: 34, display: 'block' }}>{PICTURE[tk.key] || '🦺'}</span>
+                <b>{taskName(lang, tk)}</b>
               </button>
             </Col>
           ))}
@@ -153,18 +161,18 @@ const Check = ({ meta, cached, onSaved }) => {
 
   return (
     <div>
-      <Button type="text" icon={<ArrowLeftOutlined />} onClick={reset} style={{ paddingLeft: 0 }}>Choose other work</Button>
-      <Title level={3} style={{ marginTop: 4 }}><span aria-hidden="true">{PICTURE[task.key]}</span> {task.name}</Title>
-      <Before data={before} />
-      <Paragraph type="secondary">Answer only what you can see right now. Not sure means No.</Paragraph>
+      <Button type="text" icon={<ArrowLeftOutlined />} onClick={reset} style={{ paddingLeft: 0 }}>{t.other}</Button>
+      <Title level={3} style={{ marginTop: 4 }}><span aria-hidden="true">{PICTURE[task.key]}</span> {taskName(lang, task)}</Title>
+      <Before data={before} t={t} />
+      <Paragraph type="secondary">{t.seeNow}</Paragraph>
       {task.controls.map((c, i) => (
         <Card key={c.id} size="small" style={{ marginBottom: 10, borderRadius: 12, borderLeft: `5px solid ${{ yes: '#52c41a', no: '#ff4d4f', na: '#8c8c8c' }[answers[c.id]] || '#d9d9d9'}` }}>
           <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 10 }}>
-            <Text strong style={{ flex: 1, fontSize: 16 }} id={`rc-${c.id}`}>{i + 1}. {c.text}</Text>
-            <Button aria-label="Read aloud" icon={<SoundOutlined />} onClick={() => speak(c.text)} />
+            <Text strong style={{ flex: 1, fontSize: 16 }} id={`rc-${c.id}`}>{i + 1}. {controlText(lang, task, c)}</Text>
+            <Button aria-label={t.readAloud} icon={<SoundOutlined />} onClick={() => speak(controlText(lang, task, c), lang)} />
           </div>
           <div role="group" aria-labelledby={`rc-${c.id}`} style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {[['yes', 'Yes, I see it', '#389e0d'], ['no', 'No', '#cf1322'], ...(c.optional ? [['na', 'Not needed', '#595959']] : [])].map(([v, label, color]) => (
+            {[['yes', t.yes, '#389e0d'], ['no', t.no, '#cf1322'], ...(c.optional ? [['na', t.na, '#595959']] : [])].map(([v, label, color]) => (
               <button key={v} type="button" aria-pressed={answers[c.id] === v} onClick={() => set(c.id, v)}
                 style={{ flex: '1 1 90px', minHeight: 48, borderRadius: 10, border: `2px solid ${color}`, background: answers[c.id] === v ? color : '#fff', color: answers[c.id] === v ? '#fff' : color, fontWeight: 600, cursor: 'pointer', font: 'inherit' }}>
                 {label}
@@ -192,7 +200,7 @@ const Check = ({ meta, cached, onSaved }) => {
         </Row>
       </Card>
       <Button type="primary" size="large" block danger={missing.length > 0} loading={busy} disabled={open > 0} onClick={send} style={{ minHeight: 52 }}>
-        {open > 0 ? `${open} question${open === 1 ? '' : 's'} left` : missing.length ? 'Stop work and tell supervisors' : 'Confirm controls'}
+        {open > 0 ? `${open} ${t.left}` : missing.length ? t.stopTell : t.confirm}
       </Button>
     </div>
   );

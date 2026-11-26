@@ -81,83 +81,12 @@
       "purpose": "any maskable"
     }
   ],
-  "screenshots": [
-    {
-      "src": "/screenshot-desktop.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": {
-        "en": "SafeTrack Pro - AI Camera Monitoring, Instant Incident Reports & Live Environmental Dashboard",
-        "es": "SafeTrack Pro - Monitoreo con Cámara IA, Reportes Instantáneos de Incidentes y Panel Ambiental en Vivo",
-        "fr": "SafeTrack Pro - Surveillance par Caméra IA, Rapports d'Incidents Instantanés et Tableau de Bord Environnemental en Direct",
-        "ar": "SafeTrack Pro - مراقبة الكاميرا بالذكاء الاصطناعي، تقارير الحوادث الفورية ولوحة تحكم بيئية مباشرة",
-        "zh": "SafeTrack Pro - AI摄像头监控、即时事件报告和实时环境仪表板",
-        "hi": "SafeTrack Pro - AI कैमरा निगरानी, तत्काल घटना रिपोर्ट और लाइव पर्यावरण डैशबोर्ड",
-        "pt": "SafeTrack Pro - Monitoramento com Câmera IA, Relatórios Instantâneos de Incidentes e Painel Ambiental ao Vivo",
-        "ru": "SafeTrack Pro - ИИ-камера мониторинг, мгновенные отчеты об инцидентах и живая экологическая панель",
-        "ja": "SafeTrack Pro - AIカメラ監視、インシデント即時報告、ライブ環境ダッシュボード",
-        "de": "SafeTrack Pro - KI-Kameraüberwachung, sofortige Vorfallberichte und Live-Umwelt-Dashboard"
-      }
-    },
-    {
-      "src": "/screenshot-mobile.png",
-      "sizes": "360x720",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": {
-        "en": "SafeTrack Pro Mobile - Instant Incident Reports, Document Lifecycle & PTW",
-        "es": "SafeTrack Pro Móvil - Reportes Instantáneos de Incidentes, Ciclo de Vida de Documentos y PTW",
-        "fr": "SafeTrack Pro Mobile - Rapports d'Incidents Instantanés, Cycle de Vie Documentaire et PTW",
-        "ar": "SafeTrack Pro المحمول - تقارير الحوادث الفورية، دورة حياة المستندات وتصريح العمل",
-        "zh": "SafeTrack Pro 移动端 - 即时事件报告、文档生命周期和作业许可",
-        "hi": "SafeTrack Pro मोबाइल - तत्काल घटना रिपोर्ट, दस्तावेज़ जीवनचक्र और PTW",
-        "pt": "SafeTrack Pro Móvel - Relatórios Instantâneos de Incidentes, Ciclo de Vida de Documentos e PTW",
-        "ru": "SafeTrack Pro Мобильный - Мгновенные отчеты об инцидентах, жизненный цикл документов и PTW",
-        "ja": "SafeTrack Pro モバイル - インシデント即時報告、ドキュメントライフサイクル、PTW",
-        "de": "SafeTrack Pro Mobil - Sofortige Vorfallberichte, Dokumenten-Lebenszyklus und PTW"
-      }
-    }
-  ],
   "shortcuts": [
     {
-      "name": {
-        "en": "AI Camera Monitoring",
-        "es": "Monitoreo con Cámara IA",
-        "fr": "Surveillance par Caméra IA",
-        "ar": "مراقبة الكاميرا بالذكاء الاصطناعي",
-        "zh": "AI摄像头监控",
-        "hi": "AI कैमरा निगरानी",
-        "pt": "Monitoramento com Câmera IA",
-        "ru": "ИИ-камера мониторинг",
-        "ja": "AIカメラ監視",
-        "de": "KI-Kameraüberwachung"
-      },
-      "short_name": {
-        "en": "Camera AI",
-        "es": "Cámara IA",
-        "fr": "Caméra IA",
-        "ar": "كاميرا AI",
-        "zh": "AI摄像头",
-        "hi": "कैमरा AI",
-        "pt": "Câmera IA",
-        "ru": "ИИ-камера",
-        "ja": "AIカメラ",
-        "de": "KI-Kamera"
-      },
-      "description": {
-        "en": "24/7 real-time PPE detection, hazard identification, and instant safety alerts",
-        "es": "Detección de EPP en tiempo real 24/7, identificación de peligros y alertas de seguridad instantáneas",
-        "fr": "Détection EPI en temps réel 24h/24, identification des dangers et alertes de sécurité instantanées",
-        "ar": "كشف معدات الحماية الشخصية على مدار الساعة، تحديد المخاطر وتنبيهات السلامة الفورية",
-        "zh": "24/7 实时PPE检测、危险识别和即时安全警报",
-        "hi": "24/7 वास्तविक समय PPE पहचान, खतरा पहचान और तत्काल सुरक्षा अलर्ट",
-        "pt": "Detecção de EPI em tempo real 24/7, identificação de perigos e alertas de segurança instantâneos",
-        "ru": "Круглосуточное обнаружение СИЗ, идентификация опасностей и мгновенные оповещения о безопасности",
-        "ja": "24時間365日のリアルタイムPPE検出、危険特定、即時安全アラート",
-        "de": "24/7 Echtzeit-PSA-Erkennung, Gefahrenidentifizierung und sofortige Sicherheitswarnungen"
-      },
-      "url": "/camera-ai",
+      "name": "Ready Check",
+      "short_name": "Ready Check",
+      "description": "Check life-saving controls before a job, or stop work",
+      "url": "/ready-check",
       "icons": [
         {
           "src": "/android-chrome-192x192.png",
@@ -257,96 +186,6 @@
     },
     {
       "name": {
-        "en": "Live Environmental Monitoring",
-        "es": "Monitoreo Ambiental en Vivo",
-        "fr": "Surveillance Environnementale en Direct",
-        "ar": "المراقبة البيئية المباشرة",
-        "zh": "实时环境监测",
-        "hi": "लाइव पर्यावरण निगरानी",
-        "pt": "Monitoramento Ambiental ao Vivo",
-        "ru": "Живой экологический мониторинг",
-        "ja": "ライブ環境モニタリング",
-        "de": "Live-Umweltüberwachung"
-      },
-      "short_name": {
-        "en": "Environment",
-        "es": "Ambiente",
-        "fr": "Environnement",
-        "ar": "البيئة",
-        "zh": "环境",
-        "hi": "पर्यावरण",
-        "pt": "Ambiente",
-        "ru": "Экология",
-        "ja": "環境",
-        "de": "Umwelt"
-      },
-      "description": {
-        "en": "Real-time air, water, emissions, and carbon footprint monitoring with AI predictions",
-        "es": "Monitoreo en tiempo real de aire, agua, emisiones y huella de carbono con predicciones de IA",
-        "fr": "Surveillance en temps réel de l'air, de l'eau, des émissions et de l'empreinte carbone avec prédictions IA",
-        "ar": "مراقبة الهواء والماء والانبعاثات والبصمة الكربونية في الوقت الفعلي مع تنبؤات الذكاء الاصطناعي",
-        "zh": "实时空气、水、排放和碳足迹监测，AI预测",
-        "hi": "AI भविष्यवाणियों के साथ वास्तविक समय हवा, पानी, उत्सर्जन और कार्बन फुटप्रिंट निगरानी",
-        "pt": "Monitoramento em tempo real de ar, água, emissões e pegada de carbono com previsões de IA",
-        "ru": "Мониторинг воздуха, воды, выбросов и углеродного следа в реальном времени с ИИ-прогнозами",
-        "ja": "AI予測によるリアルタイムの大気、水、排出、カーボンフットプリント監視",
-        "de": "Echtzeit-Überwachung von Luft, Wasser, Emissionen und CO2-Fußabdruck mit KI-Vorhersagen"
-      },
-      "url": "/environmental",
-      "icons": [
-        {
-          "src": "/android-chrome-192x192.png",
-          "sizes": "192x192"
-        }
-      ]
-    },
-    {
-      "name": {
-        "en": "Permit to Work (PTW)",
-        "es": "Permiso de Trabajo (PTW)",
-        "fr": "Permis de Travail (PTW)",
-        "ar": "تصريح العمل (PTW)",
-        "zh": "作业许可 (PTW)",
-        "hi": "कार्य अनुमति (PTW)",
-        "pt": "Permissão de Trabalho (PTW)",
-        "ru": "Разрешение на работу (PTW)",
-        "ja": "作業許可証 (PTW)",
-        "de": "Arbeitsgenehmigung (PTW)"
-      },
-      "short_name": {
-        "en": "PTW",
-        "es": "PTW",
-        "fr": "PTW",
-        "ar": "تصريح",
-        "zh": "作业许可",
-        "hi": "PTW",
-        "pt": "PTW",
-        "ru": "PTW",
-        "ja": "PTW",
-        "de": "PTW"
-      },
-      "description": {
-        "en": "Create, approve, and manage work permits with complete audit trails and risk assessments",
-        "es": "Cree, apruebe y administre permisos de trabajo con pistas de auditoría completas y evaluaciones de riesgo",
-        "fr": "Créez, approuvez et gérez les permis de travail avec pistes d'audit complètes et évaluations des risques",
-        "ar": "إنشاء والموافقة على وإدارة تصاريح العمل مع مسارات تدقيق كاملة وتقييمات المخاطر",
-        "zh": "创建、批准和管理工作许可，完整审计跟踪和风险评估",
-        "hi": "पूर्ण ऑडिट ट्रेल और जोखिम मूल्यांकन के साथ कार्य अनुमतियाँ बनाएं, अनुमोदित करें और प्रबंधित करें",
-        "pt": "Crie, aprove e gerencie permissões de trabalho com trilhas de auditoria completas e avaliações de risco",
-        "ru": "Создавайте, утверждайте и управляйте разрешениями на работу с полными журналами аудита и оценками рисков",
-        "ja": "完全な監査証跡とリスク評価を備えた作業許可証の作成、承認、管理",
-        "de": "Arbeitsgenehmigungen mit vollständigen Audit-Trails und Risikobewertungen erstellen, genehmigen und verwalten"
-      },
-      "url": "/ptw",
-      "icons": [
-        {
-          "src": "/android-chrome-192x192.png",
-          "sizes": "192x192"
-        }
-      ]
-    },
-    {
-      "name": {
         "en": "Safety Dashboard",
         "es": "Panel de Seguridad",
         "fr": "Tableau de Bord de Sécurité",
@@ -391,15 +230,5 @@
       ]
     }
   ],
-  "related_applications": [],
-  "share_target": {
-    "action": "/share",
-    "method": "GET",
-    "enctype": "application/x-www-form-urlencoded",
-    "params": {
-      "title": "title",
-      "text": "text",
-      "url": "url"
-    }
-  }
+  "related_applications": []
 }

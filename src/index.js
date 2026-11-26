@@ -33,3 +33,10 @@ root.render(
     <App />
   // </React.StrictMode>
 );
+
+// Installable app: the service worker stores the app's own files so it opens without signal (never API data).
+if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === '127.0.0.1')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => { /* the site works without it */ });
+  });
+}

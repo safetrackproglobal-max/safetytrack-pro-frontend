@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Menu, Divider, Typography, Button } from 'antd';
-import {
+import { AlertOutlined,
   DashboardOutlined,
   BarChartOutlined,
   FileTextOutlined,
@@ -88,6 +88,8 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
   const adminMenuItems = [
     { key: dashboardPath, icon: <DashboardOutlined />, label: 'Dashboard' },
     { key: '/ready-check', icon: <SafetyCertificateOutlined />, label: 'Ready Check' },
+    { key: '/roll-call', icon: <AlertOutlined />, label: 'Roll Call' },
+    { key: '/contractors', icon: <TeamOutlined />, label: 'Contractors' },
     { key: '/toolbox-talks', icon: <SoundOutlined />, label: 'Toolbox Talks' },
     { key: '/workplace-voice', icon: <AudioOutlined />, label: 'Workplace Voice' },
     { key: '/analytics', icon: <BarChartOutlined />, label: 'Analytics' },
@@ -104,6 +106,7 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
   const employeeMenuItems = [
     { key: dashboardPath, icon: <DashboardOutlined />, label: 'Dashboard' },
     { key: '/ready-check', icon: <SafetyCertificateOutlined />, label: 'Ready Check' },
+    { key: '/roll-call', icon: <AlertOutlined />, label: 'Roll Call' },
     { key: '/toolbox-talks', icon: <SoundOutlined />, label: 'Toolbox Talks' },
     { key: '/workplace-voice', icon: <AudioOutlined />, label: 'Workplace Voice' },
     { key: '/incidents', icon: <SafetyCertificateOutlined />, label: 'Report Incident' },
@@ -116,6 +119,8 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
   const superAdminMenuItems = [
     { key: dashboardPath, icon: <DashboardOutlined />, label: 'Dashboard' },
     { key: '/ready-check', icon: <SafetyCertificateOutlined />, label: 'Ready Check' },
+    { key: '/roll-call', icon: <AlertOutlined />, label: 'Roll Call' },
+    { key: '/contractors', icon: <TeamOutlined />, label: 'Contractors' },
     { key: '/toolbox-talks', icon: <SoundOutlined />, label: 'Toolbox Talks' },
     { key: '/workplace-voice', icon: <AudioOutlined />, label: 'Workplace Voice' },
     { key: '/analytics', icon: <BarChartOutlined />, label: 'Analytics' },
@@ -171,6 +176,8 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
     return [
       { key: dashboardPath, icon: <DashboardOutlined />, label: 'Dashboard' },
       { key: '/ready-check', icon: <SafetyCertificateOutlined />, label: 'Ready Check' },
+      { key: '/roll-call', icon: <AlertOutlined />, label: 'Roll Call' },
+      { key: '/contractors', icon: <TeamOutlined />, label: 'Contractors' },
     { key: '/toolbox-talks', icon: <SoundOutlined />, label: 'Toolbox Talks' },
       { key: '/workplace-voice', icon: <AudioOutlined />, label: 'Workplace Voice' },
       { key: '/analytics', icon: <BarChartOutlined />, label: 'Analytics' },

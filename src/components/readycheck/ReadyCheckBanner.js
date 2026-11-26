@@ -4,6 +4,7 @@ import { useHistory } from 'react-router-dom';
 import { Alert, Button, Card, Space, Tag, Typography } from 'antd';
 import { SafetyCertificateOutlined, StopOutlined } from '@ant-design/icons';
 import readyCheckService from '../../services/readyCheckService';
+import { musterService } from '../../services/siteSafetyService';
 
 const { Text } = Typography;
 
@@ -14,11 +15,12 @@ const ReadyCheckBanner = () => {
   const load = useCallback(async () => {
     try {
       const { data } = await readyCheckService.tasks();
-      const [mine, board] = await Promise.all([
+      const [mine, board, muster] = await Promise.all([
         readyCheckService.mine().catch(() => null),
         data?.is_staff ? readyCheckService.board().catch(() => null) : null,
+        musterService.current().catch(() => null),
       ]);
-      setInfo({ staff: data?.is_staff, mine: mine?.data || [], board: board?.data || null });
+      setInfo({ staff: data?.is_staff, mine: mine?.data || [], board: board?.data || null, muster: muster?.data || null });
     } catch (e) {
       setInfo(null);
     }
@@ -26,7 +28,7 @@ const ReadyCheckBanner = () => {
 
   useEffect(() => {
     load();
-    const t = setInterval(load, 120000);
+    const t = setInterval(load, 60000);
     return () => clearInterval(t);
   }, [load]);
 
@@ -37,6 +39,12 @@ const ReadyCheckBanner = () => {
 
   return (
     <div style={{ marginBottom: 16 }}>
+      {info.muster?.event && (
+        <Alert type="error" showIcon style={{ marginBottom: 8 }}
+          message={info.muster.event.kind === 'real' ? 'EVACUATION: roll call running' : 'Evacuation drill: roll call running'}
+          description={info.muster.my_status === 'safe' ? 'You are marked safe.' : `Go to ${info.muster.event.assembly_point || 'your assembly point'}, then press I am safe.`}
+          action={<Button danger type="primary" onClick={() => history.push('/roll-call')}>{info.muster.my_status === 'safe' ? 'Open' : 'I am safe'}</Button>} />
+      )}
       {overdue.length > 0 && (
         <Alert type="error" showIcon style={{ marginBottom: 8 }}
           message={`Lone worker overdue: ${overdue.map((r) => r.worker_name).join(', ')}`}
