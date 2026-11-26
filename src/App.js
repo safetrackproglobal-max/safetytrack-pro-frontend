@@ -115,7 +115,6 @@ import IndustryWorkspace from './pages/Modules/Industries/IndustryWorkspace';
 import UpgradeModal from './components/UpgradeModal';
 
 // ✅ KEPT: Valid imports
-import HSEManagementPage from './pages/HSEManagementPage';
 import IncidentPage from './pages/IncidentPage';
 import MonitoringPage from './pages/MonitoringPage';
 import PredictivePage from './pages/PredictivePage';
@@ -1303,11 +1302,7 @@ const AppContent = () => {
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          <ProtectedRoute path="/hse" exact>
-            <DashboardLayoutWrapper>
-              <HSEManagementPage />
-            </DashboardLayoutWrapper>
-          </ProtectedRoute>
+          <Redirect exact from="/hse" to="/hse-management" />
 
           {/* ============================================ */}
           {/* LEGACY ROUTES */}
@@ -1471,17 +1466,9 @@ const AppContent = () => {
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 
-          <ProtectedRoute path="/hse/incidents">
-            <DashboardLayoutWrapper>
-              <HSEManagementPage />
-            </DashboardLayoutWrapper>
-          </ProtectedRoute>
+          <Redirect exact from="/hse/incidents" to="/incidents" />
 
-          <ProtectedRoute path="/hse/compliance">
-            <DashboardLayoutWrapper>
-              <HSEManagementPage />
-            </DashboardLayoutWrapper>
-          </ProtectedRoute>
+          <Redirect exact from="/hse/compliance" to="/compliance" />
 
          {/* ============================================ */}
           {/* INFO PAGES (Consolidated: documentation, guides, blog, etc.) */}
