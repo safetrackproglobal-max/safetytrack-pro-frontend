@@ -10,6 +10,9 @@
 //    Clicking a line opens it for typing in the same style. On save the original characters are
 //    removed (background kept) and the new text is written on the same baseline.
 //  * White-out: erases text under it and paints the page background colour (auto-matched).
+//  * Eraser: deletes lines, text and pictures in the area and paints nothing (the paper shows through).
+//  * Find drawn words: CAD drawings often draw lettering as lines, so there is no text to edit.
+//    The server reads those words with OCR; editing one erases the drawn letters and writes real text.
 //
 // Kept from the previous version: thumbnails, AcroForm panel, signature placement and certified
 // redaction (server side, with reason + certificate).
@@ -80,7 +83,7 @@ const FONT_OPTIONS = [
 const STAMPS = ['APPROVED', 'REVIEWED', 'DRAFT', 'CONFIDENTIAL', 'FOR INFORMATION', 'RECEIVED', 'VOID'];
 const DEFAULT_COLOR = {
   highlight: '#ffec3d', rect: '#ff4d4f', ellipse: '#52c41a', line: '#1890ff', ink: '#1d39c4',
-  note: '#fff566', stamp: '#d4380d', textbox: '#000000', whiteout: '#ffffff',
+  note: '#fff566', stamp: '#d4380d', textbox: '#000000', whiteout: '#ffffff', erase: '#ffffff',
 };
 // tool names used by the ribbon in DocumentEditor -> internal names
 const RIBBON_TOOL = { 'text-edit': 'editText', text: 'addText' };
@@ -88,6 +91,12 @@ const RIBBON_TOOL = { 'text-edit': 'editText', text: 'addText' };
 const EllipseIcon = () => (
   <svg width="1em" height="1em" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6">
     <ellipse cx="8" cy="8" rx="6.5" ry="4.8" />
+  </svg>
+);
+const EraserIcon = () => (
+  <svg width="1em" height="1em" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round">
+    <path d="M6.2 13.5 1.9 9.2a1 1 0 0 1 0-1.4l6-6a1 1 0 0 1 1.4 0l4.9 4.9a1 1 0 0 1 0 1.4l-6 6H14" />
+    <path d="m5 4.8 6.2 6.2" />
   </svg>
 );
 const PenIcon = () => (
@@ -107,6 +116,8 @@ const TOOLS = [
     hint: 'Click where the new text should start and type. Change font, size and colour in the bar above. Press Enter for a new line.' },
   { key: 'whiteout', label: 'White-out', icon: <ClearOutlined />, group: 'edit',
     hint: 'Drag over anything you want to erase. The patch takes the page background colour automatically (change it above). Then use Add Text to write on it.' },
+  { key: 'erase', label: 'Eraser', icon: <EraserIcon />, group: 'edit',
+    hint: 'Drag over lines, words or pictures to delete them. Nothing is painted on top, the paper shows through. Stamps and comments fully inside the area are removed too.' },
   { key: 'highlight', label: 'Highlight', icon: <HighlightOutlined />, group: 'mark',
     hint: 'Drag over text to highlight it. Pick another colour in the bar above.' },
   { key: 'ink', label: 'Pen', icon: <PenIcon />, group: 'mark',
@@ -125,7 +136,7 @@ const TOOL_BY_KEY = Object.fromEntries(TOOLS.map((t) => [t.key, t]));
 
 const newId = () => `o_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
 const isTextType = (t) => t === 'textbox' || t === 'textedit';
-const hasBox = (t) => ['whiteout', 'highlight', 'rect', 'ellipse', 'note', 'stamp'].includes(t);
+const hasBox = (t) => ['whiteout', 'erase', 'highlight', 'rect', 'ellipse', 'note', 'stamp'].includes(t);
 
 let measureCtx = null;
 const measureText = (o) => {
@@ -215,7 +226,9 @@ const toPayload = (o) => {
   switch (o.type) {
     case 'textedit':
       return { ...base, cover: o.removeBand, x: o.x, baseline: o.baseline, text: o.text, size: o.size,
-               font: o.font, bold: !!o.bold, italic: !!o.italic, color: o.color };
+               font: o.font, bold: !!o.bold, italic: !!o.italic, color: o.color, ocr: !!o.ocr };
+    case 'erase':
+      return { ...base, x: o.x, y: o.y, w: o.w, h: o.h };
     case 'textbox':
       return { ...base, x: o.x, y: o.y, text: o.text, size: o.size, font: o.font, bold: !!o.bold,
                italic: !!o.italic, color: o.color, align: o.align || 'left', bg: o.bg || null };
@@ -543,6 +556,23 @@ const PDFEditor = forwardRef(({
     });
   }, [tool, documentId, renderedPages, textLines]);
 
+  // CAD drawings draw most lettering as lines: read those words with OCR on the server (one page at a time)
+  const findDrawnWords = useCallback((p) => {
+    if (!documentId) return;
+    setTextLines((prev) => ({ ...prev, [p]: { ...(prev[p] || { lines: [] }), status: 'ocr' } }));
+    documentService.getPdfTextLines(documentId, p, { ocr: true })
+      .then((data) => {
+        const found = data.ocr_found || 0;
+        setTextLines((prev) => ({ ...prev, [p]: { status: 'ready', lines: data.lines || [], likelyScanned: data.likely_scanned, ocrDone: true, ocrFound: found } }));
+        if (found) message.success(`Found ${found} drawn line${found === 1 ? '' : 's'} of words on page ${p}. They are outlined in orange — click one to edit it.`);
+        else message.info(`No more words could be read on page ${p}.`);
+      })
+      .catch((err) => {
+        setTextLines((prev) => ({ ...prev, [p]: { ...(prev[p] || { lines: [] }), status: 'ready' } }));
+        message.error(err?.response?.data?.error || 'Word recognition failed. Please try again.');
+      });
+  }, [documentId]);
+
   const editedLineIds = useMemo(
     () => new Set(objects.filter((o) => o.type === 'textedit').map((o) => o.lineId)),
     [objects]
@@ -560,8 +590,11 @@ const PDFEditor = forwardRef(({
       font: line.font, bold: line.bold, italic: line.italic, color: line.color,
       preview: { x: bbox.x - 1, y: bbox.y - 0.5, w: bbox.w + 2, h: bbox.h + 1 },
       coverColor: sampleBackground(canvasRefs.current[page], bbox, scale),
-      // band around the baseline that the server clears (never reaches neighbouring lines)
-      removeBand: [line.x0 - 0.5, line.baseline - 0.6 * line.size, line.x1 + 0.5, line.baseline + 0.1 * line.size],
+      // band around the baseline that the server clears (never reaches neighbouring lines);
+      // words found by OCR are drawn as lines, so their whole box is erased
+      removeBand: line.ocr ? [line.x0 - 1, line.y0 - 1, line.x1 + 1, line.y1 + 1]
+        : [line.x0 - 0.5, line.baseline - 0.6 * line.size, line.x1 + 0.5, line.baseline + 0.1 * line.size],
+      ocr: !!line.ocr,
     };
     if (line.mixed_styles) message.info('This line mixes several fonts. It will be rewritten in one style.');
     editSnapshotRef.current = objectsRef.current;
@@ -659,6 +692,7 @@ const PDFEditor = forwardRef(({
   const onObjectPointerDown = (obj, mode) => (e) => {
     if (tool === 'editText' && obj.type === 'textedit') {
       e.stopPropagation();
+      e.preventDefault();   // a mouse press would otherwise move focus away and close the text box at once
       if (editingId && editingId !== obj.id) finishEditing();
       editSnapshotRef.current = objectsRef.current;
       setSelectedId(obj.id);
@@ -730,6 +764,8 @@ const PDFEditor = forwardRef(({
           } else if (w > 3 && h > 3) {
             if (d.type === 'redact') {
               setPendingRedactions((prev) => [...prev, { page: d.page, x, y, w, h }]);
+            } else if (d.type === 'erase') {
+              obj = { type: 'erase', x, y, w, h, color: '#ffffff' };
             } else if (d.type === 'whiteout') {
               obj = { type: 'whiteout', x, y, w, h, autoColor: true,
                 color: sampleBackground(canvasRefs.current[d.page], { x, y, w, h }, scale) };
@@ -963,6 +999,7 @@ const PDFEditor = forwardRef(({
       pointerEvents: tool === 'select' || isEditing ? 'auto' : 'none' };
     let inner = null; let cls = 'pe-box';
     if (o.type === 'whiteout') { style2.background = o.color; cls += ' pe-whiteout'; }
+    if (o.type === 'erase') { style2.background = '#ffffff'; cls += ' pe-erase'; }
     if (o.type === 'highlight') { style2.background = o.color; style2.opacity = 0.4; style2.mixBlendMode = 'multiply'; }
     if (o.type === 'stamp') {
       style2.border = `2.5px solid ${o.color}`; style2.color = o.color; style2.fontSize = stampFontSize(o) * scale;
@@ -1017,7 +1054,7 @@ const PDFEditor = forwardRef(({
     }
     if (draft.type === 'line') return <line x1={draft.x0 * s} y1={draft.y0 * s} x2={draft.x1 * s} y2={draft.y1 * s} stroke={DEFAULT_COLOR.line} strokeWidth={2 * s} />;
     if (draft.type === 'ellipse') return <ellipse cx={x + w / 2} cy={y + h / 2} rx={w / 2} ry={h / 2} fill="none" stroke={DEFAULT_COLOR.ellipse} strokeWidth={2 * s} strokeDasharray="4 3" />;
-    const fill = draft.type === 'highlight' ? 'rgba(255,236,61,0.45)' : draft.type === 'whiteout' ? 'rgba(255,255,255,0.9)'
+    const fill = draft.type === 'highlight' ? 'rgba(255,236,61,0.45)' : ['whiteout', 'erase'].includes(draft.type) ? 'rgba(255,255,255,0.9)'
       : draft.type === 'redact' ? 'rgba(0,0,0,0.6)' : 'rgba(24,144,255,0.08)';
     return <rect x={x} y={y} width={w} height={h} fill={fill} stroke={draft.type === 'rect' ? DEFAULT_COLOR.rect : '#1677ff'} strokeWidth={1.5} strokeDasharray="4 3" />;
   };
@@ -1159,10 +1196,10 @@ const PDFEditor = forwardRef(({
                 options={STAMPS.map((s) => ({ value: s, label: s }))}
                 onChange={(v) => updateObject(selected.id, { text: v })} />
             )}
-            <label className="pe-color" title="Colour">
+            {selected.type !== 'erase' && <label className="pe-color" title="Colour">
               <input type="color" value={selected.color} onChange={(e) => updateObject(selected.id, { color: e.target.value, autoColor: false })} />
               {selected.type === 'whiteout' ? 'Patch colour' : 'Colour'}
-            </label>
+            </label>}
             {selected.type === 'whiteout' && (
               <Button size="small" icon={<BgColorsOutlined />} onClick={() => updateObject(selected.id, {
                 color: sampleBackground(canvasRefs.current[selected.page], selected, scale), autoColor: true,
@@ -1180,8 +1217,15 @@ const PDFEditor = forwardRef(({
             {tool === 'editText' && !documentId && <span className="pe-warn"> Text editing needs the file to be stored in Document Control.</span>}
             {tool === 'editText' && pageState?.status === 'loading' && <span> Finding text on page {currentPage}…</span>}
             {tool === 'editText' && pageState?.status === 'ready' && !pageState.lines.length && (
-              <span className="pe-warn"> Page {currentPage} has no editable text{pageState.likelyScanned ? ' — it looks like a scanned image' : ''}. Use White-out + Add Text instead.</span>
+              <span className="pe-warn"> Page {currentPage} has no editable text{pageState.likelyScanned ? ' — it looks like a scanned image' : ''}{pageState.ocrDone ? '. Use the Eraser or White-out + Add Text instead.' : '.'}</span>
             )}
+            {tool === 'editText' && documentId && pageState?.status === 'ready' && !pageState.ocrDone && (
+              <Button size="small" type="primary" ghost style={{ marginLeft: 8 }} onClick={() => findDrawnWords(currentPage)}
+                title="Drawings often draw their lettering as lines, so it cannot be clicked. This reads those words so you can edit them.">
+                Find drawn words on page {currentPage}
+              </Button>
+            )}
+            {tool === 'editText' && pageState?.status === 'ocr' && <span> Reading the words drawn on page {currentPage} (can take up to a minute)…</span>}
             {tool === 'editText' && pageState?.status === 'error' && <span className="pe-warn"> Could not read the text on this page.</span>}
           </div>
         )}
@@ -1250,10 +1294,11 @@ const PDFEditor = forwardRef(({
                       >
                         {/* editable text lines ("type boxes") */}
                         {lines.filter((l) => !editedLineIds.has(l.id)).map((l) => (
-                          <div key={l.id} className="pe-run"
+                          <div key={l.id} className={`pe-run${l.ocr ? ' pe-run-ocr' : ''}`}
                             style={{ left: (l.x0 - 1) * scale, top: (l.y0 - 1) * scale, width: (l.x1 - l.x0 + 2) * scale, height: (l.y1 - l.y0 + 2) * scale }}
-                            title={`Click to edit · ${l.font} ${Math.round(l.size * 10) / 10}pt${l.bold ? ' bold' : ''}${l.italic ? ' italic' : ''}`}
-                            onPointerDown={(e) => { e.stopPropagation(); if (editingId) finishEditing(); startEditLine(pageNum, l); }}
+                            title={l.ocr ? `Click to edit · drawn word read by OCR: "${l.text}" · rewritten in Sans ${Math.round(l.size * 10) / 10}pt`
+                              : `Click to edit · ${l.font} ${Math.round(l.size * 10) / 10}pt${l.bold ? ' bold' : ''}${l.italic ? ' italic' : ''}`}
+                            onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); if (editingId) finishEditing(); startEditLine(pageNum, l); }}
                           />
                         ))}
 
@@ -1343,10 +1388,12 @@ const PDFEditor = forwardRef(({
           <li>Choose <b>Edit Text</b>. Text the editor can change is outlined in blue.</li>
           <li>Click a line and type. It keeps the original font, size and colour (you can change them in the bar above).</li>
           <li>Press <b>Esc</b> or click outside to finish. The old words are removed from the file, not just hidden.</li>
+          <li>Drawings (CAD) often draw their words as lines, so they are not outlined. Press <b>Find drawn words</b>: the words that can be read are outlined in orange and can be edited the same way.</li>
         </ol>
         <Title level={5}>Erase and replace (scanned pages, logos, signatures, images)</Title>
         <ol className="pe-help-list">
-          <li>Choose <b>White-out</b> and drag over the area. The patch matches the page background automatically.</li>
+          <li>Choose <b>Eraser</b> and drag over lines, words or pictures to delete them. Nothing is painted on top.</li>
+          <li>Or choose <b>White-out</b> to cover the area with a patch that matches the page background.</li>
           <li>Choose <b>Add Text</b>, click on the patch and type the new words.</li>
         </ol>
         <Title level={5}>Mark up</Title>

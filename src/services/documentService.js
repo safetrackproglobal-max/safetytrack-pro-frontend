@@ -2452,8 +2452,10 @@ async getLatestSignature(documentId) {
   /**
    * PDF editor: editable text lines (font, size, colour, position in page points) for one page.
    */
-  async getPdfTextLines(documentId, page) {
-    const response = await api.get(`/documents/${documentId}/pdf-text`, { params: { page } });
+  async getPdfTextLines(documentId, page, { ocr = false } = {}) {
+    // ocr: also read words that are drawn as lines (CAD drawings) or scanned; slow, so a longer timeout
+    const response = await api.get(`/documents/${documentId}/pdf-text`,
+      ocr ? { params: { page, ocr: 1 }, timeout: 120000 } : { params: { page } });
     return response.data;
   }
 

@@ -280,6 +280,7 @@
 .pe-tool-editText .pe-overlay { cursor: default; }
 .pe-tool-addText .pe-overlay { cursor: text; }
 .pe-tool-whiteout .pe-overlay,
+.pe-tool-erase .pe-overlay,
 .pe-tool-highlight .pe-overlay,
 .pe-tool-rect .pe-overlay,
 .pe-tool-ellipse .pe-overlay,
@@ -341,6 +342,21 @@
 
 .pe-whiteout {
   outline: 1px dashed rgba(0, 0, 0, 0.15);
+}
+
+/* transparent eraser: the area will be empty paper after saving */
+.pe-erase {
+  outline: 1px dashed rgba(207, 19, 34, 0.55);
+}
+
+/* words found by OCR (drawn as lines) */
+.pe-run-ocr {
+  border-color: rgba(250, 140, 22, 0.7);
+  background: rgba(250, 140, 22, 0.06);
+}
+.pe-run-ocr:hover {
+  border-color: #fa8c16;
+  background: rgba(250, 140, 22, 0.16);
 }
 
 .pe-stamp {
