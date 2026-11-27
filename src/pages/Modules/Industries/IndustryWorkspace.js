@@ -16,6 +16,7 @@ import { useChemicalTabs } from './chemical/ChemicalSafety';
 import ChemicalLab from './chemical/ChemicalLab';
 import ChemicalWaste from './chemical/ChemicalWaste';
 import ChemicalFolders from './chemical/ChemicalFolders';
+import { useOilGasTabs } from './oilgas/OilGas';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -26,7 +27,7 @@ export const INDUSTRIES = {
     standards: ['OSHA 29 CFR 1926 - Construction safety', 'CDM 2015 (UK) - Construction design and management', 'ISO 45001 - OH&S management systems'],
   },
   oil_gas: {
-    name: 'Oil & Gas', color: '#d46b08', tasks: ['hotwork', 'confined', 'energy', 'pressure', 'lifting'], calcs: ['risk', 'gas', 'noise'],
+    name: 'Oil & Gas', color: '#d46b08', tasks: ['hotwork', 'confined', 'energy', 'pressure', 'lifting'], calcs: ['risk', 'gas', 'noise'], og: true,
     intro: 'Process safety, permits, isolation and gas testing for upstream, midstream and downstream sites.',
     standards: ['OSHA 29 CFR 1910.119 - Process Safety Management', 'API RP 754 - Process safety performance indicators', 'IOGP Life-Saving Rules', 'ISO 45001 - OH&S management systems'],
   },
@@ -156,6 +157,7 @@ const IndustryWorkspace = ({ industryId }) => {
   const cfg = INDUSTRIES[industryId] || INDUSTRIES.general;
   const key = INDUSTRIES[industryId] ? industryId : 'general';
   const chem = useChemicalTabs(!!cfg.chem);
+  const ogTabs = useOilGasTabs(!!cfg.og);
   const tabParam = new URLSearchParams(location.search).get('tab') || 'overview';
   const setTab = (k) => history.replace({ pathname: location.pathname, search: k === 'overview' ? '' : `?tab=${k}` });
   const [d, setD] = useState(null);
@@ -270,7 +272,7 @@ const IndustryWorkspace = ({ industryId }) => {
           { key: 'waste', label: <span><DeleteRowOutlined /> Waste</span>, children: <ChemicalWaste register={chem.ctx?.data?.items} groups={chem.ctx?.groups} /> },
           docs, T.hazards, T.tools,
           { key: 'rules', label: <span><BookOutlined /> Rules by country</span>, children: chem.rules },
-        ] : [T.overview, T.hazards, T.tools, T.documents];
+        ] : cfg.og ? [T.overview, ...ogTabs, T.hazards, T.tools, T.documents] : [T.overview, T.hazards, T.tools, T.documents];
         const active = items.some((t) => t.key === tabParam) ? tabParam : 'overview';
         return <Tabs activeKey={active} onChange={setTab} items={items} />;
       })()}

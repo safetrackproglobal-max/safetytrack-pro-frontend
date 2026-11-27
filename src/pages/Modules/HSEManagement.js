@@ -47,7 +47,7 @@ const industries = [
     color: '#389e0d',
     description: 'Process safety, well control, pipeline management',
     risk: 'Very High',
-    features: ['Ready Check for permits and isolation', 'Gas test and noise calculators', 'Hazards, controls and standards'],
+    features: ['Permits with isolations (LOTO) and gas tests', 'SIMOPS, management of change and PSSR', 'Bypassed safety devices and H2S / flare zones'],
     component: IndustryWorkspace
   },
   {
