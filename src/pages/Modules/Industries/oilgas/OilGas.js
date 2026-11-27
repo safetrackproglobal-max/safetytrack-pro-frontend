@@ -67,12 +67,25 @@ const PermitDrawer = ({ permit, meta, onClose, onChanged }) => {
   const [gas, setGas] = useState([]);
   const [adding, setAdding] = useState(false);
   const [closing, setClosing] = useState(false);
+  const [gate, setGate] = useState(null);
+  const [override, setOverride] = useState('');
   const [form] = Form.useForm();
   const [cform] = Form.useForm();
   const load = useCallback(() => {
     apiGet(`/og/isolations?permit_id=${permit.id}`).then((r) => setIso(r.data || [])).catch((e) => message.error(err(e)));
     apiGet(`/og/gas-tests?permit_id=${permit.id}`).then((r) => setGas(r.data || [])).catch(() => {});
+    apiGet(`/og/permits/${permit.id}/gate`).then((r) => setGate(r.data)).catch(() => {});
   }, [permit.id]);
+  const start = async () => {
+    try {
+      await apiPost(`/work-permits/${permit.id}/status`, { action: 'activate', ...(override.trim() ? { override_reason: override.trim() } : {}) });
+      message.success('Work started: permit active'); onChanged(); onClose();
+    } catch (e) {
+      const g = e?.data?.gate || e?.response?.data?.gate;
+      if (g) setGate(g);
+      message.error(err(e));
+    }
+  };
   useEffect(() => { load(); }, [load]);
   const act = async (i, action) => {
     try {
@@ -103,6 +116,20 @@ const PermitDrawer = ({ permit, meta, onClose, onChanged }) => {
         { key: 'l', label: 'Location', children: permit.location || '-' }, { key: 'f', label: 'From', children: dt(permit.start_at) }, { key: 'to', label: 'To', children: dt(permit.end_at) },
         { key: 'g', label: 'Last gas test', children: lastGas ? <Tag color={lastGas.result === 'pass' ? 'green' : 'red'}>{lastGas.result} {dt(lastGas.tested_at)}</Tag> : <Text type="secondary">none</Text> },
       ]} />
+      {gate && ['approved', 'suspended'].includes(permit.status) && (
+        <Card size="small" style={{ marginTop: 12, borderRadius: 12, borderColor: gate.ready ? '#52c41a' : '#ff4d4f' }}
+          title={gate.ready ? 'Ready to start work' : 'Work cannot start yet'}>
+          {gate.blockers.map((b) => <Alert key={b} type="error" showIcon style={{ marginBottom: 6 }} message={b} />)}
+          {gate.warnings.map((w) => <Alert key={w} type="warning" showIcon style={{ marginBottom: 6 }} message={w} />)}
+          {gate.passed.map((x) => <Alert key={x} type="success" showIcon style={{ marginBottom: 6 }} message={x} />)}
+          {!gate.ready && (
+            <Input.TextArea value={override} onChange={(e) => setOverride(e.target.value)} maxLength={500} autoSize={{ minRows: 1, maxRows: 3 }} style={{ marginBottom: 8 }}
+              placeholder="Supervisors only: reason to start despite the blockers (logged and e-mailed to all supervisors)" />
+          )}
+          <Space><Button type="primary" danger={!gate.ready} onClick={start} disabled={!gate.ready && override.trim().length < 10}>{gate.ready ? 'Start work' : 'Start with override'}</Button>
+            <Button onClick={load}>Check again</Button></Space>
+        </Card>
+      )}
       <Card size="small" style={{ marginTop: 12, borderRadius: 12 }} title={<span><LockOutlined /> Isolation points ({open.length} in place)</span>} extra={!['closed', 'cancelled'].includes(permit.status) && <Button size="small" icon={<PlusOutlined />} onClick={() => setAdding(true)}>Add isolation</Button>}>
         <Table rowKey="id" size="small" dataSource={iso} pagination={false} scroll={{ x: 860 }} locale={{ emptyText: <Empty description="No isolations recorded on this permit" /> }} columns={[
           { title: 'Point', render: (_, r) => <div><Text strong>{r.point_tag}</Text><div><Text type="secondary" style={{ fontSize: 12 }}>{r.equipment || ''}</Text></div></div> },
