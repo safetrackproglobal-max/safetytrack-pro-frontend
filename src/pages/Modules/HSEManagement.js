@@ -10,8 +10,28 @@ import {
   ExperimentOutlined,
   RocketOutlined,
   SafetyCertificateOutlined,
-  ArrowRightOutlined
+  ArrowRightOutlined,
+  CheckSquareOutlined,
+  WarningOutlined,
+  AimOutlined,
+  EyeOutlined,
+  SafetyOutlined,
+  AlertOutlined,
+  TeamOutlined,
+  SoundOutlined
 } from '@ant-design/icons';
+
+// the real, company-scoped tools that make up daily HSE work
+const HSE_TOOLS = [
+  { path: '/inspections', name: 'Inspections', text: 'Checklists, photos, scores, actions', icon: <CheckSquareOutlined />, color: '#1677ff' },
+  { path: '/incidents', name: 'Incidents', text: 'Report and investigate', icon: <WarningOutlined />, color: '#cf1322' },
+  { path: '/risk-assessment', name: 'Risk assessment', text: 'Hazards, risk ratings, controls', icon: <AimOutlined />, color: '#d46b08' },
+  { path: '/safety/observations', name: 'Observations', text: 'Safe and unsafe acts and conditions', icon: <EyeOutlined />, color: '#13c2c2' },
+  { path: '/ready-check', name: 'Ready Check', text: 'Pre-task life-saving controls', icon: <SafetyOutlined />, color: '#389e0d' },
+  { path: '/roll-call', name: 'Roll Call', text: 'Evacuation and drills', icon: <AlertOutlined />, color: '#eb2f96' },
+  { path: '/contractors', name: 'Contractors', text: 'Approval, documents, gate check', icon: <TeamOutlined />, color: '#722ed1' },
+  { path: '/toolbox-talks', name: 'Toolbox Talks', text: 'Daily talks with attendance', icon: <SoundOutlined />, color: '#faad14' },
+];
 
 // Import your industry components
 import IndustryWorkspace from './Industries/IndustryWorkspace';
@@ -117,28 +137,49 @@ const HSEManagement = () => {
     return 'selector';
   };
 
+  // stay on /hse-management/... so the tabs remain (the old /modules/hse/... links still open the industry workspace)
   const handleTabChange = (key) => {
     if (key === 'selector') {
-      history.push('/modules/hse');
+      history.push('/hse-management');
     } else {
-      history.push(`/modules/hse/industry/${key}`);
+      history.push(`/hse-management/industry/${key}`);
     }
     setActiveTab(key);
   };
 
   const handleIndustrySelect = (industryId) => {
-    history.push(`/modules/hse/industry/${industryId}`);
+    history.push(`/hse-management/industry/${industryId}`);
     setActiveTab(industryId);
   };
 
   const renderIndustrySelector = () => (
     <div style={{ padding: '24px' }}>
-      <div style={{ textAlign: 'center', marginBottom: 48 }}>
+      <div style={{ textAlign: 'center', marginBottom: 24 }}>
         <Title level={1}>🏭 HSE Management System</Title>
         <Paragraph type="secondary" style={{ fontSize: '18px' }}>
-          Select your industry to access specialized safety management tools, documents, and AI services
+          Daily HSE tools for every site, plus industry workspaces with hazards, calculators and documents
         </Paragraph>
       </div>
+
+      <Card title="Daily HSE tools" style={{ marginBottom: 32, borderRadius: 16 }}>
+        <Row gutter={[12, 12]}>
+          {HSE_TOOLS.map((t) => (
+            <Col xs={12} sm={8} lg={6} key={t.path}>
+              <Card size="small" hoverable onClick={() => history.push(t.path)} style={{ borderRadius: 12, height: '100%' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <Avatar style={{ backgroundColor: t.color, flex: '0 0 32px' }} icon={t.icon} />
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontWeight: 600 }}>{t.name}</div>
+                    <div style={{ fontSize: 12, color: '#666' }}>{t.text}</div>
+                  </div>
+                </div>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      </Card>
+
+      <Title level={3} style={{ marginBottom: 16 }}>Industry workspaces</Title>
 
       <Row gutter={[24, 24]}>
         {industries.map(industry => (

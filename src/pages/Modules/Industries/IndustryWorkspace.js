@@ -205,7 +205,11 @@ const IndustryWorkspace = ({ industryId }) => {
   const [d, setD] = useState(null);
   const [err, setErr] = useState('');
   const load = useCallback(async () => {
-    try { setD((await apiGet(`/hse/workspace/${key}`)).data); setErr(''); } catch (e) { setErr(e?.data?.error || 'Could not load this workspace'); }
+    try {
+      const r = (await apiGet(`/hse/workspace/${key}`)).data || {};
+      setD({ ...r, hazards: r.hazards || [], regulations: r.regulations || [], documents: r.documents || [], documents_total: r.documents_total || 0 });
+      setErr('');
+    } catch (e) { setErr(e?.data?.error || 'Could not load this workspace'); }
   }, [key]);
   useEffect(() => { setD(null); load(); }, [load]);
   const calcs = useMemo(() => cfg.calcs.map((c) => ({
