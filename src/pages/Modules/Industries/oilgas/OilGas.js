@@ -6,8 +6,9 @@ import {
   Alert, Button, Card, Checkbox, Col, DatePicker, Descriptions, Drawer, Empty, Form, Input, InputNumber, Modal, Row, Select, Space, Table, Tag, Typography, message,
 } from 'antd';
 import dayjs from 'dayjs';
-import { AlertOutlined, ApartmentOutlined, ExperimentOutlined, LockOutlined, PlusOutlined, ReloadOutlined, SwapOutlined, WarningOutlined } from '@ant-design/icons';
+import { AlertOutlined, ApartmentOutlined, DashboardOutlined, ExperimentOutlined, FallOutlined, LockOutlined, PlusOutlined, ReloadOutlined, SafetyOutlined, SwapOutlined, TeamOutlined, WarningOutlined } from '@ant-design/icons';
 import { apiGet, apiPost, apiPut, apiDelete } from '../../../../services/api';
+import { Barriers, Detectors, Drops, Handover } from './OilGas2';
 
 const { Text, Paragraph } = Typography;
 const err = (e) => e?.response?.data?.error || e?.data?.error || e?.message || 'Something went wrong';
@@ -42,7 +43,7 @@ const GasForm = ({ permitId, permits, onSaved }) => {
         <Col xs={12} md={6}><Form.Item name="h2s" label="H2S ppm"><InputNumber min={0} step={0.5} style={{ width: '100%' }} /></Form.Item></Col>
         <Col xs={12} md={6}><Form.Item name="co" label="CO ppm"><InputNumber min={0} step={1} style={{ width: '100%' }} /></Form.Item></Col>
         <Col xs={24} md={12}><Form.Item name="instrument_id" label="Gas detector (equipment register)" extra={meta.detectors.length ? null : 'Add gas detectors in Inspections > Equipment to link them.'}>
-          <Select allowClear options={meta.detectors.map((d) => ({ value: d.id, label: `${d.label}${d.state !== 'ok' ? ` (${d.state_label})` : ''}` }))} />
+          <Select allowClear options={meta.detectors.map((d) => ({ value: d.id, disabled: d.bump_ok === false, label: `${d.label}${d.bump_ok === false ? ` (${d.bump_label})` : d.state !== 'ok' ? ` (${d.state_label})` : ''}` }))} />
         </Form.Item></Col>
         <Col xs={12} md={6}><Form.Item name="lel_max" label="LEL limit %" extra="Many operators use 0-1% for hot work"><InputNumber min={0} max={100} style={{ width: '100%' }} /></Form.Item></Col>
         <Col xs={12} md={6} style={{ display: 'flex', alignItems: 'center' }}><Button type="primary" loading={busy} onClick={save} block>Record test</Button></Col>
@@ -415,12 +416,17 @@ export const useOilGasTabs = (enabled) => {
   const history = useHistory();
   if (!enabled) return [];
   const openInspection = (id) => history.push(`/inspections?open=${id}`);
+  const goTab = (t) => history.push(`/hse-management/industry/oil_gas?tab=${t}`);
   return [
+    { key: 'barriers', label: <span><DashboardOutlined /> Barrier health</span>, children: <Barriers onTab={goTab} /> },
+    { key: 'handover', label: <span><TeamOutlined /> Shift handover</span>, children: <Handover /> },
     { key: 'permits', label: <span><LockOutlined /> Permits and isolations</span>, children: <Permits /> },
     { key: 'gas', label: <span><ExperimentOutlined /> Gas tests</span>, children: <GasLog /> },
     { key: 'simops', label: <span><SwapOutlined /> SIMOPS</span>, children: <Simops /> },
     { key: 'moc', label: <span><ApartmentOutlined /> Change (MOC)</span>, children: <Mocs onOpenInspection={openInspection} /> },
     { key: 'bypass', label: <span><WarningOutlined /> Bypassed devices</span>, children: <Bypasses /> },
     { key: 'zones', label: <span><AlertOutlined /> Zones</span>, children: <Zones /> },
+    { key: 'detectors', label: <span><SafetyOutlined /> Gas detectors</span>, children: <Detectors /> },
+    { key: 'drops', label: <span><FallOutlined /> Dropped objects</span>, children: <Drops /> },
   ];
 };
