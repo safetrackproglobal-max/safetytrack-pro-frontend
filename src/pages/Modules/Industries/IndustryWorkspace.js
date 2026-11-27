@@ -8,13 +8,14 @@ import {
 } from 'antd';
 import {
   AlertOutlined, AuditOutlined, BookOutlined, CalculatorOutlined, DeleteOutlined, DeleteRowOutlined, EditOutlined, ExperimentOutlined, FileTextOutlined,
-  FolderOutlined, PlusOutlined, SafetyCertificateOutlined, TeamOutlined, WarningOutlined,
+  FolderOutlined, PlusOutlined, SafetyCertificateOutlined, TeamOutlined, WarningOutlined, CheckSquareOutlined, CloudOutlined, ClusterOutlined, ThunderboltOutlined,
 } from '@ant-design/icons';
 import { apiDelete, apiGet, apiPost, apiPut } from '../../../services/api';
 import DashboardOverview from '../../../components/dashboard/DashboardOverview';
 import { useChemicalTabs } from './chemical/ChemicalSafety';
 import ChemicalLab from './chemical/ChemicalLab';
 import ChemicalWaste from './chemical/ChemicalWaste';
+import { Approval, ChemExposure, MajorHazard, Spill } from './chemical/ChemicalPart3';
 import ChemicalFolders from './chemical/ChemicalFolders';
 import { useOilGasTabs } from './oilgas/OilGas';
 import { useMiningTabs } from './mining/Mining';
@@ -274,6 +275,10 @@ const IndustryWorkspace = ({ industryId }) => {
           T.overview, ...chem.tabs,
           { key: 'lab', label: <span><ExperimentOutlined /> Chemical lab</span>, children: <ChemicalLab /> },
           { key: 'waste', label: <span><DeleteRowOutlined /> Waste</span>, children: <ChemicalWaste register={chem.ctx?.data?.items} groups={chem.ctx?.groups} /> },
+          { key: 'approval', label: <span><CheckSquareOutlined /> New chemical approval</span>, children: <Approval groups={chem.ctx?.groups} onAdded={chem.ctx?.reload} /> },
+          { key: 'exposure', label: <span><CloudOutlined /> Exposure monitoring</span>, children: <ChemExposure register={chem.ctx?.data?.items} /> },
+          { key: 'majorhazard', label: <span><ClusterOutlined /> Major-hazard thresholds</span>, children: <MajorHazard /> },
+          { key: 'spill', label: <span><ThunderboltOutlined /> Spill response</span>, children: <Spill register={chem.ctx?.data?.items} /> },
           docs, T.hazards, T.tools,
           { key: 'rules', label: <span><BookOutlined /> Rules by country</span>, children: chem.rules },
         ] : cfg.og ? [T.overview, ...ogTabs, T.hazards, T.tools, T.documents] : key === 'mining' ? [T.overview, ...mnTabs, T.hazards, T.tools, T.documents] : key === 'general' ? [T.overview, ...gnTabs, T.hazards, T.tools, T.documents] : [T.overview, T.hazards, T.tools, T.documents];
