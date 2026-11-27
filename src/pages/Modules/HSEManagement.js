@@ -117,7 +117,7 @@ const industries = [
     color: '#52c41a',
     description: 'Manufacturing, warehousing, office safety',
     risk: 'Medium',
-    features: ['Ready Check for machinery and isolation', 'Noise dose calculator', 'Hazards, controls and standards'],
+    features: ['Machine lockout procedures and guarding', 'Racking damage and forklift traffic zones', 'NIOSH manual handling calculator'],
     component: IndustryWorkspace
   }
 ];

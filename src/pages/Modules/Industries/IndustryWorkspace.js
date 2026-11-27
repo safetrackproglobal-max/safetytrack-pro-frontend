@@ -18,6 +18,7 @@ import ChemicalWaste from './chemical/ChemicalWaste';
 import ChemicalFolders from './chemical/ChemicalFolders';
 import { useOilGasTabs } from './oilgas/OilGas';
 import { useMiningTabs } from './mining/Mining';
+import { useGeneralTabs } from './general/General';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -160,6 +161,7 @@ const IndustryWorkspace = ({ industryId }) => {
   const chem = useChemicalTabs(!!cfg.chem);
   const ogTabs = useOilGasTabs(!!cfg.og);
   const mnTabs = useMiningTabs(key === 'mining');
+  const gnTabs = useGeneralTabs(key === 'general');
   const tabParam = new URLSearchParams(location.search).get('tab') || 'overview';
   const setTab = (k) => history.replace({ pathname: location.pathname, search: k === 'overview' ? '' : `?tab=${k}` });
   const [d, setD] = useState(null);
@@ -274,7 +276,7 @@ const IndustryWorkspace = ({ industryId }) => {
           { key: 'waste', label: <span><DeleteRowOutlined /> Waste</span>, children: <ChemicalWaste register={chem.ctx?.data?.items} groups={chem.ctx?.groups} /> },
           docs, T.hazards, T.tools,
           { key: 'rules', label: <span><BookOutlined /> Rules by country</span>, children: chem.rules },
-        ] : cfg.og ? [T.overview, ...ogTabs, T.hazards, T.tools, T.documents] : key === 'mining' ? [T.overview, ...mnTabs, T.hazards, T.tools, T.documents] : [T.overview, T.hazards, T.tools, T.documents];
+        ] : cfg.og ? [T.overview, ...ogTabs, T.hazards, T.tools, T.documents] : key === 'mining' ? [T.overview, ...mnTabs, T.hazards, T.tools, T.documents] : key === 'general' ? [T.overview, ...gnTabs, T.hazards, T.tools, T.documents] : [T.overview, T.hazards, T.tools, T.documents];
         const active = items.some((t) => t.key === tabParam) ? tabParam : 'overview';
         return <Tabs activeKey={active} onChange={setTab} items={items} />;
       })()}
