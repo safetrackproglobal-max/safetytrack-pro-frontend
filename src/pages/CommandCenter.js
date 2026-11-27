@@ -150,7 +150,10 @@ const CommandCenter = ({ embedded = false }) => {
       </div>
 
       <Tabs
-        defaultActiveKey="activity"
+        defaultActiveKey={(() => {
+          // links such as /admin/command-center?tab=voice open that tab
+          try { const t = new URLSearchParams(window.location.search).get('tab'); return ['activity', 'security', 'voice'].includes(t) ? t : 'activity'; } catch (e) { return 'activity'; }
+        })()}
         items={[
           { key: 'activity', label: <span><EyeOutlined /> Activity</span>, children: (
             <>

@@ -20,7 +20,8 @@ const VoiceOversight = () => {
     setState((s) => ({ ...s, loading: true }));
     try {
       const res = await apiGet(`/voice/platform/reports?${qs({ ...filters, page })}`);
-      setState({ loading: false, ...res.data });
+      const d = res?.data || {};
+      setState({ loading: false, items: d.items || [], total: d.total || 0, companies: d.companies || [] });
     } catch (e) {
       setState((s) => ({ ...s, loading: false }));
       message.error(e?.data?.error || e?.message || 'Could not load reports');

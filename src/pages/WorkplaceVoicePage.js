@@ -705,11 +705,23 @@ const WorkplaceVoicePage = () => {
   const [company, setCompany] = useState({});
   const openId = params.get('report');
 
+  const [noCompany, setNoCompany] = useState(false);
   const loadSettings = useCallback(() => {
-    voiceService.settings().then((r) => { setSettings(r.data); setIsAdmin(true); }).catch(() => setIsAdmin(false));
+    voiceService.settings().then((r) => {
+      const d = r?.data;
+      // admin tabs only with real settings (a channel plus the lists they show)
+      if (d?.channel) {
+        setSettings({ ...d, users: d.users || [], projects: d.projects || [], routes: d.routes || [], languages: d.languages || [], groups: d.groups || [] });
+        setIsAdmin(true);
+      } else { setIsAdmin(false); }
+    }).catch((e) => {
+      setIsAdmin(false);
+      const msg = `${e?.message || ''} ${e?.data?.error || ''}`;
+      if (e?.status === 403 && /company accounts/i.test(msg)) setNoCompany(true);
+    });
   }, []);
   useEffect(() => { loadSettings(); }, [loadSettings]);
-  useEffect(() => { voiceService.stats(days).then((r) => setStats(r.data)).catch(() => {}); }, [days, refreshKey]);
+  useEffect(() => { voiceService.stats(days).then((r) => setStats(r?.data && typeof r.data.total === 'number' ? r.data : null)).catch(() => {}); }, [days, refreshKey]);
   useEffect(() => {
     apiGet('/ai/documents/company-profile').then((res) => {
       const d = res?.data; if (!d?.available) return;
@@ -751,7 +763,22 @@ const WorkplaceVoicePage = () => {
           </Space>
         )}
       </div>
-      {stats && (
+      {noCompany && (
+        <Card style={{ borderRadius: 12 }}>
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={(
+              <span>
+                Workplace Voice is set up per company, and this account does not belong to a company.
+                <br />SafeTrack staff see the reports of every company in the Command Center.
+              </span>
+            )}
+          >
+            <Button type="primary" onClick={() => history.push('/admin/command-center?tab=voice')}>Open Workplace Voice reports (all companies)</Button>
+          </Empty>
+        </Card>
+      )}
+      {!noCompany && stats && (
         <Row gutter={[12, 12]} style={{ marginBottom: 12 }}>
           {[
             ['Reports', stats.total], ['Open', stats.open], ['Critical open', stats.critical_open, stats.critical_open ? '#cf1322' : undefined],
@@ -763,8 +790,8 @@ const WorkplaceVoicePage = () => {
           ))}
         </Row>
       )}
-      <Tabs activeKey={tab} onChange={setTab} items={items} />
-      {!isAdmin && settings === null && (
+      {!noCompany && <Tabs activeKey={tab} onChange={setTab} items={items} />}
+      {!noCompany && !isAdmin && settings === null && (
         <Text type="secondary"><CheckCircleOutlined /> You see the reports routed to you. Company admins manage setup, routing and QR codes.</Text>
       )}
     </div>

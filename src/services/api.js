@@ -1008,19 +1008,11 @@ const setupInterceptors = () => {
       
       console.error(`API Error [${method} ${url}]:`, status, errorCode, errorData || error.message);
       
-      // SUPER ADMIN BYPASS - Always allow for super admin
-      if (isSuperAdmin()) {
-        console.log('SUPER ADMIN: Bypassing plan/feature check for error:', errorCode);
-        return Promise.resolve({
-          data: {
-            success: true,
-            is_super_admin: true,
-            message: 'Super admin access granted',
-            data: errorData?.data || {}
-          }
-        });
-      }
-      
+      // Super admins never see upgrade prompts, but a failed request must still fail.
+      // (It used to be turned into a fake {success: true, data: {}}: pages then showed empty data as real,
+      // reported failed saves as saved, and crashed on missing fields, e.g. Workplace Voice for an account without a company.)
+      const superAdmin = isSuperAdmin();
+
       // Handle Network Errors (no response)
       if (!error.response) {
         console.error('Network error - backend may be down or unreachable');
@@ -1051,9 +1043,9 @@ const setupInterceptors = () => {
         } catch (e) {
           // Ignore storage errors
         }
-        
-        showUpgradeModal(upgradeInfo);
-        
+
+        if (!superAdmin) showUpgradeModal(upgradeInfo);
+
         const unifiedError = new UnifiedAPIError(
           upgradeInfo.message,
           {
@@ -1084,7 +1076,7 @@ const setupInterceptors = () => {
           }
         }
         
-        if (limitInfo?.requires_upgrade) {
+        if (limitInfo?.requires_upgrade && !superAdmin) {
           showUpgradeModal({
             code: 'USAGE_LIMIT_EXCEEDED',
             message: limitInfo.message || 'You have reached your monthly usage limit',
@@ -1130,7 +1122,7 @@ const setupInterceptors = () => {
       } else if (status === 403) {
         console.warn('Access forbidden - insufficient permissions');
         
-        if (errorData?.code === 'INSUFFICIENT_PLAN') {
+        if (errorData?.code === 'INSUFFICIENT_PLAN' && !superAdmin) {
           showUpgradeModal({
             code: 'INSUFFICIENT_PLAN',
             message: errorData?.message || 'Your current plan does not have access to this feature',
