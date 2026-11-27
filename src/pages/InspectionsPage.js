@@ -9,9 +9,10 @@ import {
 import dayjs from 'dayjs';
 import {
   ArrowDownOutlined, ArrowUpOutlined, BarChartOutlined, CameraOutlined, CheckCircleOutlined, ClockCircleOutlined, CopyOutlined, DeleteOutlined,
-  EditOutlined, FilePdfOutlined, PlusOutlined, ReloadOutlined, ScheduleOutlined, SnippetsOutlined, ToolOutlined, UnorderedListOutlined,
+  EditOutlined, FilePdfOutlined, PlusOutlined, QrcodeOutlined, ReloadOutlined, ScheduleOutlined, SnippetsOutlined, ToolOutlined, UnorderedListOutlined,
 } from '@ant-design/icons';
 import inspectionService, { inspErr } from '../services/inspectionService';
+import EquipmentRegister from './inspections/EquipmentRegister';
 
 const { Title, Text, Paragraph } = Typography;
 const FREQ = [['daily', 'Daily'], ['weekly', 'Weekly'], ['monthly', 'Monthly'], ['quarterly', 'Every 3 months'], ['yearly', 'Yearly']];
@@ -668,6 +669,8 @@ const InspectionsPage = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const tab = params.get('tab') || 'todo';
   const openId = params.get('open');
+  const eqParam = params.get('eq');
+  const openEq = eqParam && /^\d+$/.test(eqParam) ? Number(eqParam) : null;
 
   const loadLib = useCallback(() => {
     inspectionService.library().then((r) => setLib(r.data)).catch((e) => {
@@ -703,6 +706,7 @@ const InspectionsPage = () => {
     { key: 'todo', label: <span><ScheduleOutlined /> To do</span>, children: <ToDo refreshKey={refreshKey} onOpen={openInspection} onStart={() => startFrom(null)} onStartSchedule={startSchedule} /> },
     { key: 'history', label: <span><UnorderedListOutlined /> Inspections</span>, children: <History refreshKey={refreshKey} staff={staff} onOpen={openInspection} /> },
     { key: 'actions', label: <span><ToolOutlined /> Actions</span>, children: <Actions refreshKey={refreshKey} people={people} onOpenInspection={openInspection} /> },
+    { key: 'equipment', label: <span><QrcodeOutlined /> Equipment</span>, children: <EquipmentRegister lib={lib} openEq={openEq} setOpenEq={(id) => setParam('eq', id)} onOpenInspection={openInspection} refreshKey={refreshKey} /> },
     { key: 'checklists', label: <span><SnippetsOutlined /> Checklists</span>, children: staff ? <Checklists lib={lib} onReload={loadLib} onUse={startFrom} /> : (
       <Card style={{ borderRadius: 16 }}>
         <Row gutter={[12, 12]}>

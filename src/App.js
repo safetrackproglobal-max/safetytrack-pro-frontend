@@ -165,6 +165,7 @@ import ContractorsPage from './pages/ContractorsPage';
 import InspectionsPage from './pages/InspectionsPage';
 import WorkplaceVoicePage from './pages/WorkplaceVoicePage';
 import { VoiceHome, VoiceReport, VoiceTrack, VoiceRewards } from './pages/voice/VoicePortal';
+import EquipmentTagPage from './pages/EquipmentTagPage';
 import NotificationsPage from './pages/NotificationsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import TeamManagementPage from './pages/TeamManagementPage';
@@ -501,6 +502,9 @@ const AppContent = () => {
           <Route path="/voice/rewards" exact><VoiceRewards /></Route>
           <Route path="/voice/:slug"><VoiceReport /></Route>
           <Route path="/voice" exact><VoiceHome /></Route>
+
+          {/* Equipment QR safety tag (status for the company, or public when the company allows it) */}
+          <Route path="/tag/:token"><EquipmentTagPage /></Route>
 
           <Route exact path={['/payment-callback', '/payment/callback', '/payment-success', '/payment-failed', '/payment-cancel']}>
             <MainLayoutWrapper>
