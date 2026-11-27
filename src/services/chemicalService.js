@@ -37,6 +37,14 @@ const chemicalService = {
   summaryPdf: async (id, name) => saveBlob((await api.get(`/chem/items/${Number(id)}/summary.pdf`, { responseType: 'blob' })).data, `${safe(name)}_safety_summary.pdf`),
   compatibility: (payload) => apiPost('/chem/compatibility', payload),
   alerts: () => apiGet('/chem/alerts'),
+  extract: (file, ai) => {
+    const f = new FormData(); f.append('file', file); if (ai) f.append('ai', '1');
+    return apiPost('/chem/extract', f, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 180000 });
+  },
+  waste: (status) => apiGet(`/chem/waste${status ? `?status=${encodeURIComponent(status)}` : ''}`),
+  saveWaste: (payload, id) => (id ? apiPut(`/chem/waste/${Number(id)}`, payload) : apiPost('/chem/waste', payload)),
+  removeWaste: (id) => apiDelete(`/chem/waste/${Number(id)}`),
+  folders: () => apiGet('/chem/folders'),
   standards: (country) => apiGet(`/chem/standards${country ? `?country=${encodeURIComponent(country)}` : ''}`),
 };
 

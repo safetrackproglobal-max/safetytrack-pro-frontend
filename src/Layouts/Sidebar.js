@@ -20,8 +20,7 @@ import { AlertOutlined,
   FolderOpenOutlined,
   SoundOutlined,
   AudioOutlined,
-  CheckSquareOutlined,
-  ExperimentOutlined
+  CheckSquareOutlined
 } from '@ant-design/icons';
 import { useHistory, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -92,7 +91,6 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
     { key: '/ready-check', icon: <SafetyCertificateOutlined />, label: 'Ready Check' },
     { key: '/roll-call', icon: <AlertOutlined />, label: 'Roll Call' },
     { key: '/inspections', icon: <CheckSquareOutlined />, label: 'Inspections' },
-    { key: '/chemicals', icon: <ExperimentOutlined />, label: 'Chemical Safety' },
     { key: '/contractors', icon: <TeamOutlined />, label: 'Contractors' },
     { key: '/toolbox-talks', icon: <SoundOutlined />, label: 'Toolbox Talks' },
     { key: '/workplace-voice', icon: <AudioOutlined />, label: 'Workplace Voice' },
@@ -112,7 +110,6 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
     { key: '/ready-check', icon: <SafetyCertificateOutlined />, label: 'Ready Check' },
     { key: '/roll-call', icon: <AlertOutlined />, label: 'Roll Call' },
     { key: '/inspections', icon: <CheckSquareOutlined />, label: 'Inspections' },
-    { key: '/chemicals', icon: <ExperimentOutlined />, label: 'Chemical Safety' },
     { key: '/toolbox-talks', icon: <SoundOutlined />, label: 'Toolbox Talks' },
     { key: '/workplace-voice', icon: <AudioOutlined />, label: 'Workplace Voice' },
     { key: '/incidents', icon: <SafetyCertificateOutlined />, label: 'Report Incident' },
@@ -127,7 +124,6 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
     { key: '/ready-check', icon: <SafetyCertificateOutlined />, label: 'Ready Check' },
     { key: '/roll-call', icon: <AlertOutlined />, label: 'Roll Call' },
     { key: '/inspections', icon: <CheckSquareOutlined />, label: 'Inspections' },
-    { key: '/chemicals', icon: <ExperimentOutlined />, label: 'Chemical Safety' },
     { key: '/contractors', icon: <TeamOutlined />, label: 'Contractors' },
     { key: '/toolbox-talks', icon: <SoundOutlined />, label: 'Toolbox Talks' },
     { key: '/workplace-voice', icon: <AudioOutlined />, label: 'Workplace Voice' },
@@ -186,7 +182,6 @@ function Sidebar({ collapsed, userType, userModule, currentPath, onNavigate, onC
       { key: '/ready-check', icon: <SafetyCertificateOutlined />, label: 'Ready Check' },
       { key: '/roll-call', icon: <AlertOutlined />, label: 'Roll Call' },
       { key: '/inspections', icon: <CheckSquareOutlined />, label: 'Inspections' },
-      { key: '/chemicals', icon: <ExperimentOutlined />, label: 'Chemical Safety' },
       { key: '/contractors', icon: <TeamOutlined />, label: 'Contractors' },
     { key: '/toolbox-talks', icon: <SoundOutlined />, label: 'Toolbox Talks' },
       { key: '/workplace-voice', icon: <AudioOutlined />, label: 'Workplace Voice' },

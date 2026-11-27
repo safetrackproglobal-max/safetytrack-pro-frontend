@@ -24,7 +24,6 @@ import {
 // the real, company-scoped tools that make up daily HSE work
 const HSE_TOOLS = [
   { path: '/inspections', name: 'Inspections', text: 'Checklists, photos, scores, actions', icon: <CheckSquareOutlined />, color: '#1677ff' },
-  { path: '/chemicals', name: 'Chemical safety', text: 'Register, hazards, mixing checks, SDS', icon: <ExperimentOutlined />, color: '#08979c' },
   { path: '/incidents', name: 'Incidents', text: 'Report and investigate', icon: <WarningOutlined />, color: '#cf1322' },
   { path: '/risk-assessment', name: 'Risk assessment', text: 'Hazards, risk ratings, controls', icon: <AimOutlined />, color: '#d46b08' },
   { path: '/safety/observations', name: 'Observations', text: 'Safe and unsafe acts and conditions', icon: <EyeOutlined />, color: '#13c2c2' },
@@ -88,7 +87,7 @@ const industries = [
     color: '#722ed1',
     description: 'Process safety, chemical handling, reactivity',
     risk: 'High',
-    features: ['Chemical inventory', 'Gas test calculator', 'Ready Check for permits and isolation'],
+    features: ['Chemical register with GHS hazards and SDS', 'Mixing checks, waste log and lab calculators', 'Document folders: PTW, COSHH, risk assessments'],
     component: IndustryWorkspace
   },
   {

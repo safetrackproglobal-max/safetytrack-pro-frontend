@@ -1,17 +1,21 @@
 // One HSE workspace for each industry, built only from real things: the company's own records and documents,
 // the HSE knowledge base, working calculators and the tools that exist in the app. Nothing here is sample data.
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 import {
   Alert, Button, Card, Col, Empty, Form, Input, InputNumber, Modal, Popconfirm, Row, Select, Skeleton, Space, Statistic, Table, Tabs,
   Tag, Typography, message,
 } from 'antd';
 import {
-  AlertOutlined, AuditOutlined, BookOutlined, CalculatorOutlined, DeleteOutlined, EditOutlined, ExperimentOutlined, FileTextOutlined,
-  PlusOutlined, SafetyCertificateOutlined, TeamOutlined, ToolOutlined, WarningOutlined,
+  AlertOutlined, AuditOutlined, BookOutlined, CalculatorOutlined, DeleteOutlined, DeleteRowOutlined, EditOutlined, ExperimentOutlined, FileTextOutlined,
+  FolderOutlined, PlusOutlined, SafetyCertificateOutlined, TeamOutlined, WarningOutlined,
 } from '@ant-design/icons';
 import { apiDelete, apiGet, apiPost, apiPut } from '../../../services/api';
 import DashboardOverview from '../../../components/dashboard/DashboardOverview';
+import { useChemicalTabs } from './chemical/ChemicalSafety';
+import ChemicalLab from './chemical/ChemicalLab';
+import ChemicalWaste from './chemical/ChemicalWaste';
+import ChemicalFolders from './chemical/ChemicalFolders';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -47,8 +51,8 @@ export const INDUSTRIES = {
     standards: ['ICAO Annex 19 - Safety Management', 'ICAO Doc 9859 - Safety Management Manual', 'ISO 45001 - OH&S management systems'],
   },
   chemical: {
-    name: 'Chemical', color: '#08979c', tasks: ['chemical', 'confined', 'hotwork', 'pressure', 'energy'], calcs: ['risk', 'gas'], inventory: true,
-    intro: 'Chemical inventory, process safety, confined spaces and permits for chemical plants and stores.',
+    name: 'Chemical', color: '#08979c', tasks: ['chemical', 'confined', 'hotwork', 'pressure', 'energy'], calcs: ['risk', 'gas'], chem: true,
+    intro: 'Chemical register, mixing checks, lab tools, waste and documents for chemical plants, stores and labs.',
     standards: ['OSHA 29 CFR 1910.119 - Process Safety Management', 'OSHA 29 CFR 1910.1200 - Hazard Communication (GHS)', 'ISO 45001 - OH&S management systems'],
   },
   general: {
@@ -145,23 +149,15 @@ const GasCalc = () => {
   );
 };
 
-// ------------------------------------------------------------------ chemicals: the full register lives on /chemicals
-const ChemicalLink = () => {
-  const history = useHistory();
-  return (
-    <Card style={{ borderRadius: 12 }}>
-      <Paragraph>The chemical register moved to <b>Chemical safety</b>: identification from PubChem, GHS hazards, mixing and storage checks,
-        peroxide and expiry alerts, the supplier SDS and a safety summary with first aid. Chemicals already entered here were copied across.</Paragraph>
-      <Button type="primary" onClick={() => history.push('/chemicals')}>Open Chemical safety</Button>
-    </Card>
-  );
-};
-
 // ------------------------------------------------------------------ page
 const IndustryWorkspace = ({ industryId }) => {
   const history = useHistory();
+  const location = useLocation();
   const cfg = INDUSTRIES[industryId] || INDUSTRIES.general;
   const key = INDUSTRIES[industryId] ? industryId : 'general';
+  const chem = useChemicalTabs(!!cfg.chem);
+  const tabParam = new URLSearchParams(location.search).get('tab') || 'overview';
+  const setTab = (k) => history.replace({ pathname: location.pathname, search: k === 'overview' ? '' : `?tab=${k}` });
   const [d, setD] = useState(null);
   const [err, setErr] = useState('');
   const load = useCallback(async () => {
@@ -195,8 +191,9 @@ const IndustryWorkspace = ({ industryId }) => {
         <Text type="secondary">{cfg.intro}</Text>
       </div>
       {err && <Alert type="error" showIcon message={err} action={<Button onClick={load}>Try again</Button>} style={{ marginBottom: 12 }} />}
-      <Tabs items={[
-        { key: 'overview', label: 'Overview', children: (
+      {(() => {
+        const T = {
+          overview: { key: 'overview', label: 'Overview', children: (
           <div>
             <DashboardOverview title={`${cfg.name}: company safety status`} />
             {d?.ready_check && (
@@ -220,7 +217,7 @@ const IndustryWorkspace = ({ industryId }) => {
             </Row>
           </div>
         ) },
-        { key: 'hazards', label: 'Hazards and controls', children: (
+          hazards: { key: 'hazards', label: 'Hazards and controls', children: (
           <div>
             <Card size="small" title="Before high-risk work" style={{ marginBottom: 16, borderRadius: 12 }}>
               <Space wrap>{cfg.tasks.map((t) => <Button key={t} onClick={() => go(`/ready-check?task=${t}`)}>{TASK_NAMES[t]}</Button>)}</Space>
@@ -244,12 +241,12 @@ const IndustryWorkspace = ({ industryId }) => {
             </Card>
           </div>
         ) },
-        { key: 'tools', label: <span><CalculatorOutlined /> Calculators</span>, children: (
+          tools: { key: 'tools', label: <span><CalculatorOutlined /> Calculators</span>, children: (
           <Row gutter={[16, 16]}>
             {calcs.map((c) => <Col xs={24} lg={12} key={c.key}><Card title={c.label} style={{ borderRadius: 12, height: '100%' }}>{c.children}</Card></Col>)}
           </Row>
         ) },
-        { key: 'documents', label: 'Documents', children: (
+          documents: { key: 'documents', label: 'Documents', children: (
           <div>
             <Space wrap style={{ marginBottom: 12 }}>
               <Button type="primary" icon={<ExperimentOutlined />} onClick={() => go('/ai-documents')}>Generate a document with AI</Button>
@@ -265,8 +262,19 @@ const IndustryWorkspace = ({ industryId }) => {
             {d && d.documents_total > d.documents.length && <Paragraph type="secondary" style={{ marginTop: 8 }}>Showing the latest {d.documents.length} of {d.documents_total}.</Paragraph>}
           </div>
         ) },
-        ...(cfg.inventory ? [{ key: 'inventory', label: <span><ToolOutlined /> Chemical inventory</span>, children: <ChemicalLink /> }] : []),
-      ]} />
+        };
+        const docs = cfg.chem ? { ...T.documents, label: <span><FolderOutlined /> Documents</span>, children: <ChemicalFolders /> } : T.documents;
+        const items = cfg.chem ? [
+          T.overview, ...chem.tabs,
+          { key: 'lab', label: <span><ExperimentOutlined /> Chemical lab</span>, children: <ChemicalLab /> },
+          { key: 'waste', label: <span><DeleteRowOutlined /> Waste</span>, children: <ChemicalWaste register={chem.ctx?.data?.items} groups={chem.ctx?.groups} /> },
+          docs, T.hazards, T.tools,
+          { key: 'rules', label: <span><BookOutlined /> Rules by country</span>, children: chem.rules },
+        ] : [T.overview, T.hazards, T.tools, T.documents];
+        const active = items.some((t) => t.key === tabParam) ? tabParam : 'overview';
+        return <Tabs activeKey={active} onChange={setTab} items={items} />;
+      })()}
+      {chem.drawer}
     </div>
   );
 };

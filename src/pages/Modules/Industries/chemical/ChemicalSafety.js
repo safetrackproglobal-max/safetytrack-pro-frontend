@@ -1,17 +1,16 @@
 // Chemical safety: register identified from PubChem, GHS hazards, EPA compatibility and storage checks, peroxide and expiry
 // tracking, supplier SDS, safety summary with first aid, and local + international rules. Data: /api/chem/* (company-scoped).
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useHistory, useLocation } from 'react-router-dom';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert, Button, Card, Checkbox, Col, Collapse, DatePicker, Descriptions, Drawer, Empty, Form, Input, InputNumber, List, Modal, Popconfirm,
   Row, Select, Skeleton, Space, Table, Tabs, Tag, Typography, Upload, message,
 } from 'antd';
 import dayjs from 'dayjs';
 import {
-  AlertOutlined, BookOutlined, DeleteOutlined, ExperimentOutlined, FilePdfOutlined, PlusOutlined, ReloadOutlined, SafetyOutlined,
+  AlertOutlined, BookOutlined, DeleteOutlined, ExperimentOutlined, FilePdfOutlined, FileSearchOutlined, PlusOutlined, ReloadOutlined, SafetyOutlined,
   SearchOutlined, SwapOutlined, UploadOutlined,
 } from '@ant-design/icons';
-import chemicalService, { chemErr } from '../services/chemicalService';
+import chemicalService, { chemErr } from '../../../../services/chemicalService';
 
 const { Title, Text, Paragraph } = Typography;
 const LEVEL = { critical: 'red', high: 'volcano', medium: 'orange' };
@@ -100,8 +99,36 @@ const AddDrawer = ({ open, groups, onClose, onSaved }) => {
   const [busy, setBusy] = useState(false);
   const [sub, setSub] = useState(null);
   const [manual, setManual] = useState(false);
+  const [found, setFound] = useState(null);      // fields read from an uploaded supplier SDS
+  const [sdsFile, setSdsFile] = useState(null);
+  const [attach, setAttach] = useState(true);
+  const [useAi, setUseAi] = useState(false);
   const [form] = Form.useForm();
-  useEffect(() => { if (open) { setQ(''); setHits(null); setSub(null); setManual(false); form.resetFields(); } }, [open, form]);
+  useEffect(() => { if (open) { setQ(''); setHits(null); setSub(null); setManual(false); setFound(null); setSdsFile(null); setAttach(true); form.resetFields(); } }, [open, form]);
+  const fromSds = async (file) => {
+    setBusy(true);
+    try {
+      const f = (await chemicalService.extract(file, useAi)).data;
+      setFound(f); setSdsFile(f.is_pdf ? file : null);
+      const extra = [f.revision_date && `SDS revision: ${f.revision_date}`, f.signal && `Signal word: ${f.signal}`,
+        f.hazard_codes?.length && `Hazard codes on the SDS: ${f.hazard_codes.join(', ')}`, f.un_number && `Transport: ${f.un_number}`].filter(Boolean).join('\n');
+      let picked = null;
+      if (f.cas_numbers?.length) {
+        try {
+          const h = (await chemicalService.lookup(f.cas_numbers[0])).data || [];
+          if (h.length) { picked = (await chemicalService.substance(h[0].cid)).data; setSub(picked); }
+        } catch (e) { /* PubChem not reachable: continue by hand */ }
+      }
+      if (!picked) setManual(true);
+      form.setFieldsValue({
+        name: f.name || picked?.name, cas: f.cas_numbers?.[0] || picked?.cas || undefined, supplier: f.supplier || undefined,
+        groups: picked?.suggested_groups || [], groups_confirmed: false, peroxide_class: picked?.peroxide_class || undefined,
+        notes: extra ? `From the supplier SDS:\n${extra}` : undefined,
+      });
+      if (f.ai_error) message.warning(f.ai_error);
+    } catch (e) { message.error(chemErr(e)); } finally { setBusy(false); }
+    return false;
+  };
   const search = async () => {
     if (q.trim().length < 2) return;
     setBusy(true);
@@ -118,7 +145,13 @@ const AddDrawer = ({ open, groups, onClose, onSaved }) => {
   const save = async () => {
     const v = await form.validateFields();
     setBusy(true);
-    try { await chemicalService.save({ ...toPayload(v), substance_id: sub?.id || null }); message.success('Chemical added'); onSaved(); } catch (e) { message.error(chemErr(e)); } finally { setBusy(false); }
+    try {
+      const r = await chemicalService.save({ ...toPayload(v), substance_id: sub?.id || null });
+      if (sdsFile && attach && r?.data?.id) {
+        try { await chemicalService.uploadSds(r.data.id, sdsFile); } catch (e) { message.warning(`Chemical saved, but the SDS was not attached: ${chemErr(e)}`); }
+      }
+      message.success('Chemical added'); onSaved();
+    } catch (e) { message.error(chemErr(e)); } finally { setBusy(false); }
   };
   return (
     <Drawer open={open} onClose={onClose} width={Math.min(820, typeof window !== 'undefined' ? window.innerWidth : 820)} title="Add a chemical"
@@ -139,7 +172,25 @@ const AddDrawer = ({ open, groups, onClose, onSaved }) => {
               )} />
           )}
           <Button type="link" style={{ marginTop: 8, padding: 0 }} onClick={() => { setManual(true); form.setFieldsValue({ name: q, groups_confirmed: true }); }}>Add by hand instead (mixtures, trade products)</Button>
+          <Card size="small" style={{ marginTop: 16, borderRadius: 12 }} title={<span><FileSearchOutlined /> Or fill it in from the supplier SDS</span>}>
+            <Paragraph style={{ marginBottom: 8 }}>Upload the SDS (PDF, or a photo of it). The name, CAS number, supplier, signal word and hazard codes are read from it; you check them before saving. Scans are read with text recognition.</Paragraph>
+            <Space wrap>
+              <Upload accept=".pdf,.jpg,.jpeg,.png" showUploadList={false} beforeUpload={fromSds}><Button icon={<UploadOutlined />} loading={busy}>Choose SDS file</Button></Upload>
+              <Checkbox checked={useAi} onChange={(e) => setUseAi(e.target.checked)}>Also use AI for hard-to-read sheets (the text is sent to DeepSeek)</Checkbox>
+            </Space>
+          </Card>
         </>
+      )}
+      {found && (
+        <Alert type="info" showIcon style={{ marginBottom: 12 }} message="Filled in from the SDS: check every field"
+          description={<div>
+            {[['name', 'Name'], ['supplier', 'Supplier'], ['cas_numbers', 'CAS'], ['signal', 'Signal word'], ['hazard_codes', 'Hazard codes'], ['un_number', 'UN number'], ['revision_date', 'Revision']].map(([k, l]) => {
+              const v = Array.isArray(found[k]) ? found[k].join(', ') : found[k];
+              return <div key={k}><Text type="secondary">{l}:</Text> {v || <Text type="secondary">not found</Text>}{v && found.sources?.[k] === 'ai' && <Tag color="purple" style={{ marginLeft: 6 }}>AI</Tag>}</div>;
+            })}
+            {found.cas_numbers?.length > 1 && <div style={{ marginTop: 4 }}>The SDS lists several CAS numbers (a mixture). The first one is used; check it is the main ingredient.</div>}
+            {sdsFile && <Checkbox style={{ marginTop: 6 }} checked={attach} onChange={(e) => setAttach(e.target.checked)}>Attach this PDF as the chemical's supplier SDS</Checkbox>}
+          </div>} />
       )}
       {sub && (
         <Card size="small" style={{ marginBottom: 12, borderRadius: 12 }} title={`${sub.name}${sub.formula ? ` · ${sub.formula}` : ''}`}
@@ -397,17 +448,14 @@ const Rules = () => {
   );
 };
 
-// ------------------------------------------------------------------ page
-const ChemicalSafetyPage = () => {
-  const location = useLocation();
-  const history = useHistory();
-  const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
+// ------------------------------------------------------------------ tabs for the Chemical workspace (HSE > Chemical)
+// Returns the chemical tabs and the open-chemical drawer. `enabled` is false for the other industries (no requests).
+export const useChemicalTabs = (enabled) => {
   const [data, setData] = useState(null);
   const [groups, setGroups] = useState([]);
   const [openItem, setOpenItem] = useState(null);
   const [noCompany, setNoCompany] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-  const tab = params.get('tab') || 'register';
   const load = useCallback(() => {
     chemicalService.items().then((r) => setData({ items: r.data || [], can_manage: !!r.can_manage })).catch((e) => {
       if (e?.status === 403) setNoCompany(true); else message.error(chemErr(e));
@@ -415,26 +463,26 @@ const ChemicalSafetyPage = () => {
     });
     setRefreshKey((k) => k + 1);
   }, []);
-  useEffect(() => { load(); chemicalService.groups().then((r) => setGroups(r.data.groups || [])).catch(() => {}); }, [load]);
+  useEffect(() => {
+    if (!enabled) return;
+    load();
+    chemicalService.groups().then((r) => setGroups(r.data.groups || [])).catch(() => {});
+  }, [enabled, load]);
   useEffect(() => { if (openItem && data) { const fresh = data.items.find((i) => i.id === openItem.id); if (fresh && fresh !== openItem) setOpenItem(fresh); } }, [data]); // eslint-disable-line
   const openId = (id) => { const it = data?.items.find((i) => i.id === id); if (it) setOpenItem(it); };
-  if (noCompany) return <div style={{ padding: 16 }}><Card><Empty description="The chemical register is set up per company, and this account does not belong to a company." /></Card></div>;
-  const counts = { alerts: (data?.items || []).reduce((n, r) => n + r.issues.length, 0) };
-  return (
-    <div className="chemical-page" style={{ padding: 16, maxWidth: 1400, margin: '0 auto' }}>
-      <div style={{ marginBottom: 12 }}>
-        <Title level={3} style={{ margin: 0 }}><ExperimentOutlined /> Chemical safety</Title>
-        <Text type="secondary">Know what you store, what it does, what must never meet, and what to do when something goes wrong.</Text>
-      </div>
-      <Tabs activeKey={tab} onChange={(k) => history.replace({ search: `?tab=${k}` })} items={[
-        { key: 'register', label: <span><SafetyOutlined /> Register</span>, children: <Register data={data} groups={groups} onReload={load} onOpen={setOpenItem} /> },
-        { key: 'compatibility', label: <span><SwapOutlined /> Mixing and storage check</span>, children: <Compatibility data={data} groups={groups} /> },
-        { key: 'alerts', label: <span><AlertOutlined /> Alerts{counts.alerts ? ` (${counts.alerts})` : ''}</span>, children: <Alerts onOpenId={openId} refreshKey={refreshKey} /> },
-        { key: 'rules', label: <span><BookOutlined /> Rules</span>, children: <Rules /> },
-      ]} />
-      {openItem && <ItemDrawer key={openItem.id} item={openItem} groups={groups} canManage={!!data?.can_manage} onClose={() => setOpenItem(null)} onChanged={load} />}
-    </div>
-  );
+  if (!enabled) return { tabs: [], drawer: null, ctx: null };
+  const none = <Card style={{ borderRadius: 16 }}><Empty description="The chemical register is set up per company, and this account does not belong to a company." /></Card>;
+  const alerts = (data?.items || []).reduce((n, r) => n + r.issues.length, 0);
+  return {
+    ctx: { data, groups, reload: load, refreshKey, openId },
+    tabs: [
+      { key: 'register', label: <span><SafetyOutlined /> Chemical register</span>, children: noCompany ? none : <Register data={data} groups={groups} onReload={load} onOpen={setOpenItem} /> },
+      { key: 'compatibility', label: <span><SwapOutlined /> Mixing and storage check</span>, children: noCompany ? none : <Compatibility data={data} groups={groups} /> },
+      { key: 'alerts', label: <span><AlertOutlined /> Alerts{alerts ? ` (${alerts})` : ''}</span>, children: noCompany ? none : <Alerts onOpenId={openId} refreshKey={refreshKey} /> },
+    ],
+    rules: <Rules />,
+    drawer: openItem ? <ItemDrawer key={openItem.id} item={openItem} groups={groups} canManage={!!data?.can_manage} onClose={() => setOpenItem(null)} onChanged={load} /> : null,
+  };
 };
 
-export default ChemicalSafetyPage;
+export { GhsBlock, Pictogram, LEVEL };
