@@ -163,6 +163,7 @@ import RollCallPage from './pages/RollCallPage';
 import QrOpenPage from './pages/QrOpenPage';
 import ContractorsPage from './pages/ContractorsPage';
 import InspectionsPage from './pages/InspectionsPage';
+import ChemicalSafetyPage from './pages/ChemicalSafetyPage';
 import WorkplaceVoicePage from './pages/WorkplaceVoicePage';
 import { VoiceHome, VoiceReport, VoiceTrack, VoiceRewards } from './pages/voice/VoicePortal';
 import NotificationsPage from './pages/NotificationsPage';
@@ -1357,6 +1358,12 @@ const AppContent = () => {
           <ProtectedRoute path="/roll-call">
             <DashboardLayoutWrapper>
               <RollCallPage />
+            </DashboardLayoutWrapper>
+          </ProtectedRoute>
+
+          <ProtectedRoute path="/chemicals">
+            <DashboardLayoutWrapper>
+              <ChemicalSafetyPage />
             </DashboardLayoutWrapper>
           </ProtectedRoute>
 

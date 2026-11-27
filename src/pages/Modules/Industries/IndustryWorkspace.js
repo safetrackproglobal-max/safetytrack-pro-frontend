@@ -145,55 +145,15 @@ const GasCalc = () => {
   );
 };
 
-// ------------------------------------------------------------------ chemical inventory (real /api/chemical/inventory)
-const Inventory = () => {
-  const [rows, setRows] = useState(null);
-  const [edit, setEdit] = useState(null);
-  const [busy, setBusy] = useState(false);
-  const [form] = Form.useForm();
-  const load = useCallback(async () => {
-    try { setRows((await apiGet('/chemical/inventory')).data || []); } catch (e) { setRows([]); message.error('Could not load the inventory'); }
-  }, []);
-  useEffect(() => { load(); }, [load]);
-  const open = (r) => { setEdit(r || {}); form.setFieldsValue(r ? { chemical: r.chemical, location: r.location, quantity: r.quantity, hazard: r.hazard, riskLevel: r.riskLevel, sds_url: r.sds_url } : { riskLevel: 'Medium' }); };
-  const save = async () => {
-    const v = await form.validateFields();
-    setBusy(true);
-    try {
-      if (edit.id) await apiPut(`/chemical/inventory/${edit.id}`, v); else await apiPost('/chemical/inventory', v);
-      message.success('Saved'); setEdit(null); load();
-    } catch (e) { message.error(e?.data?.error || e?.message || 'Could not save'); }
-    setBusy(false);
-  };
-  if (!rows) return <Skeleton active />;
+// ------------------------------------------------------------------ chemicals: the full register lives on /chemicals
+const ChemicalLink = () => {
+  const history = useHistory();
   return (
-    <div>
-      <Button type="primary" icon={<PlusOutlined />} style={{ marginBottom: 12 }} onClick={() => open(null)}>Add chemical</Button>
-      <Table rowKey="id" dataSource={rows} scroll={{ x: 640 }} locale={{ emptyText: <Empty description="No chemicals recorded" /> }} columns={[
-        { title: 'Chemical', dataIndex: 'chemical' }, { title: 'Location', dataIndex: 'location' }, { title: 'Quantity', dataIndex: 'quantity' },
-        { title: 'Hazard', dataIndex: 'hazard' },
-        { title: 'Risk', dataIndex: 'riskLevel', render: (r) => <Tag color={{ Low: 'green', Medium: 'gold', High: 'volcano', Critical: 'red' }[r]}>{r}</Tag> },
-        { title: 'SDS', dataIndex: 'sds_url', render: (u) => (u && /^https:\/\//.test(u) ? <a href={u} target="_blank" rel="noopener noreferrer">Open</a> : <Text type="secondary">None</Text>) },
-        { title: '', width: 100, render: (_, r) => (
-          <Space>
-            <Button size="small" aria-label="Edit" icon={<EditOutlined />} onClick={() => open(r)} />
-            <Popconfirm title="Delete this chemical?" onConfirm={async () => { try { await apiDelete(`/chemical/inventory/${r.id}`); load(); } catch (e) { message.error('Could not delete'); } }}>
-              <Button size="small" aria-label="Delete" danger icon={<DeleteOutlined />} />
-            </Popconfirm>
-          </Space>
-        ) },
-      ]} />
-      <Modal open={Boolean(edit)} title={edit?.id ? 'Edit chemical' : 'Add chemical'} okText="Save" confirmLoading={busy} onOk={save} onCancel={() => setEdit(null)}>
-        <Form form={form} layout="vertical">
-          <Form.Item name="chemical" label="Chemical" rules={[{ required: true, whitespace: true }]}><Input maxLength={100} /></Form.Item>
-          <Form.Item name="location" label="Location" rules={[{ required: true, whitespace: true }]}><Input maxLength={100} /></Form.Item>
-          <Form.Item name="quantity" label="Quantity" rules={[{ required: true, whitespace: true }]}><Input maxLength={50} placeholder="Example: 200 L" /></Form.Item>
-          <Form.Item name="hazard" label="Hazard class" rules={[{ required: true, whitespace: true }]}><Input maxLength={50} placeholder="Example: Flammable liquid" /></Form.Item>
-          <Form.Item name="riskLevel" label="Risk" rules={[{ required: true }]}><Select options={['Low', 'Medium', 'High', 'Critical'].map((x) => ({ value: x, label: x }))} /></Form.Item>
-          <Form.Item name="sds_url" label="Safety data sheet link" rules={[{ pattern: /^https:\/\//, message: 'Must start with https://' }]}><Input maxLength={500} /></Form.Item>
-        </Form>
-      </Modal>
-    </div>
+    <Card style={{ borderRadius: 12 }}>
+      <Paragraph>The chemical register moved to <b>Chemical safety</b>: identification from PubChem, GHS hazards, mixing and storage checks,
+        peroxide and expiry alerts, the supplier SDS and a safety summary with first aid. Chemicals already entered here were copied across.</Paragraph>
+      <Button type="primary" onClick={() => history.push('/chemicals')}>Open Chemical safety</Button>
+    </Card>
   );
 };
 
@@ -305,7 +265,7 @@ const IndustryWorkspace = ({ industryId }) => {
             {d && d.documents_total > d.documents.length && <Paragraph type="secondary" style={{ marginTop: 8 }}>Showing the latest {d.documents.length} of {d.documents_total}.</Paragraph>}
           </div>
         ) },
-        ...(cfg.inventory ? [{ key: 'inventory', label: <span><ToolOutlined /> Chemical inventory</span>, children: <Inventory /> }] : []),
+        ...(cfg.inventory ? [{ key: 'inventory', label: <span><ToolOutlined /> Chemical inventory</span>, children: <ChemicalLink /> }] : []),
       ]} />
     </div>
   );
