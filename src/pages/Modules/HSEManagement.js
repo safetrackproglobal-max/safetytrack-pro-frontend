@@ -77,7 +77,7 @@ const industries = [
     color: '#faad14',
     description: 'Ground control, ventilation, explosives safety',
     risk: 'Very High',
-    features: ['Ready Check for mobile plant and isolation', 'Noise and gas calculators', 'Hazards, controls and standards'],
+    features: ['Critical control verification with blind spots', 'Fit-for-shift fatigue check', 'Ground TARP and blast clearance'],
     component: IndustryWorkspace
   },
   {
