@@ -21,6 +21,7 @@ import WidgetLibrary from '../components/analytics/WidgetLibrary';
 import WidgetConfigModal from '../components/analytics/WidgetConfigModal';
 import DataEntryForms from '../components/analytics/DataEntryForms';
 import RecordsDrawer from '../components/analytics/RecordsDrawer';
+import SafetyKpiPanel from '../components/analytics/SafetyKpiPanel';
 import { ProjectBanner, ProjectFormModal, ProjectsDrawer, StatusTag } from '../components/analytics/ProjectPanel';
 import { DynamicChart } from '../components/analytics/DynamicChart';
 import {
@@ -88,7 +89,7 @@ const KPI_DEFS = [
   { key: 'ltifr', label: 'LTIFR', icon: <WarningOutlined />, suffix: '/1M hrs', digits: 2, color: (v) => (v > 1 ? '#f5222d' : '#52c41a'),
     help: (k) => `Lost-time cases × 1,000,000 ÷ man-hours. Based on ${k.lti_source || 'LTI records'} (${k.lti_cases ?? 0} cases).` },
   { key: 'trir', label: 'TRIR', icon: <AlertOutlined />, suffix: '/200k hrs', digits: 2, color: (v) => (v > 3 ? '#fa8c16' : '#52c41a'),
-    help: () => 'Total recordable incident rate: incidents × 200,000 ÷ man-hours.' },
+    help: (k) => `Recordable injuries (medical treatment, restricted work, lost time, fatality) × 200,000 ÷ man-hours. ${k.classified_incidents ? `${k.recordables ?? 0} recordable of ${k.classified_incidents} classified incidents.` : 'Classify injuries to calculate it.'}` },
   { key: 'total_incidents', label: 'Incidents', icon: <SafetyOutlined />, link: '/incidents',
     sub: (k) => `${k.open_incidents ?? 0} open · ${k.serious_incidents ?? 0} serious`, color: () => '#1677ff' },
   { key: 'total_man_hours', label: 'Man-hours', icon: <FieldTimeOutlined />, color: () => '#13c2c2', help: () => 'Hours worked in the selected period.' },
@@ -619,7 +620,7 @@ const PowerBIAnalytics = () => {
                action={<Button size="small" onClick={() => loadSummary()}>Try again</Button>} />
       )}
       {(summary?.notes || []).map((n) => <Alert key={n} type="info" showIcon className="pbi-alert pbi-no-export" message={n} closable
-                                                 action={<Button size="small" onClick={() => setEntry('manhours')}>Add man-hours</Button>} />)}
+                                                 action={/man-hours/.test(n) ? <Button size="small" onClick={() => setEntry('manhours')}>Add man-hours</Button> : null} />)}
       {editMode && (
         <Alert className="pbi-alert pbi-no-export" type="success" showIcon
                message="Layout editing is on: drag cards to reorder, use ✎ to change chart type, colours and width." />
@@ -632,6 +633,8 @@ const PowerBIAnalytics = () => {
       )}
 
       <StatusStrip modules={summary?.modules} projects={projects} onOpen={openLink} onProjects={() => setProjectsOpen(true)} />
+
+      {summary && <SafetyKpiPanel summary={summary} filters={filters} onOpen={openLink} onChanged={() => loadSummary(true)} />}
 
       {/* ------------------------------------------------ widgets */}
       {!summary && loading ? (
