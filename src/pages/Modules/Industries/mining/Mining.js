@@ -4,8 +4,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Button, Card, Checkbox, Col, DatePicker, Empty, Form, Input, InputNumber, Modal, Radio, Row, Select, Space, Table, Tag, Typography, message } from 'antd';
 import dayjs from 'dayjs';
-import { AimOutlined, AlertOutlined, FireOutlined, PlusOutlined, SafetyOutlined } from '@ant-design/icons';
+import { AimOutlined, AlertOutlined, CarOutlined, CloudOutlined, FireOutlined, LineChartOutlined, PlusOutlined, SafetyOutlined, TeamOutlined } from '@ant-design/icons';
 import { apiGet, apiPost } from '../../../../services/api';
+import { Exposure, Fleet, Monitoring, TagBoard } from './Mining2';
 
 const { Text, Paragraph } = Typography;
 const err = (e) => e?.response?.data?.error || e?.data?.error || e?.message || 'Something went wrong';
@@ -249,5 +250,9 @@ export const useMiningTabs = (enabled) => (enabled ? [
   { key: 'fatigue', label: <span><AlertOutlined /> Fit for shift</span>, children: <Fatigue /> },
   { key: 'tarp', label: <span><AimOutlined /> Ground TARP</span>, children: <Tarps /> },
   { key: 'blast', label: <span><FireOutlined /> Blasting</span>, children: <Blasts /> },
+  { key: 'tagboard', label: <span><TeamOutlined /> Underground tag board</span>, children: <TagBoard /> },
+  { key: 'exposure', label: <span><CloudOutlined /> Dust & silica</span>, children: <Exposure /> },
+  { key: 'fleet', label: <span><CarOutlined /> Fleet pre-start</span>, children: <Fleet /> },
+  { key: 'monitoring', label: <span><LineChartOutlined /> Slope & tailings</span>, children: <Monitoring /> },
 ] : []);
 
