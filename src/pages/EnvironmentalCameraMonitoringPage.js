@@ -44,6 +44,7 @@ import {
 import io from 'socket.io-client';
 import environmentalAIService from '../services/environmentalAIService';
 import VideoAnalysisPanel from '../components/AI/VideoAi';
+import SafetyVisionPanel from '../components/AI/SafetyVisionPanel';
 import './EnvironmentalCameraMonitoringPage.css';
 
 const { Option } = Select;
@@ -1014,6 +1015,9 @@ const EnvironmentalCameraMonitoringPage = () => {
               </Row>
             </Card>
           </Col>
+
+          {/* Photo / video hazard check (43-class model) */}
+          <Col span={24}><SafetyVisionPanel /></Col>
 
           {/* Camera Type Tabs */}
           <Col span={24}>
