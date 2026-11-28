@@ -390,19 +390,8 @@ const AIServiceTab = () => {
   } catch (error) {
     console.error('Get system health failed:', error);
     message.error('Failed to get system health');
-    // Set fallback system health data
-    setSystemHealth({
-      overall_status: 'healthy',
-      cameras_online: 2,
-      cameras_total: 3,
-      storage_usage_percent: 45,
-      cpu_usage_percent: 32,
-      memory_usage_percent: 58,
-      network_usage: 'stable',
-      last_maintenance: new Date(Date.now() - 86400000).toISOString(),
-      uptime_hours: 240,
-      checked_at: new Date().toISOString()
-    });
+    // no made-up figures when the check fails
+    setSystemHealth({ overall_status: 'unknown', checked_at: new Date().toISOString() });
   } finally {
     setLoading(false);
   }

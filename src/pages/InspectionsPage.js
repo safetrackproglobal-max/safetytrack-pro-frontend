@@ -324,7 +324,7 @@ const ToDo = ({ refreshKey, onOpen, onStart, onStartSchedule }) => {
   const [drafts, setDrafts] = useState(null);
   const [due, setDue] = useState([]);
   useEffect(() => {
-    inspectionService.list({ status: 'in_progress', mine: 1 }).then((r) => setDrafts(r.data.items)).catch(() => setDrafts([]));
+    inspectionService.list({ status: 'in_progress', mine: 1 }).then((r) => setDrafts(r?.data?.items || [])).catch(() => setDrafts([]));
     inspectionService.schedules(true).then((r) => setDue((r.data || []).filter((s) => s.active && s.due_in_days <= 7))).catch(() => setDue([]));
   }, [refreshKey]);
   if (drafts === null) return <Skeleton active />;
